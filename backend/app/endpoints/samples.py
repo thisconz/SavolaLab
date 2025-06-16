@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from sqlalchemy.orm import Session
@@ -28,7 +29,26 @@ async def list_samples(
     user: UserRead = Depends(get_current_user),
     db: Session = Depends(get_db)
     ):
-    return sample_logic.get_samples_by_user(db, user.employee_id)
+    """List all samples for the current user."""
+
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can list all samples")
+    
+    return sample_logic.get_all_samples(db) 
+
+# Latest sample
+@router.get("/latest", response_model=SampleRead)
+async def get_latest_sample(
+    user: UserRead = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get the latest sample for the current user."""
+    latest_sample = sample_logic.get_latest_sample(db, user.id)
+
+    if latest_sample is None:
+        raise HTTPException(status_code=404, detail="No samples found for the current user")
+    
+    return latest_sample
 
 # Retrieve a sample by ID
 @router.get("/{sample_id}", response_model=SampleRead)

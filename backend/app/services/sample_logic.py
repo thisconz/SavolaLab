@@ -50,6 +50,14 @@ def get_sample_by_id(
     ) -> Sample | None:
     return db.query(Sample).filter(Sample.id == sample_id).first()
 
+# Get all samples
+def get_all_samples(db: Session):
+    return db.query(Sample).all()
+
+# Get the latest samples
+def get_latest_sample(db: Session, user_id: UUID) -> Sample | None:
+    return db.query(Sample).filter(Sample.assigned_to == user_id).order_by(Sample.collected_at.desc()).first()
+
 # Get all samples with pagination
 def list_samples(
     db: Session, 
@@ -59,8 +67,10 @@ def list_samples(
     return db.query(Sample).offset(skip).limit(limit).all()
 
 # Count the total number of samples
-def count_samples(db: Session, assigned_to_id: UUID) -> int:
-    return db.query(Sample).filter(Sample.assigned_to == assigned_to_id).count()
+def count_samples(db: Session, user) -> int:
+    if user.role in {"admin", "qc_manager", "shift_chemist"}:
+        return db.query(Sample).count()
+    return db.query(Sample).filter(Sample.assigned_to == user.employee_id).count()
 
 # Get samples assigned to a specific user by their employee_id
 def get_samples_by_user(db: Session, employee_id: str, skip: int = 0, limit: int = 100):

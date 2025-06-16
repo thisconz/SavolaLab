@@ -64,14 +64,23 @@ async def get_dashboard_summary(
     Returns:
         dict: A dictionary containing aggregated data for the dashboard summary.
     """
-    samples_count = sample_logic.count_samples(db, user.id)
+    samples_count = sample_logic.count_samples(db, user)
     tests_count = test_logic.count_tests(db, user.employee_id)  
 
+    # Check if there are samples or tests for the user
     if not samples_count and not tests_count:
         return {
             "message": "No samples or tests found for the user.",
             "samples_count": 0,
             "tests_count": 0,
+        }
+    
+    # Check if there are samples or tests for the user in Admin or QC Manager or Admin role
+    if user.role not in ["admin", "qc_manager", "admin"]:
+        return {
+            "message": "You do not have permission to view this dashboard.",
+            "samples_count": 0,
+            "tests_count": 0, 
         }
 
     return {
