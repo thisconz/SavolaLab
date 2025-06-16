@@ -1,0 +1,201 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+from uuid import UUID
+
+from app.domain.schemas import TestResultCreate, TestResultRead
+from app.services import test_logic, get_current_user, get_test_result_by_id
+from app.infrastructure.database import get_db
+
+router = APIRouter()
+
+# Create a new test result
+@router.post("/", response_model=TestResultRead, status_code=201)
+async def create_test_result(
+    test_in: TestResultCreate, 
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+    ):
+    """
+    Create a new test result.
+    Parameters:
+        test_in (TestResultCreate): The test result data to create.
+        user: The current authenticated user.
+        db: The SQLAlchemy database session.
+
+    Returns:
+        TestResultRead: The created test result.
+
+    Responses:
+        201: Test result created successfully.
+        401: Unauthorized access.
+        403: Not authorized to create a test result.
+    """
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    
+    if not test_logic.user_can_create_test_result(user):
+        raise HTTPException(status_code=403, detail="Not authorized to create a test result")
+    
+    test_result = test_logic.create_test_result(db, test_in, user.employee_id)
+
+    return TestResultRead.from_orm(test_result)
+
+# Get all test results for the current user
+@router.get("/{test_id}", response_model=TestResultRead)
+async def get_test_result(
+    test_id: UUID, 
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+    ):
+    """
+    Retrieve a test result by its ID.
+
+    Parameters:
+        test_id (UUID): The ID of the test result to retrieve.
+        user: The current authenticated user.
+        db: The SQLAlchemy database session.    
+
+    Returns:
+        TestResultRead: The requested test result.
+
+    Responses:
+        200: Test result retrieved successfully.
+        401: Unauthorized access.
+        403: Not authorized to access this test result.
+        404: Test result not found.
+    """
+    test = test_logic.get_test_result_by_id(db, test_id)
+
+    if user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    
+    if not test_logic.user_can_access_test(user, test):
+        raise HTTPException(status_code=403, detail="Not authorized to access this test result")
+
+    if test is None:
+        raise HTTPException(status_code=404, detail="Test result not found")
+
+    return test
+
+# Get all test results for a specific sample
+@router.get("/sample/{sample_id}", response_model=List[TestResultRead])
+async def get_tests_for_sample(
+    sample_id: UUID, 
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+    ):
+    """
+    Retrieve all test results for a specific sample.
+
+    Parameters:
+        sample_id (UUID): The ID of the sample to retrieve test results for. Must be a positive integer.
+        user: The current authenticated user.
+        db: The SQLAlchemy database session.
+
+    Returns:
+        List[TestResultRead]: A list of test results for the specified sample.
+
+    Responses:
+        200: Test results retrieved successfully.
+        401: Unauthorized access.
+        403: Not authorized to access test results for this sample.
+        404: Sample not found.
+    """
+    if user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    
+    if not test_logic.user_can_access_sample(user, sample_id):
+        raise HTTPException(status_code=403, detail="Not authorized to access test results for this sample")
+
+    sample = test_logic.get_sample_by_id(db, sample_id)
+    if sample is None:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    
+    return test_logic.get_test_results_by_sample(db, sample_id)
+
+# Update an existing test result
+@router.put("/{test_id}", response_model=TestResultRead)
+async def update_test_result(
+    test_id: UUID, 
+    test_in: TestResultCreate, 
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+    ):
+    """
+    Update an existing test result.
+
+    Parameters:
+        test_id (UUID): The ID of the test result to update. Must be a positive integer.
+        test_in (TestResultCreate): The updated test result data.
+        user: The current authenticated user.
+        db: The SQLAlchemy database session.
+
+    Returns:
+        TestResultRead: The updated test result.
+
+    Responses:
+        200: Test result updated successfully.
+        400: Invalid test_id or input data.
+        401: Unauthorized access.
+        403: Not authorized to update this test result.
+        404: Test result not found.
+        409: Test result already exists.
+    """
+    if test_id <= 0:
+        raise HTTPException(status_code=400, detail="`test_id` must be a positive integer")
+    
+    if user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+
+    test = test_logic.get_test_result_by_id(test_id)
+    if not test_logic.user_can_access_test(user, test_id):
+        raise HTTPException(status_code=403, detail="Not authorized to update this test result")
+
+    updated_test = test_logic.update_test_result(test_id, test_in, user.employee_id)
+    if updated_test is None:
+        raise HTTPException(status_code=404, detail="Test result not found or not authorized to update")
+
+    if updated_test is False:
+        raise HTTPException(status_code=409, detail="Test result already exists")
+
+    return updated_test
+
+# Delete a test result
+@router.delete("/{test_id}", status_code=204)
+async def delete_test_result(
+    test_id: UUID, 
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Delete a test result.
+
+    Parameters:
+        test_id (UUID):  The ID of the test result to delete.
+        user: The current authenticated user.
+        db: The SQLAlchemy database session.
+
+    Returns:
+        dict: A success message.
+
+    Responses:
+        204: Test result deleted successfully.
+        401: Unauthorized access.
+        403: Not authorized to delete this test result.
+        404: Test result not found.
+    """
+    if user is None:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+
+    test = test_logic.get_test_result_by_id(db, test_id)
+    if test is None:
+        raise HTTPException(status_code=404, detail="Test result not found")
+
+    if not test_logic.user_can_access_test(user, test):
+        raise HTTPException(status_code=403, detail="Not authorized to delete this test result")
+
+    test_logic.delete_test_result(db, test)
+
+    return {"message": "Test result deleted successfully"}
