@@ -1,3 +1,4 @@
+# Calculates total sucrose content in grams
 def calculate_sucrose(concentration_percent: float, sample_weight: float) -> float:
     """
     Calculates total sucrose content in grams.
@@ -23,6 +24,7 @@ def calculate_sucrose(concentration_percent: float, sample_weight: float) -> flo
     sucrose_grams = (concentration_percent / 100.0) * sample_weight
     return sucrose_grams
 
+# Calculates sucrose content in Brix value
 def calculate_sucrose_from_brix(brix_value: float, sample_weight: float) -> float:
     """
     Converts Brix value to sucrose content in grams.
@@ -43,9 +45,9 @@ def calculate_sucrose_from_brix(brix_value: float, sample_weight: float) -> floa
     if sample_weight is None:
         raise ValueError("Sample weight cannot be None")
 
-    # Assuming Brix is equivalent to sucrose concentration
     return calculate_sucrose(brix_value, sample_weight)
 
+# Calculates sucrose content based on density
 def calculate_sucrose_from_density(density: float, sample_weight: float) -> float:
     """
     Estimates sucrose content based on density.
@@ -70,6 +72,5 @@ def calculate_sucrose_from_density(density: float, sample_weight: float) -> floa
     if density > 1.5:
         raise ValueError("Density must be less than or equal to 1.5 g/mL for sucrose solutions")
 
-    # Assuming a linear relationship between density and sucrose concentration
     concentration_percent = (density - 1.0) * 100.0
     return calculate_sucrose(concentration_percent, sample_weight)

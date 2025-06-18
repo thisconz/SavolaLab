@@ -1,5 +1,6 @@
 from pydantic import BaseSettings
 
+# Define the settings class
 class Settings(BaseSettings):
     """
     Application settings loaded from environment variables or a .env file.

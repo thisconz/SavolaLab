@@ -18,7 +18,6 @@ S3_BUCKET_NAME = settings.S3_BUCKET_NAME
 # --- Attachments ---
 
 # Save Attachment
-
 def save_attachment(
     file: UploadFile,
     db: Session,

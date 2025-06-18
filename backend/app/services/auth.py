@@ -8,13 +8,16 @@ from app.domain.schemas.user import UserCreate
 from app.domain.models.enums import UserRole
 from app.infrastructure.security import get_password_hash, verify_password, create_access_token
 
+# --- O Authentication 2 Password Bearer ---
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
-# This module provides authentication and user management services.
+# --- Authentication and Authorization ---
+
+# Gets the current user based on the Employee ID.
 async def get_user_by_employee_id(db: Session, employee_id: str) -> User | None:
     return db.query(User).filter(User.employee_id == employee_id).first()
     
-# This function hashes the password using a secure hashing algorithm.
+# Registers a new user.
 async def register_user(db: Session, user_in: UserCreate) -> User:
     hashed_password = get_password_hash(user_in.password)
 
@@ -25,7 +28,7 @@ async def register_user(db: Session, user_in: UserCreate) -> User:
     # If role is None, set it to UserRole.OTHER
     elif user_in.role is None:
         user_in.role = UserRole.OTHER
-        
+    
     # Create the user
     user = User(
         employee_id=user_in.employee_id,
@@ -33,14 +36,16 @@ async def register_user(db: Session, user_in: UserCreate) -> User:
         password=hashed_password,
         role=user_in.role.value 
     )
-    # Add the user to the database
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
 
-# This function verifies the password against the stored hashed password.
-async def authenticate_user(db: Session, employee_id: str, password: str) -> User | None:
+# Verifies the password against the hashed password.
+async def authenticate_user(
+        db: Session, 
+        employee_id: str, 
+        password: str) -> User | None:
     user = await get_user_by_employee_id(db, employee_id)
     if not user:
         return None
@@ -48,18 +53,22 @@ async def authenticate_user(db: Session, employee_id: str, password: str) -> Use
         return None
     return user
 
-# This function creates an access token for the user.
-async def create_access_token_for_user(user: User) -> str:
+# Creates an access token for the user.
+async def create_access_token_for_user(
+        user: User) -> str:
     data = {"sub": user.employee_id, "role": user.role.value}
     return create_access_token(data)
 
-# This function decodes the access token and returns the payload.
-def decode_access_token(token: str) -> dict | None:
+# Returns the decoded access token.
+def decode_access_token(
+        token: str) -> dict | None:
     from app.infrastructure.security import decode_access_token
     return decode_access_token(token)
 
-# This function retrieves the current user from the access token.
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+# Returns the current user based on the token.
+def get_current_user(
+        token: str = Depends(oauth2_scheme), 
+        db: Session = Depends(get_db)) -> User:
     payload = decode_access_token(token)
     if not payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
@@ -71,26 +80,35 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
 
-# This function checks if the user has the required role.
-def user_has_role(user: User, role: UserRole) -> bool:
+# Checks if the user has a role.
+def user_has_role(
+        user: User, 
+        role: UserRole) -> bool:
     return user.role == role
 
-# This function checks if the user is an Admin.
-def is_admin(user: User) -> bool:
+# Role-based access control functions
+
+# Is Admin
+def is_admin(
+        user: User) -> bool:
     return user_has_role(user, UserRole.ADMIN)
 
-# This function checks if the user is a QC Manager.
-def is_qc_manager(user: User) -> bool:
+# Is QC Manager
+def is_qc_manager(
+        user: User) -> bool:
     return user_has_role(user, UserRole.QC_MANAGER)
 
-# This function checks if the user is a Shift Chemist.
-def is_shift_chemist(user: User) -> bool:
+# Is Shift Chemist
+def is_shift_chemist(
+        user: User) -> bool:
     return user_has_role(user, UserRole.SHIFT_CHEMIST)
 
-# This function checks if the user is a Chemist.
-def is_chemist(user: User) -> bool:
+# Is Chemist
+def is_chemist(
+        user: User) -> bool:
     return user_has_role(user, UserRole.CHEMIST)
 
-#  This function checks if the user is a Other.
-def is_other(user: User) -> bool:
+# Is Other
+def is_other(
+        user: User) -> bool:
     return user_has_role(user, UserRole.OTHER)

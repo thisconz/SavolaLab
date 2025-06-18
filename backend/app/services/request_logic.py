@@ -6,24 +6,20 @@ from app.domain.schemas.request import RequestCreate, RequestUpdate
 
 # --- Requests ---
 
-# Get request by user id
-def get_requests_by_user(
+# Get request by Employee ID
+def get_requests_by_employee_id(
     db: Session, 
-    user_id: UUID):
-    return db.query(Request).filter(Request.requested_by != user_id).all()
-
-# Get lab requests by user
-def get_lab_requests_by_user(
-    db: Session, 
-    user_id: UUID):
-    return db.query(Request).filter(Request.requested_by == user_id).all()
+    employee_id: str):
+    return db.query(Request).filter(Request.requested_by == employee_id).all()
 
 # Create a new request
 def create_request(
     db: Session, 
     request_data: dict, 
-    created_by_employee_id: str):
-    new_request = Request(**request_data, created_by=created_by_employee_id)
+    created_by_employee_id: str
+):
+    request_data["requested_by"] = created_by_employee_id
+    new_request = Request(**request_data)
     db.add(new_request)
     db.commit()
     db.refresh(new_request)
@@ -33,7 +29,8 @@ def create_request(
 def update_request(
     db: Session, 
     request_id: int, 
-    update_data: dict):
+    update_data: dict
+):
     request = db.query(Request).filter(Request.id == request_id).first()
     if not request:
         return None

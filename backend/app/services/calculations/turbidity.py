@@ -1,3 +1,4 @@
+# Calculates turbidity from absorbance using calibration factor.
 def calculate_turbidity(absorbance: float, calibration_factor: float = 1.0) -> float:
     """
     Calculates turbidity from absorbance using calibration factor.

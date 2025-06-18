@@ -1,13 +1,13 @@
+import uvicorn
+import asyncio
 import logging
 import os
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import FastAPI
 
 from app.infrastructure.config import settings
-from app.infrastructure.database import init_db
+from app.infrastructure.database import drop_tables, init_db, reset_tables
 from app.endpoints import attachments, dashboard, samples, tests, users, qc_manager, admin, requests
 
 # SavolaLab

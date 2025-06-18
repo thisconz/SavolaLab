@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
+# Parse a datetime string into a datetime object
 def parse_datetime(dt_str: str, fmt: Optional[str] = None) -> datetime:
     """
     Parses a datetime string into a datetime object.
@@ -13,6 +14,7 @@ def parse_datetime(dt_str: str, fmt: Optional[str] = None) -> datetime:
     # Try ISO format by default
     return datetime.fromisoformat(dt_str)
 
+# Format a datetime object to string
 def format_datetime(dt: datetime, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
     """
     Formats a datetime object to string.

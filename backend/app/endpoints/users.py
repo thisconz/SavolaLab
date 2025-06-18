@@ -79,20 +79,3 @@ async def read_user(
         raise HTTPException(status_code=404, detail="User not found")
     
     return user
-
-# This endpoint for registering a new user without admin or qc manager role.
-@router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-async def register_user(
-    user_in: UserCreate,
-    db: Session = Depends(get_db),
-):
-    """
-    Endpoint to register a new user.
-    Only accessible by users without admin or QC Manager roles.
-    """
-    existing_user = await auth.get_user_by_employee_id(db, user_in.employee_id)
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Employee ID already registered")
-    
-    user = await auth.register_user(db, user_in)
-    return user

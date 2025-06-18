@@ -5,12 +5,13 @@ from sqlalchemy import create_engine
 from .config import settings
 from app.domain.base import Base
 
-
+# Engine
 engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
+
+# Session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# This module provides functions to manage the database connection and operations.
-# This module provides a function to get a database session.
+# Get the database URL from the settings
 def get_db():
     db = SessionLocal()
     try:
@@ -22,8 +23,7 @@ def get_db():
     finally:
         db.close()
 
-# This module provides functions to manage the database connection and operations.
-# This module provides a function to initialize the database tables and run raw SQL if exists.
+# Initialize the database tables
 def init_db():
     with engine.begin() as conn:
         Base.metadata.create_all(bind=conn)
@@ -39,8 +39,7 @@ def init_db():
             print("No init.sql file found; skipping raw SQL initialization.")
         print("All database tables initialize successfully.")
 
-# This module provides functions to manage the database connection and operations.
-# This module provides functions to reset the database tables.
+# Reset all database tables
 def reset_tables():
     """
     Reset all database tables.
@@ -60,8 +59,7 @@ def reset_tables():
             print("No ini.sql file found; skipping raw SQL initialization.")
         print("All database tables reset successfully.")
 
-# This module provides functions to manage the database connection and operations.
-# This module provides functions to drop all database tables.
+# Drop all database tables
 def drop_tables():
     """
     Drop all database tables.
@@ -79,4 +77,3 @@ def drop_tables():
         except FileNotFoundError:
             print("No ini.sql file found; skipping raw SQL initialization.")
         print("All database tables dropped successfully.")
-

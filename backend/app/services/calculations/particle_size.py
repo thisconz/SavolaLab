@@ -1,4 +1,4 @@
-# This file is part of the Particle Size Analysis Service.
+# Calculates average particle size based on input measurements.
 def calculate_particle_size(sample_data: dict) -> float:
     """
     Calculates average particle size based on input measurements.

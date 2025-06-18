@@ -1,4 +1,3 @@
-import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from sqlalchemy.orm import Session

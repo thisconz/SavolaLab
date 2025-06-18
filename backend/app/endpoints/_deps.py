@@ -22,8 +22,8 @@ def admin_or_qc_manager(user: User = Depends(get_current_user)) -> User:
         )
     return user
 
-# Dependency to check if the user has one of the allowed roles
-def role_in_allowed_roles(*allowed_roles: UserRole):
+# Allowed QC roles
+def qc_roles_allowed(*allowed_roles: UserRole):
     def wrapper(user: User = Depends(get_current_user)) -> User:
         if user.role not in allowed_roles:
             raise HTTPException(
@@ -34,7 +34,7 @@ def role_in_allowed_roles(*allowed_roles: UserRole):
     return wrapper
 
 # Usage-specific dependency
-allowed_qc_roles = role_in_allowed_roles(
+allowed_qc_roles = qc_roles_allowed(
     UserRole.ADMIN,
     UserRole.QC_MANAGER,
     UserRole.SHIFT_CHEMIST,

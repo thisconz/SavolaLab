@@ -15,8 +15,6 @@ async def get_dashboard(
     ):
     """
     Retrieve samples and tests for the current user.
-    Returns:
-        dict: A dictionary containing samples and tests for the dashboard.
     """
     samples = sample_logic.get_samples_by_user(db, user.employee_id)
     tests = test_logic.get_tests_by_user(db, user.employee_id)
@@ -61,8 +59,6 @@ async def get_dashboard_summary(
     """Retrieve a summary of the dashboard for the current user.
     This endpoint aggregates data from samples and tests to provide a summary
     of the user's activity and statistics.
-    Returns:
-        dict: A dictionary containing aggregated data for the dashboard summary.
     """
     samples_count = sample_logic.count_samples(db, user)
     tests_count = test_logic.count_tests(db, user.employee_id)  

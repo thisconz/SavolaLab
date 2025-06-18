@@ -1,5 +1,4 @@
-# This file is part of the OpenAgua project.
-# This file provides functions to calculate pH values from raw measurements or voltage readings.
+# Calculates the pH value from the raw value.
 def calculate_ph(raw_value: float, calibration_offset: float = 0.0) -> float:
     """
     Calibrates and returns the pH value.
@@ -37,7 +36,7 @@ def calculate_ph(raw_value: float, calibration_offset: float = 0.0) -> float:
         calibrated_ph = 14.0
     return calibrated_ph
 
-# This file is part of the OpenAgua project.
+# Calculates the pH value from the voltage reading.
 def calculate_ph_from_voltage(voltage: float, slope: float = 59.16, offset: float = 0.0) -> float:
     """
     Converts voltage reading from pH meter to pH value.

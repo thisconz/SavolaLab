@@ -1,5 +1,6 @@
 from app.domain.models.enums import AttachmentTag, AutoTag
 
+# Auto-tagging logic
 def auto_tag_filename(filename: str) -> AttachmentTag:
     """
     Automatically assign a tag based on the filename content.
@@ -27,6 +28,7 @@ def auto_tag_filename(filename: str) -> AttachmentTag:
 
     return AttachmentTag.OTHER
 
+# (Optional) Auto-tagging logic based on file content
 def auto_tag_from_content(content: bytes) -> AutoTag:
     """
     (Optional) Analyze file content to assign auto tags.
@@ -34,8 +36,6 @@ def auto_tag_from_content(content: bytes) -> AutoTag:
     :param content: Binary content of the file
     :return: AutoTag enum member or None
     """
-    # Example: just a placeholder implementation
-    # Real implementation might analyze text or metadata
     text_snippet = content[:100].decode(errors="ignore").lower()
 
     if "raw" in text_snippet or "scan" in text_snippet:
