@@ -8,6 +8,9 @@ from uuid import uuid4
 from app.infrastructure.config import settings
 from app.infrastructure.s3_client import upload_file, delete_file, generate_presigned_url
 
+# Utils
+from app.utils.file_tagging import auto_tag_filename, auto_tag_from_content
+
 # Models
 from app.domain.models import SampleAttachment
 
@@ -51,8 +54,12 @@ def save_attachment(
     else:
         attachment_type = AttachmentType.OTHER
 
-    # Tag attachment
-    tag = AttachmentTag.OTHER
+    # Auto tag based on filename
+    tag = auto_tag_filename(file.filename)
+    content_based_tag = auto_tag_from_content(file_content)
+    if content_based_tag:
+        tag = AttachmentTag(content_based_tag.value)
+
 
     attachment = SampleAttachment(
         sample_id=sample_id,
