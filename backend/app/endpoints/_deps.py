@@ -1,10 +1,17 @@
 from fastapi import Depends, HTTPException, status
 
+# Models
 from app.domain.models.user import User
+
+# Services
 from app.services.auth import is_qc_manager, get_current_user, is_admin
+
+# Enums
 from app.domain.models.enums import UserRole
 
-# Dependency to ensure the user is admin
+# --- Dependencies ---
+
+# Admin-only dependency
 def admin_only(user: User = Depends(get_current_user)) -> User:
     if not is_admin(user):
         raise HTTPException(
@@ -13,7 +20,7 @@ def admin_only(user: User = Depends(get_current_user)) -> User:
         )
     return user
 
-# Dependency to ensure the user is admin or QC Manager
+# Admin or QC Manager dependency
 def admin_or_qc_manager(user: User = Depends(get_current_user)) -> User:
     if not is_admin(user) and not is_qc_manager(user):
         raise HTTPException(
@@ -22,9 +29,9 @@ def admin_or_qc_manager(user: User = Depends(get_current_user)) -> User:
         )
     return user
 
-# Allowed QC roles
+# Allowed QC Roles dependency
 def qc_roles_allowed(*allowed_roles: UserRole):
-    def wrapper(user: User = Depends(get_current_user)) -> User:
+    def wrapper(user: User = Depends(get_current_user)) -> User:        
         if user.role not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

@@ -2,20 +2,31 @@ from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
 
+# Services
 from app.services import (
     save_attachment,
     delete_attachment,
     get_attachment_by_id,
     get_attachment_url,
 )
-from app.domain.models import SampleAttachment, User, Sample
+
+# Models
+from app.domain.models import User, Sample
+
+# Schemas
 from app.domain.schemas import AttachmentRead
+
+## Database
 from app.infrastructure.database import get_db
+
+# Dependencies
 from app.endpoints._deps import allowed_qc_roles
 
 router = APIRouter()
 
-# Upload attachment to a sample
+# --- Attachment endpoints ---
+
+# Upload attachment to a sample batch number
 @router.post("/{sample_batch_number}/upload", response_model=AttachmentRead)
 def upload_sample_attachment(
     sample_batch_number: str,
@@ -32,7 +43,7 @@ def upload_sample_attachment(
     
     return save_attachment(file=file, db=db, sample_id=sample.id, employee_id=user.employee_id)
 
-# Read attachment metadata
+# Get attachment URL by ID
 @router.get("/{attachment_id}", response_model=AttachmentRead)
 def read_attachment(
     attachment_id: UUID,
@@ -47,7 +58,7 @@ def read_attachment(
         raise HTTPException(status_code=404, detail="Attachment not found")
     return attachment
 
-# Delete attachment
+# Delete attachment by ID
 @router.delete("/{attachment_id}")
 def delete_sample_attachment(
     attachment_id: UUID,
@@ -70,7 +81,7 @@ def delete_sample_attachment(
     )
     return {"detail": "Attachment deleted successfully"}
 
-# Get download URL
+# Get an attachment download URL
 @router.get("/{attachment_id}/url", response_model=str)
 def get_attachment_download_url(
     attachment_id: UUID,

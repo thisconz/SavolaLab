@@ -1,13 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import UUID
 from sqlalchemy.orm import Session
 
-from app.services import request_logic
-from app.services import get_current_user
+# Services
+from app.services import request_logic, get_current_user
+
+# Database
 from app.infrastructure.database import get_db
+
+# Models
 from app.domain.models.user import User
-from app.domain.schemas.request import RequestCreate
+
+# Schemas
+from app.domain.schemas.request import RequestCreate, RequestUpdate
 
 router = APIRouter()
+
+# --- Request Endpoints ---
 
 # Create a new request TO the QC Department (Only Other Role)
 @router.post("/lab")
@@ -137,3 +146,34 @@ async def view_requests_from_qc(
         "total_requests": len(requests),
         "requests": requests
     }
+
+# Update request status
+@router.put("/{request_id}")
+async def update_request_status(
+    request_id: UUID,
+    request_data: RequestUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """
+    Update the status of a request.
+
+    Responses:
+    - 200: Request status updated successfully
+    - 401: Unauthorized access
+    - 403: User does not have permission to update this request
+    """
+    # 401: Unauthorized access
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    
+    # 403: User does not have permission to update this request
+    if user.role not in ["chemist", "shift_chemist", "qc_manager", "admin"]:
+        raise HTTPException(status_code=403, detail="You do not have permission to update this request.")
+
+    updated_request = request_logic.update_request(db, request_id, request_data, user.employee_id)
+    return {
+        "message": "Request status updated successfully.",
+        "request": updated_request,
+    }
+

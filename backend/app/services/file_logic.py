@@ -4,18 +4,21 @@ from io import BytesIO
 from uuid import UUID
 from uuid import uuid4
 
+# Infrastructure
 from app.infrastructure.config import settings
 from app.infrastructure.s3_client import upload_file, delete_file, generate_presigned_url
+
+# Models
 from app.domain.models import SampleAttachment
+
+# Enums
 from app.domain.models.enums import AttachmentType, AttachmentTag
 
-# --- MinIO ---
+# --- Attachments ---
 
-# S3 Configuration
+# Settings for MinIO (S3-compatible)
 S3_ENDPOINT_URL = settings.S3_ENDPOINT_URL
 S3_BUCKET_NAME = settings.S3_BUCKET_NAME
-
-# --- Attachments ---
 
 # Save Attachment
 def save_attachment(
@@ -31,7 +34,7 @@ def save_attachment(
     file_content = file.file.read()
     file.file.seek(0)
 
-    # Wrap content in a file-like object for upload_fileobj
+    # Create a BytesIO object from the file content
     file_like = BytesIO(file_content)
 
     # Upload to MinIO (S3-compatible)
@@ -48,7 +51,7 @@ def save_attachment(
     else:
         attachment_type = AttachmentType.OTHER
 
-    # Optional fallback for tag
+    # Tag attachment
     tag = AttachmentTag.OTHER
 
     attachment = SampleAttachment(

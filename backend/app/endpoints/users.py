@@ -3,16 +3,27 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from uuid import UUID
 
-from app.domain.schemas.user import UserRead, UserUpdate, UserLogin
+# Schemas
+from app.domain.schemas.user import UserRead, UserUpdate
+
+# Enums
 from app.domain.models.enums import UserRole
+
+# Models
 from app.domain.models.user import User
+
+# Infrastructure
 from app.infrastructure.security import get_password_hash
 from app.infrastructure.database import get_db
+
+# Services
 from app.services import auth
 
 router = APIRouter()
 
-# This endpoint allows a user to log in and receive an access token.
+# --- User Endpoints ---
+
+# Login user and get access token
 @router.post("/login")
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -30,7 +41,7 @@ async def login(
     token = await auth.create_access_token_for_user(user)
     return {"access_token": token, "token_type": "bearer"}
 
-# This endpoint for Forgot Password
+# Forgot password
 @router.post("/forgot-password")
 async def forgot_password(
     employee_id: str,
@@ -65,7 +76,7 @@ async def forgot_password(
         "employee_id": user.employee_id,
     }
 
-# This endpoint allows a user to read their own details.
+# Get current user details
 @router.get("/me", response_model=UserRead)
 async def read_user_me(
     current_user=Depends(auth.get_current_user)
@@ -76,7 +87,7 @@ async def read_user_me(
     """
     return current_user
 
-# This endpoint allows a user to update their own details.
+# Update current user details
 @router.put("/me", response_model=UserRead)
 async def update_user_me(
     user_in: UserUpdate,
@@ -99,7 +110,7 @@ async def update_user_me(
     )
     return updated_user
 
-# This endpoint allows a QC Manager or Admin to read any user's details by their employee ID.
+# Get user details as an admin or QC Manager by employee ID
 @router.get("/{employee_id}", response_model=UserRead)
 async def read_user(
     employee_id: str,

@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field, constr
 from uuid import UUID
 from typing import Optional
+
+# Enums
 from app.domain.models.enums import UserRole
 
 class UserBase(BaseModel):

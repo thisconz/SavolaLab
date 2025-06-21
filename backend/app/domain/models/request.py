@@ -41,5 +41,6 @@ class Request(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
     sample = relationship("Sample", back_populates="requests", primaryjoin="Request.sample_batch_number == Sample.batch_number", foreign_keys=[sample_batch_number])
     requested_by_user = relationship("User", back_populates="requests", foreign_keys=[requested_by])

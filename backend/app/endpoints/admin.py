@@ -2,15 +2,26 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
 
+# Models
 from app.domain.models.user import User
+
+# Database
 from app.infrastructure.database import get_db
+
+# Services
 from app.services.auth import get_current_user
+
+# Dependencies
 from app.endpoints._deps import admin_only
+
+# Enums
 from app.domain.models.enums import UserRole
 
 router = APIRouter()
 
-# Endpoint to chanege user a role.
+# --- Admin-only endpoints ---
+
+# Change User Role
 @router.put("/users/{user_id}/role")
 async def change_user_role(
     user_id: UUID,
@@ -30,7 +41,7 @@ async def change_user_role(
     db.refresh(user)
     return user
 
-# Endpoint to delete a user.
+# Delete User
 @router.delete("/users/{user_id}")
 async def delete_user(
     user_id: UUID,

@@ -3,12 +3,14 @@ from typing import List
 from sqlalchemy.orm import Session
 from uuid import UUID
 
+# Database
 from app.infrastructure.database import get_db
-from app.domain.schemas import SampleCreate, SampleRead, SampleUpdate
-from app.services import create_sample_in
-from app.services import get_current_user
-from app.services import sample_logic
-from app.domain.schemas import UserRead
+
+# Schemas
+from app.domain.schemas import SampleCreate, SampleRead, SampleUpdate, UserRead
+
+# Services
+from app.services import create_sample_in, get_current_user, sample_logic
 
 router = APIRouter()
 
@@ -61,7 +63,7 @@ async def get_latest_sample(
     
     return latest_sample
 
-# Get a sample by ID
+# Get a sample by Batch Number
 @router.get("/{batch_number}", response_model=SampleRead)
 def get_sample(
     batch_number: str, 
@@ -76,7 +78,7 @@ def get_sample(
         raise HTTPException(status_code=403, detail="Not authorized to access this sample")
     return sample
 
-# Update a sample by ID
+# Update a sample by Batch Number
 @router.put("/{batch_number}", response_model=SampleRead)
 async def update_sample(
     batch_number: str,

@@ -1,24 +1,26 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
 
+# Models
 from app.domain.models.request import Request
-from app.domain.schemas.request import RequestCreate, RequestUpdate
+
+# Schemas
+from app.domain.schemas.request import RequestCreate
 
 # --- Requests ---
-
-# Get request by Employee ID
 
 # Requests created by a user
 def get_requests_created_by_user(db: Session, employee_id: str):
     return db.query(Request).filter(Request.requested_by == employee_id).all()
-
 # Requests TO the QC team
 def get_requests_to_qc_team(db: Session):
     return db.query(Request).filter(Request.target_department == "qc").all()
-
 # Requests FROM the QC team
 def get_requests_from_qc_team(db: Session):
     return db.query(Request).filter(Request.source_department == "qc").all()
+# Get request by request ID
+def get_request_by_id(db: Session, request_id: UUID):
+    return db.query(Request).filter(Request.id == request_id).first()
 
 # Create a new request
 def create_request(db: Session, request_data: RequestCreate, created_by_employee_id: str):
@@ -52,9 +54,3 @@ def cancel_request(
     db.commit()
     db.refresh(request)
     return request
-
-# Get request by request ID
-def get_request_by_id(
-    db: Session, 
-    request_id: UUID):
-    return db.query(Request).filter(Request.id == request_id).first()

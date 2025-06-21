@@ -3,6 +3,7 @@ from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
+# Enums
 from app.domain.models.enums import AttachmentTag, AttachmentType
 
 class AttachmentBase(BaseModel):

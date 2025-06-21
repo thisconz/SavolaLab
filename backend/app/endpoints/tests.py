@@ -3,59 +3,47 @@ from sqlalchemy.orm import Session
 from typing import List
 from uuid import UUID
 
+# Schemas
 from app.domain.schemas import TestResultCreate, TestResultRead
+
+# Services
 from app.services import test_logic, sample_logic, get_current_user
+
+# Database
 from app.infrastructure.database import get_db
 
 router = APIRouter()
 
-# Create a new test result
+# --- Test Endpoints ---
+
 @router.post("/", response_model=TestResultRead, status_code=201)
 async def create_test_result(
     test_in: TestResultCreate, 
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
-    ):
-    """
-    Create a new test result.
-    Parameters:
-        test_in (TestResultCreate): The test result data to create.
-        user: The current authenticated user.
-        db: The SQLAlchemy database session.
-
-    Returns:
-        TestResultRead: The created test result.
-
-    Responses:
-        201: Test result created successfully.
-        401: Unauthorized access.
-        403: Not authorized to create a test result.
-        404: Sample not found.
-        409: Test result already exists.
-        422: Invalid test result data.
-        482: User cannot create test results using other users' assigned samples.
-    """
+):
     sample = sample_logic.get_sample_by_batch_number(db, test_in.sample_batch_number)
+
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized access")
     
-    if not test_logic.user_can_create_test_result(user):
+    if not test_logic.user_can_create_test_result_for_sample(user):
         raise HTTPException(status_code=403, detail="Not authorized to create a test result")
     
-    if not sample_logic.sample_exists(db, test_in.sample_batch_number):
+    if not sample:
         raise HTTPException(status_code=404, detail="Sample not found")
     
-    if test_logic.test_result_exists(db, test_in.sample_batch_number):
-        raise HTTPException(status_code=409, detail="Test result already exists")
+    existing_results = test_logic.get_test_results_by_sample_batch_number(db, test_in.sample_batch_number)
+    if any(r.parameter == test_in.parameter.value.lower() for r in existing_results):
+        raise HTTPException(status_code=409, detail="Test result for this parameter already exists")
     
     if not test_logic.is_valid_test_result(test_in):
-        raise HTTPException(status_code=422, detail="Invalid test result data")
+        raise HTTPException(status_code=410, detail="Invalid test result data")
     
     if not test_logic.user_can_create_test_result_for_sample(user, sample):
-        raise HTTPException(status_code=482, detail="User cannot create test results on this sample")
+        raise HTTPException(status_code=413, detail="User cannot create test results on this sample")
     
     test_result = test_logic.create_test_result(db, test_in, user.employee_id)
-
     return TestResultRead.from_orm(test_result)
 
 # Get Results for a sample by Batch Number
@@ -127,7 +115,7 @@ async def get_test_result(
     if user is None:
         raise HTTPException(status_code=401, detail="Unauthorized access")
     
-    if not test_logic.user_can_access_test(user, test):
+    if not test_logic.user_can_access_test_result(user, test):
         raise HTTPException(status_code=403, detail="Not authorized to access this test result")
 
     if test is None:
@@ -172,7 +160,7 @@ async def get_tests_for_sample(
     if sample is None:
         raise HTTPException(status_code=404, detail="Sample not found")
     
-    return test_logic.get_test_results_by_sample(db, sample_id)
+    return test_logic.get_test_results_by_sample_batch_number(db, sample_id)
 
 # Update an existing test result
 @router.put("/{test_id}", response_model=TestResultRead)
@@ -204,8 +192,7 @@ async def update_test_result(
     if user is None:
         raise HTTPException(status_code=401, detail="Unauthorized access")
 
-    test = test_logic.get_test_result_by_id(test_id)
-    if not test_logic.user_can_access_test(user, test_id):
+    if not test_logic.user_can_access_test_result(user, test_id):
         raise HTTPException(status_code=403, detail="Not authorized to update this test result")
 
     updated_test = test_logic.update_test_result(test_id, test_in, user.employee_id)
@@ -248,7 +235,7 @@ async def delete_test_result(
     if test is None:
         raise HTTPException(status_code=404, detail="Test result not found")
 
-    if not test_logic.user_can_access_test(user, test):
+    if not test_logic.user_can_access_test_result(user, test):
         raise HTTPException(status_code=403, detail="Not authorized to delete this test result")
 
     test_logic.delete_test_result(db, test)

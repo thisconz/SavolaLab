@@ -1,12 +1,14 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from uuid import UUID
-from typing import Optional
 
-from app.infrastructure.database import get_db
-from app.services.auth import get_current_user
+# Models
 from app.domain.models import User, Sample
+
+# Enums
 from app.domain.models.enums import SampleType
+
+# Schemas
 from app.domain.schemas import SampleCreate, SampleUpdate, UserRead
 
 # --- Samples ---
@@ -58,39 +60,18 @@ def delete_sample(
     db.commit()
     return True
 
-
 # Get a sample by its ID
-def get_sample_by_batch_number(
-    db: Session, 
-    batch_number: str
-    ) -> Sample | None:
+def get_sample_by_batch_number(db: Session, batch_number: str ) -> Sample | None:
     return db.query(Sample).filter(Sample.batch_number == batch_number).first()
-
-
 # Get samples assigned to a specific user by their employee_id
-def get_samples_by_user(
-        db: Session, 
-        employee_id: str, 
-        skip: int = 0, 
-        limit: int = 100):
+def get_samples_by_user(db: Session, employee_id: str, skip: int = 0, limit: int = 100):
     return db.query(Sample).filter(Sample.assigned_to == employee_id).offset(skip).limit(limit).all()
-
 # Get all samples
 def get_all_samples(db: Session):
     return db.query(Sample).all()
-
 # Get all samples with pagination
-def list_samples(
-    db: Session, 
-    skip: int = 0, 
-    limit: int = 100
-    ):
+def list_samples(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Sample).offset(skip).limit(limit).all()
-
-# Check if a sample exists
-def sample_exists(db: Session, batch_number: str) -> bool:
-    return db.query(Sample).filter(Sample.batch_number == batch_number).first() is not None
-
 # Get the latest samples
 def get_latest_sample(db: Session, employee_id: str) -> Sample | None:
     return db.query(Sample).filter(Sample.assigned_to == employee_id).order_by(Sample.collected_at.desc()).first()
@@ -110,5 +91,5 @@ def auto_create_sample_batch_number(db: Session, user: User) -> str:
     while db.query(Sample).filter(Sample.batch_number == batch_number).first():
         count += 1
         batch_number = f"B{count + 1}"
-
+        
     return batch_number

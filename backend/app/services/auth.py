@@ -1,23 +1,27 @@
-# This module provides authentication and user management services.
 import secrets
 import string
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from jose import jwt, JWTError
 from uuid import UUID
 
+# Enums
 from app.domain.models.enums import UserRole
+
+# Models
 from app.domain.models.user import User
+
+# Schemas
 from app.domain.schemas.user import UserCreate, UserUpdate
+
+# Infrastructure
 from app.infrastructure.security import get_password_hash, verify_password, create_access_token, decode_access_token
 from app.infrastructure.database import get_db
-from app.infrastructure.config import settings
+
+# --- Authentication and Authorization ---
 
 # --- O Authentication 2 Password Bearer ---
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
-
-# --- Authentication and Authorization ---
 
 def generate_password(length: int = 12) -> str:
 
@@ -82,25 +86,6 @@ async def create_access_token_for_user(
 
     # Return the access token
     return create_access_token(data)
-
-# Returns the decoded access token.
-
-def decode_access_token(token: str) -> dict | None:
-
-    # Decode the access token
-    try:
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-
-        # Return the payload
-        return payload
-    
-    # Catch the JWTError
-    except JWTError:
-
-        # Return None
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",)
 
 # Returns the current user based on the token.
 def get_current_user(

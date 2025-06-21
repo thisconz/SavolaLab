@@ -44,15 +44,14 @@ class Sample(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Relationships
     test_results = relationship(
         "TestResult",
         back_populates="sample",
         cascade="all, delete",
         foreign_keys="[TestResult.sample_batch_number]"
     )
-
     attachments = relationship("SampleAttachment", back_populates="sample", cascade="all, delete")
-
     requests = relationship(
         "Request",
         back_populates="sample",

@@ -2,7 +2,10 @@ from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
+# Import settings
 from .config import settings
+
+# Import Base
 from app.domain.base import Base
 
 # Engine

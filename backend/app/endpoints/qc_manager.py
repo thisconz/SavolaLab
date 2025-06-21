@@ -1,16 +1,26 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+# Models
 from app.domain.models import User
-from app.domain.schemas import UserRead, UserCreate
-from app.domain.schemas import UserRole
+
+# Schemas
+from app.domain.schemas import UserRead, UserCreate, UserRole
+
+# Services
 from app.services import get_current_user, auth
+
+# Database
 from app.infrastructure.database import get_db
+
+# Dependencies
 from app.endpoints._deps import admin_or_qc_manager
 
 router = APIRouter()
 
-# Endpoint to get the QC Manager's details
+# --- QC Manager Endpoints ---
+
+# Get QC Manager Details
 @router.get("/qc_manager", response_model=UserRead)
 async def get_qc_manager(
     _: User = Depends(get_current_user),
@@ -38,7 +48,7 @@ async def get_qc_manager(
     # Return the user
     return UserRead.from_orm(user)
 
-# This endpoint allows a QC Manager or Admin to list all users.
+# Get All Users
 @router.get("/users", response_model=list[UserRead])
 async def list_users(
     _: User = Depends(get_current_user),
@@ -71,7 +81,7 @@ async def list_users(
     # Return the list of users
     return users
 
-# This endpoint allows a QC Manager to retrieve a specific user's details by employee ID.
+# Get User by Employee ID
 @router.get("/users/{employee_id}", response_model=UserRead)
 async def get_user_by_employee_id(
     employee_id: str, 
@@ -104,12 +114,11 @@ async def get_user_by_employee_id(
     # Return the user details
     return user
 
-# This endpoint allows a QC Manager or Admin to create a new user.
+# Create User
 @router.post("/create", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_in: UserCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(auth.get_current_user),
     user: User = Depends(admin_or_qc_manager),
 ):
     """
@@ -139,7 +148,7 @@ async def create_user(
         "user": user
     }
 
-# Change user role
+# Change User Role by Employee ID
 @router.put("/users/{employee_id}/role", response_model=UserRead)
 def change_role_by_employee_id(
     employee_id: str, 

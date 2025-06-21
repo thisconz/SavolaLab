@@ -2,10 +2,13 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from uuid import UUID
 
-from app.domain.models import User
-from app.domain.models import Sample
-from app.domain.models.test_result import TestResult
+# Models
+from app.domain.models import User, Sample, TestResult
+
+# Schemas
 from app.domain.schemas.test_result import TestResultCreate, TestResultUpdate
+
+# Enums
 from app.domain.models.enums import UserRole
 
 # Create a new test result
@@ -41,62 +44,41 @@ def delete_test_result(db: Session, test_result: TestResult) -> None:
     db.delete(test_result)
     db.commit()
 
-
-
-
-# Get a test result or sample by ID or sample batch number
-def get_tests_by_user(
-    db: Session,
-    employee_id: str,
-    skip: int = 0,
-    limit: int = 100,
-) -> list[TestResult]:
-    return (
-        db.query(TestResult)
-        .filter(TestResult.entered_by == employee_id)
-        .order_by(TestResult.entered_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-
 # Get a test result
+
+# By user
+def get_tests_by_user(db: Session,employee_id: str,skip: int = 0,limit: int = 100) -> list[TestResult]:
+    return (db.query(TestResult).filter(TestResult.entered_by == employee_id).order_by(TestResult.entered_at.desc()).offset(skip).limit(limit).all())
+# By test result ID
 def get_test_result_by_id(db: Session, test_result_id: UUID) -> TestResult | None:
     return db.query(TestResult).filter(TestResult.id == test_result_id).first()
+# By sample ID
 def get_sample_by_id(db: Session, sample_id: UUID) -> Sample | None:
     return db.query(Sample).filter(Sample.id == sample_id).first()
-def get_test_results_by_sample(db: Session, sample_batch_number: str) -> list[TestResult]:
-    return db.query(TestResult).filter(TestResult.sample_batch_number == sample_batch_number).all()
+# By sample batch number
 def get_test_results_by_sample_batch_number(db: Session, sample_batch_number: str) -> list[TestResult]:
     return db.query(TestResult).filter(TestResult.sample_batch_number == sample_batch_number).all()
+# all test results
+def get_all_tests(db: Session):
+    return db.query(TestResult).all()
 
-# User can access test or sample if they are the owner or have the appropriate role
-def user_can_access_test(user, test):
+# User can access if they are the owner of the test or test result or sample
+
+# Test result
+def user_can_access_test_result(user: User, test: TestResult) -> bool: 
     return user.role in [UserRole.CHEMIST, UserRole.SHIFT_CHEMIST, UserRole.QC_MANAGER, UserRole.ADMIN]
-def user_can_access_test_result(user, test_result):
-    return user.role in [UserRole.CHEMIST, UserRole.SHIFT_CHEMIST, UserRole.QC_MANAGER, UserRole.ADMIN]
-def user_can_access_sample(user, sample):
+# Sample
+def user_can_access_sample(user: User, sample: Sample) -> bool: 
     return user.role in [UserRole.CHEMIST, UserRole.SHIFT_CHEMIST, UserRole.QC_MANAGER, UserRole.ADMIN]
 
-# Check if a user can
-def user_can_create_test_result(user: User) -> bool:
-    return user.role in [UserRole.CHEMIST, UserRole.SHIFT_CHEMIST, UserRole.QC_MANAGER, UserRole.ADMIN]
+# Check if a user can create a test result for a sample
 def user_can_create_test_result_for_sample(user: User, sample: Sample) -> bool:
     return user.role in [UserRole.CHEMIST, UserRole.SHIFT_CHEMIST, UserRole.QC_MANAGER, UserRole.ADMIN]
-
-# Check if a test result exists by batch number
-def test_result_exists(db: Session, sample_batch_number: str) -> bool:
-    return db.query(TestResult).filter(TestResult.sample_batch_number == sample_batch_number).first() is not None
 
 # Check if a test result is valid
 def is_valid_test_result(test_result: TestResult) -> bool:
     return test_result.value is not None and test_result.unit is not None and test_result.status is not None
 
-
 # Count the number of test results
 def count_tests(db: Session, employee_id: str) -> int:
     return db.query(TestResult).filter(TestResult.entered_by == employee_id).count()
-
-# Get all test results
-def get_all_tests(db: Session):
-    return db.query(TestResult).all()

@@ -1,13 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+# Services
 from app.services import sample_logic, test_logic, get_current_user
+
+# Database
 from app.infrastructure.database import get_db
+
+# Models
 from app.domain.models.user import User
 
 router = APIRouter()
 
-# Dashboard Endpoints
+# --- Dashboard Endpoints ---
+
+# Get dashboard data ( List all samples and tests for the current user )
 @router.get("/")
 async def get_dashboard(
     db: Session = Depends(get_db),
@@ -77,7 +84,7 @@ async def get_dashboard(
         "latest_test": tests[0] if tests else None,
     }
 
-# This endpoint provides a summary of the dashboard, such as counts of samples and tests.
+# Get dashboard summary ( Summary of samples and tests for the current user )
 @router.get("/summary")
 async def get_dashboard_summary(
     user: User = Depends(get_current_user),

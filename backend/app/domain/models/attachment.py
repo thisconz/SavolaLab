@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from uuid import uuid4
+
 from app.domain.base import Base
 from app.domain.models.enums import AttachmentTag,  AttachmentType
 
@@ -37,5 +38,6 @@ class SampleAttachment(Base):
     uploaded_by = Column(String, ForeignKey("users.employee_id"), nullable=False)
     uploaded_at = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
     sample = relationship("Sample", back_populates="attachments")
     uploaded_by_user = relationship("User", back_populates="attachments")
