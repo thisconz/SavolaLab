@@ -41,7 +41,7 @@ async def login(
     token = await auth.create_access_token_for_user(user)
     return {"access_token": token, "token_type": "bearer"}
 
-# Forgot password
+# Accepts the user's employee ID, generates a new password, and sends it to the user's email.
 @router.post("/forgot-password")
 async def forgot_password(
     employee_id: str,
@@ -69,7 +69,7 @@ async def forgot_password(
     db.commit()
     db.refresh(user)
 
-    # TODO: Implement email sending
+    # TODO: Implement email sending logic
     return {
         "message": "Password reset successful",
         "new_password": new_password,

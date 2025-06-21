@@ -184,3 +184,5 @@ def is_other(
     
     # Return True if the user is an other, False otherwise
     return user_has_role(user, UserRole.OTHER)
+
+

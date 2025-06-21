@@ -6,7 +6,7 @@ from uuid import UUID
 from app.domain.models import User, Sample
 
 # Enums
-from app.domain.models.enums import SampleType
+from app.domain.models.enums import SampleType, UserRole
 
 # Schemas
 from app.domain.schemas import SampleCreate, SampleUpdate, UserRead
@@ -59,6 +59,10 @@ def delete_sample(
     db.delete(sample)
     db.commit()
     return True
+
+# Check if a user can access a sample
+def user_can_access_sample(user: User, sample: Sample) -> bool: 
+    return user.role in [UserRole.CHEMIST, UserRole.SHIFT_CHEMIST, UserRole.QC_MANAGER, UserRole.ADMIN] and sample.assigned_to == user.employee_id
 
 # Get a sample by its ID
 def get_sample_by_batch_number(db: Session, batch_number: str ) -> Sample | None:

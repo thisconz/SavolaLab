@@ -16,6 +16,7 @@ router = APIRouter()
 
 # --- Test Endpoints ---
 
+# Create a new test result
 @router.post("/", response_model=TestResultRead, status_code=201)
 async def create_test_result(
     test_in: TestResultCreate, 
@@ -75,7 +76,7 @@ async def get_test_results_by_sample_batch_number(
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized access")
 
-    if not test_logic.user_can_access_sample(user, sample):
+    if not sample_logic.user_can_access_sample(user, sample):
         raise HTTPException(status_code=403, detail="Not authorized to access sample")
     
     test_results = test_logic.get_test_results_by_sample_batch_number(db, sample_batch_number)
@@ -84,7 +85,6 @@ async def get_test_results_by_sample_batch_number(
         raise HTTPException(status_code=404, detail="Test results not found for this sample")
     
     return test_results
-
 
 # Get all test results for the current user
 @router.get("/test/{test_id}", response_model=TestResultRead)
@@ -117,7 +117,7 @@ async def get_test_result(
     
     if not test_logic.user_can_access_test_result(user, test):
         raise HTTPException(status_code=403, detail="Not authorized to access this test result")
-
+    
     if test is None:
         raise HTTPException(status_code=404, detail="Test result not found")
 
@@ -154,7 +154,7 @@ async def get_tests_for_sample(
         raise HTTPException(status_code=401, detail="Unauthorized access")
     
    
-    if not test_logic.user_can_access_sample(user, sample):
+    if not sample_logic.user_can_access_sample(user, sample):
         raise HTTPException(status_code=403, detail="Not authorized to access sample")
 
     if sample is None:

@@ -62,14 +62,9 @@ def get_test_results_by_sample_batch_number(db: Session, sample_batch_number: st
 def get_all_tests(db: Session):
     return db.query(TestResult).all()
 
-# User can access if they are the owner of the test or test result or sample
-
-# Test result
+# User can access a Test result
 def user_can_access_test_result(user: User, test: TestResult) -> bool: 
-    return user.role in [UserRole.CHEMIST, UserRole.SHIFT_CHEMIST, UserRole.QC_MANAGER, UserRole.ADMIN]
-# Sample
-def user_can_access_sample(user: User, sample: Sample) -> bool: 
-    return user.role in [UserRole.CHEMIST, UserRole.SHIFT_CHEMIST, UserRole.QC_MANAGER, UserRole.ADMIN]
+    return user.role in [UserRole.CHEMIST, UserRole.SHIFT_CHEMIST, UserRole.QC_MANAGER, UserRole.ADMIN] and test.entered_by == user.employee_id
 
 # Check if a user can create a test result for a sample
 def user_can_create_test_result_for_sample(user: User, sample: Sample) -> bool:

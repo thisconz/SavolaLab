@@ -68,6 +68,10 @@ class AttachmentTag(str, Enum):
     MICROSCOPE = "microscope"
     SCAN_RESULT = "scan_result"
     DEVICE_OUTPUT = "device_output"
+    IMAGE = "image"
+    REPORT = "report"
+    CERTIFICATE = "certificate"
+    RAW_SCAN = "raw_scan"
     OTHER = "other"
 
 # Attachment types
@@ -83,6 +87,8 @@ class AutoTag(str, Enum):
     LAB_SHEET = "lab_sheet"
     RAW_SCAN = "raw_scan"
     CERTIFICATE = "certificate"
+    REPORT = "report"
+    IMAGE = "image"
 
 # --- Requests ---
 
