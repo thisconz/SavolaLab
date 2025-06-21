@@ -10,7 +10,7 @@ class TestResult(Base):
     __tablename__ = "test_results"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, index=True)
-    sample_id = Column(UUID(as_uuid=True), ForeignKey("samples.id"), nullable=False)
+    sample_batch_number = Column(String, ForeignKey("samples.batch_number"), nullable=False)
     
     parameter = Column(
         SqlEnum(
@@ -48,5 +48,6 @@ class TestResult(Base):
     entered_by = Column(String, ForeignKey("users.employee_id"), nullable=False)
     entered_at = Column(DateTime, default=datetime.utcnow)
 
-    sample = relationship("Sample", back_populates="test_results")
+    # Relationships
+    sample = relationship("Sample", back_populates="test_results", foreign_keys=[sample_batch_number])
     entered_by_user = relationship("User", back_populates="test_results")

@@ -24,11 +24,10 @@ class User(Base):
         nullable=False,
     )
 
-    # Clarified foreign key reference
     assigned_samples = relationship(
         "Sample",
         back_populates="assigned_user",
-        foreign_keys="[Sample.assigned_to]"
+        primaryjoin="User.employee_id == Sample.assigned_to"
     )
 
     sample_requests = relationship(

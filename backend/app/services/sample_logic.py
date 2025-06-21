@@ -12,20 +12,20 @@ from app.domain.schemas import SampleCreate, SampleUpdate, UserRead
 # --- Samples ---
 
 # Create a new sample
-def create_sample_in(
-    db: Session,
-    sample_in: SampleCreate,
-    current_user: UserRead,
-) -> Sample:
+def create_sample_in(db: Session, sample_in: SampleCreate, current_user: UserRead) -> Sample:
+    batch_number = auto_create_sample_batch_number(db, current_user)
+    
+    # Create a new sample
     sample = Sample(
-    sample_type=SampleType(sample_in.sample_type),
-    batch_number=sample_in.batch_number,
-    collected_at=sample_in.collected_at,
-    location=sample_in.location,
-    notes_text=sample_in.notes_text,
-    assigned_to=sample_in.assigned_to,
-    requested_by_id=current_user.id,
-)
+        sample_type=SampleType(sample_in.sample_type),
+        batch_number=batch_number,
+        collected_at=sample_in.collected_at,
+        location=sample_in.location,
+        notes_text=sample_in.notes_text,
+        assigned_to=sample_in.assigned_to,
+        requested_by_id=current_user.id,
+    )
+
     db.add(sample)
     db.commit()
     db.refresh(sample)
@@ -43,20 +43,41 @@ def update_sample(
     db.refresh(sample)
     return sample
 
-# Get a sample by its ID
-def get_sample_by_id(
+# Delete a sample by its ID
+def delete_sample(
     db: Session, 
-    sample_id: UUID
+    sample_id: UUID, 
+    employee_id: str
+) -> bool:
+    sample = db.query(Sample).filter(Sample.id == sample_id).first()
+    if not sample:
+        return False
+    if sample.assigned_to != employee_id:
+        return False
+    db.delete(sample)
+    db.commit()
+    return True
+
+
+# Get a sample by its ID
+def get_sample_by_batch_number(
+    db: Session, 
+    batch_number: str
     ) -> Sample | None:
-    return db.query(Sample).filter(Sample.id == sample_id).first()
+    return db.query(Sample).filter(Sample.batch_number == batch_number).first()
+
+
+# Get samples assigned to a specific user by their employee_id
+def get_samples_by_user(
+        db: Session, 
+        employee_id: str, 
+        skip: int = 0, 
+        limit: int = 100):
+    return db.query(Sample).filter(Sample.assigned_to == employee_id).offset(skip).limit(limit).all()
 
 # Get all samples
 def get_all_samples(db: Session):
     return db.query(Sample).all()
-
-# Get the latest samples
-def get_latest_sample(db: Session, user_id: UUID) -> Sample | None:
-    return db.query(Sample).filter(Sample.assigned_to == user_id).order_by(Sample.collected_at.desc()).first()
 
 # Get all samples with pagination
 def list_samples(
@@ -66,31 +87,28 @@ def list_samples(
     ):
     return db.query(Sample).offset(skip).limit(limit).all()
 
+# Check if a sample exists
+def sample_exists(db: Session, batch_number: str) -> bool:
+    return db.query(Sample).filter(Sample.batch_number == batch_number).first() is not None
+
+# Get the latest samples
+def get_latest_sample(db: Session, employee_id: str) -> Sample | None:
+    return db.query(Sample).filter(Sample.assigned_to == employee_id).order_by(Sample.collected_at.desc()).first()
+
 # Count the total number of samples
 def count_samples(db: Session, user) -> int:
     if user.role in {"admin", "qc_manager", "shift_chemist"}:
         return db.query(Sample).count()
     return db.query(Sample).filter(Sample.assigned_to == user.employee_id).count()
 
-# Get samples assigned to a specific user by their employee_id
-def get_samples_by_user(db: Session, employee_id: str, skip: int = 0, limit: int = 100):
-    # Fetch user UUID by employee_id
-    user = db.query(User).filter(User.employee_id == employee_id).first()
-    if not user:
-        return []
-    user_uuid = user.id
-    return db.query(Sample).filter(Sample.assigned_to == user_uuid).offset(skip).limit(limit).all()
+# Auto create a sample batch number
+def auto_create_sample_batch_number(db: Session, user: User) -> str:
+    count = count_samples(db, user)
+    batch_number = f"B{count + 1}"
 
-# Delete a sample by its ID
-def delete_sample(
-    db: Session, 
-    sample_id: UUID, 
-    employee_id: str) -> bool:
-    sample = db.query(Sample).filter(Sample.id == sample_id).first()
-    if not sample:
-        return False
-    if sample.assigned_to != db.query(User).filter(User.employee_id == employee_id).first().id:
-        return False
-    db.delete(sample)
-    db.commit()
-    return True
+    # Check if batch_number exists, increment if so
+    while db.query(Sample).filter(Sample.batch_number == batch_number).first():
+        count += 1
+        batch_number = f"B{count + 1}"
+
+    return batch_number

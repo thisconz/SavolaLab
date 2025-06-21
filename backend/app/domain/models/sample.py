@@ -22,12 +22,12 @@ class Sample(Base):
         nullable=False
     )
     
-    batch_number = Column(String, nullable=True)
+    batch_number = Column(String, unique=True, nullable=False)
     collected_at = Column(DateTime, default=datetime.utcnow)
     location = Column(String, nullable=True)
     notes_text = Column(String, nullable=True)
 
-    assigned_to = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    assigned_to = Column(String, ForeignKey("users.employee_id"), nullable=True)
     assigned_user = relationship(
         "User",
         back_populates="assigned_samples",
@@ -44,7 +44,19 @@ class Sample(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    test_results = relationship("TestResult", back_populates="sample", cascade="all, delete")
+    test_results = relationship(
+        "TestResult",
+        back_populates="sample",
+        cascade="all, delete",
+        foreign_keys="[TestResult.sample_batch_number]"
+    )
+
     attachments = relationship("SampleAttachment", back_populates="sample", cascade="all, delete")
 
-    requests = relationship("Request", back_populates="sample", cascade="all, delete")
+    requests = relationship(
+        "Request",
+        back_populates="sample",
+        cascade="all, delete",
+        primaryjoin="Sample.batch_number == foreign(Request.sample_batch_number)",
+        foreign_keys="[Request.sample_batch_number]"
+    )

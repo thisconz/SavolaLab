@@ -8,7 +8,7 @@ from app.services import (
     get_attachment_by_id,
     get_attachment_url,
 )
-from app.domain.models import SampleAttachment, User
+from app.domain.models import SampleAttachment, User, Sample
 from app.domain.schemas import AttachmentRead
 from app.infrastructure.database import get_db
 from app.endpoints._deps import allowed_qc_roles
@@ -16,9 +16,9 @@ from app.endpoints._deps import allowed_qc_roles
 router = APIRouter()
 
 # Upload attachment to a sample
-@router.post("/{sample_id}/upload", response_model=AttachmentRead)
+@router.post("/{sample_batch_number}/upload", response_model=AttachmentRead)
 def upload_sample_attachment(
-    sample_id: UUID,
+    sample_batch_number: str,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     user: User = Depends(allowed_qc_roles),
@@ -26,7 +26,11 @@ def upload_sample_attachment(
     """
     Upload an attachment to a sample.
     """
-    return save_attachment(file=file, db=db, sample_id=sample_id, employee_id=user.employee_id)
+    sample = db.query(Sample).filter(Sample.batch_number == sample_batch_number).first()
+    if not sample:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    
+    return save_attachment(file=file, db=db, sample_id=sample.id, employee_id=user.employee_id)
 
 # Read attachment metadata
 @router.get("/{attachment_id}", response_model=AttachmentRead)

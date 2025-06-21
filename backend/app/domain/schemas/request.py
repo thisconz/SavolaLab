@@ -6,18 +6,21 @@ from datetime import datetime
 from app.domain.models.enums import RequestStatus, RequestType
 
 class RequestBase(BaseModel):
-    sample_id: UUID
-    requested_by: str = Field(..., example="QC12345", description="Employee unique identifier of the requester")
+    sample_batch_number: str = Field(..., example="B1", description="Batch number of the associated sample")
+    requested_by: str = Field(..., example="QAZ001", description="Employee unique identifier of the requester")
     status: Optional[RequestStatus] = Field(..., description="Status of the request (e.g., pending, approved, rejected)")
-    type: Optional[RequestType] = Field(..., description="Type of the request (e.g., sample analysis, equipment maintenance)")
+    type: RequestType = Field(..., description="Type of the request (e.g., sample analysis, equipment maintenance)")
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow, description="Timestamp when the request was created")
-    request_type: RequestType = Field(..., description="Type of the request (e.g., sample analysis, equipment maintenance)")
+    target_department: Optional[str] = Field(default="QC", description="Target department for the request")
+    source_department: Optional[str] = Field(default="QC", description="Source department for the request")
 
     class Config:
         orm_mode = True
         use_enum_values = True
 
 class RequestCreate(RequestBase):
+    target_department: Optional[str] = Field(default="OTHER", description="Target department for the request")
+    source_department: Optional[str] = Field(default="QC", description="Source department for the request")
     pass
 
 class RequestRead(RequestBase):

@@ -1,94 +1,139 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.services import request_logic
 from app.services import get_current_user
 from app.infrastructure.database import get_db
 from app.domain.models.user import User
+from app.domain.schemas.request import RequestCreate
 
 router = APIRouter()
 
-# Create a new request to the QC Department ( Only the user role Other )
+# Create a new request TO the QC Department (Only Other Role)
 @router.post("/lab")
-async def create_request(
-    request_data: dict,
+async def create_request_to_qc(
+    request_data: RequestCreate,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    ):
-    """
-    Create a new request to the QC Department.
-    """
-    # Create the new request
-    new_request = request_logic.create_request(db, request_data, user.employee_id)
-
-    if user.role in ['other', "admin"]:
-        return new_request, {"message": "Request to QC Department created successfully."}
-    else:
-        return {"message": "You do not have permission to create this request."}
-
-# Create a new request to Other Departments (Only QC Roles)
-@router.post("/other")
-async def create_other_request(
-    request_data: dict,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
-    ):
-    """
-    Create a new request to Other Departments.
-    """
-    # Create the new request
-    new_request = request_logic.create_request(db, request_data, user.employee_id)
-    
-    if user.role in ["chemist", "shift_chemist", "qc_manager", "admin"]:
-        return new_request, {"message": "Request to other department created successfully."}
-    else:
-        return {"message": "You do not have permission to create this request."}
-
-# Requests to QC Department
-@router.get("/other")
-async def get_requests(
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
 ):
     """
-    Retrieve requests made by other users to the chemist or shift chemist or qc manager.
+    Users with role 'other' or 'admin' can create a request TO the QC department.
+
+    Responses:
+    - 201: Request created successfully
+    - 401: Unauthorized access
+    - 402: User cannot create this request
+    - 403: User does not have permission to create this request
     """
-    # Retrieve requests made by the user
-    requests = request_logic.get_requests_by_employee_id(db, user.employee_id)
+    # 401: Unauthorized access
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
 
-    if not requests:
-        return {
-            "message": "No requests found for the user.",
-            "total_requests": 0,
-            "requests": []
-        }
+    # 402: User cannot create this request because they are not the same employee
+    if user.employee_id != request_data.requested_by:
+        raise HTTPException(status_code=402, detail="You cannot create a request for another employee.")
 
+    # 403: User does not have permission to create this request
+    if user.role not in ["other", "admin"]:
+        raise HTTPException(status_code=403, detail="You do not have permission to create this request.")
+
+    new_request = request_logic.create_request(db, request_data, user.employee_id)
     return {
-        "requests": requests,
-        "total_requests": len(requests),
-        "message": "Requests retrieved successfully." if requests else "No requests found for the user."
+        "message": "Request to QC Department created successfully.",
+        "request": new_request,
     }
 
-# Requests from QC Department
-@router.get("/lab")
-async def get_lab_requests(
+# Create a new request From QC Departments (QC Roles)
+@router.post("/other")
+async def create_request_to_other(
+    request_data: RequestCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    user: User = Depends(get_current_user),
 ):
     """
-    Retrieve requests made by the chemist or shift chemist or qc manager.
+    Users with role 'chemist', 'shift_chemist', 'qc_manager' or 'admin' can create a request FROM the QC department.
+
+    Responses:
+    - 200: Request created successfully
+    - 401: Unauthorized access
+    - 402: User cannot create this request
+    - 403: User does not have permission to create this request
     """
-    lab_requests = request_logic.get_requests_by_employee_id(db, user.employee_id)
+    # 401: Unauthorized access
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    
+    # 402: User cannot create this request because they are not the same employee
+    if user.employee_id != request_data.requested_by:
+        raise HTTPException(status_code=402, detail="You cannot create a request for another employee.")
+    
+    # 403: User does not have permission to create this request
+    if user.role not in ["chemist", "shift_chemist", "qc_manager", "admin"]:
+        raise HTTPException(status_code=403, detail="You do not have permission to create this request.")
 
-    if not lab_requests:
-        return {
-            "message": "No lab requests found for the user.",
-            "total_requests": 0,
-            "requests": []
-        }
-
+    new_request = request_logic.create_request(db, request_data, user.employee_id)
     return {
-        "requests": lab_requests,
-        "total_requests": len(lab_requests),
-        "message": "Lab requests retrieved successfully." if lab_requests else "No lab requests found for the user."
+        "message": "Request to Other Department created successfully.",
+        "request": new_request,
+    }
+
+# View requests TO the QC team
+@router.get("/lab")
+async def view_requests_to_qc(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """
+    View requests TO the QC team (Only Chemist, Shift Chemist, QC Manager, and Admin)
+
+    Responses:
+    - 200: Requests retrieved successfully
+    - 401: Unauthorized access
+    - 403: User does not have permission to view requests
+    """
+
+    # 401: Unauthorized access
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    
+    # 403: User does not have permission to view requests
+    if user.role not in ["chemist", "shift_chemist", "qc_manager", "admin"]:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    requests = request_logic.get_requests_to_qc_team(db)
+    return {
+        "message": "Requests to QC retrieved successfully." if requests else "No requests found.",
+        "total_requests": len(requests),
+        "requests": requests
+    }
+
+# View requests FROM the QC team
+@router.get("/other")
+async def view_requests_from_qc(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """
+    View requests FROM the QC team (Only Other Role and Admin)
+
+    Responses:
+    - 200: Requests retrieved successfully
+    - 401: Unauthorized access
+    - 403: User does not have permission to view requests
+    """
+
+    # 401: Unauthorized access
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    
+    # 403: User does not have permission to view requests
+    if user.role not in ["other", "admin"]:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    requests = request_logic.get_requests_from_qc_team(db)
+    return {
+        "message": "Requests from QC retrieved successfully." 
+        if requests else "No requests found.",
+        "total_requests": len(requests),
+        "requests": requests
     }

@@ -1,8 +1,8 @@
-import uuid
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 from io import BytesIO
 from uuid import UUID
+from uuid import uuid4
 
 from app.infrastructure.config import settings
 from app.infrastructure.s3_client import upload_file, delete_file, generate_presigned_url
@@ -24,7 +24,6 @@ def save_attachment(
     sample_id: UUID,
     employee_id: str,
 ) -> SampleAttachment:
-    from uuid import uuid4
 
     file_extension = file.filename.split(".")[-1]
     key = f"{uuid4()}.{file_extension}"

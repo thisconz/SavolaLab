@@ -12,14 +12,26 @@ from app.domain.schemas import UserRead
 
 router = APIRouter()
 
-# Sample Endpoints
+# --- Sample endpoints ---
+
+# Sample create
 @router.post("/", response_model=SampleRead, status_code=status.HTTP_201_CREATED)
 async def create_sample(
     sample_in: SampleCreate, 
     user: UserRead = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Create a new sample."""
+    """Create a new sample.
+
+    Roles:
+    201: User can create samples
+    403: User can only create samples to other users
+    """
+    # 403: User can only create samples to other users
+    if sample_in.assigned_to == user.employee_id:
+        raise HTTPException(status_code=403, detail="You can only create samples for other users")
+    
+    # 201: User can create samples
     return create_sample_in(db, sample_in, user)
 
 # List all samples for the current user
@@ -42,44 +54,44 @@ async def get_latest_sample(
     db: Session = Depends(get_db)
 ):
     """Get the latest sample for the current user."""
-    latest_sample = sample_logic.get_latest_sample(db, user.id)
+    latest_sample = sample_logic.get_latest_sample(db, user.employee_id)
 
     if latest_sample is None:
         raise HTTPException(status_code=404, detail="No samples found for the current user")
     
     return latest_sample
 
-# Retrieve a sample by ID
-@router.get("/{sample_id}", response_model=SampleRead)
+# Get a sample by ID
+@router.get("/{batch_number}", response_model=SampleRead)
 def get_sample(
-    sample_id: UUID, 
+    batch_number: str, 
     user: UserRead = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Retrieve a sample by its ID if the user has permission."""
-    sample = sample_logic.get_sample_by_id(db, sample_id)
+    sample = sample_logic.get_sample_by_batch_number(db, batch_number)
     if sample is None:
         raise HTTPException(status_code=404, detail="Sample not found")
-    if sample.assigned_to != user.id:
+    if sample.assigned_to != user.employee_id:
         raise HTTPException(status_code=403, detail="Not authorized to access this sample")
     return sample
 
 # Update a sample by ID
-@router.put("/{sample_id}", response_model=SampleRead)
+@router.put("/{batch_number}", response_model=SampleRead)
 async def update_sample(
-    sample_id: UUID,
+    batch_number: str,
     sample_in: SampleUpdate,
     user: UserRead = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Update a sample if the user has permission."""
-    sample = sample_logic.get_sample_by_id(db, sample_id)
+    sample = sample_logic.get_sample_by_batch_number(db, batch_number)
     if sample is None:
         raise HTTPException(status_code=404, detail="Sample not found")
 
     # Authorization check (example)
-    if sample.assigned_to != user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to update this sample")
+    if sample.assigned_to != user.employee_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this sample")
 
     updated = sample_logic.update_sample(db, sample, sample_in)
     return updated

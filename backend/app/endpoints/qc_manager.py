@@ -24,14 +24,16 @@ async def get_qc_manager(
 
     Responses:
     - 200: Success
-    - 500: Internal server error
+    - 401: Unauthorized access
+    - 402: Admin and QC Manager roles only
     """
-    # 500: Internal server error (If the user role is not valid)
-    if isinstance(user.role, str):
-        try:
-            user.role = UserRole(user.role.lower())
-        except ValueError:
-            raise HTTPException(status_code=500, detail=f"Invalid role: {user.role}")
+    # 401: Unauthorized access
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    
+    # 402: Admin and QC Manager roles only
+    if user.role not in ["admin", "qc_manager"]:
+        raise HTTPException(status_code=402, detail="Admin and QC Manager roles only")
 
     # Return the user
     return UserRead.from_orm(user)
@@ -116,38 +118,66 @@ async def create_user(
 
     Responses:
         - 201: User created successfully
-        - 401: Invalid role
+        - 401: Can not make QC Manager or Admin role a user
         - 409: Employee ID already registered
     """
     # Can not make QC Manager or Admin role a user
     if user_in.role in [UserRole.QC_MANAGER, UserRole.ADMIN]:
-        raise HTTPException(status_code=401, detail="Invalid role")
+        raise HTTPException(status_code=401, detail="Can not make QC Manager or Admin role a user")
 
     # Check if user already exists
-    existing_user = await auth.get_user_by_employee_id(db, user_in.employee_id)
+    existing_user = auth.get_user_by_employee_id(db, user_in.employee_id)
     if existing_user:
         raise HTTPException(status_code=409, detail="Employee ID already registered")
 
     user = await auth.register_user(db, user_in)
-    return user
+    return {
+        "id": user.id,
+        "employee_id": user.employee_id,
+        "full_name": user.full_name,
+        "role": user.role,
+        "user": user
+    }
 
-# Endpoint to chanege user a role to QC Manager or Shift Chemist or Chemist or Other.
-@router.put("/{user_id}/role")
-async def change_user_role(
-    employee_id: str,
-    new_role: UserRole,
+# Change user role
+@router.put("/users/{employee_id}/role", response_model=UserRead)
+def change_role_by_employee_id(
+    employee_id: str, 
+    new_role: UserRole, 
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    admin_user: User = Depends(admin_or_qc_manager),
+    user: User = Depends(get_current_user),
+    _: User = Depends(admin_or_qc_manager),
 ):
     """
-    Change the role of a user.
+    Change the role of a user to Shift Chemist, Chemist, or Other.
 
+    Responses:
+        - 200: Role updated successfully
+        - 400: QC Manager cannot make Admin or QC Manager
+        - 404: User not found
+        - 500: Internal server error
     """
-    user = db.query(User).filter(User.employee_id == employee_id).first()
-    if not user:
+    # Get user
+    target_user = db.query(User).filter(User.employee_id == employee_id).first()
+    
+    # 400: QC Manager cannot make Admin or QC Manager
+    if user.role == UserRole.QC_MANAGER and new_role in [UserRole.ADMIN, UserRole.QC_MANAGER]:
+        raise HTTPException(status_code=400, detail="QC Manager cannot make Admin or QC Manager")
+    
+    # 404: User not found
+    if not target_user:
         raise HTTPException(status_code=404, detail="User not found")
-    user.role = new_role
+    
+    # 500: Internal server error
+    if isinstance(target_user.role, str):
+        try:
+            target_user.role = UserRole(target_user.role.lower())
+        except ValueError:
+            raise HTTPException(status_code=500, detail=f"Invalid role: {target_user.role}")
+    
+    # Update and save
+    target_user.role = new_role
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(target_user)
+
+    return UserRead.from_orm(target_user)

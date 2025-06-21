@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.services import sample_logic, test_logic, get_current_user
@@ -11,43 +11,70 @@ router = APIRouter()
 @router.get("/")
 async def get_dashboard(
     db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    user: User = Depends(get_current_user),
     ):
     """
     Retrieve samples and tests for the current user.
+
+    Responses:
+        200: Successful response.
+        401: Unauthorized access.
+        402: Admin and QC Manager roles can view all samples and tests.
+        404: No samples or tests found for the user.
+        422: Invalid user data.
     """
-    samples = sample_logic.get_samples_by_user(db, user.employee_id)
-    tests = test_logic.get_tests_by_user(db, user.employee_id)
+    # 401: Unauthorized access
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+    
+    # 402: Admin and QC Manager roles can view all samples and tests
+    if user.role in ["admin", "qc_manager"]:
+        samples = sample_logic.get_all_samples(db)
+        tests = test_logic.get_all_tests(db)
+    else:
+        samples = sample_logic.get_samples_by_user(db, user.employee_id)
+        tests = test_logic.get_tests_by_user(db, user.employee_id)
+    
+    # 404: Not authorized to access the dashboard
+    if not samples and not tests:
+        raise HTTPException(status_code=404, detail="No samples or tests found for the user.")
+
+    # 422: Invalid user data
+    if not user:
+        raise HTTPException(status_code=422, detail="Invalid user data")
+    
     if not samples and not tests:
         return {
             "message": "No samples or tests found for the user.",
             "total_samples": 0,
+            "latest_sample": None,
             "total_tests": 0,
             "average_test_results": 0,
-            "latest_sample": None,
             "latest_test": None,
         }
-    # Calculate additional statistics as needed
+    # Sort samples by created_at descending
     samples.sort(key=lambda x: x.created_at, reverse=True)
-    tests.sort(key=lambda x: x.created_at, reverse=True)
 
-    # Ensure we have the latest sample and test
-    if samples:
-        samples = samples[:10]
-    if tests:
-        tests = tests[:10]
-    tests = [test for test in tests if test.sample_id in [sample.id for sample in samples]]
+    # Sort tests by entered_at descending
+    tests.sort(key=lambda x: x.entered_at, reverse=True)
 
-    # Aggregate data for the dashboard
+    # Take top 100 samples and tests
+    samples = samples[:100]
+    tests = tests[:100]
+
+    # Filter tests based on sample IDs
+    sample_batch_numbers = {sample.batch_number for sample in samples}
+    tests = [test for test in tests if test.sample_batch_number in sample_batch_numbers]
+
     # This could include counts, averages, and latest entries
     return {
-        "samples": samples,
-        "tests": tests,
         "total_samples": len(samples),
+        "samples": samples,
+        "latest_sample": samples[0] if samples else None,
         "total_tests": len(tests),
-        "average_test_results": sum(test.result for test in tests) / len(tests) if tests else 0,
-        "latest_sample": samples[-1] if samples else None,
-        "latest_test": tests[-1] if tests else None,
+        "tests": tests,
+        "average_test_results": sum(test.value for test in tests) / len(tests) if tests else 0,
+        "latest_test": tests[0] if tests else None,
     }
 
 # This endpoint provides a summary of the dashboard, such as counts of samples and tests.
@@ -69,14 +96,6 @@ async def get_dashboard_summary(
             "message": "No samples or tests found for the user.",
             "samples_count": 0,
             "tests_count": 0,
-        }
-    
-    # Check if there are samples or tests for the user in Admin or QC Manager or Admin role
-    if user.role not in ["admin", "qc_manager", "admin"]:
-        return {
-            "message": "You do not have permission to view this dashboard.",
-            "samples_count": 0,
-            "tests_count": 0, 
         }
 
     return {

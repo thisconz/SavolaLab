@@ -1,35 +1,38 @@
 from nicegui import ui
-
-from utils.session import token
-from components.sidebar import render_sidebar
-from services.test_service import fetch_tests
+from utils.session import token, user_info
+from services.test_service import create_test, fetch_sample_ids
 
 @ui.page("/tests")
-async def test_page():
-    if not token:
-        ui.navigate.to("/")
+async def test_entry_page():
+    if not token or user_info.get("role") not in ["chemist", "shift_chemist", "qc_manager" "admin"]:
+        ui.navigate.to("/dashboard")
         return
 
-    render_sidebar()
+    ui.label("Enter New Test Result").classes("text-2xl font-bold mt-4 pl-64")
 
-    with ui.column().classes("pl-64"):
-        ui.label("Test Results").classes("text-2xl font-bold mt-4")
+    with ui.card().classes("w-full max-w-3xl mt-6 mx-auto shadow-xl"):
+        samples = await fetch_sample_ids()
+        sample_select = ui.select(samples, label="Select Sample ID").classes("w-full")
+        parameter = ui.input("Test Parameter (e.g., pH)").classes("w-full")
+        value = ui.input("Measured Value").classes("w-full")
+        unit = ui.input("Unit (optional)").classes("w-full")
+        status = ui.select(["pending", "completed"], label="Status").classes("w-full")
 
-        table = ui.table(
-            columns=[
-                {"name": "sample_id", "label": "Sample ID", "field": "sample_id"},
-                {"name": "parameter", "label": "Parameter", "field": "parameter"},
-                {"name": "value", "label": "Value", "field": "value"},
-                {"name": "status", "label": "Status", "field": "status"},
-                {"name": "tested_at", "label": "Tested At", "field": "tested_at"},
-            ],
-            rows=[],
-            row_key="id"
-        ).classes("w-full mt-4")
+        async def submit():
+            if not all([sample_select.value, parameter.value, value.value, status.value]):
+                ui.notify("Fill all required fields", color="warning")
+                return
 
-        # Load test results
-        tests = await fetch_tests()
-        for t in tests:
-            t["tested_at"] = t["tested_at"].split("T")[0] if t.get("tested_at") else "—"
-            t["status"] = t["status"].replace("_", " ").title()
-        table.rows = tests
+            result = await create_test(
+                sample_id=sample_select.value,
+                parameter=parameter.value,
+                value=value.value,
+                unit=unit.value,
+                status=status.value
+            )
+            if result:
+                ui.notify("Test created successfully", color="positive")
+            else:
+                ui.notify("Failed to create test", color="negative")
+
+        ui.button("Submit", on_click=submit).classes("mt-4")

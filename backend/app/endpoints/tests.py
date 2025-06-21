@@ -4,7 +4,7 @@ from typing import List
 from uuid import UUID
 
 from app.domain.schemas import TestResultCreate, TestResultRead
-from app.services import test_logic, get_current_user, get_test_result_by_id
+from app.services import test_logic, sample_logic, get_current_user
 from app.infrastructure.database import get_db
 
 router = APIRouter()
@@ -30,20 +30,76 @@ async def create_test_result(
         201: Test result created successfully.
         401: Unauthorized access.
         403: Not authorized to create a test result.
+        404: Sample not found.
+        409: Test result already exists.
+        422: Invalid test result data.
+        482: User cannot create test results using other users' assigned samples.
     """
-
+    sample = sample_logic.get_sample_by_batch_number(db, test_in.sample_batch_number)
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized access")
     
     if not test_logic.user_can_create_test_result(user):
         raise HTTPException(status_code=403, detail="Not authorized to create a test result")
     
+    if not sample_logic.sample_exists(db, test_in.sample_batch_number):
+        raise HTTPException(status_code=404, detail="Sample not found")
+    
+    if test_logic.test_result_exists(db, test_in.sample_batch_number):
+        raise HTTPException(status_code=409, detail="Test result already exists")
+    
+    if not test_logic.is_valid_test_result(test_in):
+        raise HTTPException(status_code=422, detail="Invalid test result data")
+    
+    if not test_logic.user_can_create_test_result_for_sample(user, sample):
+        raise HTTPException(status_code=482, detail="User cannot create test results on this sample")
+    
     test_result = test_logic.create_test_result(db, test_in, user.employee_id)
 
     return TestResultRead.from_orm(test_result)
 
+# Get Results for a sample by Batch Number
+@router.get("/sample/{sample_batch_number}", response_model=List[TestResultRead])
+async def get_test_results_by_sample_batch_number(
+    sample_batch_number: str,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+    ):
+    """
+    Get test results for a sample by its batch number.
+
+    Parameters:
+        sample_batch_number (str): The batch number of the sample.
+        user: The current authenticated user.
+        db: The SQLAlchemy database session.
+
+    Returns:
+        List[TestResultRead]: The test results for the sample.
+
+    Responses:
+        200: Test results retrieved successfully.
+        401: Unauthorized access.
+        403: Not authorized to access test results for this sample.
+        404: Sample not found.
+    """
+
+    sample = sample_logic.get_sample_by_batch_number(db, sample_batch_number)
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+
+    if not test_logic.user_can_access_sample(user, sample):
+        raise HTTPException(status_code=403, detail="Not authorized to access sample")
+    
+    test_results = test_logic.get_test_results_by_sample_batch_number(db, sample_batch_number)
+
+    if not test_results:
+        raise HTTPException(status_code=404, detail="Test results not found for this sample")
+    
+    return test_results
+
+
 # Get all test results for the current user
-@router.get("/{test_id}", response_model=TestResultRead)
+@router.get("/test/{test_id}", response_model=TestResultRead)
 async def get_test_result(
     test_id: UUID, 
     user=Depends(get_current_user),
@@ -82,7 +138,8 @@ async def get_test_result(
 # Get all test results for a specific sample
 @router.get("/sample/{sample_id}", response_model=List[TestResultRead])
 async def get_tests_for_sample(
-    sample_id: UUID, 
+    sample_id: UUID,
+    sample_batch_number: str,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
     ):
@@ -103,13 +160,15 @@ async def get_tests_for_sample(
         403: Not authorized to access test results for this sample.
         404: Sample not found.
     """
+
+    sample = sample_logic.get_sample_by_batch_number(db, sample_batch_number)
     if user is None:
         raise HTTPException(status_code=401, detail="Unauthorized access")
     
-    if not test_logic.user_can_access_sample(user, sample_id):
-        raise HTTPException(status_code=403, detail="Not authorized to access test results for this sample")
+   
+    if not test_logic.user_can_access_sample(user, sample):
+        raise HTTPException(status_code=403, detail="Not authorized to access sample")
 
-    sample = test_logic.get_sample_by_id(db, sample_id)
     if sample is None:
         raise HTTPException(status_code=404, detail="Sample not found")
     
@@ -137,15 +196,11 @@ async def update_test_result(
 
     Responses:
         200: Test result updated successfully.
-        400: Invalid test_id or input data.
         401: Unauthorized access.
         403: Not authorized to update this test result.
         404: Test result not found.
         409: Test result already exists.
     """
-    if test_id <= 0:
-        raise HTTPException(status_code=400, detail="`test_id` must be a positive integer")
-    
     if user is None:
         raise HTTPException(status_code=401, detail="Unauthorized access")
 

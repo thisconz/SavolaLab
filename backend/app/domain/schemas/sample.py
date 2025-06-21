@@ -7,11 +7,11 @@ from app.domain.models.enums import SampleType
 class SampleBase(BaseModel):
     """Base schema for sample information."""
     sample_type: Optional[SampleType] = Field(None, description="Type of the sample")
-    batch_number: Optional[str] = Field(None, example="BATCH202406", description="Batch number of the sample")
+    batch_number: Optional[str] = Field(None, example="B1", description="Batch number of the sample")
     location: Optional[str] = Field(None, example="QC Lab", description="Location where the sample is stored")
     notes_text: Optional[str] = Field(None, example="Handle with care", description="Additional notes about the sample")
     collected_at: Optional[datetime] = Field(None, description="Datetime when the sample was collected")
-    assigned_to: Optional[UUID] = Field(None, description="Employee ID assigned to the sample")
+    assigned_to: Optional[str] = Field(None, description="Employee ID assigned to the sample")
 
     class Config:
         orm_mode = True

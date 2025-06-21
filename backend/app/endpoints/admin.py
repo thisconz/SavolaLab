@@ -40,10 +40,32 @@ async def delete_user(
 ):
     """
     Delete a user.
+
+    Responses:
+    - 200: User deleted successfully
+    - 403: User not found
+    - 404: Cannot delete an admin
+    - 405: User is an admin
     """
-    user = db.query(User).filter(User.id == employee_id).first()
+    user = db.query(User).filter(User.id == user_id).first()
+
+    # Check if the user exists
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=403, detail="User not found")
+
+    # Check if the user is an admin
+    if user.role == UserRole.ADMIN:
+        raise HTTPException(status_code=404, detail="Cannot delete an admin")
+    
+    # Check if the user is trying to delete themselves
+    if user.id == current_user.id:
+        raise HTTPException(status_code=405, detail="Cannot delete yourself")
+    
     db.delete(user)
     db.commit()
-    return {"message": "User deleted"}
+    return {
+        "message": "User deleted",
+        "user_id": user_id,
+        "user_role": user.role,
+        "user_employee_id": user.employee_id,
+        }

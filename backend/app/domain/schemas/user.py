@@ -14,12 +14,11 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     """Schema for creating a new user."""
-    password: constr(min_length=6) = Field(..., example="strongpassword", description="User password (min 6 chars)")
-
+    password: str = Field(..., min_length=6, example="strongpassword", description="User password (min 6 chars)")
 class UserLogin(BaseModel):
     """Schema for logging in a user."""
-    employee_id: str = Field(..., example="QC12345", description="Employee ID used to log in")
-    password: constr(min_length=6) = Field(..., example="yourpassword", description="User password")
+    employee_id: str = Field(..., example="QAZ001", description="Employee ID used to log in")
+    password: str = Field(..., example="yourpassword", description="User password")
 
     class Config:
         orm_mode = True
@@ -40,7 +39,7 @@ class UserUpdate(BaseModel):
     employee_id: Optional[str] = Field(default=None, example="QC12345", description="Employee unique identifier")
     full_name: Optional[str] = Field(default=None, example="Jane Doe", description="Full name of the user")
     role: Optional[UserRole] = Field(default=None, description="Role of the user in the system")
-    password: Optional[constr(min_length=6)] = Field(default=None, example="newpassword", description="User password (min 6 chars)")
+    password: Optional[str] = Field(default=None, example="newpassword", description="User password (min 6 chars)")
 
     class Config:
         orm_mode = True

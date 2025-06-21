@@ -11,7 +11,10 @@ class Request(Base):
     __tablename__ = "requests"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, index=True)
-    sample_id = Column(UUID(as_uuid=True), ForeignKey("samples.id"), nullable=False)
+    sample_batch_number = Column(String, ForeignKey("samples.batch_number"), nullable=False)
+
+    target_department = Column(String, nullable=True, index=True)
+    source_department = Column(String, nullable=True, index=True)
 
     requested_by = Column(String, ForeignKey("users.employee_id"), nullable=False)
 
@@ -38,5 +41,5 @@ class Request(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    sample = relationship("Sample", back_populates="requests")
+    sample = relationship("Sample", back_populates="requests", primaryjoin="Request.sample_batch_number == Sample.batch_number", foreign_keys=[sample_batch_number])
     requested_by_user = relationship("User", back_populates="requests", foreign_keys=[requested_by])

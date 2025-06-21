@@ -11,7 +11,7 @@ class AttachmentBase(BaseModel):
     file_type: Optional[str] = None
     tag: Optional[AttachmentTag] = None
     attachment_type: Optional[AttachmentType] = None
-    uploaded_by: str = Field(..., example="QC12345")
+    uploaded_by: str = Field(..., example="QAZ001", description="Employee unique identifier")
     uploaded_at: Optional[datetime] = None
 
 class AttachmentCreate(AttachmentBase):
