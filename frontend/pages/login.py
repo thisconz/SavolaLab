@@ -18,4 +18,4 @@ def login_page():
 
         ui.button("Login", on_click=handle_login).classes("mt-4 w-full")
 
-        ui.label("Forgot password?").classes("text-sm mt-4 text-center")
+        ui.link("Forgot password", "/forgot-password").classes("text-sm text-blue-800")

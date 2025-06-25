@@ -25,7 +25,7 @@ def admin_or_qc_manager(user: User = Depends(get_current_user)) -> User:
     if not is_admin(user) and not is_qc_manager(user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access restricted to authorized QC roles only"
+            detail="Access restricted to administrators and QC managers only"
         )
     return user
 
@@ -46,4 +46,21 @@ allowed_qc_roles = qc_roles_allowed(
     UserRole.QC_MANAGER,
     UserRole.SHIFT_CHEMIST,
     UserRole.CHEMIST
+)
+
+# Allowed Other Roles dependency
+def other_roles_allowed(*allowed_roles: UserRole):
+    def wrapper(user: User = Depends(get_current_user)) -> User:
+        if user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access restricted to authorized roles only"
+            )
+        return user
+    return wrapper
+
+# Usage-specific dependency
+allowed_roles = other_roles_allowed(
+    UserRole.ADMIN,
+    UserRole.OTHER
 )

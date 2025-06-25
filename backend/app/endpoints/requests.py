@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import UUID
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 # Services
 from app.services import request_logic, get_current_user
@@ -13,6 +13,12 @@ from app.domain.models.user import User
 
 # Schemas
 from app.domain.schemas.request import RequestCreate, RequestUpdate
+
+# Dependencies
+from app.endpoints._deps import qc_roles_allowed, other_roles_allowed
+
+# Enums
+from app.domain.models.enums import UserRole
 
 router = APIRouter()
 
@@ -43,7 +49,8 @@ async def create_request_to_qc(
         raise HTTPException(status_code=402, detail="You cannot create a request for another employee.")
 
     # 403: User does not have permission to create this request
-    if user.role not in ["other", "admin"]:
+    allowed_roles = other_roles_allowed(UserRole.ADMIN, UserRole.OTHER)
+    if user.role not in allowed_roles:
         raise HTTPException(status_code=403, detail="You do not have permission to create this request.")
 
     new_request = request_logic.create_request(db, request_data, user.employee_id)
@@ -54,7 +61,7 @@ async def create_request_to_qc(
 
 # Create a new request From QC Departments (QC Roles)
 @router.post("/other")
-async def create_request_to_other(
+async def create_request_from_qc(
     request_data: RequestCreate,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -77,7 +84,8 @@ async def create_request_to_other(
         raise HTTPException(status_code=402, detail="You cannot create a request for another employee.")
     
     # 403: User does not have permission to create this request
-    if user.role not in ["chemist", "shift_chemist", "qc_manager", "admin"]:
+    allowed_qc_roles = qc_roles_allowed(UserRole.ADMIN,UserRole.QC_MANAGER,UserRole.SHIFT_CHEMIST,UserRole.CHEMIST)
+    if user.role not in allowed_qc_roles:
         raise HTTPException(status_code=403, detail="You do not have permission to create this request.")
 
     new_request = request_logic.create_request(db, request_data, user.employee_id)
@@ -106,8 +114,9 @@ async def view_requests_to_qc(
         raise HTTPException(status_code=401, detail="Unauthorized access")
     
     # 403: User does not have permission to view requests
-    if user.role not in ["chemist", "shift_chemist", "qc_manager", "admin"]:
-        raise HTTPException(status_code=403, detail="Unauthorized")
+    allowed_qc_roles = qc_roles_allowed(UserRole.ADMIN,UserRole.QC_MANAGER,UserRole.SHIFT_CHEMIST,UserRole.CHEMIST)
+    if user.role not in allowed_qc_roles:
+        raise HTTPException(status_code=403, detail="You do not have permission to view requests.")
     
     requests = request_logic.get_requests_to_qc_team(db)
     return {
@@ -136,8 +145,9 @@ async def view_requests_from_qc(
         raise HTTPException(status_code=401, detail="Unauthorized access")
     
     # 403: User does not have permission to view requests
-    if user.role not in ["other", "admin"]:
-        raise HTTPException(status_code=403, detail="Unauthorized")
+    allowed_roles = other_roles_allowed(UserRole.ADMIN, UserRole.OTHER)
+    if user.role not in allowed_roles:
+        raise HTTPException(status_code=403, detail="You do not have permission to view requests")
 
     requests = request_logic.get_requests_from_qc_team(db)
     return {

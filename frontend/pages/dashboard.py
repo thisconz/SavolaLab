@@ -6,24 +6,21 @@ from components.sidebar import render_sidebar
 from components.topbar import render_topbar
 from components.cards import card
 
+# --- Dashboard Page ---
+
+# Define the dashboard page
 @ui.page("/dashboard")
 async def dashboard_page():
     if not session.token:
         ui.navigate.to("/")
         return
 
-    # Sidebar (if applicable to all pages)
+    # Sidebar and Topbar
     render_sidebar()
     render_topbar("Dashboard")
 
-    # Greeting
-    with ui.column().classes("pl-64"):
-        formatted_role = session.user_info['role'].replace('_', ' ').title()
-        ui.label(f"Welcome, {session.user_info['employee_id']} — {session.user_info['full_name']} — {formatted_role}") \
-            .classes("text-2xl font-bold mt-4")
-
     # Fetch summary counts
-    summary = await fetch_count()
+    summary = await fetch_count(session.token)
 
     # KPI Cards Row
     with ui.row().classes("gap-4 mt-6"):
@@ -32,4 +29,4 @@ async def dashboard_page():
 
     # Latest Samples
     ui.label("Latest Samples").classes("text-lg font-bold mt-8 mb-2")
-    await show_latest_samples()
+    await show_latest_samples(session.token)

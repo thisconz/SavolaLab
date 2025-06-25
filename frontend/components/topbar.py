@@ -9,12 +9,16 @@ def render_topbar(title: str):
         # Page Title
         ui.label(title).classes("text-lg font-bold")
 
-        # User Info and Profile
-        with ui.row().classes("items-center gap-4 ml-auto"):
-            role = session.user_info.get("role", "").replace("_", " ").title()
-            name = session.user_info.get("full_name", "")
-            ui.label(f"{name} ({role})").classes("font-medium")
+        # Greeting + User Info and Profile
+        with ui.row().classes("items-center gap-6 ml-auto"):
+            # Greeting - show employee_id, full_name, role
+            formatted_role = session.user_info.get('role', '').replace('_', ' ').title()
+            employee_id = session.user_info.get('employee_id', '')
+            full_name = session.user_info.get('full_name', '')
+            ui.label(f"Welcome, {employee_id} — {full_name} — {formatted_role}") \
+                .classes("text-md font-semibold")
 
+            # User Menu
             with ui.menu():
                 ui.menu_item("Profile", on_click=lambda: ui.open("/profile"))
                 ui.menu_item("Logout", on_click=lambda: ui.open("/logout"))

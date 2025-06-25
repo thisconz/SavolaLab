@@ -70,12 +70,21 @@ def get_sample(
     user: UserRead = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Retrieve a sample by its ID if the user has permission."""
+    """
+    Retrieve a sample by its ID if the user has permission
+    
+    Responses:
+        200: Successful response.
+        403: Not authorized to access this sample.
+        404: Sample not found.
+    """
     sample = sample_logic.get_sample_by_batch_number(db, batch_number)
     if sample is None:
         raise HTTPException(status_code=404, detail="Sample not found")
-    if sample.assigned_to != user.employee_id:
+
+    if sample.assigned_to != user.employee_id and user.role not in ["admin", "qc_manager"]:
         raise HTTPException(status_code=403, detail="Not authorized to access this sample")
+    
     return sample
 
 # Update a sample by Batch Number
@@ -92,7 +101,7 @@ async def update_sample(
         raise HTTPException(status_code=404, detail="Sample not found")
 
     # Authorization check (example)
-    if sample.assigned_to != user.employee_id:
+    if sample.assigned_to != user.employee_id and user.role not in ["admin", "qc_manager"]:
         raise HTTPException(status_code=403, detail="Not authorized to access this sample")
 
     updated = sample_logic.update_sample(db, sample, sample_in)
@@ -105,8 +114,16 @@ async def delete_sample(
     user: UserRead = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Delete a sample if the user has permission."""
+    """
+    Delete a sample if the user has permission.
+    
+    Responses:
+        200: Sample deleted successfully
+        404: Sample not found or not authorized to delete
+        405: Sample not entered by the user
+    """
     success = sample_logic.delete_sample(db, sample_id, user.employee_id)
-    if not success:
+    if not success and user.role not in ["admin", "qc_manager"]:
         raise HTTPException(status_code=404, detail="Sample not found or not authorized to delete")
+    
     return {"detail": "Sample deleted successfully"}

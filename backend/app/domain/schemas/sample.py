@@ -34,10 +34,10 @@ class SampleRead(SampleBase):
 class SampleUpdate(BaseModel):
     """Schema for updating sample information."""
     sample_type: Optional[SampleType] = Field(None, description="Type of the sample")
-    batch_number: Optional[str] = Field(None, example="BATCH202406", description="Batch number of the sample")
     collected_at: Optional[datetime] = Field(None, description="Datetime when the sample was collected")
     location: Optional[str] = Field(None, example="Lab A", description="Location where the sample is stored")
     notes_text: Optional[str] = Field(None, example="Update notes", description="Additional notes about the sample")
 
     class Config:
         orm_mode = True
+        
