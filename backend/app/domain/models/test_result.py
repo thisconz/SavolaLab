@@ -12,39 +12,10 @@ class TestResult(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, index=True)
     sample_batch_number = Column(String, ForeignKey("samples.batch_number"), nullable=False)
-    
-    parameter = Column(
-        SqlEnum(
-            TestParameter,
-            native_enum=False,
-            values_callable=lambda enum_cls: [e.value for e in enum_cls],
-            create_constraint=True,
-        ),
-        nullable=False
-    )
-    
+    parameter = Column(SqlEnum(TestParameter, native_enum=False, values_callable=lambda enum_cls: [e.value for e in enum_cls], create_constraint=True,), nullable=False)
     value = Column(Float, nullable=False)
-
-    status = Column(
-        SqlEnum(
-            TestStatus,
-            native_enum=False,
-            values_callable=lambda enum_cls: [e.value for e in enum_cls],
-            create_constraint=True,
-        ),
-        nullable=False
-    )
-
-    unit = Column(
-        SqlEnum(
-            UnitType,
-            native_enum=False,
-            values_callable=lambda enum_cls: [e.value for e in enum_cls],
-            create_constraint=True,
-        ),
-        nullable=True
-    )
-
+    status = Column(SqlEnum(TestStatus, native_enum=False, values_callable=lambda enum_cls: [e.value for e in enum_cls], create_constraint=True,), nullable=False)
+    unit = Column(SqlEnum(UnitType, native_enum=False, values_callable=lambda enum_cls: [e.value for e in enum_cls], create_constraint=True,), nullable=True)
     notes = Column(String, nullable=True)
     entered_by = Column(String, ForeignKey("users.employee_id"), nullable=False)
     entered_at = Column(DateTime, default=datetime.utcnow)

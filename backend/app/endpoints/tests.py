@@ -28,7 +28,7 @@ async def create_test_result(
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized access")
     
-    if not test_logic.user_can_create_test_result_for_sample(user):
+    if not test_logic.user_can_create_test_result_for_sample(user, sample):
         raise HTTPException(status_code=403, detail="Not authorized to create a test result")
     
     if not sample:

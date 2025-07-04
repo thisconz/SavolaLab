@@ -1,18 +1,36 @@
 # Byte-compiled / optimized / DLL files
+=======
+# ----------------------------
+# Python
+# ----------------------------
 __pycache__/
 *.py[cod]
 *$py.class
 *.pyc
+<<<<<<< HEAD
 
 # Python environment folders
 venv/
 .env
 
 # Database files
+=======
+venv/
+
+# ----------------------------
+# Environment Variables
+# ----------------------------
+.env*
+*.pem
+
+# ----------------------------
+# Database Files
+# ----------------------------
 *.sqlite3
 *.db
 SavolaLab.session.sql
 
+<<<<<<< HEAD
 # Logs
 *.log
 *.out
@@ -32,3 +50,70 @@ docker/
 
 # Powershell files
 *.ps1
+=======
+# ----------------------------
+# Logs
+# ----------------------------
+*.log
+*.out
+*.err
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ----------------------------
+# Editor / IDE
+# ----------------------------
+.vscode/
+.DS_Store
+
+# ----------------------------
+# Docker
+# ----------------------------
+docker/
+
+# ----------------------------
+# Node.js / JavaScript
+# ----------------------------
+package-lock.json
+*/node_modules/
+.pnp
+.pnp.*
+*.zip
+*.txt
+*.ps1
+
+# ----------------------------
+# Yarn
+# ----------------------------
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# ----------------------------
+# TypeScript
+# ----------------------------
+*.tsbuildinfo
+next-env.d.ts
+
+# ----------------------------
+# Next.js
+# ----------------------------
+.next/
+out/
+.build/
+build/
+
+# ----------------------------
+# Testing
+# ----------------------------
+coverage/
+
+# ----------------------------
+# Deployment
+# ----------------------------
+.vercel
+
