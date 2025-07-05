@@ -87,7 +87,7 @@ async def get_test_results_by_sample_batch_number(
     return test_results
 
 # Get all test results for the current user
-@router.get("/test/{test_id}", response_model=TestResultRead)
+@router.get("/{test_id}", response_model=TestResultRead)
 async def get_test_result(
     test_id: UUID, 
     user=Depends(get_current_user),

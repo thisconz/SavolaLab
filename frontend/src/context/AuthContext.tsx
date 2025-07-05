@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 interface JwtPayload {
   sub: string;    // username
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (storedToken) {
       setTokenState(storedToken);
       try {
-        const decoded = jwt_decode<JwtPayload>(storedToken);
+        const decoded = jwtDecode<JwtPayload>(storedToken);
         setUser({ username: decoded.sub, role: decoded.role });
       } catch {
         setUser(null);
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (newToken) {
       localStorage.setItem("token", newToken);
       try {
-        const decoded = jwt_decode<JwtPayload>(newToken);
+        const decoded = jwtDecode<JwtPayload>(newToken);
         setUser({ username: decoded.sub, role: decoded.role });
       } catch {
         setUser(null);
