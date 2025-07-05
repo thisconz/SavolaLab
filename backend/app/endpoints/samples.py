@@ -120,10 +120,11 @@ async def delete_sample(
     Responses:
         200: Sample deleted successfully
         404: Sample not found or not authorized to delete
-        405: Sample not entered by the user
+        405: Admin or QC Manager can delete any sample
     """
-    success = sample_logic.delete_sample(db, sample_id, user.employee_id)
-    if not success and user.role not in ["admin", "qc_manager"]:
+    success = sample_logic.delete_sample(db, sample_id, user.employee_id, user.role.value)
+    
+    if not success:
         raise HTTPException(status_code=404, detail="Sample not found or not authorized to delete")
     
     return {"detail": "Sample deleted successfully"}

@@ -49,16 +49,28 @@ def update_sample(
 def delete_sample(
     db: Session, 
     sample_id: UUID, 
-    employee_id: str
+    employee_id: str,
+    user_role: UserRole
 ) -> bool:
     sample = db.query(Sample).filter(Sample.id == sample_id).first()
     if not sample:
         return False
-    if sample.assigned_to != employee_id:
-        return False
-    db.delete(sample)
-    db.commit()
-    return True
+    
+    # Allow admin or qc_manager to delete any sample
+    if user_role in ["admin", "qc_manager"] or sample.assigned_to == employee_id:
+        db.delete(sample)
+        db.commit()
+        return True
+    
+    # Otherwise, only assigned user can delete
+    if sample.assigned_to == employee_id:
+        db.delete(sample)
+        db.commit()
+        return True
+    
+    return False
+
+
 
 # Check if a user can access a sample
 def user_can_access_sample(user: User, sample: Sample) -> bool: 

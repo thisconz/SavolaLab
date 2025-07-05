@@ -8,6 +8,13 @@ export default function SampleTable() {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [loading, setLoading] = useState(true);
 
+  function formatSampleType(type: string): string {
+    return type
+      .split("_")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
   useEffect(() => {
     const fetchSamples = async () => {
       try {
@@ -41,7 +48,7 @@ export default function SampleTable() {
           {samples.map((sample) => (
             <tr key={sample.batch_number} className="border-t">
               <td className="px-4 py-2 font-medium text-gray-900">{sample.batch_number}</td>
-              <td className="px-4 py-2 text-gray-900">{sample.sample_type}</td>
+              <td className="px-4 py-2 text-gray-900">{formatSampleType(sample.sample_type)}</td>
               <td className="px-4 py-2 text-gray-900">{new Date(sample.collected_at).toLocaleString()}</td>
               <td className="px-4 py-2 text-gray-900">{sample.location}</td>
               <td className="px-4 py-2 text-gray-900">{sample.assigned_to || "—"}</td>

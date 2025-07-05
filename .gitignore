@@ -30,27 +30,6 @@ venv/
 *.db
 SavolaLab.session.sql
 
-<<<<<<< HEAD
-# Logs
-*.log
-*.out
-*.err
-
-# IDE folders and files
-.vscode/
-
-# Docker folders
-docker/
-
-# ZIP Files
-*.zip
-
-# TXT Files
-*.txt
-
-# Powershell files
-*.ps1
-=======
 # ----------------------------
 # Logs
 # ----------------------------
@@ -116,4 +95,3 @@ coverage/
 # Deployment
 # ----------------------------
 .vercel
-

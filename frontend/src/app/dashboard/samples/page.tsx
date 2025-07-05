@@ -1,17 +1,23 @@
-import SampleTable from "@/components/SampleTable";
+import SampleTable from "@/components/samples/SampleTable";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Link from "next/link";
 
 export default function SamplesPage() {
   return (
     <ProtectedRoute>
-      <div>
-        <div className="flex items-center space-x-4">
-          <h2 className="text-xl font-bold mb-4 text-gray-900">Samples</h2>
-          <div className="w-px h-6 bg-gray-300"></div>
-          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Add Sample</button>
+      <form className="bg-white p-6 rounded-lg shadow-md mb-6 space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold text-gray-900">Samples</h2>
+          <div className="flex space-x-4">
+            <Link href="/dashboard/samples/create" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Create Sample</Link>
+            <Link href="/dashboard/samples/edit" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Edit Sample</Link>
+            <Link href="/dashboard/samples/export" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Export</Link>
+            <Link href="/dashboard/samples/import" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Import</Link>
+            <Link href="/dashboard/samples/delete" className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Delete</Link>
+          </div>
         </div>
         <SampleTable />
-      </div>
+      </form>
     </ProtectedRoute>
   );
 }
