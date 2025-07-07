@@ -1,11 +1,12 @@
 import ProtectedRoute from "@/components/ProtectedRoute";
+import SamplesTestsCount from "@/components/dashboard/SamplesTestsCount";
 
 export default function DashboardPage() {
   return (
     <ProtectedRoute>
-      <div>
-        <h2 className="text-2xl font-bold mb-4 text-gray-900">Welcome to SavolaLab</h2>
-        <p className="text-gray-900">Use the sidebar to manage samples and test results.</p>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-4 text-gray-800">Dashboard</h1>
+        <SamplesTestsCount />
       </div>
     </ProtectedRoute>
   );

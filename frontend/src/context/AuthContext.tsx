@@ -3,41 +3,38 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
-
-interface JwtPayload {
-  sub: string;    // username
-  role: string;   // role name
-  exp: number;    // expiry timestamp
-}
-
-interface AuthContextType {
-  token: string | null;
-  setToken: (token: string | null) => void;
-  logout: () => void;
-  loading: boolean;
-  user: { username: string; role: string } | null;
-}
+import { JwtPayload, AuthContextType } from "@/types/auth";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// ✅ Helper to check expiry
+const isTokenExpired = (exp: number): boolean => {
+  return Date.now() >= exp * 1000;
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setTokenState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{ username: string; role: string } | null>(null);
+  const [user, setUser] = useState<{ username: string; role: string; full_name: string; department: string } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     if (storedToken) {
-      setTokenState(storedToken);
       try {
         const decoded = jwtDecode<JwtPayload>(storedToken);
-        setUser({ username: decoded.sub, role: decoded.role });
+        console.log("Decoded Token:", decoded);
+        if (isTokenExpired(decoded.exp)) {
+          logout();
+        } else {
+          setTokenState(storedToken);
+          setUser({ username: decoded.sub, role: decoded.role, full_name: decoded.full_name, department: decoded.department });
+        }
       } catch {
-        setUser(null);
+        logout();
       }
     }
-    setLoading(false);
+    setLoading(false); // ✅ always stop loading
   }, []);
 
   const setToken = (newToken: string | null) => {
@@ -45,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem("token", newToken);
       try {
         const decoded = jwtDecode<JwtPayload>(newToken);
-        setUser({ username: decoded.sub, role: decoded.role });
+        setUser({ username: decoded.sub, role: decoded.role, full_name: decoded.full_name, department: decoded.department });
       } catch {
         setUser(null);
       }

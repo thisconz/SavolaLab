@@ -10,6 +10,7 @@ class UserBase(BaseModel):
     employee_id: str = Field(..., example="QC12345", description="Employee unique identifier")
     full_name: str = Field(..., example="Jane Doe", description="Full name of the user")
     role: UserRole = Field(..., description="Role of the user in the system")
+    department: str = Field(..., example="QC", description="Department of the user")
 
     class Config:
         orm_mode = True
@@ -31,6 +32,7 @@ class UserRead(UserBase):
     employee_id: str
     full_name: str
     role: UserRole
+    department: str
 
     class Config:
         orm_mode = True
@@ -42,6 +44,7 @@ class UserUpdate(BaseModel):
     full_name: Optional[str] = Field(default=None, example="Jane Doe", description="Full name of the user")
     role: Optional[UserRole] = Field(default=None, description="Role of the user in the system")
     password: Optional[str] = Field(default=None, example="newpassword", description="User password (min 6 chars)")
+    department: Optional[str] = Field(default=None, example="QC", description="Department of the user")
 
     class Config:
         orm_mode = True

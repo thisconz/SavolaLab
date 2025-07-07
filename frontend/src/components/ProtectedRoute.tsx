@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (!token) {
-    return null; // prevent flash before redirect
+    return null;
   }
 
   return <>{children}</>;

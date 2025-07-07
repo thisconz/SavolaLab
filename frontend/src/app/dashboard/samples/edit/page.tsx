@@ -34,7 +34,7 @@ export default function EditSamplesPage() {
             <Link href="/dashboard/samples" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Back</Link>
         </div>
 
-        <div className="bg-white shadow rounded p-4 border border-gray-300">
+        <div className="bg-white shadow rounded p-4 border border-gray-300 text-gray-800">
           {samples.length === 0 ? (
             <p>No samples found.</p>
           ) : (

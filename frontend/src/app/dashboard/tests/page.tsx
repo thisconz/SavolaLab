@@ -1,6 +1,6 @@
 "use client";
 
-import TestList from "@/components/tests/TestList";
+import TestList from "@/components/tests/TestTable";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useState } from "react";
 import Link from "next/link";
@@ -18,41 +18,19 @@ export default function SampleDetailsPage({ params }: { params: { batch_number: 
             Tests Results {params.batch_number}
           </h2>
           <div className="flex space-x-4">
-            <Link
-              href={`/dashboard/tests/create?batch_number=${params.batch_number}`}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
-            >
+            <Link href={`/dashboard/tests/create?batch_number=${params.batch_number}`} className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
               Create Test Result
             </Link>
-            <Link
-              href={`/dashboard/tests/edit?batch_number=${params.batch_number}`}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
-            >
+            <Link href={`/dashboard/tests/edit?batch_number=${params.batch_number}`} className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
               Edit Test Result
             </Link>
-            <Link
-              href={`/dashboard/tests/export?batch_number=${params.batch_number}`}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
-            >
-              Export
-            </Link>
-            <Link
-              href={`/dashboard/tests/import?batch_number=${params.batch_number}`}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
-            >
-              Import
-            </Link>
-            <Link
-              href={`/dashboard/tests/delete?batch_number=${params.batch_number}`}
-              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
-            >
+            <Link href={`/dashboard/tests/delete?batch_number=${params.batch_number}`}className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
               Delete
             </Link>
             <button
               onClick={handleRefresh}
-              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-            >
-              Refresh Tests
+              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+                Refresh Tests
             </button>
           </div>
         </div>

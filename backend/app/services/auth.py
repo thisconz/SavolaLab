@@ -51,6 +51,7 @@ async def register_user(db: Session, user_in: UserCreate) -> User:
     user = User(
         employee_id=user_in.employee_id,
         full_name=user_in.full_name,
+        department=user_in.department,
         password=hashed_password,
         role=user_in.role.value 
     )
@@ -81,8 +82,15 @@ def authenticate_user(
 async def create_access_token_for_user(
         user: User) -> str:
     
+    # Print the user details
+    print(f"Creating token for: employee_id={user.employee_id}, full_name={user.full_name}, department={user.department}")
+    
     # Create the access token
-    data = {"sub": user.employee_id, "role": user.role.value}
+    data = {"sub": user.employee_id, 
+            "role": user.role.value,
+            "full_name": user.full_name,
+            "department": user.department,
+            }
 
     # Return the access token
     return create_access_token(data)

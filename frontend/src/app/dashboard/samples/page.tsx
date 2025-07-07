@@ -3,6 +3,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
 
 export default function SamplesPage() {
+
   return (
     <ProtectedRoute>
       <form className="bg-white p-6 rounded-lg shadow-md mb-6 space-y-4">
@@ -11,8 +12,6 @@ export default function SamplesPage() {
           <div className="flex space-x-4">
             <Link href="/dashboard/samples/create" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Create Sample</Link>
             <Link href="/dashboard/samples/edit" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Edit Sample</Link>
-            <Link href="/dashboard/samples/export" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Export</Link>
-            <Link href="/dashboard/samples/import" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Import</Link>
             <Link href="/dashboard/samples/delete" className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Delete</Link>
           </div>
         </div>

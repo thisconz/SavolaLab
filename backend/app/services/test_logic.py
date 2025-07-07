@@ -46,6 +46,9 @@ def delete_test_result(db: Session, test_result: TestResult) -> None:
 
 # Get a test result
 
+# All
+def get_all_test_results(db: Session) -> list[TestResult]:
+    return db.query(TestResult).all()
 # By user
 def get_tests_by_user(db: Session,employee_id: str,skip: int = 0,limit: int = 100) -> list[TestResult]:
     return (db.query(TestResult).filter(TestResult.entered_by == employee_id).order_by(TestResult.entered_at.desc()).offset(skip).limit(limit).all())
@@ -58,9 +61,6 @@ def get_sample_by_id(db: Session, sample_id: UUID) -> Sample | None:
 # By sample batch number
 def get_test_results_by_sample_batch_number(db: Session, sample_batch_number: str) -> list[TestResult]:
     return db.query(TestResult).filter(TestResult.sample_batch_number == sample_batch_number).all()
-# all test results
-def get_all_tests(db: Session):
-    return db.query(TestResult).all()
 
 # User can access a Test result
 def user_can_access_test_result(user: User, test: TestResult) -> bool: 

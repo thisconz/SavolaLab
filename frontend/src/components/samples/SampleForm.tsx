@@ -4,16 +4,18 @@ import { useState } from "react";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { SampleCreate } from "@/types/sample";
 
 export default function SampleForm() {
   const router = useRouter();
 
-  const [form, setForm] = useState({
-    sample_type: "white_sugar",
-    collected_at: new Date().toISOString().slice(0, 16),
+  const [form, setForm] = useState<SampleCreate>({
+    batch_number: "",
+    sample_type: "",
     location: "",
-    notes_text: "",
     assigned_to: "",
+    collected_at: "",
+    notes_text: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

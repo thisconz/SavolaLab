@@ -2,148 +2,147 @@
 
 import { useState } from "react";
 import api from "@/lib/api";
-
-interface Props {
-  batch_number: string;
-  onTestCreated: () => void;
-}
+import { TestCreate } from "@/types/test";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const testParameters = ["pH", "tds", "colour", "density", "turbidity", "tss", "minute_sugar", "ash", "sediment", "starch", "particle_size", "cao", "purity", "moisture", "sucrose"]; // add more as needed
 const statusOptions = ["pending", "cancelled", "approved", "rejected"];
 const uitOptions = ["%", "g", "mg/kg", "ppm", "mL", "µm", "mm", "mg/L", "IU", "g/m³", "g/cm³", "NTU", "nm", "pH", "dimensionless", "other" ];
 
-export default function TestCreateForm({ batch_number, onTestCreated }: Props) {
-  const [batch, setBatch] = useState(batch_number);
-  const [parameter, setParameter] = useState("");
-  const [value, setValue] = useState<number | "">("");
-  const [unit, setUnit] = useState("");
-  const [status, setStatus] = useState("pending");
-  const [notes, setNotes] = useState("");
-  const [loading, setLoading] = useState(false);
+export default function TestForm() {
+  const router = useRouter();
+
+  const [form, setForm] = useState<TestCreate>({
+    sample_batch_number: "",
+    parameter: "",
+    value: 0,
+    unit: "",
+    status: "",
+    entered_by: "",
+    entered_at: "",
+    notes: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!parameter || value === "" || !unit) {
-      alert("Please fill all required fields");
-      return;
-    }
-
-    setLoading(true);
     try {
       await api.post("/tests/", {
-        sample_batch_number: batch_number,
-        parameter,
-        value,
-        unit,
-        status,
-        notes,
+        ...form,
+        entered_at: new Date(form.entered_at).toISOString(),
       });
-      alert("Test created");
-      setParameter("");
-      setValue("");
-      setUnit("");
-      setStatus("pending");
-      setNotes("");
-      onTestCreated();
+      alert("Test created!");
+      router.refresh();
     } catch (err: any) {
-      alert(err.response?.data?.detail || "Failed to create test");
-    } finally {
-      setLoading(false);
+      console.error(err);
+      alert(err.response?.data?.detail || "Test creation failed");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded shadow mt-6 text-gray-800">
-      <h2 className="text-xl font-semibold">Add New Test</h2>
-
-      <div>
-        <label className="block font-medium">Batch#</label>
-        <input
-          type="text"
-          value={batch}
-          onChange={(e) => setBatch(e.target.value)}
-          className="border p-2 w-full rounded"
-          />
+    <form 
+      onSubmit={handleSubmit} 
+      className="bg-white p-6 rounded-lg shadow-md mb-6 space-y-4"
+    >
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-bold text-gray-900">Create New Test</h3>
+        <Link href="/dashboard/tests" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Back</Link>
       </div>
 
-      <div>
-        <label className="block font-medium">Parameter</label>
-        <select
-          value={parameter}
-          onChange={(e) => setParameter(e.target.value)}
-          className="border p-2 w-full rounded"
-        >
-          <option value="">Select parameter</option>
-          {testParameters.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
-      </div>
+      <input 
+        type="text" 
+        name="sample_batch_number" 
+        placeholder="Sample Batch Number"
+        value={form.sample_batch_number}
+        onChange={handleChange}
+        className="w-full border p-2 rounded text-gray-900"/>
 
-      <div>
-        <label className="block font-medium">Value</label>
-        <input
-          type="number"
-          value={value}
-          onChange={(e) => setValue(Number(e.target.value))}
-          className="border p-2 w-full rounded"
-          step="any"
-          required
-        />
-      </div>
+      <select
+        name="parameter"
+        value={form.parameter}
+        onChange={handleChange}
+        className="w-full border p-2 rounded text-gray-900"
+      >
+        <option value="">Select a parameter</option>
+        {testParameters.map((parameter) => (
+          <option key={parameter} value={parameter}>
+            {parameter}
+          </option>
+        ))}
+      </select>
 
-      <div>
-        <label className="block font-medium">Unit</label>
-        <select
-          value={unit}
-          onChange={(e) => setUnit(e.target.value)}
-          className="border p-2 w-full rounded"
-        >
-          <option value="">Select unit</option>
-          {uitOptions.map((u) => (
-            <option key={u} value={u}>
-              {u}
-            </option>
-          ))}
-        </select>
-      </div>
+      <input
+        type="number"
+        name="value"
+        value={form.value}
+        onChange={handleChange}
+        className="w-full p-2 border  rounded-md text-gray-900"
+      />
 
-      <div>
-        <label className="block font-medium">Status</label>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="border p-2 w-full rounded"
-        >
-          <option value="">Select status</option>
-          {statusOptions.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-      </div>
+      <select
+        name="unit"
+        value={form.unit}
+        onChange={handleChange}
+        className="w-full p-2 border  rounded-md text-gray-900"
+      >
+        <option value="">Select a unit</option>
+        {uitOptions.map((unit) => (
+          <option key={unit} value={unit}>
+            {unit}
+          </option>
+        ))}
+      </select>
 
-      <div>
-        <label className="block font-medium">Notes</label>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          className="border p-2 w-full rounded"
-          rows={3}
-        />
-      </div>
+      <select
+        name="status"
+        value={form.status}
+        onChange={handleChange}
+        className="w-full p-2 border  rounded-md text-gray-900"
+      >
+        <option value="">Select a status</option>
+        {statusOptions.map((status) => (
+          <option key={status} value={status}>
+            {status}
+          </option>
+        ))}
+      </select>
+
+      <input
+        type="text"
+        name="entered_by"
+        placeholder="Entered By (Employee ID)"
+        value={form.entered_by}
+        onChange={handleChange}
+        className="w-full p-2 border  rounded-md text-gray-900"
+      />
+
+      <input
+        type="datetime-local"
+        name="entered_at"
+        value={form.entered_at}
+        onChange={handleChange}
+        className="w-full p-2 border  rounded-md text-gray-900"
+      />
+
+      <textarea
+        name="notes"
+        placeholder="Notes (optional)"
+        value={form.notes}
+        onChange={handleChange}
+        className="w-full p-2 border  rounded-md text-gray-900"
+      />
 
       <button
         type="submit"
-        disabled={loading}
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
       >
-        {loading ? "Saving..." : "Add Test"}
+        Create Test
       </button>
     </form>
-  );
-}
+  )
+};

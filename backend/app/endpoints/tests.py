@@ -23,6 +23,7 @@ async def create_test_result(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Create a new test result."""
     sample = sample_logic.get_sample_by_batch_number(db, test_in.sample_batch_number)
 
     if not user:
@@ -46,6 +47,19 @@ async def create_test_result(
     
     test_result = test_logic.create_test_result(db, test_in, user.employee_id)
     return TestResultRead.from_orm(test_result)
+
+# List all test results
+@router.get("/", response_model=List[TestResultRead])
+async def get_all_test_results(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Get a list of all test results."""
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
+
+    return test_logic.get_all_test_results(db)
+
 
 # Get Results for a sample by Batch Number
 @router.get("/sample/{sample_batch_number}", response_model=List[TestResultRead])

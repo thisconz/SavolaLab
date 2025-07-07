@@ -43,7 +43,7 @@ export default function SampleEditForm({ batch_number }: Props) {
   }, [batch_number]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     if (!sample) return;
     const { name, value } = e.target;

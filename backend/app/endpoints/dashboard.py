@@ -27,8 +27,6 @@ async def get_dashboard(
         200: Successful response.
         401: Unauthorized access.
         402: Admin and QC Manager roles can view all samples and tests.
-        404: No samples or tests found for the user.
-        422: Invalid user data.
     """
     # 401: Unauthorized access
     if not user:
@@ -37,18 +35,10 @@ async def get_dashboard(
     # 402: Admin and QC Manager roles can view all samples and tests
     if user.role in ["admin", "qc_manager"]:
         samples = sample_logic.get_all_samples(db)
-        tests = test_logic.get_all_tests(db)
+        tests = test_logic.get_all_test_results(db)
     else:
         samples = sample_logic.get_samples_by_user(db, user.employee_id)
         tests = test_logic.get_tests_by_user(db, user.employee_id)
-    
-    # 404: Not authorized to access the dashboard
-    if not samples and not tests:
-        raise HTTPException(status_code=404, detail="No samples or tests found for the user.")
-
-    # 422: Invalid user data
-    if not user:
-        raise HTTPException(status_code=422, detail="Invalid user data")
     
     if not samples and not tests:
         return {

@@ -5,11 +5,14 @@ from uuid import UUID
 # Models
 from app.domain.models.user import User
 
+# Schemas
+from app.domain.schemas.user import UserCreate
+
 # Database
 from app.infrastructure.database import get_db
 
 # Services
-from app.services.auth import get_current_user
+from app.services.auth import get_current_user, register_user
 
 # Dependencies
 from app.endpoints._deps import admin_only
@@ -80,3 +83,14 @@ async def delete_user(
         "user_role": user.role,
         "user_employee_id": user.employee_id,
         }
+
+# Create User ( Admin only )
+@router.post("/users")
+async def create_user(
+    user: UserCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new user.
+    """
+    return await register_user(db, user)

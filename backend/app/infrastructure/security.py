@@ -27,6 +27,11 @@ def create_access_token(
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+    # Decode immediately to inspect payload
+    decoded_payload = jwt.decode(encoded_jwt, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+    print("JWT payload:", decoded_payload)
+    
     return encoded_jwt
 
 # Decode a JWT access token.
