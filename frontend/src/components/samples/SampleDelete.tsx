@@ -54,30 +54,11 @@ export default function SampleDelete() {
   if (loading) return <div>Loading samples...</div>;
 
   return (
-    <div className="bg-white shadow rounded p-4 border border-gray-300">
-      {samples.length === 0 ? (
-        <p>No samples found.</p>
-      ) : (
-        <ul className="space-y-2">
-          {samples.map((sample) => (
-            <li
-              key={sample.id}
-              className="flex justify-between items-center border-b py-2"
-            >
-              <div className="text-gray-900">
-                <strong>{sample.batch_number}</strong> — {sample.sample_type}
-              </div>
-              <button
-                disabled={deletingId === sample.id}
-                onClick={() => handleDelete(sample.id)}
-                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 disabled:opacity-50"
-              >
-                {deletingId === sample.id ? "Deleting..." : "Delete"}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <button
+      onClick={() => handleDelete(samples[0].id)}
+      disabled={deletingId === samples[0].id}
+    >
+      {deletingId === samples[0].id ? "Deleting..." : "Delete"}
+    </button>
   );
 }

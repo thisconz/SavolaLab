@@ -18,3 +18,7 @@ export interface SampleCreate {
   notes_text?: string;
   assigned_to?: string;
 }
+
+export interface Props {
+  batch_number: string;
+}

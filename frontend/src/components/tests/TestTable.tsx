@@ -3,18 +3,11 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { Test, TestListProps } from "@/types/test";
+import TestDelete from "./TestDelete";
 
 export default function TestTable({ batch_number }: TestListProps) {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
-
-  function formatTestType(type?: string): string {
-    if (!type || typeof type !== "string") return "Unknown";
-    return type
-      .split("_")
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  }
 
   useEffect(() => {
     const fetchTests = async () => {
@@ -32,30 +25,48 @@ export default function TestTable({ batch_number }: TestListProps) {
     fetchTests();
   }, [batch_number]);
 
-  if (loading) return <div>Loading tests...</div>;
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="overflow-x-auto bg-white shadow rounded-lg p-4">
-      <table className="min-w-full table-auto text-sm rounded">
-        <thead className="bg-green-700 text-left text-white text-sm font-semibold">
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
           <tr>
-            <th className="px-4 py-2">Batch#</th>
-            <th className="px-4 py-2">Parameter</th>
-            <th className="px-4 py-2">Test Result</th>
-            <th className="px-4 py-2">Status</th>
-            <th className="px-4 py-2">Entered By</th>
-            <th className="px-4 py-2">Entered At</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+              Batch #
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+              Test Type
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+              Test Value
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+              Test Date
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+              Entered By
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+              Status
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+              Actions
+            </th>
           </tr>
         </thead>
-        <tbody>
-          {tests.map(test => (
-            <tr key={test.id} className="border-t">
-              <td className="px-4 py-2 font-medium text-gray-900">{test.sample_batch_number}</td>
-              <td className="px-4 py-2 text-gray-900">{formatTestType(test.parameter)}</td>
-              <td className="px-4 py-2 text-gray-900">{test.value} {test.unit}</td>
-              <td className="px-4 py-2 text-gray-900">{test.status}</td>
-              <td className="px-4 py-2 text-gray-900">{test.entered_by}</td>
-              <td className="px-4 py-2 text-gray-900">{new Date(test.entered_at).toLocaleString()}</td>
+        <tbody className="bg-white divide-y divide-gray-200 text-gray-800">
+          {tests.map((test) => (
+            <tr key={test.id}>
+              <td className="px-6 py-4 whitespace-nowrap">{test.sample_batch_number}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{test.parameter}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{test.value}{test.unit}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{new Date(test.entered_at).toLocaleString()}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{test.status}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{test.entered_by || "—"}</td>
+              <td className="px-6 py-4 whitespace-nowrap"><TestDelete/></td>
             </tr>
           ))}
         </tbody>

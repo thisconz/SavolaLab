@@ -1,6 +1,6 @@
 'use client';
 
-import SampleEditForm from "@/components/samples/SampleEditForm";
+import SampleEdit from "@/components/samples/SampleEditForm";
 import Link from "next/link";
 
 interface Props {
@@ -28,7 +28,7 @@ export default function EditSamplePage({ params }: Props) {
         </div>
       </div>
 
-      <SampleEditForm batch_number={params.batch_number} />
+      <SampleEdit batch_number={params.batch_number} />
     </div>
   );
 }

@@ -49,7 +49,7 @@ export default function LoginPage() {
         onSubmit={handleLogin}
         className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md space-y-6"
       >
-        <h2 className="text-2xl font-bold text-center text-blue-600">Login</h2>
+        <h2 className="text-2xl font-bold text-center text-green-600">Login</h2>
         <input 
           type="text" 
           placeholder="Employee ID" 

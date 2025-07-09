@@ -1,12 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sample } from "@/types/sample";
+import { Sample, Props } from "@/types/sample";
 import api from "@/lib/api";
-
-interface Props {
-  batch_number: string;
-}
 
 const sampleTypes = [
   "white_sugar",
@@ -15,17 +11,23 @@ const sampleTypes = [
   "fine_liquor",
   "polish_liquor",
   "evaporator_liquor",
-  "SAT_out",
+  "sat_out",
   "condensate",
   "cooling_water",
   "wash_water",
 ];
 
-
-export default function SampleEditForm({ batch_number }: Props) {
+export default function SampleEdit({ batch_number }: Props) {
   const [sample, setSample] = useState<Sample | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
+
+  function formatSampleType(type: string): string {
+    return type
+      .split("_")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
 
   const fetchSample = async () => {
     try {
@@ -98,74 +100,75 @@ export default function SampleEditForm({ batch_number }: Props) {
     );
   };
 
+  function toDatetimeLocal(value: string) {
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60000);
+  return localDate.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+  }
+
   if (loading) return <p>Loading sample...</p>;
   if (!sample) return <p>Sample not found.</p>;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded shadow text-gray-900">
-      <div>
-        <label className="block font-medium">Batch Number</label>
-        <input
-        name="batch_number"
-        value={sample.batch_number}
-        disabled
-        className="border p-2 w-full rounded bg-gray-300"
-        />
+    <form className="bg-white p-6 rounded-lg shadow-md mb-6 space-y-4" onSubmit={handleSubmit}>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold text-gray-900">Edit Sample</h2>
       </div>
 
-      <div>
-        <label className="block font-medium">Sample Type</label>
-        <select
-          name="sample_type"
-          value={sample.sample_type}
-          onChange={handleChange}
-          className={`border p-2 w-full rounded ${
-            errors.sample_type ? "border-red-500" : ""
-          }`}
+      <div className="bg-white shadow rounded p-4 border border-gray-300 text-gray-800">
+
+        <div className="mb-4">
+          <label className="block text-gray-700 font-bold mb-2">Sample Type:</label>
+          <select
+            name="sample_type"
+            value={sample.sample_type}
+            onChange={handleChange}
+            className="w-full p-2 border border-gray-300 rounded"
+          >
+            {sampleTypes.map((type) => (
+              <option key={type} value={type}>
+                {formatSampleType(type)}
+              </option>
+            ))}
+          </select>
+          {errors.sample_type && <p className="text-red-500">{errors.sample_type}</p>}
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-700 font-bold mb-2">Location:</label>
+          <input
+            type="text"
+            name="location"
+            value={sample.location}
+            onChange={handleChange}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+          {errors.location && <p className="text-red-500">{errors.location}</p>}
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-700 font-bold mb-2">Collection Date:</label>
+          <input
+            type="datetime-local"
+            name="collected_at"
+            value={toDatetimeLocal(sample.collected_at)}
+            onChange={handleChange}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+          {errors.collected_at && <p className="text-red-500">{errors.collected_at}</p>}
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          disabled={!isFormValid()}
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          <option value="">Select sample type</option>
-          {sampleTypes.map((type) => (
-          <option key={type} value={type}>
-            {type.replace(/_/g, " ")}
-          </option>
-        ))}
-        </select>
-        {errors.sample_type && (
-          <p className="text-red-600 text-sm mt-1">{errors.sample_type}</p>
-        )}
+          Save Changes
+        </button>
       </div>
-
-      <div>
-        <label className="block font-medium">Location</label>
-        <input
-        name="location"
-        value={sample.location}
-        onChange={handleChange}
-        className="border p-2 w-full rounded"
-        />
-      </div>
-
-      <div>
-        <label className="block font-medium">Collected At</label>
-        <input
-        name="collected_at"
-        type="datetime-local"
-        value={sample.collected_at.slice(0, 16)} // trim seconds
-        onChange={handleChange}
-        className="border p-2 w-full rounded"
-        />
-      </div>
-
-      <button
-      type="submit"
-      disabled={!isFormValid()}
-      className={`px-4 py-2 rounded text-white ${
-        isFormValid() ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"
-      }`}
-      >
-      Save Changes
-      </button>
     </form>
-
   );
 }
