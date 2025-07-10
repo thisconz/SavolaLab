@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { Test, TestListProps } from "@/types/test";
+import { Test, TestProps } from "@/types/test";
 import TestDelete from "./TestDelete";
 
-export default function TestTable({ batch_number }: TestListProps) {
+export default function TestTable({ batch_number, refreshTests }: TestProps) {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,7 +23,7 @@ export default function TestTable({ batch_number }: TestListProps) {
     };
 
     fetchTests();
-  }, [batch_number]);
+  }, [refreshTests]);
 
   if (loading) {
     return <div>Loading...</div>;

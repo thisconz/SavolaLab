@@ -1,41 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
-import { Sample } from "@/types/sample";
+import { useState } from "react";
 import SampleDelete from "./SampleDelete";
 import SampleEdit from "./SampleEditForm";
+import { Sample } from "@/types/sample";
+import { useSamples } from "@/hooks/useSamples";
+import { formatSampleType } from "@/utils/format";
 
-interface Props {
-  params: { batch_number: string };
-}
+export default function SampleTable() {
+  const { samples, loading, refetch } = useSamples();
+  const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
 
-export default function SampleTable( { params }: Props) {
-  const [samples, setSamples] = useState<Sample[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  function formatSampleType(type: string): string {
-    return type
-      .split("_")
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  }
-
-  useEffect(() => {
-    const fetchSamples = async () => {
-      try {
-        const response = await api.get("/samples/");
-        setSamples(response.data);
-      } catch (err) {
-        console.error("Failed to fetch samples:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSamples();
-  }, []);
-
+  
+  if (!samples) return <div>No samples found</div>;
   if (loading) return <div>Loading samples...</div>;
 
   return (
@@ -48,24 +25,61 @@ export default function SampleTable( { params }: Props) {
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Collected At</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Location</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Assigned To</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Actions</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Delete</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Edit</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200 text-gray-800">
-          {samples.map((sample) => (
-            <tr key={sample.batch_number}>
-              <td className="px-6 py-4 whitespace-nowrap">{sample.batch_number}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{formatSampleType(sample.sample_type)}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{new Date(sample.collected_at).toLocaleString()}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{sample.location}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{sample.assigned_to || "—"}</td>
-              <td className="px-6 py-4 whitespace-nowrap"><SampleDelete /></td>
-              <td className="px-6 py-4 whitespace-nowrap"><SampleEdit batch_number={params.batch_number} /></td>
+          {samples.map(s => (
+            <tr key={s.batch_number}>
+              <td className="px-6 py-4 whitespace-nowrap">{s.batch_number}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{formatSampleType(s.sample_type)}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{new Date(s.collected_at).toLocaleString()}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{s.location}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{s.assigned_to || "—"}</td>
+              <td className="px-6 py-4 whitespace-nowrap"><SampleDelete sampleId={s.id} onDeleted={refetch} /></td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSample(s)}
+                  className="text-blue-600 hover:text-blue-800 font-semibold"
+                >
+                  Edit
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {selectedSample && (
+        <div role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-sample-title"
+          className="fixed inset-0 z-10 bg-black bg-opacity-50 flex items-center justify-center"
+          onClick={() => setSelectedSample(null)}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 w-full max-w-xl shadow-lg relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedSample(null)}
+              aria-label="Close edit sample modal"
+              className="absolute top-2 right-3 text-gray-500 hover:text-red-600 text-xl"
+            >
+              &times;
+            </button>
+
+            <h2 id="edit-sample-title" className="sr-only">
+              Edit Sample
+            </h2>
+
+            <SampleEdit batch_number={selectedSample.batch_number} />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import SampleForm from "@/components/samples/SampleForm";
+import SampleForm from "@/components/samples/SampleCreateForm";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function CreateSamplePage() {

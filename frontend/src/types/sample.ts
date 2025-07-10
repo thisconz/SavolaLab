@@ -22,3 +22,9 @@ export interface SampleCreate {
 export interface Props {
   batch_number: string;
 }
+
+export interface SamplePropsParams {
+  params: {
+    batch_number: string;
+  }
+}

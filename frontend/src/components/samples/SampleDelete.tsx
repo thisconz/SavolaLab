@@ -1,33 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
-import { Sample } from "@/types/sample";
+import { useSamples } from "@/hooks/useSamples";
+import { useDeleteSample } from "@/hooks/useDeleteSample";
 
-export default function SampleDelete() {
-  const [samples, setSamples] = useState<Sample[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+type SampleDeleteProps = {
+  sampleId: string;
+  onDeleted?: () => void; // optional callback for refetch
+};
 
-  const fetchSamples = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/samples/");
-      console.log("Fetched samples:", res.data);
-      setSamples(res.data);
-    } catch (err) {
-      console.error("Failed to fetch samples", err);
-      alert("Failed to fetch samples");
-    } finally {
-      setLoading(false);
-    }
-  };
+// SampleDelete component
+export default function SampleDelete({ sampleId, onDeleted }: SampleDeleteProps) {
+  const { samples, loading, refetch } = useSamples();
+  const { deleteSample, deletingId } = useDeleteSample();
 
-  useEffect(() => {
-    fetchSamples();
-  }, []);
+  // Handle delete sample
+  const handleDelete = async () => {
 
-  const handleDelete = async (sampleId: string) => {
+    // Check if sample ID is valid UUID
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -36,29 +25,31 @@ export default function SampleDelete() {
       return;
     }
 
+    // Confirm delete
     if (!confirm("Are you sure you want to delete this sample?")) return;
 
-    setDeletingId(sampleId);
-    try {
-      await api.delete(`/samples/${sampleId}`);
+    const result = await deleteSample(sampleId);
+
+    if (result.success) {
       alert("Sample deleted");
-      fetchSamples(); // refresh list
-    } catch (err: any) {
-      console.error("Delete failed", err);
-      alert(err.response?.data?.detail || "Delete failed");
-    } finally {
-      setDeletingId(null);
+      if (onDeleted) onDeleted();
+    } else {
+      alert(result.error);
     }
   };
 
+  // Render loading state
   if (loading) return <div>Loading samples...</div>;
+  // Render no samples found
+  if (samples.length === 0) return <div>No samples found.</div>;
 
+  // Render sample list
   return (
-    <button
-      onClick={() => handleDelete(samples[0].id)}
-      disabled={deletingId === samples[0].id}
-    >
-      {deletingId === samples[0].id ? "Deleting..." : "Delete"}
+    <button 
+      className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" 
+      onClick={handleDelete}
+      disabled={deletingId === sampleId}>
+       {deletingId === sampleId ? "Deleting..." : "Delete"}
     </button>
   );
 }

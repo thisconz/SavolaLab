@@ -1,10 +1,12 @@
 "use client";
 
+import { sampleTypes } from "@/constants/Sample";
 import { useState } from "react";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { SampleCreate } from "@/types/sample";
+import { formatSampleType } from "@/utils/format";
+import Link from "next/link";
 
 export default function SampleForm() {
   const router = useRouter();
@@ -54,17 +56,12 @@ export default function SampleForm() {
         value={form.sample_type}
         onChange={handleChange}
         className="w-full border p-2 rounded text-gray-900"
-      >
-        <option value="white_sugar">White</option>
-        <option value="brown_sugar" >Brown</option>
-        <option value="raw_sugar">Raw</option>
-        <option value="polish_liquor">Polish Liquor</option>
-        <option value="fine_liquor">Fine Liquor</option>
-        <option value="evaporator_liquor">Evaporator Liquor</option>
-        <option value="sat_out">SAT Out</option>
-        <option value="condensate">Condensate</option>
-        <option value="cooling_water">Cooling Water</option>
-        <option value="wash_water">Wash Water</option>
+      >{sampleTypes.map(type => (
+        <option key={type} value={type}>
+          {formatSampleType(type)}
+        </option>
+      )
+      )}
       </select>
 
       <input

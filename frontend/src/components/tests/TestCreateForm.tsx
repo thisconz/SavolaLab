@@ -3,16 +3,10 @@
 import { useState } from "react";
 import api from "@/lib/api";
 import { TestCreate } from "@/types/test";
-import { useRouter } from "next/navigation";
+import { testParameters, statusOptions, unitOptions } from "@/constants/Test";
 import Link from "next/link";
 
-const testParameters = ["pH", "tds", "colour", "density", "turbidity", "tss", "minute_sugar", "ash", "sediment", "starch", "particle_size", "cao", "purity", "moisture", "sucrose"]; // add more as needed
-const statusOptions = ["pending", "cancelled", "approved", "rejected"];
-const uitOptions = ["%", "g", "mg/kg", "ppm", "mL", "µm", "mm", "mg/L", "IU", "g/m³", "g/cm³", "NTU", "nm", "pH", "dimensionless", "other" ];
-
-export default function TestForm() {
-  const router = useRouter();
-
+export default function TestCreateForm() {
   const [form, setForm] = useState<TestCreate>({
     sample_batch_number: "",
     parameter: "",
@@ -32,12 +26,18 @@ export default function TestForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post("/tests/", {
-        ...form,
-        entered_at: new Date(form.entered_at).toISOString(),
-      });
+      await api.post("/tests/", form);
       alert("Test created!");
-      router.refresh();
+      setForm({
+        sample_batch_number: "",
+        parameter: "",
+        value: 0,
+        unit: "",
+        status: "",
+        entered_by: "",
+        entered_at: "",
+        notes: "",
+      });
     } catch (err: any) {
       console.error(err);
       alert(err.response?.data?.detail || "Test creation failed");
@@ -69,11 +69,10 @@ export default function TestForm() {
         className="w-full border p-2 rounded text-gray-900"
       >
         <option value="">Select a parameter</option>
-        {testParameters.map((parameter) => (
-          <option key={parameter} value={parameter}>
-            {parameter}
+        {testParameters.map((p => (
+          <option key={p} value={p}>{p}
           </option>
-        ))}
+        )))}
       </select>
 
       <input
@@ -91,11 +90,10 @@ export default function TestForm() {
         className="w-full p-2 border  rounded-md text-gray-900"
       >
         <option value="">Select a unit</option>
-        {uitOptions.map((unit) => (
-          <option key={unit} value={unit}>
-            {unit}
+        {unitOptions.map((u => (
+          <option key={u} value={u}>{u}
           </option>
-        ))}
+        )))}
       </select>
 
       <select
@@ -105,11 +103,10 @@ export default function TestForm() {
         className="w-full p-2 border  rounded-md text-gray-900"
       >
         <option value="">Select a status</option>
-        {statusOptions.map((status) => (
-          <option key={status} value={status}>
-            {status}
+        {statusOptions.map((s => (
+          <option key={s} value={s}>{s}
           </option>
-        ))}
+        )))}
       </select>
 
       <input

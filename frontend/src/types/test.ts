@@ -21,11 +21,7 @@ export interface TestCreate {
   notes?: string;
 }
 
-export interface TestListProps {
+export interface TestProps {
   batch_number: string;
-}
-
-export interface Props {
-  batch_number: string;
-  onTestCreated: () => void;
+  refreshTests: boolean;
 }
