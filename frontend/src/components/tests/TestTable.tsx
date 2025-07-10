@@ -1,30 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
-import { Test, TestProps } from "@/types/test";
+import { useState } from "react";
 import TestDelete from "./TestDelete";
+import TestEdit from "./TestEditForm";
+import { Test, TestProps } from "@/types/test";
+import { useTests } from "@/hooks/useTests";
+import { formatTestStatus } from "@/utils/format";
 
-export default function TestTable({ batch_number, refreshTests }: TestProps) {
-  const [tests, setTests] = useState<Test[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTests = async () => {
-      try {
-        const response = await api.get("/tests/");
-        console.log("Fetched tests:", response.data);
-        setTests(response.data);
-      } catch (err) {
-        console.error("Failed to fetch tests:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+export default function TestTable() {
+  const { tests, loading, refetch } = useTests();
+  const [selectedTest, setSelectedTest] = useState<Test | null>(null);
 
-    fetchTests();
-  }, [refreshTests]);
-
+  if (!tests) {
+    return <div>No tests found</div>;
+  }
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -53,7 +43,10 @@ export default function TestTable({ batch_number, refreshTests }: TestProps) {
               Status
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
-              Actions
+              Delete
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+              Edit
             </th>
           </tr>
         </thead>
@@ -64,13 +57,49 @@ export default function TestTable({ batch_number, refreshTests }: TestProps) {
               <td className="px-6 py-4 whitespace-nowrap">{test.parameter}</td>
               <td className="px-6 py-4 whitespace-nowrap">{test.value}{test.unit}</td>
               <td className="px-6 py-4 whitespace-nowrap">{new Date(test.entered_at).toLocaleString()}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{test.status}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{formatTestStatus(test.status)}</td>
               <td className="px-6 py-4 whitespace-nowrap">{test.entered_by || "—"}</td>
-              <td className="px-6 py-4 whitespace-nowrap"><TestDelete/></td>
+              <td className="px-6 py-4 whitespace-nowrap"><TestDelete testId={test.id} onDeleted={refetch} /></td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTest(test)}
+                  className="text-blue-600 hover:text-blue-800 font-semibold"
+                >
+                  Edit
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {selectedTest && (
+        <div role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-test-title"
+          className="fixed inset-0 z-10 bg-black bg-opacity-50 flex items-center justify-center"
+          onClick={() => setSelectedTest(null)}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 w-full max-w-xl shadow-lg relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedTest(null)}
+              aria-label="Close edit test modal"
+              className="absolute top-2 right-3 text-gray-500 hover:text-red-600 text-xl"
+            >
+              &times;
+            </button>
+
+            <h2 id="edit-sample-title" className="sr-only">
+              Edit Test
+            </h2>
+            <TestEdit test={selectedTest} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

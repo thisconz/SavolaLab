@@ -4,6 +4,7 @@ import { useState } from "react";
 import api from "@/lib/api";
 import { TestCreate } from "@/types/test";
 import { testParameters, statusOptions, unitOptions } from "@/constants/Test";
+import { formatTestStatus } from "@/utils/format";
 import Link from "next/link";
 
 export default function TestCreateForm() {
@@ -104,7 +105,8 @@ export default function TestCreateForm() {
       >
         <option value="">Select a status</option>
         {statusOptions.map((s => (
-          <option key={s} value={s}>{s}
+          <option key={s} value={s}>
+            {formatTestStatus(s)}
           </option>
         )))}
       </select>

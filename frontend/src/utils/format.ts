@@ -5,6 +5,13 @@ export function formatSampleType(type: string): string {
     .join(" ");
 }
 
+export function formatTestStatus(status: string): string {
+  return status
+    .split("_")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export function toDatetimeLocal(value: string) {
   const date = new Date(value);
   const offset = date.getTimezoneOffset();

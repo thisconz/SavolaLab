@@ -10,7 +10,7 @@ type SampleDeleteProps = {
 
 // SampleDelete component
 export default function SampleDelete({ sampleId, onDeleted }: SampleDeleteProps) {
-  const { samples, loading, refetch } = useSamples();
+  const { samples, loading } = useSamples();
   const { deleteSample, deletingId } = useDeleteSample();
 
   // Handle delete sample

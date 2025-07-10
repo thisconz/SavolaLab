@@ -18,7 +18,7 @@ export default function SampleDetailsPage({ params }: SampleDetailsPageProps) {
       <section className="bg-white p-6 rounded-lg shadow-md mb-6 space-y-4">
         <header className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-900">
-            Test Results – <span className="text-blue-800">{params.batch_number}</span>
+            Test Results <span className="text-blue-800">{params.batch_number}</span>
           </h2>
           <div className="flex space-x-3">
             <Link
