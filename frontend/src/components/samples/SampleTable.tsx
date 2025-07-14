@@ -25,6 +25,7 @@ export default function SampleTable() {
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Collected At</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Location</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Assigned To</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Notes</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Delete</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Edit</th>
           </tr>
@@ -37,6 +38,7 @@ export default function SampleTable() {
               <td className="px-6 py-4 whitespace-nowrap">{new Date(s.collected_at).toLocaleString()}</td>
               <td className="px-6 py-4 whitespace-nowrap">{s.location}</td>
               <td className="px-6 py-4 whitespace-nowrap">{s.assigned_to || "—"}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{s.notes_text || "—"}</td>
               <td className="px-6 py-4 whitespace-nowrap"><SampleDelete sampleId={s.id} onDeleted={refetch} /></td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <button

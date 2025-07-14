@@ -37,7 +37,7 @@ export default function SampleDetailsPage({ params }: SampleDetailsPageProps) {
           </div>
         </header>
 
-        <TestList batch_number={params.batch_number} refreshTests={refreshTests} />
+        <TestList />
       </section>
     </ProtectedRoute>
   );

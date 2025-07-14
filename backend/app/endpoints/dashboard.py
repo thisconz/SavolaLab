@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 # Services
@@ -9,6 +10,8 @@ from app.infrastructure.database import get_db
 
 # Models
 from app.domain.models.user import User
+from app.domain.models.sample import Sample
+from app.domain.models.test_result import TestResult
 
 router = APIRouter()
 
@@ -101,3 +104,50 @@ async def get_dashboard_summary(
         "message": "Dashboard summary retrieved successfully."
     }
 
+
+@router.get("/chart-data")
+async def get_dashboard_chart_data(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    # Admin & QC Manager can see all
+    if user.role in ["admin", "qc_manager"]:
+        # Group samples by sample_type and count
+        sample_counts = db.query(
+            Sample.sample_type,
+            func.count(Sample.id).label("samples_count")
+        ).group_by(Sample.sample_type).all()
+
+        # Group tests by sample_type (via join on sample) and count
+        test_counts = db.query(
+            Sample.sample_type,
+            func.count(TestResult.id).label("tests_count")
+        ).join(TestResult, TestResult.sample_batch_number == Sample.batch_number).group_by(Sample.sample_type).all()
+    else:
+        # Filter samples and tests by user.employee_id similarly
+        sample_counts = db.query(
+            Sample.sample_type,
+            func.count(Sample.id).label("samples_count")
+        ).filter(Sample.assigned_to == user.employee_id).group_by(Sample.sample_type).all()
+
+        test_counts = db.query(
+            Sample.sample_type,
+            func.count(TestResult.id).label("tests_count")
+        ).join(TestResult, TestResult.sample_batch_number == Sample.batch_number).filter(Sample.assigned_to == user.employee_id).group_by(Sample.sample_type).all()
+
+    # Convert query results to dict for merging
+    sample_dict = {row.sample_type: row.samples_count for row in sample_counts}
+    test_dict = {row.sample_type: row.tests_count for row in test_counts}
+
+    # Combine keys for unified result
+    all_types = set(sample_dict.keys()) | set(test_dict.keys())
+
+    result = []
+    for stype in all_types:
+        result.append({
+            "name": stype,
+            "samples": sample_dict.get(stype, 0),
+            "tests": test_dict.get(stype, 0)
+        })
+
+    return result

@@ -90,23 +90,6 @@ class AutoTag(str, Enum):
     REPORT = "report"
     IMAGE = "image"
 
-# --- Requests ---
-
-# Request statuses
-class RequestStatus(str, Enum):
-    PENDING = "pending"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-    CANCELLED = "cancelled"
-
-# Request types
-class RequestType(str, Enum):
-    SAMPLE_TEST = "sample_test"
-    SAMPLE_ANALYSIS = "sample_analysis"
-    EQUIPMENT_CALIBRATION = "equipment_calibration"
-    MAINTENANCE_REQUEST = "maintenance_request"
-    OTHER = "other"
-
 # --- Tests ---
 
 # Test statuses

@@ -37,10 +37,10 @@ export default function TestTable() {
               Test Date
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
-              Entered By
+              Status
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
-              Status
+              Entered By
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
               Delete
