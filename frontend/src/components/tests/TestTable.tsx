@@ -4,7 +4,7 @@ import { useState } from "react";
 import TestDelete from "./TestDelete";
 import TestEdit from "./TestEditForm";
 import { Test, TestProps } from "@/types/test";
-import { useTests } from "@/hooks/useTests";
+import { useTests } from "@/hooks/test/useTests";
 import { formatTestStatus } from "@/utils/format";
 
 

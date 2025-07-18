@@ -1,4 +1,4 @@
-from fastapi import Depends
+from sqlalchemy import func, Integer
 from sqlalchemy.orm import Session
 from uuid import UUID
 
@@ -15,7 +15,7 @@ from app.domain.schemas import SampleCreate, SampleUpdate, UserRead
 
 # Create a new sample
 def create_sample_in(db: Session, sample_in: SampleCreate, current_user: UserRead) -> Sample:
-    batch_number = auto_create_sample_batch_number(db, current_user)
+    batch_number = auto_create_sample_batch_number(db, SampleType(sample_in.sample_type))
     
     # Create a new sample
     sample = Sample(
@@ -25,7 +25,6 @@ def create_sample_in(db: Session, sample_in: SampleCreate, current_user: UserRea
         location=sample_in.location,
         notes_text=sample_in.notes_text,
         assigned_to=sample_in.assigned_to,
-        requested_by_id=current_user.id,
     )
 
     db.add(sample)
@@ -70,8 +69,6 @@ def delete_sample(
     
     return False
 
-
-
 # Check if a user can access a sample
 def user_can_access_sample(user: User, sample: Sample) -> bool: 
     return user.role in [UserRole.CHEMIST, UserRole.SHIFT_CHEMIST, UserRole.QC_MANAGER, UserRole.ADMIN] and sample.assigned_to == user.employee_id
@@ -98,14 +95,35 @@ def count_samples(db: Session, user) -> int:
         return db.query(Sample).count()
     return db.query(Sample).filter(Sample.assigned_to == user.employee_id).count()
 
-# Auto create a sample batch number
-def auto_create_sample_batch_number(db: Session, user: User) -> str:
-    count = count_samples(db, user)
-    batch_number = f"B{count + 1}"
+# --- Sample batch number prefixes ---
+# Define prefixes for sample types
+PREFIXES = {
+    "white_sugar": "W",
+    "brown_sugar": "B",
+    "raw_sugar": "R",
+    "fine_liquor": "F",
+    "polish_liquor": "P",
+    "evaporator_liquor": "E",
+    "sat_out": "S",
+    "condensate": "C",
+    "cooling_water": "L",
+    "wash_water": "WW",
+}
 
-    # Check if batch_number exists, increment if so
-    while db.query(Sample).filter(Sample.batch_number == batch_number).first():
-        count += 1
-        batch_number = f"B{count + 1}"
-        
-    return batch_number
+# Auto create a sample batch number
+def auto_create_sample_batch_number(db: Session, sample_type: SampleType, max_retries=5) -> str:
+    prefix = PREFIXES.get(sample_type.value, "X")
+    for _ in range(max_retries):
+        max_suffix = (
+            db.query(func.max(func.cast(func.substr(Sample.batch_number, len(prefix) + 1), Integer)))
+            .filter(Sample.batch_number.like(f"{prefix}%"))
+            .scalar()
+        )
+        next_suffix = (max_suffix or 0) + 1
+        batch_number = f"{prefix}{next_suffix:03d}"
+
+        exists = db.query(Sample).filter(Sample.batch_number == batch_number).first()
+        if not exists:
+            return batch_number
+
+    raise Exception("Failed to generate a unique batch number after multiple retries")

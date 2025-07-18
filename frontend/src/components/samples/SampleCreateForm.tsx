@@ -46,62 +46,92 @@ export default function SampleForm() {
       onSubmit={handleSubmit}
       className="bg-white p-6 rounded-lg shadow-md mb-6 space-y-4"
     >
-      <div className="flex justify-between items-center">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-bold text-gray-900">Create New Sample</h3>
-        <Link href="/dashboard/samples" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Back</Link>
+        <Link
+          href="/dashboard/samples"
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+        >
+          Back
+        </Link>
       </div>
 
-      <select
-        name="sample_type"
-        value={form.sample_type}
-        onChange={handleChange}
-        className="w-full border p-2 rounded text-gray-900"
-      >{sampleTypes.map(type => (
-        <option key={type} value={type}>
-          {formatSampleType(type)}
-        </option>
-      )
-      )}
-      </select>
+      {/* Sample Type */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Sample Type</label>
+        <select
+          name="sample_type"
+          value={form.sample_type}
+          onChange={handleChange}
+          className="w-full border p-2 rounded text-gray-900"
+          required
+        >
+          {sampleTypes.map((type) => (
+            <option key={type} value={type}>
+              {formatSampleType(type)}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <input
-        name="collected_at"
-        type="datetime-local"
-        value={form.collected_at}
-        onChange={handleChange}
-        className="w-full border p-2 rounded text-gray-900"
-      />
+      {/* Collection Date */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Collection Date</label>
+        <input
+          name="collected_at"
+          type="datetime-local"
+          value={form.collected_at}
+          onChange={handleChange}
+          className="w-full border p-2 rounded text-gray-900"
+          required
+        />
+      </div>
 
-      <input
-        name="location"
-        type="text"
-        placeholder="Location"
-        value={form.location}
-        onChange={handleChange}
-        className="w-full border p-2 rounded text-gray-900"
-        required
-      />
+      {/* Location */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+        <input
+          name="location"
+          type="text"
+          placeholder="Location"
+          value={form.location}
+          onChange={handleChange}
+          className="w-full border p-2 rounded text-gray-900"
+          required
+        />
+      </div>
 
-      <textarea
-        name="notes_text"
-        placeholder="Notes (optional)"
-        value={form.notes_text}
-        onChange={handleChange}
-        className="w-full border p-2 rounded text-gray-900"
-      />
+      {/* Assigned To */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Assigned To (Employee ID)</label>
+        <input
+          name="assigned_to"
+          type="text"
+          placeholder="Employee ID"
+          value={form.assigned_to}
+          onChange={handleChange}
+          className="w-full border p-2 rounded text-gray-900"
+          required
+        />
+      </div>
 
-      <input
-        name="assigned_to"
-        type="text"
-        placeholder="Assigned To (Employee ID)"
-        value={form.assigned_to}
-        onChange={handleChange}
-        className="w-full border p-2 rounded text-gray-900"
-        required
-      />
+      {/* Notes */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+        <textarea
+          name="notes_text"
+          placeholder="Additional details"
+          value={form.notes_text}
+          onChange={handleChange}
+          className="w-full border p-2 rounded text-gray-900"
+        />
+      </div>
+
+      {/* Submit Button */}
       <button
         type="submit"
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-semibold"
       >
         Create Sample
       </button>

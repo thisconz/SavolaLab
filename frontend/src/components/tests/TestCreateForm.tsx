@@ -1,141 +1,167 @@
 "use client";
-
 import { useState } from "react";
-import api from "@/lib/api";
-import { TestCreate } from "@/types/test";
-import { testParameters, statusOptions, unitOptions } from "@/constants/Test";
-import { formatTestStatus } from "@/utils/format";
-import Link from "next/link";
+import useCreateTest from "@/hooks/test/useCreateTest";
 
-export default function TestCreateForm() {
-  const [form, setForm] = useState<TestCreate>({
-    sample_batch_number: "",
-    parameter: "",
-    value: 0,
-    unit: "",
-    status: "",
-    entered_by: "",
-    entered_at: "",
-    notes: "",
-  });
+interface TestCreateFormProps {
+  batch_number?: string;
+}
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+export default function TestCreateForm({ batch_number = "" }: TestCreateFormProps) {
+  const {
+    form,
+    handleChange,
+    handleSubmit,
+    testParameters,
+    statusOptions,
+    unitOptions,
+    formatTestStatus,
+  } = useCreateTest(batch_number);
+
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const validate = (): boolean => {
+    const newErrors: { [key: string]: string } = {};
+    if (!form.sample_batch_number) newErrors.sample_batch_number = "Batch number is required.";
+    if (!form.parameter) newErrors.parameter = "Parameter is required.";
+    if (!form.value) newErrors.value = "Value is required.";
+    if (!form.unit) newErrors.unit = "Unit is required.";
+    if (!form.status) newErrors.status = "Status is required.";
+    if (!form.entered_by) newErrors.entered_by = "Entered by is required.";
+    if (!form.entered_at) newErrors.entered_at = "Entered at is required.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await api.post("/tests/", form);
-      alert("Test created!");
-      setForm({
-        sample_batch_number: "",
-        parameter: "",
-        value: 0,
-        unit: "",
-        status: "",
-        entered_by: "",
-        entered_at: "",
-        notes: "",
-      });
-    } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.detail || "Test creation failed");
-    }
+    if (!validate()) return;  // Stop if invalid
+    await handleSubmit(e);
   };
 
   return (
-    <form 
-      onSubmit={handleSubmit} 
-      className="bg-white p-6 rounded-lg shadow-md mb-6 space-y-4"
-    >
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-bold text-gray-900">Create New Test</h3>
-        <Link href="/dashboard/tests" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Back</Link>
+    <form onSubmit={onSubmit} className="text-gray-800 grid grid-cols-2 gap-4">
+      {/* Sample Batch Number */}
+      <div className="flex flex-col text-gray-500">
+        <label htmlFor="sample_batch_number">Sample Batch Number</label>
+        <input
+          type="text"
+          name="sample_batch_number"
+          id="sample_batch_number"
+          value={form.sample_batch_number || ""}
+          placeholder="Sample Batch Number"
+          onChange={handleChange}
+          className={`border rounded-md p-2 ${errors.sample_batch_number ? "border-red-500" : "border-gray-300"}`}
+          readOnly={!!batch_number}
+        />
+        {errors.sample_batch_number && <p className="text-red-500">{errors.sample_batch_number}</p>}
       </div>
 
-      <input 
-        type="text" 
-        name="sample_batch_number" 
-        placeholder="Sample Batch Number"
-        value={form.sample_batch_number}
-        onChange={handleChange}
-        className="w-full border p-2 rounded text-gray-900"/>
+      {/* Parameter */}
+      <div className="flex flex-col">
+        <label htmlFor="parameter">Parameter</label>
+        <select
+          id="parameter"
+          name="parameter"
+          value={form.parameter}
+          onChange={handleChange}
+          className={`border rounded-md p-2 text-gray-900 ${errors.parameter ? "border-red-500" : "border-gray-300"}`}
+        >
+          <option value="">Select a parameter</option>
+          {testParameters.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
+        {errors.parameter && <p className="text-red-500">{errors.parameter}</p>}
+      </div>
 
-      <select
-        name="parameter"
-        value={form.parameter}
-        onChange={handleChange}
-        className="w-full border p-2 rounded text-gray-900"
-      >
-        <option value="">Select a parameter</option>
-        {testParameters.map((p => (
-          <option key={p} value={p}>{p}
-          </option>
-        )))}
-      </select>
+      {/* Value */}
+      <div className="flex flex-col">
+        <label htmlFor="value">Value</label>
+        <input
+          type="number"
+          name="value"
+          id="value"
+          value={form.value || ""}
+          placeholder="Value"
+          onChange={handleChange}
+          className={`border rounded-md p-2 text-gray-900 ${errors.value ? "border-red-500" : "border-gray-300"}`}
+        />
+        {errors.value && <p className="text-red-500">{errors.value}</p>}
+      </div>
 
-      <input
-        type="number"
-        name="value"
-        value={form.value}
-        onChange={handleChange}
-        className="w-full p-2 border  rounded-md text-gray-900"
-      />
+      {/* Unit */}
+      <div className="flex flex-col">
+        <label htmlFor="unit">Unit</label>
+        <select
+          id="unit"
+          name="unit"
+          value={form.unit}
+          onChange={handleChange}
+          className={`border rounded-md p-2 text-gray-900 ${errors.unit ? "border-red-500" : "border-gray-300"}`}
+        >
+          <option value="">Select a unit</option>
+          {unitOptions.map((u) => (
+            <option key={u} value={u}>
+              {u}
+            </option>
+          ))}
+        </select>
+        {errors.unit && <p className="text-red-500">{errors.unit}</p>}
+      </div>
 
-      <select
-        name="unit"
-        value={form.unit}
-        onChange={handleChange}
-        className="w-full p-2 border  rounded-md text-gray-900"
-      >
-        <option value="">Select a unit</option>
-        {unitOptions.map((u => (
-          <option key={u} value={u}>{u}
-          </option>
-        )))}
-      </select>
+      {/* Status */}
+      <div className="flex flex-col">
+        <label htmlFor="status">Status</label>
+        <select
+          id="status"
+          name="status"
+          value={form.status}
+          onChange={handleChange}
+          className={`border rounded-md p-2 text-gray-900 ${errors.status ? "border-red-500" : "border-gray-300"}`}
+        >
+          <option value="">Select a status</option>
+          {statusOptions.map((s) => (
+            <option key={s} value={s}>
+              {formatTestStatus(s)}
+            </option>
+          ))}
+        </select>
+        {errors.status && <p className="text-red-500">{errors.status}</p>}
+      </div>
 
-      <select
-        name="status"
-        value={form.status}
-        onChange={handleChange}
-        className="w-full p-2 border  rounded-md text-gray-900"
-      >
-        <option value="">Select a status</option>
-        {statusOptions.map((s => (
-          <option key={s} value={s}>
-            {formatTestStatus(s)}
-          </option>
-        )))}
-      </select>
+      {/* Entered By */}
+      <div className="flex flex-col">
+        <label htmlFor="entered_by">Entered By</label>
+        <input
+          type="text"
+          name="entered_by"
+          id="entered_by"
+          value={form.entered_by || ""}
+          placeholder="Entered By"
+          onChange={handleChange}
+          className={`border rounded-md p-2 text-gray-900 ${errors.entered_by ? "border-red-500" : "border-gray-300"}`}
+        />
+        {errors.entered_by && <p className="text-red-500">{errors.entered_by}</p>}
+      </div>
 
-      <input
-        type="text"
-        name="entered_by"
-        placeholder="Entered By (Employee ID)"
-        value={form.entered_by}
-        onChange={handleChange}
-        className="w-full p-2 border  rounded-md text-gray-900"
-      />
-
-      <input
-        type="datetime-local"
-        name="entered_at"
-        value={form.entered_at}
-        onChange={handleChange}
-        className="w-full p-2 border  rounded-md text-gray-900"
-      />
-
-      <textarea
-        name="notes"
-        placeholder="Notes (optional)"
-        value={form.notes}
-        onChange={handleChange}
-        className="w-full p-2 border  rounded-md text-gray-900"
-      />
-
+      {/* Entered At */}
+      <div className="flex flex-col">
+        <label htmlFor="entered_at">Entered At</label>
+        <input
+          type="datetime-local"
+          name="entered_at"
+          id="entered_at"
+          value={form.entered_at || ""}
+          placeholder="Entered At"
+          onChange={handleChange}
+          className={`border rounded-md p-2 text-gray-900 ${errors.entered_at ? "border-red-500" : "border-gray-300"}`}
+        />
+        {errors.entered_at && <p className="text-red-500">{errors.entered_at}</p>}
+      </div>
+      
       <button
         type="submit"
         className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
@@ -143,5 +169,5 @@ export default function TestCreateForm() {
         Create Test
       </button>
     </form>
-  )
-};
+  );
+}

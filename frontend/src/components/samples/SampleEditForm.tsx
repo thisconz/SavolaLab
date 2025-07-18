@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { Sample, Props } from "@/types/sample";
 import { sampleTypes } from "@/constants/Sample";
 import { formatSampleType, toDatetimeLocal } from "@/utils/format";
-import { useSampleByBatch } from "@/hooks/useSampleByBatch";
-import { useEditSample } from "@/hooks/useEditSample";
+import { useSampleByBatch } from "@/hooks/sample/useSampleByBatch";
+import { useEditSample } from "@/hooks/sample/useEditSample";
 
 export default function SampleEdit({ batch_number }: Props) {
   const { sample, loading, refetch } = useSampleByBatch(batch_number);

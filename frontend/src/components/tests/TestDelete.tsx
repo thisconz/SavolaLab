@@ -1,7 +1,7 @@
 "use client";
 
-import { useTests } from "@/hooks/useTests";
-import { useDeleteTests } from "@/hooks/useDeleteTests";
+import { useTests } from "@/hooks/test/useTests";
+import { useDeleteTests } from "@/hooks/test/useDeleteTests";
 
 type TestDeleteProps = {
   testId: string;

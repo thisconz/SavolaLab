@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { Test } from "@/types/test";
 import { testParameters, statusOptions, unitOptions } from "@/constants/Test";
 import { formatTestStatus, toDatetimeLocal } from "@/utils/format";
-import { useTestsByBatch } from "@/hooks/useTestsByBatch";
-import { useEditTests } from "@/hooks/useEditTests";
+import { useTestsByBatch } from "@/hooks/test/useTestsByBatch";
+import { useEditTests } from "@/hooks/test/useEditTests";
 
 export default function TestEdit({ test }: { test: Test }) {
   const { tests, loading, refetch } = useTestsByBatch(test.sample_batch_number);

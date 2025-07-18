@@ -82,9 +82,6 @@ def authenticate_user(
 async def create_access_token_for_user(
         user: User) -> str:
     
-    # Print the user details
-    print(f"Creating token for: employee_id={user.employee_id}, full_name={user.full_name}, department={user.department}")
-    
     # Create the access token
     data = {"sub": user.employee_id, 
             "role": user.role.value,

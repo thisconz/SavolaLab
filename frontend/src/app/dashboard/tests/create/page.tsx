@@ -1,16 +1,18 @@
-'use client';
+// app/tests/create/page.tsx
+"use client";
 
+import { useSearchParams } from "next/navigation";
 import TestCreateForm from "@/components/tests/TestCreateForm";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { useState } from "react";
 
+export default function TestCreatePage() {
+  const searchParams = useSearchParams();
+  const batch_number = searchParams.get("batch_number") || "";
 
-export default function CreateTestPage({ params }: { params: { batch_number: string } }) { 
-    const [refreshTests, setRefreshTests] = useState(false);
-    
-    return (
-        <ProtectedRoute>
-                <TestCreateForm/> 
-        </ProtectedRoute>
-    );
+  return (
+    <div className="p-6 min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="bg-white p-6 rounded shadow-md w-full max-w-2xl">
+        <TestCreateForm batch_number={batch_number} />
+      </div>
+    </div>
+  );
 }

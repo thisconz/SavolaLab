@@ -10,3 +10,9 @@ export interface DashboardData {
   average_test_results: number;
   latest_test: Test | null;
 }
+
+export interface ChartData {
+  name: string;
+  samples: number;
+  tests: number;
+};

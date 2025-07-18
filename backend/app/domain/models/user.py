@@ -18,7 +18,5 @@ class User(Base):
 
     # Relationships
     assigned_samples = relationship("Sample", back_populates="assigned_user", primaryjoin="User.employee_id == Sample.assigned_to")
-    sample_requests = relationship("Sample", back_populates="requested_by_user", foreign_keys="[Sample.requested_by_id]")
     test_results = relationship("TestResult", back_populates="entered_by_user")
     attachments = relationship("SampleAttachment", back_populates="uploaded_by_user")
-    requests = relationship("Request", back_populates="requested_by_user")

@@ -13,14 +13,21 @@ class SampleBase(BaseModel):
     location: Optional[str] = Field(None, example="QC Lab", description="Location where the sample is stored")
     notes_text: Optional[str] = Field(None, example="Handle with care", description="Additional notes about the sample")
     collected_at: Optional[datetime] = Field(None, description="Datetime when the sample was collected")
-    assigned_to: Optional[str] = Field(None, description="Employee ID assigned to the sample")
+    assigned_to: Optional[str] = Field(None, example="QAZ001", description="Employee ID assigned to the sample")
 
     class Config:
         orm_mode = True
 
 class SampleCreate(SampleBase):
     """Schema for creating a new sample."""
-    pass
+    sample_type: SampleType = Field(None, description="Type of the sample")
+    location: str = Field(None, example="QC Lab", description="Location where the sample is stored")
+    notes_text: Optional[str] = Field(None, example="Handle with care", description="Additional notes about the sample")
+    collected_at: datetime = Field(None, description="Datetime when the sample was collected")
+    assigned_to: str = Field(None, example="QAZ001", description="Employee ID assigned to the sample")
+
+    class Config:
+        orm_mode = True
 
 class SampleRead(SampleBase):
     """Schema for reading sample information."""

@@ -33,7 +33,5 @@ class Sample(Base):
 
     # Relationship
     assigned_user = relationship("User", back_populates="assigned_samples", foreign_keys=[assigned_to])
-    requested_by_user = relationship("User", back_populates="sample_requests", foreign_keys=[requested_by_id])
     test_results = relationship("TestResult", back_populates="sample", cascade="all, delete", foreign_keys="[TestResult.sample_batch_number]")
     attachments = relationship("SampleAttachment", back_populates="sample", cascade="all, delete")
-    requests = relationship( "Request", back_populates="sample", cascade="all, delete", primaryjoin="Sample.batch_number == foreign(Request.sample_batch_number)", foreign_keys="[Request.sample_batch_number]")

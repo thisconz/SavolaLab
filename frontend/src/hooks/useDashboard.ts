@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { DashboardData } from "@/types/dashboard";
+import { ChartData } from "@/types/dashboard";
 
 export const useDashboard = () => {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -23,4 +24,27 @@ export const useDashboard = () => {
   }, []);
 
   return { data, loading, refetch: fetchDashboard };
+};
+
+export const useChartData = () => {
+  const [data, setData] = useState<ChartData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await api.get("/dashboard/chart-data");
+        setData(response.data);
+      } catch (err: any) {
+        setError(err.response?.data?.detail || "Failed to fetch data");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  return { data, loading, error };
 };

@@ -1,7 +1,7 @@
 "use client";
 
-import { useSamples } from "@/hooks/useSamples";
-import { useDeleteSample } from "@/hooks/useDeleteSample";
+import { useSamples } from "@/hooks/sample/useSamples";
+import { useDeleteSample } from "@/hooks/sample/useDeleteSample";
 
 type SampleDeleteProps = {
   sampleId: string;

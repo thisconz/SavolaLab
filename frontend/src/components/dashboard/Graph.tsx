@@ -1,12 +1,7 @@
 "use client";
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-
-type ChartData = {
-  name: string;
-  samples: number;
-  tests: number;
-};
+import { ChartData } from "@/types/dashboard";
 
 export default function SamplesTestsGraph({ data }: { data: ChartData[] }) {
   return (
@@ -22,8 +17,8 @@ export default function SamplesTestsGraph({ data }: { data: ChartData[] }) {
           <YAxis allowDecimals={false} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="samples" fill="#10b981" name="Samples" />
-          <Bar dataKey="tests" fill="#076d4bff" name="Tests" />
+          <Bar dataKey="samples" fill="#3eb87bff" name="Samples" />
+          <Bar dataKey="tests" fill="#2f855a" name="Tests" />
         </BarChart>
       </ResponsiveContainer>
     </div>
