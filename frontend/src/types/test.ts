@@ -25,3 +25,8 @@ export interface TestProps {
   batch_number: string;
   refreshTests: boolean;
 }
+
+export interface AvgTestResult {
+  sample_type: string;
+  avg_test_result: number;
+}

@@ -46,7 +46,7 @@ export default function SampleDelete({ sampleId, onDeleted }: SampleDeleteProps)
   // Render sample list
   return (
     <button 
-      className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600" 
+      className="text-sm px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" 
       onClick={handleDelete}
       disabled={deletingId === sampleId}>
        {deletingId === sampleId ? "Deleting..." : "Delete"}

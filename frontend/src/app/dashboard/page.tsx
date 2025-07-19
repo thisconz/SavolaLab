@@ -1,32 +1,26 @@
 "use client";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
-import SamplesTestsCount from "@/components/dashboard/SamplesTestsCount";
-import SamplesTestsGraph from "@/components/dashboard/Graph";
-import { useChartData } from "@/hooks/useDashboard";
+import SamplesTestsCountAndAverage from "@/components/dashboard/CountAndAvg";
+import { useChartData } from "@/hooks/Dahboard/useDashboardAvg";
+import SamplesTestsLineGraph from "@/components/dashboard/Graph";
 
 export default function DashboardPage() {
+
   const { data, loading, error } = useChartData();
 
-  if (error) {
-    console.error("Error fetching chart data:", error);
-    return <p className="text-red-600">Failed to load chart data</p>;
-  }
-  if (loading) {
-    return <p>Loading chart...</p>;
-  }
-  if (!data) {
-    return <p>No data available</p>;
-  }
+  if (error) return <p className="text-red-600 text-center">Failed to load chart data</p>;
+  if (loading) return <p className="text-center text-gray-500">Loading dashboard...</p>;
+  if (!data) return <p className="text-center text-gray-500">No data available</p>;
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-4 text-gray-800">Dashboard</h1>
-        {loading && <p>Loading chart...</p>}
-        {error && <p className="text-red-600">{error}</p>}
-        {!loading && !error && <SamplesTestsGraph data={data} />}
-        <SamplesTestsCount batch_number="" />
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Count Cards */}
+        <SamplesTestsCountAndAverage />
+
+        {/* Graph for Average Test Results by Parameter */}
+        <SamplesTestsLineGraph data={data} />
       </div>
     </ProtectedRoute>
   );

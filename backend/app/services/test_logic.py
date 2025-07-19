@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 from uuid import UUID
+from sqlalchemy import func
 
 # Models
 from app.domain.models import User, Sample, TestResult
@@ -77,3 +78,25 @@ def is_valid_test_result(test_result: TestResult) -> bool:
 # Count the number of test results
 def count_tests(db: Session, employee_id: str) -> int:
     return db.query(TestResult).filter(TestResult.entered_by == employee_id).count()
+
+# Get average test results by sample type and parameter
+def get_avg_test_results_by_sample_type_parameter(db: Session):
+    results = (
+        db.query(
+            Sample.sample_type,
+            TestResult.parameter,
+            func.avg(TestResult.value).label("avg_test_result")
+        )
+        .join(TestResult, TestResult.sample_batch_number == Sample.batch_number)
+        .group_by(Sample.sample_type, TestResult.parameter)
+        .all()
+    )
+
+    return [
+        {
+            "sample_type": r.sample_type,
+            "parameter": r.parameter,
+            "avg_test_result": float(r.avg_test_result)
+        }
+        for r in results
+    ]

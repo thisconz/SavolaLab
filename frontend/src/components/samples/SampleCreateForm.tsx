@@ -51,9 +51,9 @@ export default function SampleForm() {
         <h3 className="text-lg font-bold text-gray-900">Create New Sample</h3>
         <Link
           href="/dashboard/samples"
-          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+          className="text-sm text-blue-600 hover:underline"
         >
-          Back
+          ← Back to Samples
         </Link>
       </div>
 
@@ -131,7 +131,7 @@ export default function SampleForm() {
       {/* Submit Button */}
       <button
         type="submit"
-        className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-semibold"
+        className="px-4 py-2 bg-blue-600 disabled:opacity-50 text-white rounded hover:bg-blue-700"
       >
         Create Sample
       </button>

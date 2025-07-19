@@ -3,7 +3,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 # Services
-from app.services import sample_logic, test_logic, get_current_user
+from app.services import sample_logic, test_logic, get_current_user, get_avg_test_results_by_sample_type_parameter
 
 # Database
 from app.infrastructure.database import get_db
@@ -73,7 +73,6 @@ async def get_dashboard(
         "latest_sample": samples[0] if samples else None,
         "total_tests": len(tests),
         "tests": tests,
-        "average_test_results": sum(test.value for test in tests) / len(tests) if tests else 0,
         "latest_test": tests[0] if tests else None,
     }
 
@@ -104,7 +103,7 @@ async def get_dashboard_summary(
         "message": "Dashboard summary retrieved successfully."
     }
 
-
+# Get dashboard chart data ( Chart data for the current user )
 @router.get("/chart-data")
 async def get_dashboard_chart_data(
     db: Session = Depends(get_db),
@@ -151,3 +150,9 @@ async def get_dashboard_chart_data(
         })
 
     return result
+
+# Get average test results by sample type
+@router.get("/averages")
+def dashboard_avg_by_parameter(db: Session = Depends(get_db)):
+    avg_data = get_avg_test_results_by_sample_type_parameter(db)
+    return {"averages_by_sample_type": avg_data}

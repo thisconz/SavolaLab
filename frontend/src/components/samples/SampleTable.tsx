@@ -8,7 +8,7 @@ import { Sample } from "@/types/sample";
 import { Test } from "@/types/test";
 import { useSamples } from "@/hooks/sample/useSamples";
 import { formatSampleType } from "@/utils/format";
-
+import Link from "next/link";
 
 export default function SampleTable() {
   const { samples, loading, refetch } = useSamples();
@@ -24,11 +24,9 @@ export default function SampleTable() {
         <thead className="bg-gray-50">
           <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Batch #</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Type</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Collected At</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Location</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Assigned To</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Notes</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+              Details / Attachments
+            </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Delete</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Edit</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">Create Test Result</th>
@@ -38,11 +36,14 @@ export default function SampleTable() {
           {samples.map(s => (
             <tr key={s.batch_number}>
               <td className="px-6 py-4 whitespace-nowrap">{s.batch_number}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{formatSampleType(s.sample_type)}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{new Date(s.collected_at).toLocaleString()}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{s.location}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{s.assigned_to || "—"}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{s.notes_text || "—"}</td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <Link
+                  href={`/dashboard/samples/${s.batch_number}`}
+                  className="text-blue-600 hover:text-blue-800 font-semibold"
+                >
+                  View
+                </Link>
+              </td>
               <td className="px-6 py-4 whitespace-nowrap"><SampleDelete sampleId={s.id} onDeleted={refetch} /></td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <button

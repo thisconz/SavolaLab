@@ -30,7 +30,7 @@ export default function SampleDetailsPage({ params }: SampleDetailsPageProps) {
             <button
               type="button"
               onClick={handleRefresh}
-              className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition"
+              className="text-sm text-blue-600 hover:opacity-75 transition"
             >
               ⟳ Refresh
             </button>

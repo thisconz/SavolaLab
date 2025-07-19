@@ -1,6 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from uuid import UUID
+from typing import List
 
 # Services
 from app.services import (
@@ -11,7 +12,7 @@ from app.services import (
 )
 
 # Models
-from app.domain.models import User, Sample
+from app.domain.models import User, Sample, SampleAttachment
 
 # Schemas
 from app.domain.schemas import AttachmentRead
@@ -95,3 +96,21 @@ def get_attachment_download_url(
     if not attachment:
         raise HTTPException(status_code=404, detail="Attachment not found")
     return get_attachment_url(attachment.file_name)
+
+
+@router.get("/sample/{sample_batch_number}", response_model=List[AttachmentRead])
+def list_attachments_for_sample(
+    sample_batch_number: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(allowed_qc_roles),
+):
+    """
+    List all attachments for a given sample batch number.
+    """
+    sample = db.query(Sample).filter(Sample.batch_number == sample_batch_number).first()
+    if not sample:
+        raise HTTPException(status_code=404, detail="Sample not found")
+
+    attachments = db.query(SampleAttachment).filter(SampleAttachment.sample_id == sample.id).all()
+
+    return attachments
