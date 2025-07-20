@@ -5,7 +5,8 @@ import { useDeleteTests } from "@/hooks/test/useDeleteTests";
 
 type TestDeleteProps = {
   testId: string;
-  onDeleted?: () => void; // optional callback for refetch
+  onDeleted: () => Promise<void>;
+  className?: string; 
 };
 
 export default function TestDelete({ testId, onDeleted }: TestDeleteProps) {

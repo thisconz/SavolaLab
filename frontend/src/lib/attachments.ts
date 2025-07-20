@@ -1,32 +1,37 @@
 import api from "@/lib/api";
-
-export interface RawAttachment {
-  id?: string;
-  attachment_id?: string;
-  filename: string;
-  original_filename?: string;
-  uploaded_at?: string;
-  created_at?: string;
-  size_bytes?: number;
-  content_type?: string;
-  uploaded_by?: string;
-}
+import { AttachmentWire, UploadAttachmentOpts, AttachmentUrlResponse } from "@/types/attatchments";
+import { AxiosProgressEvent } from "axios";
 
 export const getAttachmentsBySample = async (batch: string) => {
-  const res = await api.get(`/attachments/sample/${batch}`);
+  const res = await api.get<AttachmentWire[]>(`/attachments/sample/${batch}`);
   return res.data;
 };
 
-export const uploadAttachment = async (batch: string, file: File) => {
+export const uploadAttachment = async (
+  batch: string,
+  file: File,
+  opts: UploadAttachmentOpts = {},
+  onProgress?: (progressEvent: AxiosProgressEvent) => void
+): Promise<AttachmentWire> => {
   const formData = new FormData();
-  formData.append("file", file); // confirm backend expects "file"
-  return (await api.post(`/attachments/${batch}/upload`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  })).data;
+  formData.append("file", file);
+
+  if (opts.tag) formData.append("tag", opts.tag);
+  if (opts.attachmentType) formData.append("attachment_type", opts.attachmentType);
+  if (opts.filenameOverride) formData.append("filename", opts.filenameOverride);
+
+  // Some backends honor `Content-Type` per part automatically; no need to set multipart header manually;
+  // Axios will set the correct boundary when FormData is passed.
+  const res = await api.post(`/attachments/${batch}/upload`, formData, {
+    onUploadProgress: onProgress,
+  });
+  
+  return res.data;
 };
 
-export const getAttachmentUrl = async (id: string) => {
-  return (await api.get(`/attachments/${id}/url`)).data;
+export const getAttachmentUrl = async (id: string): Promise<AttachmentUrlResponse> => {
+  const res = await api.get(`/attachments/${id}/url`);
+  return res.data;
 };
 
 export const deleteAttachment = async (id: string) => {

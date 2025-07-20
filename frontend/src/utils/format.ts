@@ -12,6 +12,20 @@ export function formatTestStatus(status: string): string {
     .join(" ");
 }
 
+export function formatParameter(parameter: string): string {
+  return parameter
+    .split("_")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+export function formatRole(role: string): string {
+  return role
+    .split("_")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export function toDatetimeLocal(value: string) {
   const date = new Date(value);
   const offset = date.getTimezoneOffset();

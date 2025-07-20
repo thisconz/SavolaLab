@@ -21,6 +21,12 @@ export interface TestCreate {
   notes?: string;
 }
 
+export type TestEditProps = {
+  test: Test;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+};
+
 export interface TestProps {
   batch_number: string;
   refreshTests: boolean;

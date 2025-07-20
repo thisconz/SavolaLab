@@ -5,7 +5,8 @@ import { useDeleteSample } from "@/hooks/sample/useDeleteSample";
 
 type SampleDeleteProps = {
   sampleId: string;
-  onDeleted?: () => void; // optional callback for refetch
+  onDeleted?: () => void;
+  className?: string;
 };
 
 // SampleDelete component

@@ -1,28 +1,18 @@
 "use client";
 import { useState } from "react";
 import { getAttachmentUrl, deleteAttachment } from "@/lib/attachments";
-
-interface Attachment {
-  id?: string;
-  attachment_id?: string;
-  filename: string;
-  uploaded_at?: string;
-  created_at?: string;
-  size_bytes?: number;
-  content_type?: string;
-  uploaded_by?: string;
-}
+import { AttachmentWire } from "@/types/attatchments";
 
 export default function AttachmentList({
   attachments,
-  onDelete
+  onDelete,
 }: {
-  attachments: Attachment[];
+  attachments: AttachmentWire[];
   onDelete: () => Promise<void> | void;
 }) {
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const normalizeId = (a: Attachment) => (a.id || a.attachment_id)!;
+  const normalizeId = (a: AttachmentWire) => a.id;
 
   const formatSize = (bytes?: number) => {
     if (!bytes && bytes !== 0) return "—";
@@ -59,28 +49,24 @@ export default function AttachmentList({
         {attachments.length} attachment{attachments.length > 1 ? "s" : ""}
       </p>
       <div className="divide-y border rounded">
-        {attachments.map(att => {
+        {attachments.map((att) => {
           const id = normalizeId(att);
-            const ts = att.uploaded_at || att.created_at;
+          const ts = att.uploaded_at; // Only use uploaded_at if created_at is not present
           const isImage = att.content_type?.startsWith("image/");
           const isPdf = att.content_type === "application/pdf";
           return (
             <div key={id} className="p-3 flex flex-col md:flex-row md:items-center gap-3">
               <div className="flex-1">
-                <p className="font-medium text-gray-800">{att.filename}</p>
+                <p className="font-medium text-gray-800">{att.file_name ?? "Unnamed"}</p>
                 <p className="text-xs text-gray-500">
-                  {ts ? new Date(ts).toLocaleString() : "—"} • {formatSize(att.size_bytes)} {att.uploaded_by && `• by ${att.uploaded_by}`}
+                  {ts ? new Date(ts).toLocaleString() : "—"} • {formatSize(att.size_bytes)}{" "}
+                  {att.uploaded_by && `• by ${att.uploaded_by}`}
                 </p>
                 {(isImage || isPdf) && (
                   <button
                     onClick={async () => {
                       const { url } = await getAttachmentUrl(id);
-                      if (isImage) {
-                        // open preview
-                        window.open(url, "_blank");
-                      } else if (isPdf) {
-                        window.open(url, "_blank");
-                      }
+                      window.open(url, "_blank");
                     }}
                     className="mt-1 text-xs text-blue-600 hover:underline"
                   >

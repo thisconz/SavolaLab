@@ -13,6 +13,7 @@
     "axios": "^1.10.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "framer-motion": "^12.23.6",
     "heroicons": "^2.2.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.525.0",

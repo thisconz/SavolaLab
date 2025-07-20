@@ -6,8 +6,9 @@ import { testParameters, statusOptions, unitOptions } from "@/constants/Test";
 import { formatTestStatus, toDatetimeLocal } from "@/utils/format";
 import { useTestsByBatch } from "@/hooks/test/useTestsByBatch";
 import { useEditTests } from "@/hooks/test/useEditTests";
+import { TestEditProps } from "@/types/test";
 
-export default function TestEdit({ test }: { test: Test }) {
+export default function TestEdit({ test, onSuccess, onCancel }: TestEditProps) {
   const { tests, loading, refetch } = useTestsByBatch(test.sample_batch_number);
   const { editTest, editingId } = useEditTests();
 
@@ -17,20 +18,20 @@ export default function TestEdit({ test }: { test: Test }) {
 
   useEffect(() => {
     if (tests && tests.length > 0) {
-      setForm(tests[0]);
-      validate(tests[0]);
+      const initial = { ...tests[0], entered_at: toDatetimeLocal(tests[0].entered_at) };
+      setForm(initial);
+      validate(initial);
     }
   }, [tests]);
 
   const validate = (data: Partial<Test>) => {
     const newErrors: Record<string, string> = {};
     if (!data.parameter) newErrors.parameter = "Parameter is required";
-    if (!data.value) newErrors.value = "Value is required";
+    if (data.value === undefined || data.value === null) newErrors.value = "Value is required";
     if (!data.unit) newErrors.unit = "Unit is required";
     if (!data.status) newErrors.status = "Status is required";
     if (!data.entered_by) newErrors.entered_by = "Entered by is required";
-    if (!data.entered_at || isNaN(Date.parse(data.entered_at)))
-      newErrors.entered_at = "Valid date and time is required";
+    if (!data.entered_at || isNaN(new Date(data.entered_at).getTime())) newErrors.entered_at = "Valid date and time is required";
 
     setErrors(newErrors);
     setIsValid(Object.keys(newErrors).length === 0);
@@ -41,137 +42,272 @@ export default function TestEdit({ test }: { test: Test }) {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    const parsedValue = name === "entered_at" ? new Date(value).toISOString() : value;
-    const updatedForm = { ...form, [name]: parsedValue };
+    const updatedValue =
+      name === "entered_at" ? new Date(value).toISOString() : name === "value" ? Number(value) : value;
 
+    const updatedForm = { ...form, [name]: updatedValue };
     setForm(updatedForm);
     validate(updatedForm);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate(form)) {
-      alert("Please correct the errors before submitting.");
-      return;
-    }
+    if (!validate(form)) return;
+
     const result = await editTest(test.id, form);
     if (result.success) {
-      alert("Test updated successfully");
+      onSuccess?.();
       refetch();
     } else {
-      alert(result.error);
+      alert(result.error || "Failed to update test");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900">Edit Test</h2>
-      </div>
-
-      <div className="flex flex-col">
-        <label htmlFor="parameter">Parameter</label>
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white rounded-xl shadow-lg p-8 max-w-md mx-auto
+                 space-y-6
+                 text-gray-800
+                 font-sans
+                 "
+      style={{ fontFeatureSettings: "'liga' 0" }}
+    >
+      <div>
+        <label htmlFor="parameter" className="block text-sm font-medium mb-1 text-gray-700">
+          Parameter <span className="text-red-500">*</span>
+        </label>
         <select
-          name="parameter"
           id="parameter"
+          name="parameter"
           value={form.parameter || ""}
           onChange={handleChange}
-          className="border border-gray-300 rounded-md p-2"
+          className={`w-full rounded-md border px-4 py-3
+            text-gray-900 text-base
+            bg-gray-50
+            focus:outline-none focus:ring-2 focus:ring-green-400
+            transition
+            ${
+              errors.parameter
+                ? "border-red-400 focus:ring-red-300"
+                : "border-gray-300 focus:ring-green-400"
+            }`}
+          aria-invalid={!!errors.parameter}
+          aria-describedby="parameter-error"
         >
-          <option value="">Select a parameter</option>
-          {testParameters.map((parameter) => (
-            <option key={parameter} value={parameter}>
-              {parameter}
+          <option value="" disabled>
+            Select a parameter
+          </option>
+          {testParameters.map((param) => (
+            <option key={param} value={param}>
+              {param}
             </option>
           ))}
         </select>
-        {errors.parameter && <p className="text-red-500">{errors.parameter}</p>}
+        {errors.parameter && (
+          <p id="parameter-error" className="mt-1 text-xs text-red-500">
+            {errors.parameter}
+          </p>
+        )}
       </div>
-      <div className="flex flex-col">
-        <label htmlFor="value">Value</label>
+
+      <div>
+        <label htmlFor="value" className="block text-sm font-medium mb-1 text-gray-700">
+          Value <span className="text-red-500">*</span>
+        </label>
         <input
-          type="number"
-          name="value"
           id="value"
-          value={form.value || ""}
+          name="value"
+          type="number"
+          step="any"
+          value={form.value ?? ""}
           onChange={handleChange}
-          className="border border-gray-300 rounded-md p-2"
+          className={`w-full rounded-md border px-4 py-3
+            text-gray-900 text-base
+            bg-gray-50
+            focus:outline-none focus:ring-2 focus:ring-green-400
+            transition
+            ${
+              errors.value ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-green-400"
+            }`}
+          aria-invalid={!!errors.value}
+          aria-describedby="value-error"
         />
-        {errors.value && <p className="text-red-500">{errors.value}</p>}
+        {errors.value && (
+          <p id="value-error" className="mt-1 text-xs text-red-500">
+            {errors.value}
+          </p>
+        )}
       </div>
-      <div className="flex flex-col">
-        <label htmlFor="unit">Unit</label>
+
+      <div>
+        <label htmlFor="unit" className="block text-sm font-medium mb-1 text-gray-700">
+          Unit <span className="text-red-500">*</span>
+        </label>
         <select
-          name="unit"
           id="unit"
+          name="unit"
           value={form.unit || ""}
           onChange={handleChange}
-          className="border border-gray-300 rounded-md p-2"
+          className={`w-full rounded-md border px-4 py-3
+            text-gray-900 text-base
+            bg-gray-50
+            focus:outline-none focus:ring-2 focus:ring-green-400
+            transition
+            ${
+              errors.unit ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-green-400"
+            }`}
+          aria-invalid={!!errors.unit}
+          aria-describedby="unit-error"
         >
-          <option value="">Select a unit</option>
+          <option value="" disabled>
+            Select a unit
+          </option>
           {unitOptions.map((unit) => (
             <option key={unit} value={unit}>
               {unit}
             </option>
           ))}
         </select>
-        {errors.unit && <p className="text-red-500">{errors.unit}</p>}
+        {errors.unit && (
+          <p id="unit-error" className="mt-1 text-xs text-red-500">
+            {errors.unit}
+          </p>
+        )}
       </div>
-      <div className="flex flex-col">
-        <label htmlFor="status">Status</label>
+
+      <div>
+        <label htmlFor="status" className="block text-sm font-medium mb-1 text-gray-700">
+          Status <span className="text-red-500">*</span>
+        </label>
         <select
-          name="status"
           id="status"
+          name="status"
           value={form.status || ""}
           onChange={handleChange}
-          className="border border-gray-300 rounded-md p-2"
+          className={`w-full rounded-md border px-4 py-3
+            text-gray-900 text-base
+            bg-gray-50
+            focus:outline-none focus:ring-2 focus:ring-green-400
+            transition
+            ${
+              errors.status ? "border-red-400 focus:ring-red-300" : "border-gray-300 focus:ring-green-400"
+            }`}
+          aria-invalid={!!errors.status}
+          aria-describedby="status-error"
         >
-          <option value="">Select a status</option>
+          <option value="" disabled>
+            Select a status
+          </option>
           {statusOptions.map((status) => (
             <option key={status} value={status}>
               {formatTestStatus(status)}
             </option>
           ))}
         </select>
-        {errors.status && <p className="text-red-500">{errors.status}</p>}
+        {errors.status && (
+          <p id="status-error" className="mt-1 text-xs text-red-500">
+            {errors.status}
+          </p>
+        )}
       </div>
-      <div className="flex flex-col">
-        <label htmlFor="entered_by">Entered By</label>
+
+      <div>
+        <label htmlFor="entered_by" className="block text-sm font-medium mb-1 text-gray-700">
+          Entered By <span className="text-red-500">*</span>
+        </label>
         <input
-          type="text"
-          name="entered_by"
           id="entered_by"
+          name="entered_by"
+          type="text"
           value={form.entered_by || ""}
           onChange={handleChange}
-          className="border border-gray-300 rounded-md p-2"
+          className={`w-full rounded-md border px-4 py-3
+            text-gray-900 text-base
+            bg-gray-50
+            focus:outline-none focus:ring-2 focus:ring-green-400
+            transition
+            ${
+              errors.entered_by
+                ? "border-red-400 focus:ring-red-300"
+                : "border-gray-300 focus:ring-green-400"
+            }`}
+          aria-invalid={!!errors.entered_by}
+          aria-describedby="enteredby-error"
         />
-        {errors.entered_by && <p className="text-red-500">{errors.entered_by}</p>}
+        {errors.entered_by && (
+          <p id="enteredby-error" className="mt-1 text-xs text-red-500">
+            {errors.entered_by}
+          </p>
+        )}
       </div>
-      <div className="flex flex-col">
-        <label htmlFor="entered_at">Entered At</label>
+
+      <div>
+        <label htmlFor="entered_at" className="block text-sm font-medium mb-1 text-gray-700">
+          Entered At <span className="text-red-500">*</span>
+        </label>
         <input
-          type="datetime-local"
-          name="entered_at"
           id="entered_at"
+          name="entered_at"
+          type="datetime-local"
           value={form.entered_at || ""}
           onChange={handleChange}
-          className="border border-gray-300 rounded-md p-2"
+          className={`w-full rounded-md border px-4 py-3
+            text-gray-900 text-base
+            bg-gray-50
+            focus:outline-none focus:ring-2 focus:ring-green-400
+            transition
+            ${
+              errors.entered_at
+                ? "border-red-400 focus:ring-red-300"
+                : "border-gray-300 focus:ring-green-400"
+            }`}
+          aria-invalid={!!errors.entered_at}
+          aria-describedby="enteredat-error"
         />
-        {errors.entered_at && <p className="text-red-500">{errors.entered_at}</p>}
+        {errors.entered_at && (
+          <p id="enteredat-error" className="mt-1 text-xs text-red-500">
+            {errors.entered_at}
+          </p>
+        )}
       </div>
-      <div className="flex flex-col">
-        <label htmlFor="notes">Notes</label>
+
+      <div>
+        <label htmlFor="notes" className="block text-sm font-medium mb-1 text-gray-700">
+          Notes
+        </label>
         <textarea
-          name="notes"
           id="notes"
+          name="notes"
+          rows={3}
           value={form.notes || ""}
           onChange={handleChange}
-          className="border border-gray-300 rounded-md p-2"
+          className="w-full rounded-md border border-gray-300 px-4 py-3
+            text-gray-900 text-base
+            bg-gray-50
+            focus:outline-none focus:ring-2 focus:ring-green-400
+            transition
+            resize-none"
         />
       </div>
-      <button type="submit" disabled={!isValid} className="bg-blue-500 text-white p-2 rounded-md">
-        Update Test
-      </button>
+
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          disabled={!isValid || editingId === test.id}
+          className={`px-8 py-3 rounded-lg font-semibold
+            transition
+            focus:outline-none focus:ring-2 focus:ring-green-500
+            text-white
+            ${
+              !isValid || editingId === test.id
+                ? "bg-green-300 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700"
+            }`}
+        >
+          {editingId === test.id ? "Updating..." : "Update Test"}
+        </button>
+      </div>
     </form>
   );
 }

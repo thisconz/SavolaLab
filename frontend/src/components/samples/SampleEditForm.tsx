@@ -22,12 +22,12 @@ export default function SampleEdit({ batch_number }: Props) {
     }
   }, [sample]);
 
-    const validate = (data: Partial<Sample>) => {
+  const validate = (data: Partial<Sample>) => {
     const newErrors: Record<string, string> = {};
-    if (!data.sample_type) newErrors.sample_type = "Sample type is required";
-    if (!data.location) newErrors.location = "Location is required";
+    if (!data.sample_type) newErrors.sample_type = "Sample type is required.";
+    if (!data.location) newErrors.location = "Location is required.";
     if (!data.collected_at || isNaN(Date.parse(data.collected_at)))
-      newErrors.collected_at = "Valid collection date and time is required";
+      newErrors.collected_at = "Valid collection date and time is required.";
 
     setErrors(newErrors);
     setIsValid(Object.keys(newErrors).length === 0);
@@ -60,58 +60,104 @@ export default function SampleEdit({ batch_number }: Props) {
     }
   };
 
-  if (loading) return <p>Loading sample...</p>;
-  if (!sample) return <p>Sample not found.</p>;
+  if (loading) return <p className="text-center py-10 text-gray-500">Loading sample...</p>;
+  if (!sample) return <p className="text-center py-10 text-red-600">Sample not found.</p>;
 
   return (
-    <form className="bg-white p-6 rounded-lg mb-6 space-y-4" onSubmit={handleSubmit}>
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-gray-900">Edit Sample</h2>
-      </div>
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md space-y-6"
+      noValidate
+    >
+      <h2 className="text-2xl font-semibold text-gray-900">Edit Sample</h2>
 
-      <div className="bg-white shadow rounded p-4 border border-gray-300 text-gray-800">
+      <div className="space-y-5 bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-sm">
         {/* Sample Type */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2">Sample Type:</label>
-          <select
-            name="sample_type"
-            value={form.sample_type}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
+        <div>
+          <label
+            htmlFor="sample_type"
+            className="block mb-1 font-medium text-gray-700"
           >
+            Sample Type <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="sample_type"
+            name="sample_type"
+            value={form.sample_type || ""}
+            onChange={handleChange}
+            className={`w-full rounded-md border px-3 py-2 text-gray-900
+              focus:outline-none focus:ring-2 focus:ring-blue-400 transition
+              ${errors.sample_type ? "border-red-500 focus:ring-red-400" : "border-gray-300"}`}
+            aria-invalid={!!errors.sample_type}
+            aria-describedby="error-sample_type"
+          >
+            <option value="">Select sample type</option>
             {sampleTypes.map((type) => (
               <option key={type} value={type}>
                 {formatSampleType(type)}
               </option>
             ))}
           </select>
-          {errors.sample_type && <p className="text-red-500">{errors.sample_type}</p>}
+          {errors.sample_type && (
+            <p id="error-sample_type" className="mt-1 text-sm text-red-600">
+              {errors.sample_type}
+            </p>
+          )}
         </div>
 
         {/* Location */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2">Location:</label>
+        <div>
+          <label
+            htmlFor="location"
+            className="block mb-1 font-medium text-gray-700"
+          >
+            Location <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
+            id="location"
             name="location"
-            value={form.location}
+            value={form.location || ""}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
+            placeholder="Enter location"
+            className={`w-full rounded-md border px-3 py-2 text-gray-900
+              focus:outline-none focus:ring-2 focus:ring-blue-400 transition
+              ${errors.location ? "border-red-500 focus:ring-red-400" : "border-gray-300"}`}
+            aria-invalid={!!errors.location}
+            aria-describedby="error-location"
           />
-          {errors.location && <p className="text-red-500">{errors.location}</p>}
+          {errors.location && (
+            <p id="error-location" className="mt-1 text-sm text-red-600">
+              {errors.location}
+            </p>
+          )}
         </div>
 
         {/* Collection Date */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2">Collection Date:</label>
+        <div>
+          <label
+            htmlFor="collected_at"
+            className="block mb-1 font-medium text-gray-700"
+          >
+            Collection Date <span className="text-red-500">*</span>
+          </label>
           <input
             type="datetime-local"
+            id="collected_at"
             name="collected_at"
             value={toDatetimeLocal(form.collected_at || sample.collected_at)}
             onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
+            className={`w-full rounded-md border px-3 py-2 text-gray-900
+              focus:outline-none focus:ring-2 focus:ring-blue-400 transition
+              ${errors.collected_at ? "border-red-500 focus:ring-red-400" : "border-gray-300"}`}
+            aria-invalid={!!errors.collected_at}
+            aria-describedby="error-collected_at"
           />
-          {errors.collected_at && <p className="text-red-500">{errors.collected_at}</p>}
+          {errors.collected_at && (
+            <p id="error-collected_at" className="mt-1 text-sm text-red-600">
+              {errors.collected_at}
+            </p>
+          )}
         </div>
       </div>
 
@@ -119,7 +165,13 @@ export default function SampleEdit({ batch_number }: Props) {
         <button
           type="submit"
           disabled={editingId === batch_number || !isValid}
-          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className={`px-5 py-2 rounded-md font-semibold text-white transition
+            ${
+              editingId === batch_number || !isValid
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-400"
+            }`}
+          aria-disabled={editingId === batch_number || !isValid}
         >
           {editingId === batch_number ? "Saving..." : "Save Changes"}
         </button>
