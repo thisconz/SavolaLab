@@ -29,7 +29,7 @@ export default function Home() {
             ensure high-quality results and exceptional customer service.
           </p>
           <p>
-            Thank you for trusting <span className="font-semibold">SavolaLab</span> with
+            Thank you for trusting <span className="font-extrabold">SavolaLab</span> with
             your diagnostic needs.
           </p>
         </div>

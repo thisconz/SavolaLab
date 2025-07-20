@@ -5,6 +5,7 @@ import SampleDelete from "@/components/samples/SampleDelete";
 import TestCreateForm from "@/components/tests/TestCreateForm";
 import { Sample } from "@/types/sample";
 import { useSamples } from "@/hooks/sample/useSamples";
+import { formatSampleType } from "@/utils/format";
 import Link from "next/link";
 import { X } from "lucide-react";
 
@@ -34,7 +35,7 @@ export default function SampleTable() {
         <table className="min-w-full divide-y divide-green-200 text-green-900">
           <thead className="bg-green-100">
             <tr>
-              {["Batch #", "Details / Attachments", "Delete", "Create Test Result"].map(
+              {["Batch #", "Sample Type", "Details / Attachments", "Delete", "Create Test Result"].map(
                 (heading) => (
                   <th
                     key={heading}
@@ -55,6 +56,8 @@ export default function SampleTable() {
                 className="hover:bg-green-100 transition-colors cursor-pointer"
               >
                 <td className="px-6 py-4 font-medium">{s.batch_number}</td>
+
+                <td className="px-6 py-4">{formatSampleType(s.sample_type)}</td>
 
                 <td className="px-6 py-4">
                   <Link

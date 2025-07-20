@@ -5,7 +5,7 @@ import Link from "next/link";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn, Eye } from "lucide-react";
 
 export default function LoginPage() {
   const [employee_id, setEmployeeId] = useState("");
@@ -60,7 +60,7 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center space-y-1">
           <h2 className="text-3xl font-extrabold text-green-600">Welcome Back</h2>
-          <p className="text-sm text-gray-500">Login to access SavolaLab</p>
+          <p className="text-sm text-gray-500">Login to access <span className="font-extrabold">SavolaLab</span></p>
         </div>
 
         {/* Inputs */}
@@ -100,10 +100,10 @@ export default function LoginPage() {
           </button>
 
           <Link
-            href="/create-account"
+            href="/request"
             className="w-full bg-gray-100 text-gray-700 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
           >
-            <UserPlus className="w-5 h-5" /> Create Account
+            <Eye className="w-5 h-5" /> Request Access
           </Link>
         </div>
       </motion.form>

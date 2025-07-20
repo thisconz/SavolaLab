@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { DashboardData } from "@/types/dashboard";
-import { ChartBarIcon, BeakerIcon } from "@heroicons/react/24/outline";
+import { FlaskConical, FileText } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function SamplesTestsCountAndAverage() {
@@ -46,14 +46,14 @@ export default function SamplesTestsCountAndAverage() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <DashboardCard
-        icon={<ChartBarIcon className="h-10 w-10 text-green-600" />}
+        icon={<FlaskConical className="h-10 w-10 text-green-600" />}
         title="Total Samples"
         value={data.total_samples}
         bg="bg-green-50"
         text="text-green-800"
       />
       <DashboardCard
-        icon={<BeakerIcon className="h-10 w-10 text-blue-600" />}
+        icon={<FileText className="h-10 w-10 text-blue-600" />}
         title="Total Tests"
         value={data.total_tests}
         bg="bg-blue-50"
