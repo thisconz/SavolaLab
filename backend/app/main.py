@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from app.infrastructure.config import settings
 from app.infrastructure.database import drop_tables, init_db
-from app.endpoints import attachments, dashboard, samples, tests, users, qc_manager, admin
+from app.endpoints import attachments, dashboard, samples, tests, users, qc_manager, admin, access_request
 
 # SavolaLab
 
@@ -37,6 +37,7 @@ app.include_router(attachments.router, prefix="/attachments", tags=["Attachments
 app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 app.include_router(qc_manager.router, prefix="/manager", tags=["Manager"])
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
+app.include_router(access_request.router, prefix="/access-requests", tags=["Access Requests"])
 
 # Initialize database
 @app.post("/init", tags=["Database"])

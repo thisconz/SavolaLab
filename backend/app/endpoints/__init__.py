@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.endpoints import users, samples, tests, attachments, dashboard, qc_manager, admin
+from app.endpoints import users, samples, tests, attachments, dashboard, qc_manager, admin, access_request
 
 api_router = APIRouter()
 
@@ -10,6 +10,7 @@ api_router.include_router(tests.router, prefix="/tests", tags=["Tests"])
 api_router.include_router(attachments.router, prefix="/attachments", tags=["Attachments"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 api_router.include_router(qc_manager.router, prefix="/manager", tags=["Manager"])
+api_router.include_router(access_request.router, prefix="/access-requests", tags=["Access Requests"])
 
 # Placeholder for admin router, if needed in the future
 api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
