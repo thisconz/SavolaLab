@@ -18,19 +18,19 @@ export default function SamplesPage() {
 
   return (
     <ProtectedRoute>
-      <section className="mx-auto max-w-7xl px-6 py-10">
+      <section className="max-w-7xl mx-auto px-6 py-10">
         {/* Header */}
         <motion.header
           initial="hidden"
           animate="visible"
           variants={fadeInUp}
-          className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8"
         >
           <div>
-            <h2 className="select-none text-3xl font-extrabold text-gray-900 tracking-tight">
+            <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight select-none">
               Samples
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-gray-500 text-sm mt-1">
               Manage and review all QC samples in the system.
             </p>
           </div>
@@ -69,7 +69,7 @@ export default function SamplesPage() {
           animate="visible"
           variants={fadeInUp}
           transition={{ delay: 0.1 }}
-          className="overflow-auto rounded-2xl border border-gray-100 bg-white p-6 shadow-lg"
+          className="overflow-hidden rounded-xl border border-gray-200 shadow-md"
         >
           <SampleTable key={refreshToggle.toString()} />
         </motion.div>

@@ -72,10 +72,10 @@ export default function SampleTable({ sampleType }: { sampleType?: string }) {
       )}
 
       {/* Table Wrapper */}
-      <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-md">
-        <table className="min-w-full divide-y divide-gray-200 text-gray-900">
+      <div className="overflow-x-auto rounded-xl shadow-lg border border-green-300 bg-gradient-to-br from-green-50 to-white">
+        <table className="min-w-full divide-y divide-green-200 text-gray-900">
           {/* Table Head */}
-          <thead className="bg-gray-50">
+          <thead className="bg-green-100">
             <tr>
               {[
                 "Batch #",
