@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from uuid import UUID
 
@@ -11,6 +11,9 @@ from app.domain.schemas import SampleCreate, SampleRead, SampleUpdate, UserRead
 
 # Services
 from app.services import create_sample_in, get_current_user, sample_logic
+
+# Models
+from app.domain.models.sample import Sample
 
 router = APIRouter()
 
@@ -36,18 +39,33 @@ async def create_sample(
     # 201: User can create samples
     return create_sample_in(db, sample_in, user)
 
-# List all samples for the current user
+# List all samples for the current user# List all samples for the current user
 @router.get("/", response_model=List[SampleRead])
 async def list_samples(
+    sample_type: Optional[str] = None,
     user: UserRead = Depends(get_current_user),
     db: Session = Depends(get_db)
-    ):
-    """List all samples for the current user."""
+):
+    """
+    List samples.
+    - Admins: See all samples (with optional category filter).
+    - Other users: See only assigned samples (with optional category filter).
+    """
+    query = db.query(Sample)
 
-    if user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can list all samples")
+    # For admin users: filter by sample_type
+    if user.role in {"admin", "qc_manager", "shift_chemist"}:
+        if sample_type:
+            query = query.filter(Sample.sample_type == sample_type)
+        return query.all()
     
-    return sample_logic.get_all_samples(db) 
+    # For non-admin users: filter by assigned_to
+    query = query.filter(Sample.assigned_to == user.employee_id)
+    if sample_type:
+        query = query.filter(Sample.sample_type == sample_type)
+
+    return query.all()
+
 
 # Latest sample
 @router.get("/latest", response_model=SampleRead)
@@ -55,9 +73,16 @@ async def get_latest_sample(
     user: UserRead = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get the latest sample for the current user."""
-    latest_sample = sample_logic.get_latest_sample(db, user.employee_id)
+    """
+    Get the latest sample for the current user.
+    
+    Responses:
+        200: Successful response.
+        404: No samples found for the current user.
+    """
+    latest_sample = sample_logic.get_latest_sample(db, user.employee_id, user)
 
+    
     if latest_sample is None:
         raise HTTPException(status_code=404, detail="No samples found for the current user")
     

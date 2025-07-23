@@ -86,7 +86,9 @@ def get_all_samples(db: Session):
 def list_samples(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Sample).offset(skip).limit(limit).all()
 # Get the latest samples
-def get_latest_sample(db: Session, employee_id: str) -> Sample | None:
+def get_latest_sample(db: Session, employee_id: str, user) -> Sample | None:
+    if user.role in {"admin", "qc_manager", "shift_chemist"}:
+        return db.query(Sample).first()
     return db.query(Sample).filter(Sample.assigned_to == employee_id).order_by(Sample.collected_at.desc()).first()
 
 # Count the total number of samples

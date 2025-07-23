@@ -6,7 +6,7 @@ from uuid import uuid4
 
 # Infrastructure
 from app.infrastructure.config import settings
-from app.infrastructure.s3_client import upload_file, delete_file, generate_presigned_url
+from app.infrastructure.s3_client import upload_file, delete_file, generate_presigned_url, file_exists, download_file
 
 # Utils
 from app.utils.file_tagging import auto_tag_filename, auto_tag_from_content
@@ -101,3 +101,5 @@ def get_attachment_by_id(
 # Get attachment download URL
 def get_attachment_url(key: str) -> str:
     return generate_presigned_url(key)
+
+# Download attachment

@@ -4,8 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { LogIn, Eye } from "lucide-react";
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
 
 export default function LoginPage() {
   const [employee_id, setEmployeeId] = useState("");
@@ -32,11 +37,10 @@ export default function LoginPage() {
         },
       });
 
-      const token = response.data.access_token;
-      localStorage.setItem("token", token);
+      localStorage.setItem("token", response.data.access_token);
       router.push("/dashboard");
     } catch (error: any) {
-      console.error("Full login error:", error);
+      console.error("Login Error:", error);
       const detail =
         error?.response?.data?.detail ||
         error?.response?.data?.message ||
@@ -49,61 +53,70 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-gray-100 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-50 via-white to-gray-100 px-4">
       <motion.form
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        initial="hidden"
+        animate="visible"
+        variants={fadeUp}
         onSubmit={handleLogin}
-        className="bg-white/90 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md space-y-6 border border-gray-100"
+        className="w-full max-w-md space-y-6 rounded-2xl border border-gray-100 bg-white/90 p-8 shadow-xl backdrop-blur-md"
       >
         {/* Header */}
         <div className="text-center space-y-1">
-          <h2 className="text-3xl font-extrabold text-green-600">Welcome Back</h2>
-          <p className="text-sm text-gray-500">Login to access <span className="font-extrabold">SavolaLab</span></p>
+          <h2 className="text-3xl font-extrabold text-green-600">
+            Welcome Back
+          </h2>
+          <p className="text-sm text-gray-500">
+            Login to access <span className="font-bold">SavolaLab</span>
+          </p>
         </div>
 
         {/* Inputs */}
         <div className="space-y-4">
-          <input
-            type="text"
-            placeholder="Employee ID"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 text-gray-900 transition"
-            value={employee_id}
-            onChange={(e) => setEmployeeId(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 text-gray-900 transition"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div>
+            <input
+              type="text"
+              placeholder="Employee ID"
+              value={employee_id}
+              onChange={(e) => setEmployeeId(e.target.value)}
+              required
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 shadow-sm transition focus:border-green-400 focus:ring-2 focus:ring-green-400"
+            />
+          </div>
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 shadow-sm transition focus:border-green-400 focus:ring-2 focus:ring-green-400"
+            />
+          </div>
         </div>
 
         {/* Buttons */}
         <div className="flex flex-col gap-3">
-          <button
+          <motion.button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 text-white py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-green-700 transition-colors shadow-md hover:shadow-lg"
+            whileTap={{ scale: 0.96 }}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 py-2.5 font-medium text-white shadow-md transition-colors hover:bg-green-700 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? (
               <span className="animate-pulse">Logging in...</span>
             ) : (
               <>
-                <LogIn className="w-5 h-5" /> Login
+                <LogIn className="h-5 w-5" /> Login
               </>
             )}
-          </button>
+          </motion.button>
 
           <Link
             href="/request"
-            className="w-full bg-gray-100 text-gray-700 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-100 py-2.5 font-medium text-gray-700 shadow-sm transition hover:bg-gray-200"
           >
-            <Eye className="w-5 h-5" /> Request Access
+            <Eye className="h-5 w-5" /> Request Access
           </Link>
         </div>
       </motion.form>

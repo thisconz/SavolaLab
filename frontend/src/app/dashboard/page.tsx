@@ -3,70 +3,84 @@
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SamplesTestsCountAndAverage from "@/components/dashboard/CountAndAvg";
 import { useChartData } from "@/hooks/Dahboard/useDashboardAvg";
-import SamplesTestsLineGraph from "@/components/dashboard/Graph";
+import SamplesTestsLineGraph from "@/components/charts/SamplesTestsLineGraph";
 import { motion } from "framer-motion";
+
+const fadeIn = (delay = 0) => ({
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay } },
+});
 
 export default function DashboardPage() {
   const { data, loading, error } = useChartData();
 
+  // Error State
   if (error)
     return (
       <div className="flex h-screen items-center justify-center">
-        <p className="text-red-600 font-semibold text-lg">
-          Failed to load chart data. Please try again later.
+        <p className="text-lg font-semibold text-red-600">
+          Failed to load dashboard data. Please try again later.
         </p>
       </div>
     );
 
+  // Loading Skeleton
   if (loading)
     return (
-      <div className="container mx-auto px-4 py-8 space-y-8 animate-pulse">
-        <div className="h-32 bg-gray-200 rounded-xl"></div>
-        <div className="h-96 bg-gray-200 rounded-xl"></div>
+      <div className="container mx-auto px-6 py-12 space-y-10 animate-pulse">
+        <div className="h-24 rounded-2xl bg-gray-200 shadow-sm"></div>
+        <div className="h-96 rounded-2xl bg-gray-200 shadow-sm"></div>
       </div>
     );
 
+  // No Data State
   if (!data)
     return (
       <div className="flex h-screen items-center justify-center">
-        <p className="text-gray-500 text-lg">No data available for display.</p>
+        <p className="text-lg text-gray-500">No dashboard data available.</p>
       </div>
     );
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8 space-y-10">
-        {/* Header Section */}
+      <div className="container mx-auto px-6 py-10 space-y-12">
+        {/* Dashboard Header */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="text-center space-y-2"
+          initial="hidden"
+          animate="visible"
+          variants={fadeIn(0)}
+          className="text-center"
         >
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-          <p className="text-gray-500 text-sm">
-            Insights and trends from QC test results and samples.
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+            Dashboard Overview
+          </h1>
+          <p className="mt-2 text-sm text-gray-500">
+            Real-time insights and trends from QC test results and samples.
           </p>
         </motion.div>
 
-        {/* Count Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.4 }}
+        {/* KPI Cards */}
+        <motion.section
+          initial="hidden"
+          animate="visible"
+          variants={fadeIn(0.1)}
+          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
         >
           <SamplesTestsCountAndAverage />
-        </motion.div>
+        </motion.section>
 
-        {/* Line Graph */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-          className="bg-white p-6 rounded-xl shadow-lg"
+        {/* Trends Graph */}
+        <motion.section
+          initial="hidden"
+          animate="visible"
+          variants={fadeIn(0.2)}
+          className="rounded-2xl border border-gray-100 bg-white p-8 shadow-lg"
         >
+          <h2 className="mb-4 text-lg font-semibold text-gray-800">
+            Samples & Test Trends
+          </h2>
           <SamplesTestsLineGraph data={data} />
-        </motion.div>
+        </motion.section>
       </div>
     </ProtectedRoute>
   );

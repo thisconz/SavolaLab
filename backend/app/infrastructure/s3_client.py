@@ -78,3 +78,8 @@ def generate_presigned_url(
         Params={"Bucket": settings.S3_BUCKET_NAME, "Key": key},
         ExpiresIn=expires_in,
     )
+
+# Download a file from S3
+def download_file(
+        key: str):
+    s3.download_file(settings.S3_BUCKET_NAME, key, key)

@@ -66,11 +66,11 @@ async def list_users(
     - 500: Internal server error
     """
     users = db.query(User).all()
-    # 404: User not found (If the user is not found)
+    # User not found (If the user is not found)
     if not users:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # 500: Internal server error (If the user role is not valid)
+    # Internal server error (If the user role is not valid)
     for user in users:
         if isinstance(user.role, str):
             try:
@@ -100,11 +100,11 @@ async def get_user_by_employee_id(
     """
     user = db.query(User).filter(User.employee_id == employee_id).first()
 
-    # 404: User not found (If the user is not found)
+    # User not found (If the user is not found)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # 500: Internal server error (If the user role is not valid)
+    # Internal server error (If the user role is not valid)
     if isinstance(user.role, str):
         try:
             user.role = UserRole(user.role.lower())
@@ -166,18 +166,18 @@ def change_role_by_employee_id(
         - 404: User not found
         - 500: Internal server error
     """
-    # Get user
-    target_user = db.query(User).filter(User.employee_id == employee_id).first()
     
-    # 400: QC Manager cannot make Admin or QC Manager
+    # QC Manager cannot make Admin or QC Manager
     if user.role == UserRole.QC_MANAGER and new_role in [UserRole.ADMIN, UserRole.QC_MANAGER]:
         raise HTTPException(status_code=400, detail="QC Manager cannot make Admin or QC Manager")
     
-    # 404: User not found
+    target_user = db.query(User).filter(User.employee_id == employee_id).first()
+
+    # User not found (If the user is not found)
     if not target_user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # 500: Internal server error
+    # Internal server error (If the user role is not valid)
     if isinstance(target_user.role, str):
         try:
             target_user.role = UserRole(target_user.role.lower())

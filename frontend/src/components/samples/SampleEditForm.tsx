@@ -6,6 +6,7 @@ import { sampleTypes } from "@/constants/Sample";
 import { formatSampleType, toDatetimeLocal } from "@/utils/format";
 import { useSampleByBatch } from "@/hooks/sample/useSampleByBatch";
 import { useEditSample } from "@/hooks/sample/useEditSample";
+import { motion } from "framer-motion";
 
 export default function SampleEdit({ batch_number }: Props) {
   const { sample, loading, refetch } = useSampleByBatch(batch_number);
@@ -15,6 +16,7 @@ export default function SampleEdit({ batch_number }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isValid, setIsValid] = useState(false);
 
+  // Populate form when sample is fetched
   useEffect(() => {
     if (sample) {
       setForm(sample);
@@ -22,6 +24,7 @@ export default function SampleEdit({ batch_number }: Props) {
     }
   }, [sample]);
 
+  /** Validate form data */
   const validate = (data: Partial<Sample>) => {
     const newErrors: Record<string, string> = {};
     if (!data.sample_type) newErrors.sample_type = "Sample type is required.";
@@ -34,6 +37,7 @@ export default function SampleEdit({ batch_number }: Props) {
     return Object.keys(newErrors).length === 0;
   };
 
+  /** Handle field changes */
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -45,6 +49,7 @@ export default function SampleEdit({ batch_number }: Props) {
     validate(updatedForm);
   };
 
+  /** Handle form submission */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate(form)) {
@@ -60,24 +65,33 @@ export default function SampleEdit({ batch_number }: Props) {
     }
   };
 
-  if (loading) return <p className="text-center py-10 text-gray-500">Loading sample...</p>;
-  if (!sample) return <p className="text-center py-10 text-red-600">Sample not found.</p>;
+  if (loading)
+    return (
+      <p className="text-center py-10 text-gray-500 animate-pulse">
+        Loading sample...
+      </p>
+    );
+
+  if (!sample)
+    return (
+      <p className="text-center py-10 text-red-600">Sample not found.</p>
+    );
 
   return (
-    <form
+    <motion.form
       onSubmit={handleSubmit}
-      className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md space-y-6"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-lg space-y-6 border border-gray-100"
       noValidate
     >
-      <h2 className="text-2xl font-semibold text-gray-900">Edit Sample</h2>
+      <h2 className="text-2xl font-bold text-gray-900">Edit Sample</h2>
 
-      <div className="space-y-5 bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-sm">
+      <div className="space-y-5 bg-gray-50 p-5 rounded-lg border border-gray-200">
         {/* Sample Type */}
         <div>
-          <label
-            htmlFor="sample_type"
-            className="block mb-1 font-medium text-gray-700"
-          >
+          <label htmlFor="sample_type" className="block mb-1 font-medium text-gray-700">
             Sample Type <span className="text-red-500">*</span>
           </label>
           <select
@@ -107,10 +121,7 @@ export default function SampleEdit({ batch_number }: Props) {
 
         {/* Location */}
         <div>
-          <label
-            htmlFor="location"
-            className="block mb-1 font-medium text-gray-700"
-          >
+          <label htmlFor="location" className="block mb-1 font-medium text-gray-700">
             Location <span className="text-red-500">*</span>
           </label>
           <input
@@ -135,10 +146,7 @@ export default function SampleEdit({ batch_number }: Props) {
 
         {/* Collection Date */}
         <div>
-          <label
-            htmlFor="collected_at"
-            className="block mb-1 font-medium text-gray-700"
-          >
+          <label htmlFor="collected_at" className="block mb-1 font-medium text-gray-700">
             Collection Date <span className="text-red-500">*</span>
           </label>
           <input
@@ -161,21 +169,21 @@ export default function SampleEdit({ batch_number }: Props) {
         </div>
       </div>
 
+      {/* Submit Button */}
       <div className="flex justify-end">
         <button
           type="submit"
           disabled={editingId === batch_number || !isValid}
-          className={`px-5 py-2 rounded-md font-semibold text-white transition
+          className={`px-6 py-2.5 rounded-lg font-semibold text-white transition
             ${
               editingId === batch_number || !isValid
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-400"
             }`}
-          aria-disabled={editingId === batch_number || !isValid}
         >
           {editingId === batch_number ? "Saving..." : "Save Changes"}
         </button>
       </div>
-    </form>
+    </motion.form>
   );
 }
