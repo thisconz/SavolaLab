@@ -1,6 +1,6 @@
 "use client";
 
-import { sampleTypes } from "@/constants/Sample";
+import { sampleTypes } from "@/constants/sample";
 import { useState } from "react";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";

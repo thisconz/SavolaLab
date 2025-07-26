@@ -1,7 +1,7 @@
 "use client";
 
 import SampleTable from "@/components/samples/SampleTable";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Link from "next/link";
 import { RefreshCw, Plus } from "lucide-react";
 import { useState } from "react";

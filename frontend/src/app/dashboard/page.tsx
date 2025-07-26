@@ -1,6 +1,6 @@
 "use client";
 
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import SamplesTestsCountAndAverage from "@/components/dashboard/CountAndAvg";
 import { useChartData } from "@/hooks/Dahboard/useDashboardAvg";
 import SamplesTestsLineGraph from "@/components/charts/SamplesTestsLineGraph";

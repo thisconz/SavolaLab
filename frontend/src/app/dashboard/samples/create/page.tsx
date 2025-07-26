@@ -1,7 +1,7 @@
 "use client";
 
 import SampleForm from "@/components/samples/SampleCreateForm";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { motion } from "framer-motion";
 
 export default function CreateSamplePage() {

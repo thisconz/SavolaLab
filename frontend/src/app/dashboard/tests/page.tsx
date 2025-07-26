@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import TestList from "@/components/tests/TestTable";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { RefreshCw, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 

@@ -1,7 +1,7 @@
-import "./globals.css";
+import "../styles/globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import AuthProviderWrapper from "@/components/AuthProviderWrapper";
+import AuthProviderWrapper from "@/components/auth/AuthProviderWrapper";
 import clsx from "clsx";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "SavolaLab",
   description: "QC Platform for the Sugar Industry",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/public/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
   openGraph: {

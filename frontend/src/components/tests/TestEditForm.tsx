@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Test } from "@/types/test";
-import { testParameters, statusOptions, unitOptions } from "@/constants/Test";
+import { testParameters, statusOptions, unitOptions } from "@/constants/test";
 import { formatTestStatus, toDatetimeLocal } from "@/utils/format";
 import { useTestsByBatch } from "@/hooks/test/useTestsByBatch";
 import { useEditTests } from "@/hooks/test/useEditTests";

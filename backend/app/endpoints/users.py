@@ -99,9 +99,12 @@ async def update_user_me(
     Allows updating employee ID, full name, role, and password.
     """
     # Check if the user exists
-    user = auth.get_user_by_employee_id(db, user_in.employee_id)
-    if not user:
+    if not current_user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Validate the role if provided
+    if user_in.role and user_in.role not in [role.value for role in UserRole]:
+        raise HTTPException(status_code=400, detail="Invalid role provided")
     
     updated_user = auth.update_user(
         db=db,

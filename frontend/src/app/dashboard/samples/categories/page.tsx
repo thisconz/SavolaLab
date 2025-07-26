@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { sampleCategories } from "@/constants/Sample";
+import { sampleCategories } from "@/constants/sample";
 import { motion, Variants } from "framer-motion";
 
 const containerVariants = {

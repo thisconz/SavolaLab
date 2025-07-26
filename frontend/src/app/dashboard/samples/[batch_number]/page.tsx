@@ -23,7 +23,7 @@ import AttachmentList from "@/components/attachments/AttachmentList";
 
 import { formatSampleType, toDatetimeLocal } from "@/utils/format";
 import { useEditSample } from "@/hooks/sample/useEditSample";
-import { sampleTypes } from "@/constants/Sample";
+import { sampleTypes } from "@/constants/sample";
 
 /* -------------------------- REUSABLE COMPONENTS -------------------------- */
 const Section = ({ title, children }: { title?: string; children: React.ReactNode }) => (

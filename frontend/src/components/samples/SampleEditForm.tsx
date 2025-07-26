@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Sample, Props } from "@/types/sample";
-import { sampleTypes } from "@/constants/Sample";
+import { sampleTypes } from "@/constants/sample";
 import { formatSampleType, toDatetimeLocal } from "@/utils/format";
 import { useSampleByBatch } from "@/hooks/sample/useSampleByBatch";
 import { useEditSample } from "@/hooks/sample/useEditSample";

@@ -1,6 +1,6 @@
 "use client";
 
-import Sidebar from "@/components/ui/Sidebar";
+import Sidebar from "@/components/navigation/Sidebar";
 import Topbar from "@/components/navigation/Topbar";
 import { motion, Variants } from "framer-motion";
 

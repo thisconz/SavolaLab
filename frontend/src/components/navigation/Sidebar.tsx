@@ -20,6 +20,8 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/samples", label: "Samples", icon: FlaskConical },
   { href: "/dashboard/tests", label: "Test Results", icon: FileText },
+  { href: "/dashboard/profile", label: "Profile", icon: UserCircle2 },
+  // Add more items as needed
 ];
 
 export default function Sidebar() {
@@ -121,9 +123,6 @@ export default function Sidebar() {
                 <div className="text-xs text-gray-600">ID: @{user.username}</div>
                 <div className="text-xs text-gray-600">
                   Role: {formatRole(user.role)}
-                </div>
-                <div className="text-xs text-gray-600">
-                  Department: {user.department}
                 </div>
               </motion.div>
             )}

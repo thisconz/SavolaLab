@@ -6,7 +6,7 @@ import { useState } from "react";
 import { RefreshCw, Plus } from "lucide-react";
 import Link from "next/link";
 import SampleTable from "@/components/samples/SampleTable";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { motion } from "framer-motion";
 
 export default function SampleCategoryPage() {
