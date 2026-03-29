@@ -1,0 +1,5 @@
+{
+  "name": "SavolaLab",
+  "description": "Enterprise-grade Quality Control Laboratory platform for industrial sugar manufacturing, featuring automated workflows, calculation engines, and dispatch certification.",
+  "requestFramePermissions": ["geolocation", "notifications", "cookies"]
+}

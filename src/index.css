@@ -1,0 +1,116 @@
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;600;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Brand Palette - SavolaLab */
+  --color-brand-primary: #b1be9b;
+  --color-brand-deep: #5e6353;
+  --color-brand-sage: #818982;
+  --color-brand-mist: #eaf0e3;
+  --color-brand-white: #ffffff;
+
+  /* UI Surfaces */
+  --color-lab-obsidian: #ffffff;
+  --color-lab-graphite: #ffffff; /* App Background */
+  --color-lab-steel: #eaf0e3; /* Primary Surface Panels (Light Mist) */
+  --color-lab-charcoal: #5e6353; /* Primary Text (Deep Olive Gray) */
+
+  /* Legacy Mappings */
+  --color-savola-dark: #5e6353;
+  --color-savola-green: #b1be9b;
+  --color-savola-blue: #818982;
+  --color-savola-yellow: #c7b67b; /* Warning blend */
+
+  /* Semantic Colors */
+  --color-lab-phosphor: #b1be9b; /* Success */
+  --color-lab-sodium: #c7b67b; /* Warning */
+  --color-lab-laser: #e11d48; /* Critical */
+  --color-lab-ion: #818982; /* Info */
+}
+
+@layer base {
+  body {
+    @apply bg-white text-brand-deep font-sans antialiased overflow-hidden;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white border border-brand-sage/20 rounded-lg shadow-sm;
+  }
+
+  .industrial-surface {
+    @apply bg-white border border-brand-sage/20 rounded-md shadow-sm;
+  }
+
+  .brand-gradient {
+    background: linear-gradient(135deg, #b1be9b 0%, #818982 100%);
+  }
+
+  .instrument-grid {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(129, 137, 130, 0.05) 1px,
+      transparent 0
+    );
+    background-size: 32px 32px;
+  }
+
+  .data-row {
+    @apply flex items-center p-4 border-b border-brand-sage/10 transition-all duration-200 cursor-pointer hover:bg-brand-mist/20;
+  }
+
+  .col-header {
+    @apply text-[10px] font-mono text-brand-sage uppercase tracking-[0.2em] mb-2 border-b border-brand-sage/10 pb-2;
+  }
+
+  .data-value {
+    @apply font-mono text-[11px] tracking-tight text-brand-deep;
+  }
+
+  .status-pill {
+    @apply px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border;
+  }
+
+  .scanline {
+    width: 100%;
+    height: 100px;
+    z-index: 10;
+    background: linear-gradient(
+      0deg,
+      rgba(177, 190, 155, 0) 0%,
+      rgba(177, 190, 155, 0.05) 50%,
+      rgba(177, 190, 155, 0) 100%
+    );
+    opacity: 0.5;
+    position: absolute;
+    bottom: 100%;
+    animation: scanline 8s linear infinite;
+  }
+}
+
+@keyframes scanline {
+  0% {
+    bottom: 100%;
+  }
+  100% {
+    bottom: -100px;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-lab-steel rounded-full hover:bg-lab-ion/50 transition-colors;
+}

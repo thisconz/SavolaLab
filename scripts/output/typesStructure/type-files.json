@@ -1,0 +1,30 @@
+[
+  {
+    "name": "generate-types.ts",
+    "path": "D:\\Dev\\SavolaLab\\scripts\\generators\\generate-types.ts"
+  },
+  {
+    "name": "types.ts",
+    "path": "D:\\Dev\\SavolaLab\\server\\core\\types.ts"
+  },
+  {
+    "name": "app.types.ts",
+    "path": "D:\\Dev\\SavolaLab\\src\\core\\types\\app.types.ts"
+  },
+  {
+    "name": "http.types.ts",
+    "path": "D:\\Dev\\SavolaLab\\src\\core\\types\\http.types.ts"
+  },
+  {
+    "name": "lab.types.ts",
+    "path": "D:\\Dev\\SavolaLab\\src\\core\\types\\lab.types.ts"
+  },
+  {
+    "name": "operational.types.ts",
+    "path": "D:\\Dev\\SavolaLab\\src\\core\\types\\operational.types.ts"
+  },
+  {
+    "name": "shared.types.ts",
+    "path": "D:\\Dev\\SavolaLab\\src\\core\\types\\shared.types.ts"
+  }
+]
