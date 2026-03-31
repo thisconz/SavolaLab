@@ -269,11 +269,6 @@ export const AuthService = {
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "8h" });
 
     await db.execute(
-      "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE employee_number = $1",
-      [employeeNumber],
-    );
-
-    await db.execute(
       `INSERT INTO audit_logs (employee_number, action, details) VALUES ($1, 'LOGIN_SUCCESS', 'User logged in successfully')`,
       [employeeNumber],
     );

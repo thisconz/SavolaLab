@@ -1,6 +1,6 @@
 {
-  "name": "savolalab",
-  "description": "Laboratory Information Management System for Savola",
+  "name": "labrix",
+  "description": "Laboratory Information Management System",
   "private": true,
   "version": "1.0.0",
   "type": "module",

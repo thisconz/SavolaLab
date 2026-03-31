@@ -281,12 +281,6 @@ export const migrations: Migration[] = [
   {
     version: 10,
     up: async (client) => {
-      // user_permissions already created in version 1 for PG compatibility
-    },
-  },
-  {
-    version: 11,
-    up: async (client) => {
       await client.execute(`
         CREATE TABLE IF NOT EXISTS shifts (
           id SERIAL PRIMARY KEY,
@@ -298,7 +292,7 @@ export const migrations: Migration[] = [
     },
   },
   {
-    version: 12,
+    version: 11,
     up: async (client) => {
       await client.execute(`
         CREATE TABLE IF NOT EXISTS notification_rules (
@@ -314,7 +308,7 @@ export const migrations: Migration[] = [
     },
   },
   {
-    version: 13,
+    version: 12,
     up: async (client) => {
       await client.execute(`
         CREATE TABLE IF NOT EXISTS clients (
@@ -329,7 +323,7 @@ export const migrations: Migration[] = [
     },
   },
   {
-    version: 14,
+    version: 13,
     up: async (client) => {
       await client.execute(`
         CREATE TABLE IF NOT EXISTS stat_requests (
@@ -344,13 +338,13 @@ export const migrations: Migration[] = [
     },
   },
   {
-    version: 15,
+    version: 14,
     up: async (client) => {
       await client.execute(`ALTER TABLE users ALTER COLUMN pin_hash DROP NOT NULL`);
     },
   },
   {
-    version: 16,
+    version: 15,
     up: async (client) => {
       await client.execute(`
       -- Samples: primary queue queries filter by status and sort by priority + date
@@ -390,7 +384,7 @@ export const migrations: Migration[] = [
     },
   },
   {
-    version: 17,
+    version: 16,
     up: async (client) => {
       await client.execute(`
         ALTER TABLE users

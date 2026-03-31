@@ -37,11 +37,12 @@ export const SampleService = {
 
     return await db.query(
       `
-      SELECT s.*, COUNT(t.id) as test_count 
+      SELECT s.*, e.name AS technician_name, COUNT(t.id) AS test_count
       FROM samples s 
-      LEFT JOIN tests t ON s.id = t.sample_id 
+      LEFT JOIN tests t ON s.id = t.sample_id
+      LEFT JOIN employees e ON s.technician_id = e.employee_number
       ${whereClause}
-      GROUP BY s.id 
+      GROUP BY s.id, e.name
       ORDER BY 
         CASE s.priority 
           WHEN 'STAT' THEN 1 

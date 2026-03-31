@@ -7,7 +7,7 @@ import * as Sentry from "@sentry/react";
 
 // Sentry.init({
 //     dsn: import.meta.env.VITE_SENTRY_DSN,
-//     release: "savolalab-v1.0",
+//     release: "labrix-v1.0",
 //     integrations: [Sentry.browserTracingIntegration()],
 //   });
 

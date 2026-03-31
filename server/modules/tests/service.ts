@@ -1,3 +1,4 @@
+import { TransactionClient } from "@/server/core/database/client";
 import { db } from "../../core/database";
 
 /**
@@ -5,6 +6,7 @@ import { db } from "../../core/database";
  * Automatically completes the workflow if all steps are done.
  */
 const updateWorkflowStep = async (
+  client: TransactionClient,
   sample_id: number,
   test_type: string,
   test_id: number,
@@ -75,8 +77,8 @@ const updateWorkflowStep = async (
 
 export const TestService = {
   // Fetch all test results
-  getTests: async () =>
-    await db.query("SELECT * FROM tests ORDER BY performed_at DESC"),
+  getTests: async (limit = 500) =>
+    await db.query("SELECT * FROM tests ORDER BY performed_at DESC LIMIT $1", [limit]),
 
   // Create a test result with validation, workflow update, and audit logging
   createTestResult: async (
@@ -162,7 +164,7 @@ export const TestService = {
 
         const testId = info[0].id;
 
-        await updateWorkflowStep(sampleId, test_type, testId, raw_value);
+        await updateWorkflowStep(client, sampleId, test_type, testId, raw_value);
 
         await client.query(
           `
@@ -253,6 +255,7 @@ export const TestService = {
 
       if (raw_value !== undefined) {
         await updateWorkflowStep(
+          client,
           test.sample_id,
           test.test_type,
           Number(id),

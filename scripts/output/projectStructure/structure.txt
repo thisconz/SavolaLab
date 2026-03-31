@@ -1,0 +1,231 @@
+├── .gitignore
+├── index.html
+├── issues/
+│   └── bug-missing-global-errorboundary-component-import.md
+├── metadata.json
+├── package-lock.json
+├── package.json
+├── README.md
+├── scripts/
+│   ├── generators/
+│   │   ├── generate-structure.ts
+│   │   ├── generate-types.ts
+│   │   └── index.ts
+│   ├── index.ts
+│   └── output/
+│       ├── projectStructure/
+│       │   ├── tree.json
+│       │   └── tree.txt
+│       └── typesStructure/
+│           ├── type-files.json
+│           └── type-files.txt
+├── server/
+│   ├── core/
+│   │   ├── database/
+│   │   │   ├── client.ts
+│   │   │   ├── events.ts
+│   │   │   ├── migrations.ts
+│   │   │   ├── observability.ts
+│   │   │   ├── runner.ts
+│   │   │   ├── security.ts
+│   │   │   └── seeds.ts
+│   │   ├── database.ts
+│   │   ├── middleware.ts
+│   │   └── types.ts
+│   ├── modules/
+│   │   ├── archive/
+│   │   │   ├── index.ts
+│   │   │   ├── routes.ts
+│   │   │   └── service.ts
+│   │   ├── audit/
+│   │   │   ├── index.ts
+│   │   │   ├── routes.ts
+│   │   │   └── service.ts
+│   │   ├── auth/
+│   │   │   ├── index.ts
+│   │   │   ├── routes.ts
+│   │   │   └── service.ts
+│   │   ├── notifications/
+│   │   │   ├── index.ts
+│   │   │   ├── routes.ts
+│   │   │   └── service.ts
+│   │   ├── operational/
+│   │   │   ├── index.ts
+│   │   │   ├── routes.ts
+│   │   │   └── service.ts
+│   │   ├── samples/
+│   │   │   ├── index.ts
+│   │   │   ├── routes.ts
+│   │   │   └── service.ts
+│   │   ├── settings/
+│   │   │   ├── index.ts
+│   │   │   ├── routes.ts
+│   │   │   └── service.ts
+│   │   ├── stats/
+│   │   │   ├── index.ts
+│   │   │   ├── routes.ts
+│   │   │   └── service.ts
+│   │   ├── telemetry/
+│   │   │   ├── index.ts
+│   │   │   ├── routes.ts
+│   │   │   └── service.ts
+│   │   ├── tests/
+│   │   │   ├── index.ts
+│   │   │   ├── routes.ts
+│   │   │   └── service.ts
+│   │   └── workflows/
+│   │       ├── index.ts
+│   │       ├── routes.ts
+│   │       └── service.ts
+│   └── server.ts
+├── src/
+│   ├── app/
+│   │   ├── AppShell.tsx
+│   │   ├── components/
+│   │   │   └── GlobalErrorBoundary.tsx
+│   │   ├── layout/
+│   │   │   ├── Header.tsx
+│   │   │   ├── RightRail.tsx
+│   │   │   └── Sidebar.tsx
+│   │   ├── router/
+│   │   │   └── router.tsx
+│   │   └── state/
+│   │       └── ui.machine.ts
+│   ├── App.tsx
+│   ├── capsules/
+│   │   ├── analytics/
+│   │   │   ├── index.ts
+│   │   │   └── ui/
+│   │   │       └── AnalyticsFeature.tsx
+│   │   ├── archive/
+│   │   │   ├── api/
+│   │   │   │   └── archive.api.ts
+│   │   │   ├── index.ts
+│   │   │   └── ui/
+│   │   │       └── ArchivePage.tsx
+│   │   ├── assets/
+│   │   │   ├── index.ts
+│   │   │   └── ui/
+│   │   │       └── AssetsFeature.tsx
+│   │   ├── audit/
+│   │   │   ├── api/
+│   │   │   │   └── audit.api.ts
+│   │   │   ├── index.ts
+│   │   │   ├── model/
+│   │   │   │   └── audit.model.ts
+│   │   │   └── ui/
+│   │   │       └── AuditFeature.tsx
+│   │   ├── auth/
+│   │   │   ├── api/
+│   │   │   │   └── auth.api.ts
+│   │   │   ├── hooks/
+│   │   │   │   └── useAuthFlow.ts
+│   │   │   ├── index.ts
+│   │   │   └── ui/
+│   │   │       ├── LoginPage.tsx
+│   │   │       ├── QuickSwitch.tsx
+│   │   │       └── RegistrationFlow.tsx
+│   │   ├── dashboard/
+│   │   │   ├── index.ts
+│   │   │   └── ui/
+│   │   │       ├── DashboardFeature.tsx
+│   │   │       ├── EfficiencyWidget.tsx
+│   │   │       ├── PlantOverviewWidget.tsx
+│   │   │       ├── PriorityWidget.tsx
+│   │   │       ├── QCStatsWidget.tsx
+│   │   │       └── QCTrendsWidget.tsx
+│   │   ├── dispatch/
+│   │   │   ├── index.ts
+│   │   │   └── ui/
+│   │   │       └── DispatchFeature.tsx
+│   │   ├── intelligence/
+│   │   │   ├── index.ts
+│   │   │   └── ui/
+│   │   │       └── IntelligenceFeature.tsx
+│   │   ├── lab/
+│   │   │   ├── api/
+│   │   │   │   ├── index.ts
+│   │   │   │   └── lab.api.ts
+│   │   │   ├── constants/
+│   │   │   │   └── validation.constants.ts
+│   │   │   ├── hooks/
+│   │   │   │   └── useLabSamples.ts
+│   │   │   ├── index.ts
+│   │   │   ├── logic/
+│   │   │   │   └── sample.rules.ts
+│   │   │   └── ui/
+│   │   │       ├── LabBench.tsx
+│   │   │       ├── LabFeature.tsx
+│   │   │       ├── RegisterSampleModal.tsx
+│   │   │       ├── SampleCard.tsx
+│   │   │       ├── SampleDetails.tsx
+│   │   │       └── SampleQueue.tsx
+│   │   ├── notifications/
+│   │   │   ├── api/
+│   │   │   │   └── notification.api.ts
+│   │   │   ├── hooks/
+│   │   │   │   └── useNotifications.ts
+│   │   │   ├── index.ts
+│   │   │   └── ui/
+│   │   │       └── NotificationCenter.tsx
+│   │   ├── settings/
+│   │   │   ├── api/
+│   │   │   │   └── settings.api.ts
+│   │   │   ├── index.ts
+│   │   │   └── ui/
+│   │   │       └── SettingsPage.tsx
+│   │   ├── stat/
+│   │   │   ├── api/
+│   │   │   │   └── stat.api.ts
+│   │   │   ├── index.ts
+│   │   │   └── ui/
+│   │   │       └── StatFeature.tsx
+│   │   └── workflows/
+│   │       ├── api/
+│   │       │   └── workflow.api.ts
+│   │       ├── index.ts
+│   │       └── ui/
+│   │           └── WorkflowsFeature.tsx
+│   ├── core/
+│   │   ├── config/
+│   │   │   ├── firebase/
+│   │   │   │   ├── firebase-applet-config.json
+│   │   │   │   ├── firebase-blueprint.json
+│   │   │   │   └── firestore.rules
+│   │   │   └── firebase.ts
+│   │   ├── http/
+│   │   │   └── client.ts
+│   │   ├── rbac.ts
+│   │   ├── telemetry/
+│   │   │   └── telemetry.util.ts
+│   │   ├── types/
+│   │   │   ├── app.types.ts
+│   │   │   ├── http.types.ts
+│   │   │   ├── index.ts
+│   │   │   ├── lab.types.ts
+│   │   │   ├── operational.types.ts
+│   │   │   ├── role.ts
+│   │   │   └── shared.types.ts
+│   │   └── utils/
+│   │       ├── calculations.util.ts
+│   │       ├── pdf.util.ts
+│   │       └── storage.ts
+│   ├── index.css
+│   ├── main.tsx
+│   ├── orchestrator/
+│   │   ├── hooks/
+│   │   │   └── useDashboardData.ts
+│   │   └── state/
+│   │       ├── app.store.ts
+│   │       └── auth.store.ts
+│   └── ui/
+│       └── components/
+│           ├── ErrorBoundary.tsx
+│           ├── LabButton.tsx
+│           ├── LabPanel.tsx
+│           ├── Logo.tsx
+│           ├── Modal.tsx
+│           ├── NavIcon.tsx
+│           └── PriorityBadge.tsx
+├── tsconfig.json
+└── vite.config.ts
