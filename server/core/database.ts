@@ -1,7 +1,6 @@
 import { db } from "./database/client";
 import { runMigrations } from "./database/runner";
 import { seedDatabase } from "./database/seeds";
-import { instrumentDb } from "./database/observability";
 import { initSecurityTriggers } from "./database/security";
 
 let initialized = false;

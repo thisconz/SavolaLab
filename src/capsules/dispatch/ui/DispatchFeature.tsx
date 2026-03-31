@@ -8,8 +8,7 @@ export const DispatchFeature: React.FC = memo(() => {
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-8 pb-8">
         <div className="grid grid-cols-4 gap-8 shrink-0">
           <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
-            {/* Updated gradient class below */}
-            <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-brand-primary/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
+            <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-brand-primary/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">Pending Shipments</p>
               <div className="p-2 bg-brand-primary/10 rounded-xl border border-brand-primary/20 shadow-inner">
@@ -22,7 +21,7 @@ export const DispatchFeature: React.FC = memo(() => {
             </div>
           </div>
           <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
+            <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">In Transit</p>
               <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 shadow-inner">
@@ -35,7 +34,7 @@ export const DispatchFeature: React.FC = memo(() => {
             </div>
           </div>
           <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-amber-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
+            <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-amber-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">Delayed</p>
               <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20 shadow-inner">
@@ -48,7 +47,7 @@ export const DispatchFeature: React.FC = memo(() => {
             </div>
           </div>
           <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
+            <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">Critical Issues</p>
               <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 shadow-inner">
@@ -101,7 +100,6 @@ export const DispatchFeature: React.FC = memo(() => {
               </div>
             </LabPanel>
           </div>
-          
           <div className="col-span-4">
             <LabPanel title="QC Release Queue" icon={CheckCircle2}>
               <div className="flex flex-col gap-4 p-4">
@@ -116,21 +114,20 @@ export const DispatchFeature: React.FC = memo(() => {
                   </div>
                   <p className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-[0.2em] mt-3 text-right">4/5 Tests Completed</p>
                 </div>
-
-                <div className="p-5 bg-white border border-brand-sage/20 rounded-2xl hover:border-brand-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer group">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-black text-brand-deep uppercase tracking-wider">Batch #8822</h4>
-                    <span className="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600 bg-emerald-500/10 border border-emerald-500/20">Released</span>
-                  </div>
-                  <p className="text-xs text-brand-sage font-medium mb-4">Client: Sigma Foods</p>
-                  <div className="w-full bg-brand-mist rounded-full h-2 overflow-hidden">
-                    <div className="bg-emerald-500 h-2 rounded-full transition-all duration-1000 ease-out" style={{ width: "100%" }}></div>
-                  </div>
-                  <p className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-[0.2em] mt-3 text-right">Ready for Dispatch</p>
+              <div className="p-5 bg-white border border-brand-sage/20 rounded-2xl hover:border-brand-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer group">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-black text-brand-deep uppercase tracking-wider">Batch #8822</h4>
+                  <span className="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600 bg-emerald-500/10 border border-emerald-500/20">Released</span>
                 </div>
+                <p className="text-xs text-brand-sage font-medium mb-4">Client: Sigma Foods</p>
+                <div className="w-full bg-brand-mist rounded-full h-2 overflow-hidden">
+                  <div className="bg-emerald-500 h-2 rounded-full transition-all duration-1000 ease-out" style={{ width: "100%" }}></div>
+                </div>
+                <p className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-[0.2em] mt-3 text-right">Ready for Dispatch</p>
               </div>
-            </LabPanel>
-          </div>
+            </div>
+          </LabPanel>
+        </div>
         </div>
       </div>
     </div>

@@ -29,7 +29,7 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
 
     return (
       <motion.button
-        whileHover={{ y: -2, scale: 1.01 }}
+        whileHover={!active ? { y: -2, scale: 1.02 } : {}}
         whileTap={{ scale: 0.98 }}
         onClick={onClick}
         className={`relative w-full text-left p-4 rounded-3xl border transition-all duration-300 group overflow-hidden ${
@@ -38,8 +38,8 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
               ? "bg-white border-lab-laser shadow-xl shadow-lab-laser/20 ring-2 ring-lab-laser/40"
               : "bg-white border-brand-primary shadow-xl shadow-brand-primary/10 ring-1 ring-brand-primary/20"
             : isStat
-              ? "bg-white border-lab-laser/50 shadow-md shadow-lab-laser/10 hover:border-lab-laser hover:shadow-lg hover:shadow-lab-laser/20"
-              : "bg-white border-brand-sage/10 hover:border-brand-primary/30 hover:shadow-lg hover:shadow-brand-primary/5"
+              ? "bg-white border-lab-laser/50 shadow-md shadow-lab-laser/10 hover:border-lab-laser hover:shadow-lg hover:shadow-lab-laser/20 hover:ring-1 hover:ring-lab-laser/30"
+              : "bg-white border-brand-sage/10 hover:border-brand-primary/50 hover:shadow-lg hover:shadow-brand-primary/10 hover:ring-1 hover:ring-brand-primary/20"
         }`}
       >
         {/* STAT Pulsing Border Animation */}
@@ -100,7 +100,7 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
                   {sample.sugar_stage ?? sample.source_stage}
                 </span>
                 <span className="text-brand-sage/40">•</span>
-                <span className="font-medium">{sample.sample_types ?? "—"}</span>
+                <span className="font-medium">{sample.sample_type ?? "—"}</span>
               </div>
             </div>
           </div>

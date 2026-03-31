@@ -2,14 +2,31 @@ import pg from "pg";
 
 const { Pool } = pg;
 
-const connectionString = process.env.DATABASE_URL;
+let pool: pg.Pool | null = null;
 
-export const pool = new Pool({
-  connectionString: connectionString,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
+function getPool(): pg.Pool {
+  if (pool) return pool;
+
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error("DATABASE_URL environment variable is required.");
+  }
+
+  console.log("DB URL loaded:", connectionString.replace(/:.*@/, ":****@"));
+
+  pool = new Pool({
+    connectionString,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  });
+
+  pool.on("error", (err) => {
+    console.error("Unexpected DB pool error", err);
+  });
+
+  return pool;
+}
 
 // Define a standard interface for both standalone and transaction queries
 export interface TransactionClient {
@@ -25,7 +42,7 @@ export interface DatabaseClient extends TransactionClient {
 export const db: DatabaseClient = {
   async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
     const start = performance.now();
-    const { rows } = await pool.query(sql, params);
+    const { rows } = await getPool().query(sql, params);
     const duration = performance.now() - start;
     
     if (duration > 50) {
@@ -40,11 +57,11 @@ export const db: DatabaseClient = {
   },
 
   async execute(sql: string, params: any[] = []): Promise<void> {
-    await pool.query(sql, params);
+    await getPool().query(sql, params);
   },
 
   async transaction<T>(fn: (client: TransactionClient) => Promise<T>): Promise<T> {
-    const pgClient = await pool.connect();
+    const pgClient = await getPool().connect();
     
     // Create a wrapper so the transaction uses the SAME API as the main db object
     const wrapped: TransactionClient = {
