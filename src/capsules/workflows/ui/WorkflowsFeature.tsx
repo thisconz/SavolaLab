@@ -18,6 +18,18 @@ import { motion, AnimatePresence } from "motion/react";
 
 type ExecutionWithWorkflow = WorkflowExecution & { workflow_name: string };
 
+/**
+ * WorkflowsFeature Component
+ * 
+ * Manages and visualizes the execution of laboratory workflows for specific samples.
+ * It provides a detailed view of the step-by-step progress of complex testing procedures.
+ * 
+ * Features:
+ * - Sample selection with search and filtering capabilities.
+ * - Visualization of workflow executions associated with a selected sample.
+ * - Detailed status tracking for individual workflow steps (e.g., IN_PROGRESS, COMPLETED, FAILED).
+ * - Historical execution data for audit and traceability purposes.
+ */
 export const WorkflowsFeature: React.FC = memo(() => {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
@@ -43,7 +55,7 @@ export const WorkflowsFeature: React.FC = memo(() => {
   }, []);
 
   useEffect(() => {
-    if (selectedSample?.id) {
+    if (selectedSample) {
       const loadExecutions = async () => {
         try {
           const data = await WorkflowApi.getWorkflowExecutions(
@@ -129,7 +141,10 @@ export const WorkflowsFeature: React.FC = memo(() => {
 
             <div className="flex-1 overflow-auto custom-scrollbar">
               {filteredSamples.length === 0 ? (
-                <div className="p-8 text-center text-brand-sage opacity-50">
+                <div className="h-full flex flex-col items-center justify-center text-brand-sage opacity-50 py-20">
+                  <div className="p-4 bg-brand-mist rounded-full mb-4">
+                    <Search className="w-6 h-6 text-brand-sage/50" />
+                  </div>
                   <p className="text-[10px] font-mono uppercase tracking-widest">
                     No samples found
                   </p>
@@ -196,9 +211,12 @@ export const WorkflowsFeature: React.FC = memo(() => {
           icon={ListChecks}
         >
           {!selectedSample ? (
-            <div className="h-full flex flex-col items-center justify-center text-brand-sage gap-4 opacity-50">
-              <ListChecks className="w-16 h-16 opacity-20" />
-              <p className="text-xs font-mono uppercase tracking-widest">
+            <div className="h-full flex flex-col items-center justify-center text-brand-sage gap-6 bg-white/50 rounded-3xl border border-brand-sage/10 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-brand-primary/5 rounded-full blur-3xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="p-6 bg-brand-mist rounded-full border border-brand-sage/20 relative z-10">
+                <ListChecks className="w-16 h-16 opacity-40 text-brand-primary group-hover:opacity-80 transition-opacity duration-300" />
+              </div>
+              <p className="text-sm font-black text-brand-deep uppercase tracking-[0.2em] relative z-10">
                 Select a sample to view history
               </p>
             </div>
@@ -249,6 +267,9 @@ export const WorkflowsFeature: React.FC = memo(() => {
                       animate={{ opacity: 1 }}
                       className="h-full flex flex-col items-center justify-center text-brand-sage opacity-50 py-20"
                     >
+                      <div className="p-4 bg-brand-mist rounded-full mb-4">
+                        <Filter className="w-6 h-6 text-brand-sage/50" />
+                      </div>
                       <p className="text-[10px] font-mono uppercase tracking-widest">
                         No executions found for this filter
                       </p>

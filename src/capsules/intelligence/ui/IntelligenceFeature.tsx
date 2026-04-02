@@ -1,8 +1,46 @@
-import React, { memo } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { Factory, Activity, AlertTriangle, CheckCircle2, Zap, Clock } from "lucide-react";
 import { LabPanel } from "../../../ui/components/LabPanel";
+import { api } from "../../../core/http/client";
 
+/**
+ * IntelligenceFeature Component
+ * 
+ * Acts as the central nervous system for plant operations, providing real-time
+ * insights into equipment status, predictive maintenance alerts, and overall
+ * operational efficiency (OEE).
+ * 
+ * Features:
+ * - Live monitoring of production line statuses (Running, Warning, Stopped).
+ * - Predictive maintenance alerts to prevent unplanned downtime.
+ * - Key performance indicators (KPIs) like OEE, Energy Efficiency, and Yield.
+ */
 export const IntelligenceFeature: React.FC = memo(() => {
+  const [intelData, setIntelData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchIntel = async () => {
+      try {
+        const res = await api.get<any>("/operational/plant-intel");
+        setIntelData(res.data);
+      } catch (err) {
+        console.error("Failed to fetch plant intel", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchIntel();
+  }, []);
+
+  if (loading || !intelData) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full overflow-hidden bg-brand-mist/20 p-2 rounded-3xl">
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-8 pb-8">
@@ -16,7 +54,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
                 <Activity className="w-5 h-5 text-emerald-500" />
               </div>
             </div>
-            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">84.2%</p>
+            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">{intelData.metrics.oee}</p>
             <div className="flex items-center gap-2 text-xs font-bold text-emerald-500 relative z-10">
               <span className="bg-emerald-500/10 px-2 py-0.5 rounded-md">+2.1%</span>
               <span className="text-brand-sage font-medium uppercase tracking-wider text-[10px]">vs last week</span>
@@ -30,7 +68,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
                 <Factory className="w-5 h-5 text-brand-primary" />
               </div>
             </div>
-            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">92.5%</p>
+            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">{intelData.metrics.yield}</p>
             <div className="flex items-center gap-2 text-xs font-bold text-emerald-500 relative z-10">
               <span className="bg-emerald-500/10 px-2 py-0.5 rounded-md">+0.5%</span>
               <span className="text-brand-sage font-medium uppercase tracking-wider text-[10px]">vs target</span>
@@ -44,7 +82,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
                 <Zap className="w-5 h-5 text-amber-500" />
               </div>
             </div>
-            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">42.1 <span className="text-lg font-medium text-brand-sage tracking-normal">kWh/t</span></p>
+            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">{intelData.metrics.energy} <span className="text-lg font-medium text-brand-sage tracking-normal">kWh/t</span></p>
             <div className="flex items-center gap-2 text-xs font-bold text-amber-500 relative z-10">
               <span className="bg-amber-500/10 px-2 py-0.5 rounded-md">+1.2%</span>
               <span className="text-brand-sage font-medium uppercase tracking-wider text-[10px]">vs target</span>
@@ -58,7 +96,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
                 <AlertTriangle className="w-5 h-5 text-rose-500" />
               </div>
             </div>
-            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">3</p>
+            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">{intelData.metrics.activeAlarms}</p>
             <div className="flex items-center gap-2 text-xs font-bold text-rose-500 relative z-10">
               <span className="bg-rose-500/10 px-2 py-0.5 rounded-md">Critical</span>
               <span className="text-brand-sage font-medium uppercase tracking-wider text-[10px]">attention required</span>
@@ -70,39 +108,56 @@ export const IntelligenceFeature: React.FC = memo(() => {
           <div className="col-span-8">
             <LabPanel title="Line Status" icon={Factory}>
               <div className="flex flex-col gap-4 p-4">
-                {[
-                  { name: "Raw Handling", status: "Running", uptime: "99.9%", oee: "88%", icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />, bg: "bg-emerald-500/5", border: "border-emerald-500/20" },
-                  { name: "Refining", status: "Running", uptime: "98.5%", oee: "85%", icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />, bg: "bg-emerald-500/5", border: "border-emerald-500/20" },
-                  { name: "Crystallization", status: "Warning", uptime: "92.1%", oee: "76%", icon: <AlertTriangle className="w-5 h-5 text-amber-500" />, bg: "bg-amber-500/5", border: "border-amber-500/20" },
-                  { name: "Centrifuge", status: "Running", uptime: "99.1%", oee: "89%", icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />, bg: "bg-emerald-500/5", border: "border-emerald-500/20" },
-                  { name: "Packaging", status: "Stopped", uptime: "85.0%", oee: "65%", icon: <AlertTriangle className="w-5 h-5 text-rose-500" />, bg: "bg-rose-500/5", border: "border-rose-500/20" },
-                ].map((line, i) => (
-                  <div key={i} className={`flex items-center justify-between p-5 rounded-2xl border ${line.bg} ${line.border} hover:shadow-md transition-all duration-300 group`}>
-                    <div className="flex items-center gap-5">
-                      <div className="p-2.5 bg-white rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300">
-                        {line.icon}
+                {intelData.lines.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="p-4 bg-brand-mist rounded-full mb-4">
+                      <Factory className="w-8 h-8 text-brand-sage/50" />
+                    </div>
+                    <p className="text-sm font-bold text-brand-deep">No Production Lines</p>
+                    <p className="text-xs text-brand-sage mt-1">No production lines are currently configured.</p>
+                  </div>
+                ) : (
+                  intelData.lines.map((line: any, i: number) => {
+                    const isRunning = line.status === 'Running';
+                    const isWarning = line.status === 'Warning';
+                    const isStopped = line.status === 'Stopped';
+                    
+                    const icon = isRunning ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : 
+                                 isWarning ? <AlertTriangle className="w-5 h-5 text-amber-500" /> : 
+                                 <AlertTriangle className="w-5 h-5 text-rose-500" />;
+                    
+                    const bg = isRunning ? "bg-emerald-500/5" : isWarning ? "bg-amber-500/5" : "bg-rose-500/5";
+                    const border = isRunning ? "border-emerald-500/20" : isWarning ? "border-amber-500/20" : "border-rose-500/20";
+                    const dotColor = isRunning ? "bg-emerald-500" : isWarning ? "bg-amber-500" : "bg-rose-500";
+
+                    return (
+                    <div key={i} className={`flex items-center justify-between p-5 rounded-2xl border ${bg} ${border} hover:shadow-md transition-all duration-300 group`}>
+                      <div className="flex items-center gap-5">
+                        <div className="p-2.5 bg-white rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300">
+                          {icon}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-brand-deep uppercase tracking-wider">{line.name}</h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className={`w-1.5 h-1.5 rounded-full ${dotColor} animate-pulse`} />
+                            <p className="text-[10px] text-brand-sage font-mono font-bold uppercase tracking-[0.2em]">Status: {line.status}</p>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-sm font-black text-brand-deep uppercase tracking-wider">{line.name}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className={`w-1.5 h-1.5 rounded-full ${line.status === 'Running' ? 'bg-emerald-500' : line.status === 'Warning' ? 'bg-amber-500' : 'bg-rose-500'} animate-pulse`} />
-                          <p className="text-[10px] text-brand-sage font-mono font-bold uppercase tracking-[0.2em]">Status: {line.status}</p>
+                      <div className="flex items-center gap-12 pr-4">
+                        <div className="text-right">
+                          <p className="text-lg font-black text-brand-deep tracking-tight">{line.uptime}</p>
+                          <p className="text-[9px] text-brand-sage font-bold uppercase tracking-[0.2em]">Uptime</p>
+                        </div>
+                        <div className="w-px h-8 bg-brand-sage/20" />
+                        <div className="text-right">
+                          <p className="text-lg font-black text-brand-deep tracking-tight">{line.oee}</p>
+                          <p className="text-[9px] text-brand-sage font-bold uppercase tracking-[0.2em]">OEE</p>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-12 pr-4">
-                      <div className="text-right">
-                        <p className="text-lg font-black text-brand-deep tracking-tight">{line.uptime}</p>
-                        <p className="text-[9px] text-brand-sage font-bold uppercase tracking-[0.2em]">Uptime</p>
-                      </div>
-                      <div className="w-px h-8 bg-brand-sage/20" />
-                      <div className="text-right">
-                        <p className="text-lg font-black text-brand-deep tracking-tight">{line.oee}</p>
-                        <p className="text-[9px] text-brand-sage font-bold uppercase tracking-[0.2em]">OEE</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  )})
+                )}
               </div>
             </LabPanel>
           </div>

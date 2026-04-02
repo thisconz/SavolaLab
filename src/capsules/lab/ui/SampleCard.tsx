@@ -8,6 +8,8 @@ import {
   ChevronRight,
   ListChecks,
   Activity,
+  TestTube2,
+  Tag,
 } from "lucide-react";
 import type { Sample } from "../../../core/types";
 import { PriorityBadge } from "../../../ui/components/PriorityBadge";
@@ -65,10 +67,10 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
           <div className="absolute inset-0 bg-linear-to-br from-brand-primary/0 to-brand-primary/0 group-hover:from-brand-primary/5 group-hover:to-transparent transition-all duration-500 pointer-events-none" />
         )}
 
-        <div className="flex items-start justify-between mb-3 relative z-10 pl-2">
+        <div className="flex items-start justify-between mb-4 relative z-10 pl-2">
           <div className="flex items-center gap-4">
             <div
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-inner ${
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-inner ${
                 active
                   ? isStat
                     ? "bg-lab-laser text-white shadow-lab-laser/30"
@@ -78,11 +80,11 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
                     : "bg-brand-mist text-brand-sage group-hover:bg-brand-primary/10 group-hover:text-brand-primary"
               }`}
             >
-              <FlaskConical className="w-5 h-5" />
+              <FlaskConical className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="text-sm font-black text-brand-deep uppercase tracking-0.1em">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-base font-black text-brand-deep uppercase tracking-0.1em">
                   {sample.batch_id}
                 </div>
                 {isStat && (
@@ -92,15 +94,18 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
                   </div>
                 )}
                 {sample.status === "TESTING" && (
-                  <Activity className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
+                  <Activity className="w-4 h-4 text-brand-primary animate-pulse" />
                 )}
               </div>
-              <div className="text-[10px] text-brand-sage font-mono uppercase tracking-widest flex items-center gap-2">
-                <span className="bg-brand-mist/50 px-2 py-0.5 rounded-lg border border-brand-sage/10">
-                  {sample.sugar_stage ?? sample.source_stage}
-                </span>
-                <span className="text-brand-sage/40">•</span>
-                <span className="font-medium">{sample.sample_type ?? "—"}</span>
+              <div className="text-[10px] font-mono uppercase tracking-widest flex items-center gap-2">
+                <div className="flex items-center gap-1.5 bg-brand-mist/80 px-2 py-1 rounded-md border border-brand-sage/20 text-brand-sage">
+                  <Tag className="w-3 h-3 opacity-70" />
+                  <span className="font-semibold">{sample.sugar_stage ?? sample.source_stage}</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-brand-primary/10 px-2 py-1 rounded-md border border-brand-primary/20 text-brand-primary">
+                  <TestTube2 className="w-3 h-3" />
+                  <span className="font-bold">{sample.sample_type || "Unknown Type"}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -109,9 +114,9 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
 
         <div className="flex items-center justify-between relative z-10 pt-3 border-t border-brand-sage/10 pl-2">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5 text-brand-deep font-mono text-[10px] bg-brand-mist/30 px-2 py-1 rounded-lg">
+            <div className="flex items-center gap-1.5 text-brand-deep font-mono text-[10px] bg-brand-mist/40 px-2.5 py-1.5 rounded-lg">
               <Clock className="w-3.5 h-3.5 text-brand-sage" />
-              <span>
+              <span className="font-medium">
                 {new Date(sample.created_at).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -121,7 +126,7 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
 
             <div className="h-4 w-px bg-brand-sage/20" />
 
-            <div className="flex items-center gap-1.5 text-brand-deep font-bold text-[10px] bg-brand-mist/30 px-2 py-1 rounded-lg">
+            <div className="flex items-center gap-1.5 text-brand-deep font-bold text-[10px] bg-brand-mist/40 px-2.5 py-1.5 rounded-lg">
               <ListChecks
                 className={`w-3.5 h-3.5 ${active ? "text-brand-primary" : "text-brand-sage"}`}
               />

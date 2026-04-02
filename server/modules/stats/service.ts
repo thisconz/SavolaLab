@@ -65,4 +65,41 @@ export const StatService = {
 
     return statId;
   },
+
+  // --- Update stat request status ---
+  updateStatStatus: async (
+    id: number | string,
+    status: string,
+    employeeNumber?: string,
+    ip?: string,
+  ) => {
+    const statId = Number(id);
+    if (isNaN(statId)) throw new Error("Invalid stat ID");
+
+    await db.execute(
+      `
+      UPDATE stat_requests 
+      SET status = $1 
+      WHERE id = $2
+    `,
+      [status, statId],
+    );
+
+    // --- Audit logging ---
+    if (employeeNumber) {
+      await db.execute(
+        `
+        INSERT INTO audit_logs (employee_number, action, details, ip_address)
+        VALUES ($1, 'STAT_REQUEST_UPDATED', $2, $3)
+      `,
+        [
+          employeeNumber,
+          `Updated stat request #${statId} status to ${status}`,
+          ip || "127.0.0.1",
+        ],
+      );
+    }
+
+    return true;
+  },
 };

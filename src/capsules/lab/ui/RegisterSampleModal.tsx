@@ -1,5 +1,5 @@
 import React, { useState, memo } from "react";
-import { Plus, Beaker, Layers, Activity, Hash, Settings } from "lucide-react";
+import { Plus, Beaker, Layers, Activity, Hash, Settings, TestTube2 } from "lucide-react";
 import { LabButton } from "../../../ui/components/LabButton";
 import { Modal } from "../../../ui/components/Modal";
 import type { SugarStage, Sample } from "../../../core/types";
@@ -21,6 +21,7 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
     const [formData, setFormData] = useState({
       batch_id: "",
       sugar_stage: SUGAR_STAGES[0] as SugarStage,
+      sample_type: "",
       priority: "NORMAL" as "NORMAL" | "HIGH" | "STAT",
       line_id: "",
       equipment_id: "",
@@ -37,6 +38,7 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
           batch_id: formData.batch_id,
           sugar_stage: formData.sugar_stage,
           source_stage: formData.sugar_stage, // Keep both for compatibility
+          sample_type: formData.sample_type,
           priority:
             SamplePriority[formData.priority as keyof typeof SamplePriority],
           line_id: formData.line_id || undefined,
@@ -54,6 +56,7 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
         setFormData({
           batch_id: "",
           sugar_stage: SUGAR_STAGES[0] as SugarStage,
+          sample_type: "",
           priority: "NORMAL" as "NORMAL" | "HIGH" | "STAT",
           line_id: "",
           equipment_id: "",
@@ -123,29 +126,48 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
             </div>
           </div>
 
-          {/* Source Stage */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest">
-              <Layers className="w-4 h-4 text-brand-primary" />
-              Source Stage
-            </label>
-            <select
-              required
-              value={formData.sugar_stage}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  sugar_stage: e.target.value as SugarStage,
-                })
-              }
-              className="w-full bg-white/80 backdrop-blur-sm border-2 border-brand-sage/20 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-brand-deep transition-all appearance-none shadow-sm"
-            >
-              {SUGAR_STAGES.map((stage) => (
-                <option key={stage} value={stage}>
-                  {stage}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-6">
+            {/* Source Stage */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest">
+                <Layers className="w-4 h-4 text-brand-primary" />
+                Source Stage
+              </label>
+              <select
+                required
+                value={formData.sugar_stage}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    sugar_stage: e.target.value as SugarStage,
+                  })
+                }
+                className="w-full bg-white/80 backdrop-blur-sm border-2 border-brand-sage/20 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-brand-deep transition-all appearance-none shadow-sm"
+              >
+                {SUGAR_STAGES.map((stage) => (
+                  <option key={stage} value={stage}>
+                    {stage}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sample Type */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest">
+                <TestTube2 className="w-4 h-4 text-brand-primary" />
+                Sample Type
+              </label>
+              <input
+                type="text"
+                value={formData.sample_type || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, sample_type: e.target.value })
+                }
+                placeholder="e.g. Raw Sugar"
+                className="w-full bg-white/80 backdrop-blur-sm border-2 border-brand-sage/20 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-brand-deep transition-all shadow-sm"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-6">

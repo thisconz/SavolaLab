@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
@@ -7,7 +8,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { readFile } from "fs/promises";
 import { initDatabase } from "./core/database";
-import "dotenv/config";
 
 // ── Route imports ────────────────────────────────────────────
 import { authRoutes } from "./modules/auth";
@@ -21,6 +21,8 @@ import { auditRoutes } from "./modules/audit";
 import { telemetryRoutes } from "./modules/telemetry";
 import archiveRoutes from "./modules/archive/routes";
 import settingsRoutes from "./modules/settings/routes";
+import analyticsRoutes from "./modules/analytics/routes";
+import dispatchRoutes from "./modules/dispatch/routes";
 
 // ─────────────────────────────────────────────
 // Config
@@ -29,8 +31,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = 3000;
-const NODE_ENV = process.env.NODE_ENV;
+const NODE_ENV = process.env.NODE_ENV ?? "development";
 const IS_PROD = NODE_ENV === "production";
+
+// ─────────────────────────────────────────────
+// Validate critical environment variables at startup
+// ─────────────────────────────────────────────
+function validateEnv() {
+  const required = ["JWT_SECRET", "DATABASE_URL"];
+
+  const missing = required.filter((key) => !process.env[key]);
+
+  if (missing.length > 0) {
+    console.error("❌ Missing environment variables:", missing.join(", "));
+    process.exit(1);
+  }
+}
+
+validateEnv();
 
 // ─────────────────────────────────────────────
 // App
@@ -49,7 +67,7 @@ async function startServer(): Promise<void> {
       "Content-Security-Policy",
       [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline'" +
+        "script-src 'self'" +
           (IS_PROD ? "" : " ws://localhost:* ws://127.0.0.1:*"),
         "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com",
@@ -99,6 +117,7 @@ async function startServer(): Promise<void> {
   }
 
   // ── API Routes ────────────────────────────
+  
   const api = "/api";
   app.route(`${api}/auth`, authRoutes);
   app.route(`${api}/notifications`, notificationRoutes);
@@ -111,6 +130,8 @@ async function startServer(): Promise<void> {
   app.route(`${api}/telemetry`, telemetryRoutes);
   app.route(`${api}/archive`, archiveRoutes);
   app.route(`${api}/settings`, settingsRoutes);
+  app.route(`${api}/analytics`, analyticsRoutes);
+  app.route(`${api}/dispatch`, dispatchRoutes);
 
   // ── Health check ──────────────────────────
   app.get("/health", (c) =>
@@ -149,16 +170,27 @@ async function startServer(): Promise<void> {
   }
 
   // ── Global error handler ──────────────────
+
+  type HttpStatus = 400 | 401 | 403 | 404 | 500;
+
   app.onError((err, c) => {
-    console.error("❌ UNHANDLED ERROR", {
+    const message = err?.message || "Unknown error";
+
+    let status: HttpStatus = 500;
+
+    if (message.includes("Invalid credentials")) status = 401;
+    else if (message.includes("locked")) status = 403;
+    else if (message.includes("not found")) status = 404;
+
+    console.error("❌ ERROR", {
       method: c.req.method,
       path: c.req.path,
-      message: err?.message,
-      stack: IS_PROD ? undefined : err?.stack,
+      message,
     });
+
     return c.json(
-      { error: IS_PROD ? "Internal Server Error" : err?.message },
-      500,
+      { error: IS_PROD ? "Internal Server Error" : message },
+      status
     );
   });
 

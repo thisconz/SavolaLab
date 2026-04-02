@@ -10,4 +10,7 @@ export const StatApi = {
     const res = await api.post<any>("/stats", data);
     return res.data;
   },
+  updateStatStatus: async (id: number, status: string): Promise<void> => {
+    await api.put(`/stats/${id}/status`, { status });
+  },
 };

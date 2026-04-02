@@ -2,51 +2,46 @@ import pg from "pg";
 
 const { Pool } = pg;
 
-let pool: pg.Pool | null = null;
+// ----------------------
+// Initialize DB connection
+// ----------------------
+const connectionString = process.env.DATABASE_URL;
 
-function getPool(): pg.Pool {
-  if (pool) return pool;
-
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("DATABASE_URL environment variable is required.");
-  }
-
-  console.log("DB URL loaded:", connectionString.replace(/:.*@/, ":****@"));
-
-  pool = new Pool({
-    connectionString,
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
-  });
-
-  pool.on("error", (err) => {
-    console.error("Unexpected DB pool error", err);
-  });
-
-  return pool;
+if (!connectionString) {
+  console.warn("⚠️ DATABASE_URL not set, falling back to localhost default");
 }
 
-// Define a standard interface for both standalone and transaction queries
+export const pool = new Pool({
+  connectionString: connectionString || "postgresql://postgres:12345@localhost:5432/postgres",
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
+
+// ----------------------
+// Database client wrapper
+// ----------------------
+// This wrapper mimics some of the better-sqlite3 interface but is ASYNCHRONOUS.
 export interface TransactionClient {
   query<T = any>(sql: string, params?: any[]): Promise<T[]>;
   queryOne<T = any>(sql: string, params?: any[]): Promise<T | null>;
   execute(sql: string, params?: any[]): Promise<void>;
 }
 
-export interface DatabaseClient extends TransactionClient {
+export interface DatabaseClient {
+  query<T = any>(sql: string, params?: any[]): Promise<T[]>;
+  queryOne<T = any>(sql: string, params?: any[]): Promise<T | null>;
+  execute(sql: string, params?: any[]): Promise<void>;
   transaction<T>(fn: (client: TransactionClient) => Promise<T>): Promise<T>;
 }
 
 export const db: DatabaseClient = {
   async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
     const start = performance.now();
-    const { rows } = await getPool().query(sql, params);
+    const { rows } = await pool.query(sql, params);
     const duration = performance.now() - start;
-    
     if (duration > 50) {
-      console.warn("🐢 Slow query:", sql.trim().substring(0, 50), `${duration.toFixed(2)}ms`);
+      console.warn("🐢 Slow query:", sql.trim(), `${duration.toFixed(2)}ms`);
     }
     return rows;
   },
@@ -57,39 +52,38 @@ export const db: DatabaseClient = {
   },
 
   async execute(sql: string, params: any[] = []): Promise<void> {
-    await getPool().query(sql, params);
+    await pool.query(sql, params);
   },
 
   async transaction<T>(fn: (client: TransactionClient) => Promise<T>): Promise<T> {
-    const pgClient = await getPool().connect();
+    const client = await pool.connect();
     
-    // Create a wrapper so the transaction uses the SAME API as the main db object
-    const wrapped: TransactionClient = {
-      query: async <T>(sql: string, params: any[] = []) => {
-        const { rows } = await pgClient.query(sql, params);
+    const wrappedClient: TransactionClient = {
+      async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+        const { rows } = await client.query(sql, params);
         return rows;
       },
-      queryOne: async <T>(sql: string, params: any[] = []) => {
-        const { rows } = await pgClient.query(sql, params);
+      async queryOne<T = any>(sql: string, params: any[] = []): Promise<T | null> {
+        const { rows } = await client.query(sql, params);
         return rows[0] || null;
       },
-      execute: async (sql, params = []) => {
-        await pgClient.query(sql, params);
+      async execute(sql: string, params: any[] = []): Promise<void> {
+        await client.query(sql, params);
       }
     };
 
     try {
-      await pgClient.query("BEGIN");
-      const result = await fn(wrapped);
-      await pgClient.query("COMMIT");
+      await client.query("BEGIN");
+      const result = await fn(wrappedClient);
+      await client.query("COMMIT");
       return result;
     } catch (err) {
-      await pgClient.query("ROLLBACK"); // Await the rollback!
+      await client.query("ROLLBACK");
       throw err;
     } finally {
-      pgClient.release();
+      client.release();
     }
   },
 };
 
-console.log(`PostgreSQL pool initialized`);
+console.log(`🗄 PostgreSQL pool initialized`);

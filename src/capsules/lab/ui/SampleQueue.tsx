@@ -11,9 +11,20 @@ interface RowProps {
 }
 
 /**
- * Feature Component: SampleQueue
- * Implements virtualization for the sample list to handle large datasets efficiently.
- * Includes search and filtering capabilities.
+ * SampleQueue Component
+ * 
+ * Renders a virtualized list of laboratory samples.
+ * Provides advanced filtering, search, and sorting capabilities to manage the lab's workload.
+ * Uses `@tanstack/react-virtual` for high-performance rendering of large datasets.
+ * 
+ * Features:
+ * - Real-time search by Batch ID or Line ID.
+ * - Filtering by sample status (PENDING, TESTING, COMPLETED) and priority (NORMAL, HIGH, STAT).
+ * - Empty state handling with clear call-to-actions.
+ * 
+ * @param {Sample[]} samples - Array of sample objects to display.
+ * @param {number} selectedSampleId - Currently selected sample ID.
+ * @param {(sample: Sample) => void} onSampleSelect - Callback triggered when a sample is selected.
  */
 export const SampleQueue: React.FC<RowProps> = memo(
   ({ samples, selectedSampleId, onSampleSelect }) => {
@@ -80,13 +91,7 @@ export const SampleQueue: React.FC<RowProps> = memo(
 
           <div className="flex gap-3">
             <div className="flex-1 relative group">
-              <Filter 
-                className={`absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 transition-all duration-300 pointer-events-none
-                  ${priorityFilter !== "ALL" 
-                    ? "text-brand-primary scale-110 drop-shadow-[0_0_3px_rgba(var(--brand-primary-rgb),0.4)]" 
-                    : "text-brand-sage group-focus-within:text-brand-primary group-focus-within:scale-110"
-                  }`} 
-              />
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage group-focus-within:text-brand-primary transition-colors pointer-events-none" />
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
@@ -98,15 +103,8 @@ export const SampleQueue: React.FC<RowProps> = memo(
                 <option value="STAT">STAT</option>
               </select>
             </div>
-
             <div className="flex-1 relative group">
-              <Filter 
-                className={`absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 transition-all duration-300 pointer-events-none
-                  ${statusFilter !== "ALL" 
-                    ? "text-brand-primary scale-110 drop-shadow-[0_0_3px_rgba(var(--brand-primary-rgb),0.4)]" 
-                    : "text-brand-sage group-focus-within:text-brand-primary group-focus-within:scale-110"
-                  }`} 
-              />
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage group-focus-within:text-brand-primary transition-colors pointer-events-none" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -129,6 +127,9 @@ export const SampleQueue: React.FC<RowProps> = memo(
         >
           {filteredSamples.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-brand-sage opacity-50 py-20">
+              <div className="p-4 bg-brand-mist rounded-full mb-4">
+                <Search className="w-6 h-6 text-brand-sage/50" />
+              </div>
               <p className="text-[10px] font-mono uppercase tracking-widest">
                 No matching samples
               </p>
@@ -137,7 +138,7 @@ export const SampleQueue: React.FC<RowProps> = memo(
                 statusFilter !== "ALL") && (
                 <button
                   onClick={clearFilters}
-                  className="mt-2 text-[9px] font-bold text-brand-primary underline uppercase tracking-widest"
+                  className="mt-4 px-4 py-2 bg-brand-mist hover:bg-brand-primary/10 text-[9px] font-bold text-brand-primary uppercase tracking-widest rounded-lg transition-colors"
                 >
                   Clear Filters
                 </button>

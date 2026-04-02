@@ -1,4 +1,3 @@
-import { TransactionClient } from "@/server/core/database/client";
 import { db } from "../../core/database";
 
 /**
@@ -6,25 +5,24 @@ import { db } from "../../core/database";
  * Automatically completes the workflow if all steps are done.
  */
 const updateWorkflowStep = async (
-  client: TransactionClient,
   sample_id: number,
   test_type: string,
   test_id: number,
   raw_value: number,
 ) => {
   try {
-    const activeExecution = (await db.queryOne(
+    const activeExecution = await db.queryOne(
       `
       SELECT id FROM workflow_executions 
       WHERE sample_id = $1 AND status = 'IN_PROGRESS'
       LIMIT 1
     `,
       [sample_id],
-    )) as any;
+    ) as any;
 
     if (!activeExecution) return;
 
-    const matchingStep = (await db.queryOne(
+    const matchingStep = await db.queryOne(
       `
       SELECT wse.id 
       FROM workflow_step_executions wse
@@ -36,7 +34,7 @@ const updateWorkflowStep = async (
       LIMIT 1
     `,
       [activeExecution.id, test_type],
-    )) as any;
+    ) as any;
 
     if (!matchingStep) return;
 
@@ -51,14 +49,14 @@ const updateWorkflowStep = async (
     );
 
     // Check if workflow is fully completed
-    const pendingSteps = (await db.queryOne(
+    const pendingSteps = await db.queryOne(
       `
       SELECT COUNT(*) as count 
       FROM workflow_step_executions 
       WHERE execution_id = $1 AND status != 'COMPLETED'
     `,
       [activeExecution.id],
-    )) as any;
+    ) as any;
 
     if (Number(pendingSteps.count) === 0) {
       await db.execute(
@@ -77,8 +75,8 @@ const updateWorkflowStep = async (
 
 export const TestService = {
   // Fetch all test results
-  getTests: async (limit = 500) =>
-    await db.query("SELECT * FROM tests ORDER BY performed_at DESC LIMIT $1", [limit]),
+  getTests: async () =>
+    await db.query("SELECT * FROM tests ORDER BY performed_at DESC"),
 
   // Create a test result with validation, workflow update, and audit logging
   createTestResult: async (
@@ -130,10 +128,7 @@ export const TestService = {
 
     try {
       return await db.transaction(async (client) => {
-        const sampleResult = await client.query(
-          "SELECT id FROM samples WHERE id = $1",
-          [sampleId],
-        );
+        const sampleResult = await client.query("SELECT id FROM samples WHERE id = $1", [sampleId]);
         const sample = sampleResult[0];
         if (!sample) throw new Error(`Sample ${sampleId} not found`);
 
@@ -164,7 +159,7 @@ export const TestService = {
 
         const testId = info[0].id;
 
-        await updateWorkflowStep(client, sampleId, test_type, testId, raw_value);
+        await updateWorkflowStep(sampleId, test_type, testId, raw_value);
 
         await client.query(
           `
@@ -226,10 +221,7 @@ export const TestService = {
     const { raw_value, calculated_value, status, notes, params } = data;
 
     return await db.transaction(async (client) => {
-      const testResult = await client.query(
-        "SELECT * FROM tests WHERE id = $1",
-        [id],
-      );
+      const testResult = await client.query("SELECT * FROM tests WHERE id = $1", [id]);
       const test = testResult[0];
       if (!test) throw new Error("Test not found");
 
@@ -255,7 +247,6 @@ export const TestService = {
 
       if (raw_value !== undefined) {
         await updateWorkflowStep(
-          client,
           test.sample_id,
           test.test_type,
           Number(id),

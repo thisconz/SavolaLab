@@ -36,9 +36,7 @@ app.get("/equipment", authenticateToken, async (c) => {
         400,
       );
 
-    const equipment = await OperationalService.getEquipment({
-      lineId: line_id,
-    });
+    const equipment = await OperationalService.getEquipment({ lineId: line_id });
     return sendResponse(
       c,
       equipment,
@@ -84,6 +82,20 @@ app.get("/certificates", authenticateToken, async (c) => {
     console.error("Error fetching certificates:", err);
     return c.json(
       { success: false, error: "Failed to fetch certificates" },
+      500,
+    );
+  }
+});
+
+// --- Plant Intelligence ---
+app.get("/plant-intel", authenticateToken, async (c) => {
+  try {
+    const data = await OperationalService.getPlantIntel();
+    return sendResponse(c, data, "Plant intelligence retrieved");
+  } catch (err) {
+    console.error("Error fetching plant intel:", err);
+    return c.json(
+      { success: false, error: "Failed to fetch plant intel" },
       500,
     );
   }

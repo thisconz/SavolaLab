@@ -12,10 +12,7 @@ app.get("/", authenticateToken, async (c) => {
     return c.json({ success: true, data: stats });
   } catch (err: any) {
     console.error("Error fetching stats:", err);
-    return c.json(
-      { success: false, error: err.message || "Failed to fetch stats" },
-      500,
-    );
+    return c.json({ success: false, error: err.message || "Failed to fetch stats" }, 500);
   }
 });
 
@@ -33,6 +30,26 @@ app.post("/", authenticateToken, async (c) => {
     console.error("Error creating stat:", err);
     return c.json(
       { success: false, error: err.message || "Failed to create stat request" },
+      500,
+    );
+  }
+});
+
+// --- Update stat request status ---
+app.put("/:id/status", authenticateToken, async (c) => {
+  try {
+    const user = c.get("user");
+    const id = c.req.param("id");
+    const body = await c.req.json();
+    const employeeNumber = user?.employee_number || "system";
+    const ip = c.req.header("x-forwarded-for") || "127.0.0.1";
+
+    await StatService.updateStatStatus(id, body.status, employeeNumber, ip);
+    return c.json({ success: true });
+  } catch (err: any) {
+    console.error("Error updating stat status:", err);
+    return c.json(
+      { success: false, error: err.message || "Failed to update stat status" },
       500,
     );
   }

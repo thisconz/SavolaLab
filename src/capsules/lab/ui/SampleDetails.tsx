@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import React, { memo, useState, useEffect } from "react";
 import {
   ArrowLeft,
   Beaker,
@@ -15,8 +15,9 @@ import {
   Settings,
   Factory,
   Cpu,
+  CheckCircle2,
 } from "lucide-react";
-import type { Sample } from "../../../core/types";
+import type { Sample, TestResult } from "../../../core/types";
 import { LabPanel } from "../../../ui/components/LabPanel";
 import { LabButton } from "../../../ui/components/LabButton";
 import { LabApi } from "../api/lab.api";
@@ -31,6 +32,18 @@ interface SampleDetailsProps {
   onUpdate: () => void;
 }
 
+/**
+ * SampleDetails Component
+ * 
+ * Displays comprehensive information about a specific laboratory sample.
+ * Allows users to view sample metadata, edit specific fields (like priority, shift, etc.),
+ * and view registered test results once the sample analysis is completed or in progress.
+ * 
+ * @param {Sample} sample - The sample object containing all metadata.
+ * @param {() => void} onBack - Callback to navigate back to the sample queue.
+ * @param {() => void} onStartTesting - Callback to initiate the testing workflow for this sample.
+ * @param {() => void} onUpdate - Callback triggered when sample details are successfully updated.
+ */
 export const SampleDetails: React.FC<SampleDetailsProps> = memo(
   ({ sample, onBack, onStartTesting, onUpdate }) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -41,10 +54,28 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
       line_id: sample.line_id,
       equipment_id: sample.equipment_id,
       shift_id: sample.shift_id,
-      sample_types: sample.sample_types,
     });
     const [isSaving, setIsSaving] = useState(false);
+    const [testResults, setTestResults] = useState<TestResult[]>([]);
+    const [loadingTests, setLoadingTests] = useState(false);
     const { currentUser } = useAuthStore();
+
+    useEffect(() => {
+      const fetchTests = async () => {
+        setLoadingTests(true);
+        try {
+          const results = await LabApi.getSampleTests(sample.id);
+          setTestResults(results);
+        } catch (err) {
+          console.error("Failed to fetch test results", err);
+        } finally {
+          setLoadingTests(false);
+        }
+      };
+      if (sample.status === "COMPLETED" || sample.status === "TESTING") {
+        fetchTests();
+      }
+    }, [sample.id, sample.status]);
 
     const handleSave = async () => {
       setIsSaving(true);
@@ -64,6 +95,10 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
         if (editedSample.source_stage !== sample.source_stage)
           changes.push(
             `Stage: ${sample.source_stage} -> ${editedSample.source_stage}`,
+          );
+        if (editedSample.sample_type !== sample.sample_type)
+          changes.push(
+            `Type: ${sample.sample_type} -> ${editedSample.sample_type}`,
           );
         if (editedSample.line_id !== sample.line_id)
           changes.push(`Line: ${sample.line_id} -> ${editedSample.line_id}`);
@@ -105,7 +140,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
       >
         <div className="flex flex-col h-full gap-6">
           {/* Header Section */}
-          <div className="flex items-start justify-between p-6 bg-linear-to-br from-brand-mist/40 via-brand-mist/20 to-transparent rounded-3xl border border-brand-sage/10 relative overflow-hidden shadow-sm">
+          <div className="flex items-start justify-between p-6 bg-gradient-to-br from-brand-mist/40 via-brand-mist/20 to-transparent rounded-3xl border border-brand-sage/10 relative overflow-hidden shadow-sm">
             <div className="absolute top-0 right-0 w-48 h-48 bg-brand-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
 
@@ -115,7 +150,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                   <Beaker className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-black text-brand-deep uppercase tracking-0.1em">
+                  <h2 className="text-2xl font-black text-brand-deep uppercase tracking-[0.1em]">
                     {sample.batch_id}
                   </h2>
                   <div className="flex items-center gap-3 text-[11px] font-mono text-brand-sage uppercase tracking-widest mt-1.5">
@@ -212,6 +247,17 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                       }
                     />
                     <EditField
+                      icon={Layers}
+                      label="Sample Type"
+                      value={editedSample.sample_type || ""}
+                      onChange={(v: string) =>
+                        setEditedSample((prev) => ({
+                          ...prev,
+                          sample_type: v,
+                        }))
+                      }
+                    />
+                    <EditField
                       icon={Factory}
                       label="Line ID"
                       value={editedSample.line_id}
@@ -263,7 +309,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                     <DetailItem
                       icon={Layers}
                       label="Sample Type"
-                      value={sample.sample_types || "N/A"}
+                      value={sample.sample_type || "N/A"}
                     />
                     <DetailItem
                       icon={MapPin}
@@ -298,6 +344,46 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Test Results Section */}
+            {testResults.length > 0 && !isEditing && (
+              <div className="mt-8">
+                <h3 className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                  <TestTube2 className="w-4 h-4" />
+                  Registered Test Results
+                </h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {testResults.map((result) => (
+                    <div
+                      key={result.id}
+                      className="flex items-center justify-between p-4 bg-white/50 backdrop-blur-sm border border-brand-sage/10 rounded-2xl hover:shadow-sm transition-all"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`p-2 rounded-xl ${result.status === "COMPLETED" ? "bg-emerald-50 text-emerald-600" : "bg-brand-mist text-brand-primary"}`}>
+                          {result.status === "COMPLETED" ? <CheckCircle2 className="w-4 h-4" /> : <Activity className="w-4 h-4 animate-pulse" />}
+                        </div>
+                        <div>
+                          <div className="text-xs font-black text-brand-deep uppercase tracking-wider">
+                            {result.test_type}
+                          </div>
+                          <div className="text-[9px] font-bold text-brand-sage uppercase tracking-widest mt-0.5">
+                            {new Date(result.performed_at).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-black text-brand-deep">
+                          {result.calculated_value !== null ? result.calculated_value : "-"} <span className="text-[10px] text-brand-sage font-bold">{result.unit}</span>
+                        </div>
+                        <div className="text-[9px] font-bold text-brand-sage uppercase tracking-widest mt-0.5">
+                          {result.status}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Actions Footer */}
@@ -354,7 +440,7 @@ const DetailItem = ({ icon: Icon, label, value, highlight, small }: any) => (
   <div
     className={`p-4 rounded-2xl border transition-all ${
       highlight
-        ? "bg-linear-to-br from-brand-primary/10 to-brand-primary/5 border-brand-primary/20 shadow-sm"
+        ? "bg-gradient-to-br from-brand-primary/10 to-brand-primary/5 border-brand-primary/20 shadow-sm"
         : "bg-white/50 backdrop-blur-sm border-brand-sage/10 hover:border-brand-sage/30 hover:shadow-sm"
     }`}
   >

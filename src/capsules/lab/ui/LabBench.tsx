@@ -38,6 +38,19 @@ interface LabBenchProps {
   onComplete: () => void;
 }
 
+/**
+ * LabBench Component
+ * 
+ * The core interface for laboratory technicians to enter and validate test results.
+ * It provides a dynamic, interactive environment for data entry, including:
+ * - Real-time validation against predefined limits (e.g., Brix, Purity, ICUMSA).
+ * - Automatic calculations (e.g., ICUMSA Colour based on Absorbance, Brix, and Cell Length).
+ * - Historical trend visualization for specific test types to aid in quality control.
+ * - Integration with the workflow engine to update step execution statuses.
+ * 
+ * @param {Sample} sample - The sample currently being tested.
+ * @param {() => void} onComplete - Callback triggered when all tests are completed and saved.
+ */
 export const LabBench: React.FC<LabBenchProps> = memo(
   ({ sample, onComplete }) => {
     const [tests, setTests] = useState<TestResult[]>([]);

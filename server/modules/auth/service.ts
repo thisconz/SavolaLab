@@ -2,9 +2,14 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { db, generateOtp, storeOtp, verifyOtp } from "../../core/database";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET environment variable is required.");
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error("JWT_SECRET environment variable is required.");
+  }
+
+  return secret;
 }
 
 export type PermissionFlags = {
@@ -266,7 +271,7 @@ export const AuthService = {
       initials: AuthService.getInitials(user.name),
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "8h" });
+    const token = jwt.sign(payload, getJwtSecret(), { expiresIn: "8h" });
 
     await db.execute(
       `INSERT INTO audit_logs (employee_number, action, details) VALUES ($1, 'LOGIN_SUCCESS', 'User logged in successfully')`,

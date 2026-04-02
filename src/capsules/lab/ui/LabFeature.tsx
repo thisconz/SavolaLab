@@ -12,8 +12,19 @@ import { Sample } from "../../../core/types";
 import { ErrorBoundary } from "../../../ui/components/ErrorBoundary";
 
 /**
- * Lab Feature Module: Main entry point for laboratory operations.
- * Implements feature-level state and layout.
+ * LabFeature Component
+ * 
+ * The main entry point for the laboratory module. It orchestrates the primary
+ * workflows for lab technicians, including sample registration, queue management,
+ * and test execution.
+ * 
+ * Architecture:
+ * - Manages the high-level state for the selected sample and current view mode.
+ * - Composes three main sub-components:
+ *   1. SampleQueue: For finding and selecting samples.
+ *   2. SampleDetails: For reviewing sample metadata before testing.
+ *   3. LabBench: For the actual execution and recording of test results.
+ * - Integrates with `useLabSamples` for data fetching and state management.
  */
 export const LabFeature: React.FC = memo(() => {
   const { samples, loading, error, refresh } = useLabSamples();

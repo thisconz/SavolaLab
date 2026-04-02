@@ -6,6 +6,20 @@ import { StatApi } from "../api/stat.api";
 import { StatRequest } from "../../../core/types";
 import clsx from "clsx";
 
+/**
+ * StatFeature Component
+ * 
+ * This component manages the STAT (Short Turnaround Time) requests for the laboratory.
+ * It provides a split-pane interface:
+ * - Left pane: A list of active and historical STAT requests, sortable and filterable.
+ * - Right pane: A detailed view of the selected request or a form to submit a new request.
+ * 
+ * Features:
+ * - Real-time status tracking (OPEN, IN_PROGRESS, CLOSED).
+ * - Urgency level highlighting (NORMAL, HIGH, CRITICAL).
+ * - Animated transitions between list items and detail views.
+ * - Form validation and submission for new requests.
+ */
 export const StatFeature: React.FC = memo(() => {
   const [stats, setStats] = useState<StatRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +62,18 @@ export const StatFeature: React.FC = memo(() => {
     }
   };
 
+  const handleAcknowledge = async () => {
+    if (!selectedStat) return;
+    try {
+      const newStatus = selectedStat.status === "OPEN" ? "IN_PROGRESS" : "CLOSED";
+      await StatApi.updateStatStatus(selectedStat.id, newStatus);
+      fetchStats();
+      setSelectedStat({ ...selectedStat, status: newStatus as any });
+    } catch (err) {
+      console.error("Failed to update status", err);
+    }
+  };
+
   const getUrgencyColor = (urgency?: string) => {
     switch (urgency) {
       case "CRITICAL": return "text-red-500 bg-red-500/10 border-red-500/20";
@@ -68,37 +94,60 @@ export const StatFeature: React.FC = memo(() => {
   const criticalStatsCount = stats.filter(s => s.urgency === "CRITICAL" && s.status !== "CLOSED").length;
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-hidden">
+    <div className="h-full flex flex-col gap-6 overflow-hidden bg-brand-mist/20 p-2 rounded-3xl">
       {/* Header Metrics */}
       <div className="grid grid-cols-3 gap-6 shrink-0">
-        <div className="bg-white p-6 rounded-2xl border border-brand-sage/10 shadow-sm flex items-center justify-between relative overflow-hidden group">
-          <div className="absolute right-0 top-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
-          <div>
-            <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-1">Active STATs</p>
-            <p className="text-4xl font-light text-brand-deep tracking-tight">{activeStatsCount}</p>
+        <div className="bg-white p-6 rounded-2xl border border-brand-sage/10 shadow-sm flex items-center justify-between relative overflow-hidden group hover:shadow-md transition-all duration-500">
+          <div className="absolute right-0 top-0 w-48 h-48 bg-linear-to-br from-brand-primary/10 to-transparent rounded-full blur-3xl -mr-20 -mt-20 transition-transform duration-700 group-hover:scale-150" />
+          <div className="absolute left-0 bottom-0 w-full h-1 bg-linear-to-r from-brand-primary/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
+              <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">Active STATs</p>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <p className="text-5xl font-light text-brand-deep tracking-tighter">{activeStatsCount}</p>
+              <span className="text-xs font-bold text-brand-sage uppercase tracking-widest">Requests</span>
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-brand-mist flex items-center justify-center text-brand-primary">
-            <Activity className="w-6 h-6" />
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl border border-brand-sage/10 shadow-sm flex items-center justify-between relative overflow-hidden group">
-          <div className="absolute right-0 top-0 w-32 h-32 bg-red-500/5 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
-          <div>
-            <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-1">Critical Priority</p>
-            <p className="text-4xl font-light text-red-500 tracking-tight">{criticalStatsCount}</p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-500">
-            <AlertCircle className="w-6 h-6" />
+          <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-brand-mist to-white border border-brand-sage/10 flex items-center justify-center text-brand-primary shadow-inner relative z-10 group-hover:rotate-12 transition-transform duration-500">
+            <Activity className="w-7 h-7" />
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-brand-sage/10 shadow-sm flex items-center justify-between relative overflow-hidden group">
-          <div className="absolute right-0 top-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
-          <div>
-            <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-1">Avg Response</p>
-            <p className="text-4xl font-light text-brand-deep tracking-tight">12<span className="text-lg text-brand-sage ml-1">min</span></p>
+
+        <div className="bg-white p-6 rounded-2xl border border-brand-sage/10 shadow-sm flex items-center justify-between relative overflow-hidden group hover:shadow-md transition-all duration-500">
+          <div className="absolute right-0 top-0 w-48 h-48 bg-linear-to-br from-red-500/10 to-transparent rounded-full blur-3xl -mr-20 -mt-20 transition-transform duration-700 group-hover:scale-150" />
+          <div className="absolute left-0 bottom-0 w-full h-1 bg-linear-to-r from-red-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">Critical Priority</p>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <p className="text-5xl font-light text-red-500 tracking-tighter">{criticalStatsCount}</p>
+              <span className="text-xs font-bold text-red-500/70 uppercase tracking-widest">Urgent</span>
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
-            <Clock className="w-6 h-6" />
+          <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-red-50 to-white border border-red-100 flex items-center justify-center text-red-500 shadow-inner relative z-10 group-hover:rotate-12 transition-transform duration-500">
+            <AlertCircle className="w-7 h-7" />
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-brand-sage/10 shadow-sm flex items-center justify-between relative overflow-hidden group hover:shadow-md transition-all duration-500">
+          <div className="absolute right-0 top-0 w-48 h-48 bg-linear-to-br from-emerald-500/10 to-transparent rounded-full blur-3xl -mr-20 -mt-20 transition-transform duration-700 group-hover:scale-150" />
+          <div className="absolute left-0 bottom-0 w-full h-1 bg-linear-to-r from-emerald-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">Avg Response</p>
+            </div>
+            <div className="flex items-baseline gap-1">
+              <p className="text-5xl font-light text-brand-deep tracking-tighter">12</p>
+              <span className="text-sm font-bold text-emerald-500 uppercase tracking-widest">min</span>
+            </div>
+          </div>
+          <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-emerald-50 to-white border border-emerald-100 flex items-center justify-center text-emerald-500 shadow-inner relative z-10 group-hover:-rotate-12 transition-transform duration-500">
+            <Clock className="w-7 h-7" />
           </div>
         </div>
       </div>
@@ -128,9 +177,12 @@ export const StatFeature: React.FC = memo(() => {
                   <div className="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : stats.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-brand-sage gap-4">
-                  <Zap className="w-12 h-12 opacity-20" />
-                  <p className="text-xs font-mono uppercase tracking-widest">
+                <div className="flex-1 flex flex-col items-center justify-center text-brand-sage gap-6 bg-white/50 rounded-3xl border border-brand-sage/10 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-brand-primary/5 rounded-full blur-3xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <div className="p-6 bg-brand-mist rounded-full border border-brand-sage/20 relative z-10">
+                    <Zap className="w-16 h-16 opacity-40 text-brand-primary group-hover:opacity-80 transition-opacity duration-300" />
+                  </div>
+                  <p className="text-sm font-black text-brand-deep uppercase tracking-[0.2em] relative z-10">
                     No STAT Requests Found
                   </p>
                 </div>
@@ -147,38 +199,43 @@ export const StatFeature: React.FC = memo(() => {
                         setShowNewForm(false);
                       }}
                       className={clsx(
-                        "p-4 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden",
+                        "p-5 rounded-2xl border transition-all duration-300 cursor-pointer group relative overflow-hidden",
                         selectedStat?.id === stat.id
-                          ? "bg-brand-primary/5 border-brand-primary shadow-md"
-                          : "bg-white border-brand-sage/20 hover:border-brand-primary/40 hover:shadow-sm"
+                          ? "bg-white border-brand-primary shadow-lg shadow-brand-primary/10 scale-[1.02] z-10"
+                          : "bg-white/60 backdrop-blur-sm border-brand-sage/20 hover:bg-white hover:border-brand-primary/40 hover:shadow-md hover:scale-[1.01]"
                       )}
                     >
                       {selectedStat?.id === stat.id && (
-                        <motion.div layoutId="activeStat" className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary" />
+                        <motion.div layoutId="activeStat" className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-primary rounded-l-2xl" />
                       )}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-4">
                           <div className={clsx(
-                            "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
-                            selectedStat?.id === stat.id ? "bg-white shadow-sm" : "bg-brand-mist"
+                            "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-inner",
+                            selectedStat?.id === stat.id ? "bg-brand-mist scale-110" : "bg-white border border-brand-sage/10 group-hover:scale-105"
                           )}>
                             {getStatusIcon(stat.status)}
                           </div>
                           <div>
-                            <h4 className="text-sm font-bold text-brand-deep group-hover:text-brand-primary transition-colors">{stat.department}</h4>
-                            <p className="text-[10px] text-brand-sage font-mono uppercase tracking-wider mt-0.5">
-                              {new Date(stat.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
+                            <h4 className="text-base font-bold text-brand-deep group-hover:text-brand-primary transition-colors tracking-tight">{stat.department}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[10px] text-brand-sage font-mono uppercase tracking-widest bg-brand-mist/50 px-2 py-0.5 rounded-md">
+                                {new Date(stat.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              <span className="text-[10px] text-brand-sage font-mono uppercase tracking-widest">
+                                ID: {stat.id.toString().padStart(4, '0')}
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <span className={clsx(
-                          "px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+                          "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border shadow-sm",
                           getUrgencyColor(stat.urgency)
                         )}>
                           {stat.urgency || "NORMAL"}
                         </span>
                       </div>
-                      <p className="text-xs text-brand-deep/70 line-clamp-2 leading-relaxed">{stat.reason}</p>
+                      <p className="text-sm text-brand-deep/80 line-clamp-2 leading-relaxed pl-16">{stat.reason}</p>
                     </motion.div>
                   ))}
                 </AnimatePresence>
@@ -198,40 +255,40 @@ export const StatFeature: React.FC = memo(() => {
                 exit={{ opacity: 0, x: -20 }}
                 className="h-full bg-white rounded-2xl border border-brand-sage/10 shadow-sm p-8 flex flex-col"
               >
-                <div className="flex items-center gap-4 mb-8 pb-6 border-b border-brand-sage/10">
-                  <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
-                    <Zap className="w-6 h-6" />
+                <div className="flex items-center gap-5 mb-8 pb-8 border-b border-brand-sage/10 relative z-10">
+                  <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-brand-primary/20 to-brand-primary/5 border border-brand-primary/20 flex items-center justify-center text-brand-primary shadow-inner">
+                    <Zap className="w-8 h-8" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-light text-brand-deep tracking-tight">New STAT Request</h2>
-                    <p className="text-xs font-bold text-brand-sage uppercase tracking-widest mt-1">Priority Analysis Required</p>
+                    <h2 className="text-3xl font-light text-brand-deep tracking-tight">New STAT Request</h2>
+                    <p className="text-xs font-bold text-brand-sage uppercase tracking-[0.2em] mt-2">Priority Analysis Required</p>
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
+                <form onSubmit={handleSubmit} className="flex-1 flex flex-col relative z-10">
                   <div className="grid grid-cols-2 gap-6 mb-8">
                     <div className="col-span-2 sm:col-span-1">
                       <label className="block text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-2">Department</label>
-                      <div className="relative">
-                        <Factory className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage" />
+                      <div className="relative group">
+                        <Factory className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage group-focus-within:text-brand-primary transition-colors" />
                         <input
                           type="text"
                           required
                           value={formData.department}
                           onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                          className="w-full bg-brand-mist/30 border border-brand-sage/20 rounded-xl pl-12 pr-4 py-3.5 text-sm focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                          className="w-full bg-white/50 backdrop-blur-sm border-2 border-brand-sage/20 rounded-xl pl-12 pr-4 py-3.5 text-sm font-bold text-brand-deep focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 outline-none transition-all shadow-sm"
                           placeholder="e.g. Refining Line A"
                         />
                       </div>
                     </div>
                     <div className="col-span-2 sm:col-span-1">
                       <label className="block text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-2">Urgency Level</label>
-                      <div className="relative">
-                        <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage" />
+                      <div className="relative group">
+                        <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage group-focus-within:text-brand-primary transition-colors" />
                         <select
                           value={formData.urgency}
                           onChange={(e) => setFormData({ ...formData, urgency: e.target.value })}
-                          className="w-full bg-brand-mist/30 border border-brand-sage/20 rounded-xl pl-12 pr-4 py-3.5 text-sm focus:ring-2 focus:ring-brand-primary outline-none transition-all appearance-none"
+                          className="w-full bg-white/50 backdrop-blur-sm border-2 border-brand-sage/20 rounded-xl pl-12 pr-4 py-3.5 text-sm font-bold text-brand-deep focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 outline-none transition-all appearance-none shadow-sm cursor-pointer"
                         >
                           <option value="NORMAL">Normal Priority</option>
                           <option value="HIGH">High Priority</option>
@@ -241,13 +298,13 @@ export const StatFeature: React.FC = memo(() => {
                     </div>
                     <div className="col-span-2">
                       <label className="block text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-2">Reason for Request</label>
-                      <div className="relative">
-                        <FileText className="absolute left-4 top-4 w-4 h-4 text-brand-sage" />
+                      <div className="relative group">
+                        <FileText className="absolute left-4 top-4 w-4 h-4 text-brand-sage group-focus-within:text-brand-primary transition-colors" />
                         <textarea
                           required
                           value={formData.reason}
                           onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                          className="w-full bg-brand-mist/30 border border-brand-sage/20 rounded-xl pl-12 pr-4 py-3.5 text-sm focus:ring-2 focus:ring-brand-primary outline-none transition-all resize-none min-h-[160px]"
+                          className="w-full bg-white/50 backdrop-blur-sm border-2 border-brand-sage/20 rounded-xl pl-12 pr-4 py-3.5 text-sm font-bold text-brand-deep focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 outline-none transition-all resize-none min-h-160px shadow-sm"
                           placeholder="Provide detailed reason for the STAT request..."
                         />
                       </div>
@@ -284,58 +341,107 @@ export const StatFeature: React.FC = memo(() => {
                 exit={{ opacity: 0, x: -20 }}
                 className="h-full bg-white rounded-2xl border border-brand-sage/10 shadow-sm p-8 flex flex-col relative overflow-hidden"
               >
-                <div className="absolute right-0 top-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+                <div className="absolute right-0 top-0 w-96 h-96 bg-linear-to-br from-brand-primary/10 to-transparent rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+                <div className="absolute left-0 bottom-0 w-96 h-96 bg-linear-to-tr from-brand-mist to-transparent rounded-full blur-3xl -ml-32 -mb-32 pointer-events-none" />
                 
-                <div className="flex items-start justify-between mb-8 pb-6 border-b border-brand-sage/10 relative z-10">
+                <div className="flex items-start justify-between mb-10 pb-8 border-b border-brand-sage/10 relative z-10">
                   <div>
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-4 mb-4">
                       <span className={clsx(
-                        "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                        "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm backdrop-blur-sm",
                         getUrgencyColor(selectedStat.urgency)
                       )}>
                         {selectedStat.urgency || "NORMAL"}
                       </span>
-                      <span className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
-                        ID: STAT-{selectedStat.id.toString().padStart(4, '0')}
-                      </span>
+                      <div className="flex items-center gap-2 bg-white/50 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-brand-sage/10 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
+                        <span className="text-[10px] font-mono text-brand-deep uppercase tracking-widest font-bold">
+                          ID: STAT-{selectedStat.id.toString().padStart(4, '0')}
+                        </span>
+                      </div>
                     </div>
-                    <h2 className="text-3xl font-light text-brand-deep tracking-tight">{selectedStat.department}</h2>
+                    <h2 className="text-4xl font-black text-brand-deep tracking-tight uppercase">{selectedStat.department}</h2>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-1">Requested At</p>
-                    <p className="text-sm font-bold text-brand-deep">
-                      {new Date(selectedStat.created_at).toLocaleString()}
+                  <div className="text-right bg-white/50 backdrop-blur-sm p-5 rounded-2xl border border-brand-sage/10 shadow-sm">
+                    <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-2 flex items-center justify-end gap-1.5"><Clock className="w-3.5 h-3.5" /> Requested At</p>
+                    <p className="text-2xl font-light text-brand-deep tracking-tight">
+                      {new Date(selectedStat.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <p className="text-[10px] font-bold text-brand-sage uppercase tracking-widest mt-1">
+                      {new Date(selectedStat.created_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex-1 relative z-10">
-                  <div className="mb-8">
-                    <h3 className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-3">Request Details</h3>
-                    <div className="bg-brand-mist/30 rounded-2xl p-6 border border-brand-sage/10">
-                      <p className="text-sm text-brand-deep leading-relaxed whitespace-pre-wrap">
-                        {selectedStat.reason}
-                      </p>
+                <div className="flex-1 relative z-10 grid grid-cols-12 gap-8">
+                  <div className="col-span-8 flex flex-col gap-8">
+                    <div>
+                      <h3 className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        Request Details
+                      </h3>
+                      <div className="bg-white rounded-3xl p-8 border border-brand-sage/20 shadow-sm relative overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-mist" />
+                        <p className="text-base text-brand-deep/90 leading-relaxed whitespace-pre-wrap font-medium">
+                          {selectedStat.reason}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                        <Activity className="w-4 h-4" />
+                        Timeline
+                      </h3>
+                      <div className="bg-white rounded-3xl p-8 border border-brand-sage/20 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                        <div className="relative pl-6 border-l-2 border-brand-mist space-y-8">
+                          <div className="relative group">
+                            <div className="absolute -left-33px top-1 w-4 h-4 rounded-full bg-brand-primary border-4 border-white shadow-sm group-hover:scale-125 transition-transform" />
+                            <p className="text-sm font-black text-brand-deep uppercase tracking-wider">Request Submitted</p>
+                            <p className="text-[10px] font-bold text-brand-sage uppercase tracking-widest mt-1">{new Date(selectedStat.created_at).toLocaleString()}</p>
+                          </div>
+                          {selectedStat.status !== "OPEN" && (
+                            <div className="relative group">
+                              <div className="absolute -left-33px top-1 w-4 h-4 rounded-full bg-amber-500 border-4 border-white shadow-sm group-hover:scale-125 transition-transform" />
+                              <p className="text-sm font-black text-brand-deep uppercase tracking-wider">Analysis In Progress</p>
+                              <p className="text-[10px] font-bold text-brand-sage uppercase tracking-widest mt-1">Acknowledged by Lab</p>
+                            </div>
+                          )}
+                          {selectedStat.status === "CLOSED" && (
+                            <div className="relative group">
+                              <div className="absolute -left-33px top-1 w-4 h-4 rounded-full bg-emerald-500 border-4 border-white shadow-sm group-hover:scale-125 transition-transform" />
+                              <p className="text-sm font-black text-brand-deep uppercase tracking-wider">Results Published</p>
+                              <p className="text-[10px] font-bold text-brand-sage uppercase tracking-widest mt-1">Available in LIMS</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <h3 className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-3">Current Status</h3>
-                    <div className="flex items-center gap-4 bg-white border border-brand-sage/20 rounded-2xl p-4 shadow-sm">
+                  <div className="col-span-4 flex flex-col gap-6">
+                    <div className="bg-brand-mist/30 rounded-3xl p-6 border border-brand-sage/10">
+                      <h3 className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-4">Current Status</h3>
                       <div className={clsx(
-                        "w-12 h-12 rounded-xl flex items-center justify-center",
-                        selectedStat.status === "CLOSED" ? "bg-emerald-50 text-emerald-500" :
-                        selectedStat.status === "IN_PROGRESS" ? "bg-amber-50 text-amber-500" :
-                        "bg-brand-primary/10 text-brand-primary"
+                        "flex flex-col items-center text-center p-6 rounded-2xl border bg-white shadow-sm",
+                        selectedStat.status === "CLOSED" ? "border-emerald-200" :
+                        selectedStat.status === "IN_PROGRESS" ? "border-amber-200" :
+                        "border-brand-primary/20"
                       )}>
-                        {getStatusIcon(selectedStat.status)}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-brand-deep">{selectedStat.status}</p>
-                        <p className="text-xs text-brand-sage mt-0.5">
-                          {selectedStat.status === "OPEN" ? "Awaiting lab acknowledgment" :
-                           selectedStat.status === "IN_PROGRESS" ? "Analysis currently underway" :
-                           "Results have been published"}
+                        <div className={clsx(
+                          "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-inner",
+                          selectedStat.status === "CLOSED" ? "bg-emerald-50 text-emerald-500" :
+                          selectedStat.status === "IN_PROGRESS" ? "bg-amber-50 text-amber-500" :
+                          "bg-brand-primary/10 text-brand-primary"
+                        )}>
+                          {getStatusIcon(selectedStat.status)}
+                        </div>
+                        <p className="text-lg font-bold text-brand-deep tracking-tight">{selectedStat.status}</p>
+                        <p className="text-xs text-brand-sage mt-2 leading-relaxed">
+                          {selectedStat.status === "OPEN" ? "Awaiting lab acknowledgment and assignment" :
+                           selectedStat.status === "IN_PROGRESS" ? "Analysis currently underway in the lab" :
+                           "Results have been published and verified"}
                         </p>
                       </div>
                     </div>
@@ -343,18 +449,25 @@ export const StatFeature: React.FC = memo(() => {
                 </div>
 
                 {selectedStat.status !== "CLOSED" && (
-                  <div className="mt-auto pt-6 border-t border-brand-sage/10 flex justify-end gap-3 relative z-10">
-                    <button className="px-6 py-3 bg-brand-deep text-white text-xs font-bold rounded-xl hover:bg-brand-deep/90 transition-all shadow-lg shadow-brand-deep/20 hover:shadow-brand-deep/40 hover:-translate-y-0.5">
-                      Acknowledge Request
+                  <div className="mt-auto pt-8 border-t border-brand-sage/10 flex justify-end gap-4 relative z-10">
+                    <button 
+                      onClick={handleAcknowledge}
+                      className="px-8 py-4 bg-brand-deep text-white text-sm font-bold rounded-2xl hover:bg-brand-deep/90 transition-all shadow-xl shadow-brand-deep/20 hover:shadow-brand-deep/40 hover:-translate-y-1 flex items-center gap-3 group"
+                    >
+                      {selectedStat.status === "OPEN" ? "Acknowledge Request" : "Mark as Completed"}
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
                 )}
               </motion.div>
             ) : (
-              <div className="h-full bg-white rounded-2xl border border-brand-sage/10 shadow-sm flex flex-col items-center justify-center text-brand-sage">
-                <Zap className="w-16 h-16 opacity-10 mb-4" />
-                <p className="text-sm font-bold text-brand-deep">Select a STAT Request</p>
-                <p className="text-xs mt-1">Choose a request from the queue to view details</p>
+              <div className="h-full bg-white rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col items-center justify-center text-brand-sage relative overflow-hidden group">
+                <div className="absolute inset-0 bg-linear-to-br from-brand-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="p-8 bg-brand-mist/50 rounded-full border border-brand-sage/20 relative z-10 mb-6 group-hover:scale-110 transition-transform duration-500">
+                  <Zap className="w-16 h-16 text-brand-primary/40 group-hover:text-brand-primary transition-colors duration-300" />
+                </div>
+                <p className="text-lg font-black text-brand-deep uppercase tracking-widest relative z-10">Select a STAT Request</p>
+                <p className="text-xs font-bold text-brand-sage uppercase tracking-[0.2em] mt-2 relative z-10">Choose a request from the queue to view details</p>
               </div>
             )}
           </AnimatePresence>

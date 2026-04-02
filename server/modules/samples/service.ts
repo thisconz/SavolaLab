@@ -4,6 +4,7 @@ import { db } from "../../core/database";
 export type SampleData = {
   batch_id?: string;
   source_stage?: string;
+  sample_type?: string;
   priority?: "NORMAL" | "HIGH" | "STAT";
   line_id?: string;
   equipment_id?: string;
@@ -26,23 +27,13 @@ export type SampleTest = {
 
 export const SampleService = {
   // --- Get all samples with test counts ---
-  getSamples: async (filters?: { status?: string; from?: string }): Promise<any[]> => {
-
-    const baseConditions = [
-      "s.status NOT IN ('COMPLETED', 'ARCHIVED')",
-      "s.created_at > NOW() - interval '7 days'"
-    ];
-
-    const whereClause = `WHERE ${baseConditions.join(" AND ")}`;
-
+  getSamples: async (): Promise<any[]> => {
     return await db.query(
       `
-      SELECT s.*, e.name AS technician_name, COUNT(t.id) AS test_count
+      SELECT s.*, COUNT(t.id) as test_count 
       FROM samples s 
-      LEFT JOIN tests t ON s.id = t.sample_id
-      LEFT JOIN employees e ON s.technician_id = e.employee_number
-      ${whereClause}
-      GROUP BY s.id, e.name
+      LEFT JOIN tests t ON s.id = t.sample_id 
+      GROUP BY s.id 
       ORDER BY 
         CASE s.priority 
           WHEN 'STAT' THEN 1 
@@ -56,19 +47,17 @@ export const SampleService = {
   },
 
   // --- Create a new sample ---
-  createSample: async (
-    data: SampleData,
-    technicianId: string,
-  ): Promise<number> => {
+  createSample: async (data: SampleData, technicianId: string): Promise<number> => {
     const rows = await db.query(
       `
-      INSERT INTO samples (batch_id, source_stage, priority, technician_id, line_id, equipment_id, shift_id) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO samples (batch_id, source_stage, sample_type, priority, technician_id, line_id, equipment_id, shift_id) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id
     `,
       [
         data.batch_id || null,
         data.source_stage || null,
+        data.sample_type || null,
         data.priority || "NORMAL",
         technicianId,
         data.line_id || null,
@@ -90,20 +79,19 @@ export const SampleService = {
     const sampleId = Number(id);
     if (isNaN(sampleId)) throw new Error("Invalid sample ID");
 
-    const oldSample = await db.queryOne("SELECT * FROM samples WHERE id = $1", [
-      sampleId,
-    ]);
+    const oldSample = await db.queryOne("SELECT * FROM samples WHERE id = $1", [sampleId]);
     if (!oldSample) throw new Error("Sample not found");
 
     await db.execute(
       `
       UPDATE samples 
-      SET batch_id = $1, source_stage = $2, priority = $3, status = $4 
-      WHERE id = $5
+      SET batch_id = $1, source_stage = $2, sample_type = $3, priority = $4, status = $5 
+      WHERE id = $6
     `,
       [
         data.batch_id || oldSample.batch_id,
         data.source_stage || oldSample.source_stage,
+        data.sample_type || oldSample.sample_type,
         data.priority || oldSample.priority,
         data.status || oldSample.status,
         sampleId,
@@ -169,16 +157,10 @@ export const SampleService = {
     const sampleId = Number(id);
     if (isNaN(sampleId)) throw new Error("Invalid sample ID");
 
-    const tests: SampleTest[] = await db.query(
-      "SELECT * FROM tests WHERE sample_id = $1",
-      [sampleId],
-    );
+    const tests: SampleTest[] = await db.query("SELECT * FROM tests WHERE sample_id = $1", [sampleId]);
 
     if (tests.length === 0) {
-      const sample = await db.queryOne(
-        "SELECT source_stage, batch_id FROM samples WHERE id = $1",
-        [sampleId],
-      );
+      const sample = await db.queryOne("SELECT source_stage, batch_id FROM samples WHERE id = $1", [sampleId]);
       if (!sample) return [];
 
       const DEFAULT_TESTS: Record<string, string[]> = {

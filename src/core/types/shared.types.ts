@@ -75,7 +75,7 @@ export interface Sample {
   batch_id: string;
   source_stage: string;
   sugar_stage?: SugarStage;
-  sample_types?: string[];
+  sample_type?: string;
   line_id?: string;
   equipment_id?: string;
   shift_id?: string;
@@ -107,7 +107,7 @@ export interface StatRequest {
   id: number;
   department: string;
   reason: string;
-  sample_id?: number;
+  sample_id: number;
   status: StatRequestStatus;
   urgency?: StatRequestUrgency;
   created_at: string;
