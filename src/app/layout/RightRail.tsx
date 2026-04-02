@@ -1,13 +1,19 @@
 import React, { memo, useState, useEffect, useCallback, useRef } from "react";
-import { ShieldCheck, Terminal, Fingerprint, RefreshCw, Radio } from "lucide-react";
+import {
+  ShieldCheck,
+  Terminal,
+  Fingerprint,
+  RefreshCw,
+  Radio,
+} from "lucide-react";
 import { LabPanel } from "../../ui/components/LabPanel";
 import { api } from "../../core/http/client";
 import { useNotifications } from "../../capsules/notifications/hooks/useNotifications";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import clsx from "@/src/lib/clsx";
 
-/** 
- * Refined Types 
+/**
+ * Refined Types
  */
 interface TelemetryData {
   cpuLoad: string;
@@ -39,7 +45,8 @@ export const RightRail: React.FC = memo(() => {
       const data = (res as any)?.data ?? res;
       setTelemetry(data);
     } catch (err: any) {
-      if (![401, 403].includes(err?.status)) console.error("Telemetry Sync Failure:", err);
+      if (![401, 403].includes(err?.status))
+        console.error("Telemetry Sync Failure:", err);
     } finally {
       setLoading(false);
     }
@@ -53,10 +60,9 @@ export const RightRail: React.FC = memo(() => {
 
   return (
     <aside className="w-85 h-full flex flex-col gap-6 border-l border-brand-sage/15 p-6 bg-white/60 backdrop-blur-3xl relative ml-auto shadow-[-30px_0_60px_rgba(0,0,0,0.03)] z-40">
-      
       {/* Visual Anchor: Static Scanning Line */}
       <div className="absolute top-0 left-0 w-[1px] h-full bg-linear-to-b from-transparent via-brand-primary/40 to-transparent opacity-50" />
-      
+
       {/* 1. LIVE INTERCEPTS: Dynamic Notification Feed */}
       <LabPanel
         title="Live Intercepts"
@@ -74,15 +80,21 @@ export const RightRail: React.FC = memo(() => {
           )
         }
       >
-        <div ref={scrollRef} className="flex flex-col gap-2 overflow-y-auto custom-scrollbar h-full pr-2">
+        <div
+          ref={scrollRef}
+          className="flex flex-col gap-2 overflow-y-auto custom-scrollbar h-full pr-2"
+        >
           <AnimatePresence mode="popLayout">
             {notifications.length === 0 ? (
-              <motion.div 
-                initial={{ opacity: 0 }} animate={{ opacity: 0.15 }}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.15 }}
                 className="flex flex-col items-center justify-center h-full text-brand-sage"
               >
                 <ShieldCheck size={40} strokeWidth={1.5} />
-                <p className="text-[8px] font-black uppercase tracking-[0.6em] mt-5">Perimeter Secure</p>
+                <p className="text-[8px] font-black uppercase tracking-[0.6em] mt-5">
+                  Perimeter Secure
+                </p>
               </motion.div>
             ) : (
               notifications.map((notif: any) => (
@@ -105,20 +117,20 @@ export const RightRail: React.FC = memo(() => {
             <>
               {/* Metric Pulse Section */}
               <div className="space-y-4">
-                <MetricRow 
-                  label="CPU_CORE_FREQ" 
-                  value={telemetry.cpuLoad} 
-                  progress={parseInt(telemetry.cpuLoad)} 
+                <MetricRow
+                  label="CPU_CORE_FREQ"
+                  value={telemetry.cpuLoad}
+                  progress={parseInt(telemetry.cpuLoad)}
                 />
-                <MetricRow 
-                  label="BUFFER_UTILIZATION" 
-                  value={telemetry.memory.split(" / ")[0]} 
-                  progress={74} 
+                <MetricRow
+                  label="BUFFER_UTILIZATION"
+                  value={telemetry.memory.split(" / ")[0]}
+                  progress={74}
                 />
-                <MetricRow 
-                  label="NET_LATENCY_MS" 
-                  value={telemetry.latency} 
-                  status="STABLE" 
+                <MetricRow
+                  label="NET_LATENCY_MS"
+                  value={telemetry.latency}
+                  status="STABLE"
                   progress={15}
                 />
               </div>
@@ -128,25 +140,31 @@ export const RightRail: React.FC = memo(() => {
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/card:scale-110 transition-transform duration-700">
                   <Fingerprint size={80} className="text-brand-primary" />
                 </div>
-                
+
                 <div className="relative z-10">
                   <div className="flex items-center gap-2 mb-5">
                     <div className="w-1.5 h-1.5 rounded-full bg-brand-primary shadow-[0_0_8px_#B1BE9B]" />
-                    <span className="text-[9px] font-black text-brand-primary/80 tracking-[.4em] uppercase">Processing_Throughput</span>
+                    <span className="text-[9px] font-black text-brand-primary/80 tracking-[.4em] uppercase">
+                      Processing_Throughput
+                    </span>
                   </div>
-                  
+
                   <div className="flex justify-between items-end">
                     <div>
                       <div className="text-3xl font-black font-mono tracking-tighter text-white tabular-nums">
                         {telemetry.stats.samples.toLocaleString()}
                       </div>
-                      <div className="text-[8px] font-bold text-brand-primary/40 uppercase tracking-widest mt-1">Samples_Aggregated</div>
+                      <div className="text-[8px] font-bold text-brand-primary/40 uppercase tracking-widest mt-1">
+                        Samples_Aggregated
+                      </div>
                     </div>
                     <div className="text-right">
                       <div className="text-xl font-black font-mono text-brand-primary/90 tabular-nums">
                         {telemetry.stats.pending}
                       </div>
-                      <div className="text-[8px] font-bold text-white/20 uppercase tracking-widest">In_Queue</div>
+                      <div className="text-[8px] font-bold text-white/20 uppercase tracking-widest">
+                        In_Queue
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -154,14 +172,24 @@ export const RightRail: React.FC = memo(() => {
 
               {/* System Meta-Footer: Secondary Metrics */}
               <div className="grid grid-cols-2 gap-3">
-                <StatusPill label="Link_State" value="ENCRYPTED" color="text-emerald-500" />
-                <StatusPill label="Sync_Health" value="99.98%" color="text-brand-primary" />
+                <StatusPill
+                  label="Link_State"
+                  value="ENCRYPTED"
+                  color="text-emerald-500"
+                />
+                <StatusPill
+                  label="Sync_Health"
+                  value="99.98%"
+                  color="text-brand-primary"
+                />
               </div>
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-40">
               <RefreshCw className="w-6 h-6 animate-spin text-brand-primary" />
-              <span className="text-[8px] font-black uppercase tracking-widest text-brand-sage">Fetching Data...</span>
+              <span className="text-[8px] font-black uppercase tracking-widest text-brand-sage">
+                Fetching Data...
+              </span>
             </div>
           )}
         </div>
@@ -170,15 +198,18 @@ export const RightRail: React.FC = memo(() => {
   );
 });
 
-/** 
- * Sub-Components with refined styling 
+/**
+ * Sub-Components with refined styling
  */
 
 const NotificationItem = ({ type, message }: any) => {
-  const isCritical = type.includes("FAILURE") || type.includes("OVERDUE") || type.includes("ERROR");
-  
+  const isCritical =
+    type.includes("FAILURE") ||
+    type.includes("OVERDUE") ||
+    type.includes("ERROR");
+
   return (
-    <motion.div 
+    <motion.div
       layout
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -186,17 +217,23 @@ const NotificationItem = ({ type, message }: any) => {
       className={clsx(
         "group relative p-4 rounded-2xl border-l-4 transition-all cursor-pointer",
         "bg-brand-mist/20 hover:bg-white hover:shadow-xl hover:shadow-brand-primary/5",
-        isCritical ? "border-lab-laser bg-lab-laser/[0.03]" : "border-brand-primary"
+        isCritical
+          ? "border-lab-laser bg-lab-laser/[0.03]"
+          : "border-brand-primary",
       )}
     >
       <div className="flex justify-between items-center mb-1.5">
-        <span className={clsx(
-          "text-[9px] font-black uppercase tracking-widest",
-          isCritical ? "text-lab-laser" : "text-brand-primary"
-        )}>
+        <span
+          className={clsx(
+            "text-[9px] font-black uppercase tracking-widest",
+            isCritical ? "text-lab-laser" : "text-brand-primary",
+          )}
+        >
           {type.replace(/_/g, " ")}
         </span>
-        <span className="text-[8px] font-mono opacity-30 tabular-nums">00:{Math.floor(Math.random() * 60)}s</span>
+        <span className="text-[8px] font-mono opacity-30 tabular-nums">
+          00:{Math.floor(Math.random() * 60)}s
+        </span>
       </div>
       <p className="text-[10px] font-bold text-brand-deep/70 leading-relaxed group-hover:text-brand-deep transition-colors">
         {message}
@@ -211,22 +248,24 @@ const MetricRow = ({ label, value, progress, status }: any) => (
       <span className="text-[9px] font-black text-brand-sage group-hover/metric:text-brand-deep transition-colors uppercase tracking-widest">
         {label}
       </span>
-      <span className={clsx(
-        "text-[11px] font-mono font-black tabular-nums",
-        status === "STABLE" ? "text-brand-primary" : "text-brand-deep"
-      )}>
+      <span
+        className={clsx(
+          "text-[11px] font-mono font-black tabular-nums",
+          status === "STABLE" ? "text-brand-primary" : "text-brand-deep",
+        )}
+      >
         {value}
       </span>
     </div>
     <div className="h-[4px] w-full bg-brand-mist/40 rounded-full overflow-hidden flex gap-[2px]">
       {[...Array(12)].map((_, i) => (
-        <div 
-          key={i} 
+        <div
+          key={i}
           className={clsx(
             "h-full flex-1 transition-all duration-700 ease-out",
-            (progress || 0) / 8.3 > i 
-              ? "bg-brand-primary opacity-100" 
-              : "bg-brand-sage/10 opacity-30"
+            (progress || 0) / 8.3 > i
+              ? "bg-brand-primary opacity-100"
+              : "bg-brand-sage/10 opacity-30",
           )}
           style={{ transitionDelay: `${i * 30}ms` }}
         />
@@ -235,10 +274,27 @@ const MetricRow = ({ label, value, progress, status }: any) => (
   </div>
 );
 
-const StatusPill = ({ label, value, color }: { label: string, value: string, color: string }) => (
+const StatusPill = ({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color: string;
+}) => (
   <div className="p-3 bg-brand-mist/30 border border-brand-sage/5 rounded-2xl flex flex-col gap-1">
-    <p className="text-[7px] font-black text-brand-sage/60 uppercase tracking-widest">{label}</p>
-    <p className={clsx("text-[10px] font-black uppercase tracking-tighter", color)}>{value}</p>
+    <p className="text-[7px] font-black text-brand-sage/60 uppercase tracking-widest">
+      {label}
+    </p>
+    <p
+      className={clsx(
+        "text-[10px] font-black uppercase tracking-tighter",
+        color,
+      )}
+    >
+      {value}
+    </p>
   </div>
 );
 

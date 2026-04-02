@@ -7,7 +7,8 @@ let globalNotifications: Notification[] = [];
 let listeners: Array<(n: Notification[]) => void> = [];
 
 export const useNotifications = () => {
-  const [notifications, setNotifications] = useState<Notification[]>(globalNotifications);
+  const [notifications, setNotifications] =
+    useState<Notification[]>(globalNotifications);
 
   const broadcast = useCallback((data: Notification[]) => {
     globalNotifications = data;
@@ -15,14 +16,18 @@ export const useNotifications = () => {
   }, []);
 
   const fetchNotifications = useCallback(async () => {
-    try { await NotificationApi.checkOverdue(); } catch (err: any) {
-      if (err?.status !== 401 && err?.status !== 403) console.warn("checkOverdue failed", err);
-    } 
     try {
-    const data = await NotificationApi.getNotifications();
-    broadcast(data as Notification[]);
+      await NotificationApi.checkOverdue();
     } catch (err: any) {
-      if (err?.status !== 401 && err?.status !== 403) console.error("getNotifications failed", err);
+      if (err?.status !== 401 && err?.status !== 403)
+        console.warn("checkOverdue failed", err);
+    }
+    try {
+      const data = await NotificationApi.getNotifications();
+      broadcast(data as Notification[]);
+    } catch (err: any) {
+      if (err?.status !== 401 && err?.status !== 403)
+        console.error("getNotifications failed", err);
     }
   }, [broadcast]);
 
@@ -58,6 +63,6 @@ export const useNotifications = () => {
     markAllAsRead: async () => {
       await NotificationApi.markAllAsRead();
       fetchNotifications();
-    }
+    },
   };
 };

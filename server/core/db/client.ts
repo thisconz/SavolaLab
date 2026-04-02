@@ -12,7 +12,8 @@ if (!connectionString) {
 }
 
 export const pool = new Pool({
-  connectionString: connectionString || "postgresql://postgres:12345@localhost:5432/postgres",
+  connectionString:
+    connectionString || "postgresql://postgres:12345@localhost:5432/postgres",
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -55,21 +56,26 @@ export const db: DatabaseClient = {
     await pool.query(sql, params);
   },
 
-  async transaction<T>(fn: (client: TransactionClient) => Promise<T>): Promise<T> {
+  async transaction<T>(
+    fn: (client: TransactionClient) => Promise<T>,
+  ): Promise<T> {
     const client = await pool.connect();
-    
+
     const wrappedClient: TransactionClient = {
       async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
         const { rows } = await client.query(sql, params);
         return rows;
       },
-      async queryOne<T = any>(sql: string, params: any[] = []): Promise<T | null> {
+      async queryOne<T = any>(
+        sql: string,
+        params: any[] = [],
+      ): Promise<T | null> {
         const { rows } = await client.query(sql, params);
         return rows[0] || null;
       },
       async execute(sql: string, params: any[] = []): Promise<void> {
         await client.query(sql, params);
-      }
+      },
     };
 
     try {

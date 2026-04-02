@@ -107,8 +107,9 @@ export const LogoIcon: React.FC<LogoIconProps> = memo(
         className={clsx(
           "relative flex items-center justify-center text-brand-primary transition-all duration-500 ease-out",
           "isolation-auto will-change-transform", // Performance optimization
-          interactive && "cursor-pointer hover:scale-110 active:scale-95 hover:rotate-3",
-          className
+          interactive &&
+            "cursor-pointer hover:scale-110 active:scale-95 hover:rotate-3",
+          className,
         )}
       >
         {/* Ambient Glow - Subtle breathing effect behind the icon */}
@@ -117,10 +118,13 @@ export const LogoIcon: React.FC<LogoIconProps> = memo(
         )}
 
         {/* Rotating hex - Now using backface-visibility for smoother rendering */}
-        <div className={clsx(
-          "relative z-10 transition-transform duration-700",
-          animated && "animate-[spin_12s_linear_infinite]"
-        )} style={{ backfaceVisibility: 'hidden' }}>
+        <div
+          className={clsx(
+            "relative z-10 transition-transform duration-700",
+            animated && "animate-[spin_12s_linear_infinite]",
+          )}
+          style={{ backfaceVisibility: "hidden" }}
+        >
           <Hexagon
             size={config.icon}
             strokeWidth={2.2}
@@ -158,7 +162,11 @@ interface LogoTextProps {
 }
 
 export const LogoText: React.FC<LogoTextProps> = memo(
-  ({ title = "Labrix", subtitle = "Quality Control Platform v1.0.0", className }) => {
+  ({
+    title = "Labrix",
+    subtitle = "Quality Control Platform v1.0.0",
+    className,
+  }) => {
     const { size, variant } = useLogo();
     const config = sizeConfig[size];
 

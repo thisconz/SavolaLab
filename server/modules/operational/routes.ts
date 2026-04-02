@@ -36,7 +36,9 @@ app.get("/equipment", authenticateToken, async (c) => {
         400,
       );
 
-    const equipment = await OperationalService.getEquipment({ lineId: line_id });
+    const equipment = await OperationalService.getEquipment({
+      lineId: line_id,
+    });
     return sendResponse(
       c,
       equipment,

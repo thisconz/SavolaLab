@@ -45,22 +45,25 @@ export function buildQuery(config: QueryConfig, filters: Record<string, any>) {
         const result = config.filters[key](value);
 
         // Ensure the callback actually returned the expected structure
-        if (!result || typeof result.clause !== 'string') {
-          throw new Error("Filter callback must return { clause: string, param: any }");
+        if (!result || typeof result.clause !== "string") {
+          throw new Error(
+            "Filter callback must return { clause: string, param: any }",
+          );
         }
 
         const { clause, param } = result;
 
         // Safely replace ? with PostgreSQL $n placeholders
         const pgClause = clause.replace(/\?/g, () => `$${paramIndex++}`);
-        
+
         sql += ` AND ${pgClause}`;
         params.push(param);
-
       } catch (err: any) {
         // Log the internal error for the devs, but throw a clean message for the UI
         console.error(`[Archive Query Error] Filter '${key}' failed:`, err);
-        throw new Error(`Invalid search criteria for '${key}'. Please check your input.`);
+        throw new Error(
+          `Invalid search criteria for '${key}'. Please check your input.`,
+        );
       }
     }
   }

@@ -1,6 +1,14 @@
 import React from "react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { Shield, Key, Lock, ChevronRight, UserPlus, Cpu, Fingerprint } from "lucide-react";
+import {
+  Shield,
+  Key,
+  Lock,
+  ChevronRight,
+  UserPlus,
+  Cpu,
+  Fingerprint,
+} from "lucide-react";
 import { LogoRoot, LogoIcon, LogoText } from "../../../ui/components/Logo";
 import { RegistrationFlow } from "./RegistrationFlow";
 import { useAuthFlow } from "../hooks/useAuthFlow";
@@ -87,7 +95,7 @@ export const LoginPage: React.FC = () => {
                   />
                 </motion.div>
               ) : !selectedUser ? (
-                <motion.div 
+                <motion.div
                   key="user-list"
                   className="space-y-8"
                   initial={{ opacity: 0 }}
@@ -100,7 +108,10 @@ export const LoginPage: React.FC = () => {
                     <div className="flex items-center justify-center gap-2">
                       <div className="flex space-x-1">
                         {[1, 2, 3].map((i) => (
-                          <div key={i} className="w-0.5 h-3 bg-brand-primary/30 rounded-full" />
+                          <div
+                            key={i}
+                            className="w-0.5 h-3 bg-brand-primary/30 rounded-full"
+                          />
                         ))}
                       </div>
                       <p className="text-[10px] text-brand-sage font-mono uppercase tracking-widest">
@@ -113,7 +124,9 @@ export const LoginPage: React.FC = () => {
                     {loading ? (
                       <div className="flex flex-col items-center justify-center py-12 gap-4">
                         <Cpu className="w-6 h-6 text-brand-primary animate-spin" />
-                        <span className="text-[10px] font-bold text-brand-primary uppercase tracking-[0.2em]">Syncing Personnel Data...</span>
+                        <span className="text-[10px] font-bold text-brand-primary uppercase tracking-[0.2em]">
+                          Syncing Personnel Data...
+                        </span>
                       </div>
                     ) : (
                       users.map((user) => (
@@ -146,7 +159,9 @@ export const LoginPage: React.FC = () => {
                     className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl border border-dashed border-brand-sage/30 text-brand-sage hover:text-brand-primary hover:border-brand-primary/50 hover:bg-brand-primary/5 transition-all duration-300 group"
                   >
                     <UserPlus className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Register New Personnel</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                      Register New Personnel
+                    </span>
                   </button>
                 </motion.div>
               ) : (
@@ -165,11 +180,14 @@ export const LoginPage: React.FC = () => {
                         {selectedUser.name}
                       </div>
                       <div className="text-[8px] text-brand-sage font-mono uppercase tracking-[0.1em] opacity-80">
-                         {safeRenderRole(selectedUser.role)}
+                        {safeRenderRole(selectedUser.role)}
                       </div>
                     </div>
                     <button
-                      onClick={() => { setSelectedUser(null); setError(""); }}
+                      onClick={() => {
+                        setSelectedUser(null);
+                        setError("");
+                      }}
                       className="px-3 py-1.5 rounded-lg text-[9px] font-black text-brand-primary uppercase hover:bg-brand-primary/10 transition-colors"
                     >
                       Exit
@@ -178,18 +196,26 @@ export const LoginPage: React.FC = () => {
 
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="flex p-1.5 bg-brand-mist/40 rounded-2xl border border-brand-sage/5">
-                      {(['pin', 'password'] as const).map((mode) => (
+                      {(["pin", "password"] as const).map((mode) => (
                         <button
                           key={mode}
                           type="button"
-                          onClick={() => { setAuthMode(mode); setInputValue(""); setError(""); }}
+                          onClick={() => {
+                            setAuthMode(mode);
+                            setInputValue("");
+                            setError("");
+                          }}
                           className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                            authMode === mode 
-                              ? "bg-white text-brand-primary shadow-md" 
+                            authMode === mode
+                              ? "bg-white text-brand-primary shadow-md"
                               : "text-brand-sage hover:text-brand-deep"
                           }`}
                         >
-                          {mode === 'pin' ? <Key className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                          {mode === "pin" ? (
+                            <Key className="w-3 h-3" />
+                          ) : (
+                            <Lock className="w-3 h-3" />
+                          )}
                           {mode}
                         </button>
                       ))}
@@ -202,10 +228,13 @@ export const LoginPage: React.FC = () => {
                           type={authMode === "pin" ? "password" : "text"}
                           maxLength={authMode === "pin" ? 4 : undefined}
                           value={inputValue}
-                          onChange={(e) => { setInputValue(e.target.value); setError(""); }}
+                          onChange={(e) => {
+                            setInputValue(e.target.value);
+                            setError("");
+                          }}
                           className={`w-full bg-brand-mist/30 border-2 rounded-2xl py-5 px-6 text-center text-2xl font-mono tracking-[0.5em] focus:outline-none transition-all duration-300 ${
-                            error 
-                              ? "border-red-500/50 bg-red-50/10 text-red-600 focus:ring-4 focus:ring-red-500/10" 
+                            error
+                              ? "border-red-500/50 bg-red-50/10 text-red-600 focus:ring-4 focus:ring-red-500/10"
                               : "border-transparent focus:border-brand-primary focus:bg-white focus:ring-4 focus:ring-brand-primary/10 text-brand-deep"
                           }`}
                           placeholder={authMode === "pin" ? "••••" : "••••••••"}
@@ -216,13 +245,15 @@ export const LoginPage: React.FC = () => {
                       </div>
 
                       {error && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: -10 }} 
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           className="flex items-center justify-center gap-2 text-red-600 bg-red-50 py-3 rounded-xl border border-red-100"
                         >
                           <Shield className="w-3.5 h-3.5" />
-                          <span className="text-[10px] font-black uppercase tracking-widest">{error}</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest">
+                            {error}
+                          </span>
                         </motion.div>
                       )}
                     </div>
@@ -254,7 +285,9 @@ export const LoginPage: React.FC = () => {
           <footer className="px-10 py-6 bg-brand-mist/20 border-t border-brand-sage/5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-widest">System_Secure</span>
+              <span className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-widest">
+                System_Secure
+              </span>
             </div>
             <p className="text-[8px] text-brand-sage/60 font-mono font-bold uppercase tracking-[0.15em]">
               v1.0.0

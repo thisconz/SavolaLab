@@ -1,6 +1,21 @@
-import React, { memo, useState, useMemo, useRef, useCallback, CSSProperties } from "react";
+import React, {
+  memo,
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+  CSSProperties,
+} from "react";
 import { useVirtualizer } from "@/src/lib/react-virtual";
-import { Search, Filter, X, ListFilter, RotateCcw, SlidersHorizontal, Beaker } from "lucide-react";
+import {
+  Search,
+  Filter,
+  X,
+  ListFilter,
+  RotateCcw,
+  SlidersHorizontal,
+  Beaker,
+} from "lucide-react";
 import { SampleCard } from "./SampleCard";
 import { Sample, SampleStatus } from "../../../core/types";
 
@@ -23,15 +38,19 @@ export const SampleQueue: React.FC<RowProps> = memo(
     const filteredSamples = useMemo(() => {
       const searchLower = searchQuery.toLowerCase().trim();
       return samples.filter((sample) => {
-        const matchesSearch = !searchLower || [
-          sample.batch_id,
-          sample.sugar_stage,
-          sample.source_stage,
-          sample.id
-        ].some(val => String(val).toLowerCase().includes(searchLower));
+        const matchesSearch =
+          !searchLower ||
+          [
+            sample.batch_id,
+            sample.sugar_stage,
+            sample.source_stage,
+            sample.id,
+          ].some((val) => String(val).toLowerCase().includes(searchLower));
 
-        const matchesPriority = priorityFilter === "ALL" || sample.priority === priorityFilter;
-        const matchesStatus = statusFilter === "ALL" || sample.status === statusFilter;
+        const matchesPriority =
+          priorityFilter === "ALL" || sample.priority === priorityFilter;
+        const matchesStatus =
+          statusFilter === "ALL" || sample.status === statusFilter;
 
         return matchesSearch && matchesPriority && matchesStatus;
       });
@@ -41,21 +60,26 @@ export const SampleQueue: React.FC<RowProps> = memo(
     const rowVirtualizer = useVirtualizer({
       count: filteredSamples.length,
       getScrollElement: () => parentRef.current,
-      estimateSize: useCallback(() => CARD_HEIGHT, []), 
-      overscan: 10, 
+      estimateSize: useCallback(() => CARD_HEIGHT, []),
+      overscan: 10,
     });
 
     const containerStyle: CSSProperties = useMemo(() => {
       const isScrollable = filteredSamples.length > MAX_VISIBLE_SAMPLES;
       return {
         // If > 5 samples, cap at 5.5 to show a "peek" of the 6th, or exactly 5.
-        maxHeight: isScrollable ? `${CARD_HEIGHT * MAX_VISIBLE_SAMPLES}px` : 'auto',
-        height: !isScrollable ? `${filteredSamples.length * CARD_HEIGHT}px` : 'auto',
-        overflowY: isScrollable ? 'auto' : 'hidden',
+        maxHeight: isScrollable
+          ? `${CARD_HEIGHT * MAX_VISIBLE_SAMPLES}px`
+          : "auto",
+        height: !isScrollable
+          ? `${filteredSamples.length * CARD_HEIGHT}px`
+          : "auto",
+        overflowY: isScrollable ? "auto" : "hidden",
       };
     }, [filteredSamples.length]);
 
-    const activeFilterCount = (priorityFilter !== "ALL" ? 1 : 0) + (statusFilter !== "ALL" ? 1 : 0);
+    const activeFilterCount =
+      (priorityFilter !== "ALL" ? 1 : 0) + (statusFilter !== "ALL" ? 1 : 0);
 
     const clearFilters = () => {
       setSearchQuery("");
@@ -65,7 +89,6 @@ export const SampleQueue: React.FC<RowProps> = memo(
 
     return (
       <div className="flex flex-col h-full w-full bg-white/80 backdrop-blur-md border border-brand-sage/10 rounded-4xl overflow-hidden">
-        
         {/* Compact Header */}
         <header className="flex-none p-4 pb-2 border-b border-brand-sage/5 space-y-3">
           <div className="flex items-center justify-between px-1">
@@ -78,9 +101,9 @@ export const SampleQueue: React.FC<RowProps> = memo(
                 {filteredSamples.length}
               </span>
             </div>
-            
+
             {activeFilterCount > 0 && (
-              <button 
+              <button
                 onClick={clearFilters}
                 className="group flex items-center gap-1.5 text-brand-sage hover:text-brand-primary transition-colors text-[9px] font-bold uppercase"
               >
@@ -110,9 +133,11 @@ export const SampleQueue: React.FC<RowProps> = memo(
                 onClick={() => setPriorityFilter(p)}
                 className={`
                   whitespace-nowrap px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all
-                  ${priorityFilter === p 
-                    ? "bg-brand-primary text-white shadow-sm shadow-brand-primary/20" 
-                    : "bg-brand-mist/60 text-brand-sage hover:bg-brand-mist"}
+                  ${
+                    priorityFilter === p
+                      ? "bg-brand-primary text-white shadow-sm shadow-brand-primary/20"
+                      : "bg-brand-mist/60 text-brand-sage hover:bg-brand-mist"
+                  }
                 `}
               >
                 {p}
@@ -120,14 +145,16 @@ export const SampleQueue: React.FC<RowProps> = memo(
             ))}
             <div className="w-px h-3 bg-brand-sage/20 shrink-0 mx-1" />
             <div className="relative shrink-0">
-               <select
+              <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="bg-brand-mist/60 text-brand-sage text-[9px] font-black uppercase tracking-wider pl-2 pr-6 py-1 rounded-lg appearance-none cursor-pointer focus:outline-none"
               >
                 <option value="ALL">All Status</option>
-                {Object.values(SampleStatus).map(s => (
-                  <option key={s} value={s}>{s}</option>
+                {Object.values(SampleStatus).map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
                 ))}
               </select>
               <SlidersHorizontal className="absolute right-2 top-1/2 -translate-y-1/2 w-2.5 h-2.5 pointer-events-none" />
@@ -143,8 +170,10 @@ export const SampleQueue: React.FC<RowProps> = memo(
         >
           {filteredSamples.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center opacity-40 grayscale py-20">
-               <Beaker size={32}/>
-               <p className="text-[10px] font-black uppercase tracking-widest text-brand-deep">No Matches</p>
+              <Beaker size={32} />
+              <p className="text-[10px] font-black uppercase tracking-widest text-brand-deep">
+                No Matches
+              </p>
             </div>
           ) : (
             <div
@@ -157,7 +186,7 @@ export const SampleQueue: React.FC<RowProps> = memo(
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const sample = filteredSamples[virtualRow.index];
                 const isActive = selectedSampleId === sample.id;
-                
+
                 return (
                   <div
                     key={virtualRow.key}
@@ -168,7 +197,7 @@ export const SampleQueue: React.FC<RowProps> = memo(
                       width: "100%",
                       height: `${virtualRow.size}px`,
                       transform: `translateY(${virtualRow.start}px)`,
-                      paddingBottom: "12px", 
+                      paddingBottom: "12px",
                     }}
                   >
                     <SampleCard

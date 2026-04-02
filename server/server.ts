@@ -117,7 +117,7 @@ async function startServer(): Promise<void> {
   }
 
   // ── API Routes ────────────────────────────
-  
+
   const api = "/api";
   app.route(`${api}/auth`, authRoutes);
   app.route(`${api}/notifications`, notificationRoutes);
@@ -190,7 +190,7 @@ async function startServer(): Promise<void> {
 
     return c.json(
       { error: IS_PROD ? "Internal Server Error" : message },
-      status
+      status,
     );
   });
 

@@ -5,8 +5,8 @@ import { authenticateToken } from "../../core/middleware";
 const app = new Hono();
 
 /**
- * PRODUCTION FIX: 
- * We use a reusable validator function to ensure all CRUD operations 
+ * PRODUCTION FIX:
+ * We use a reusable validator function to ensure all CRUD operations
  * respect the single source of truth in the Service layer.
  */
 const validateTable = (table: string) => ALLOWED_TABLES.has(table);
@@ -18,19 +18,22 @@ app.get("/preferences", authenticateToken, async (c) => {
     return c.json({ success: true, data: prefs });
   } catch (err: any) {
     console.error("Failed to fetch preferences:", err);
-    return c.json(
-      { success: false, error: "Internal server error" },
-      500,
-    );
+    return c.json({ success: false, error: "Internal server error" }, 500);
   }
 });
 
 // --- GET all records from a table ---
 app.get("/:table", authenticateToken, async (c) => {
   const table = c.req.param("table");
-  
+
   if (!validateTable(table)) {
-    return c.json({ success: false, error: `Unauthorized access: ${table} is not an administrative table.` }, 400);
+    return c.json(
+      {
+        success: false,
+        error: `Unauthorized access: ${table} is not an administrative table.`,
+      },
+      400,
+    );
   }
 
   try {
@@ -45,7 +48,7 @@ app.get("/:table", authenticateToken, async (c) => {
 // --- CREATE a new record ---
 app.post("/:table", authenticateToken, async (c) => {
   const table = c.req.param("table");
-  
+
   if (!validateTable(table)) {
     return c.json({ success: false, error: "Invalid table" }, 400);
   }
@@ -56,7 +59,10 @@ app.post("/:table", authenticateToken, async (c) => {
     return c.json({ success: true, data: result }, 201);
   } catch (err: any) {
     console.error(`Failed to create record in ${table}:`, err);
-    return c.json({ success: false, error: err.message || "Internal server error" }, 500);
+    return c.json(
+      { success: false, error: err.message || "Internal server error" },
+      500,
+    );
   }
 });
 

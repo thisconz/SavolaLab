@@ -18,7 +18,8 @@ export const AssetsFeature: React.FC = memo(() => {
                   Asset Reliability & Equipment Intelligence
                 </p>
                 <p className="text-xs text-brand-sage font-medium max-w-md text-center">
-                  Comprehensive tracking and predictive maintenance insights for all laboratory and plant equipment.
+                  Comprehensive tracking and predictive maintenance insights for
+                  all laboratory and plant equipment.
                 </p>
               </div>
             </LabPanel>

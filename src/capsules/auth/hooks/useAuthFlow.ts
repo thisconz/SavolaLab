@@ -11,10 +11,8 @@ interface UseAuthFlowOptions {
 const getInitials = (name: string) => {
   const parts = name.trim().split(" ");
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return (
-    parts[0].charAt(0).toUpperCase() + parts[1].charAt(0).toUpperCase()
-  );
-}
+  return parts[0].charAt(0).toUpperCase() + parts[1].charAt(0).toUpperCase();
+};
 
 export const useAuthFlow = ({
   onSuccess,
@@ -89,7 +87,12 @@ export const useAuthFlow = ({
               role: response.user.role as any,
               dept: response.user.dept,
               initials: getInitials(response.user.name),
-              permissions: ["view_results", "input_data", "edit_formulas", "change_specs"],
+              permissions: [
+                "view_results",
+                "input_data",
+                "edit_formulas",
+                "change_specs",
+              ],
             },
             response.token,
           );

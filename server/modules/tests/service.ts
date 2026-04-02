@@ -11,18 +11,18 @@ const updateWorkflowStep = async (
   raw_value: number,
 ) => {
   try {
-    const activeExecution = await db.queryOne(
+    const activeExecution = (await db.queryOne(
       `
       SELECT id FROM workflow_executions 
       WHERE sample_id = $1 AND status = 'IN_PROGRESS'
       LIMIT 1
     `,
       [sample_id],
-    ) as any;
+    )) as any;
 
     if (!activeExecution) return;
 
-    const matchingStep = await db.queryOne(
+    const matchingStep = (await db.queryOne(
       `
       SELECT wse.id 
       FROM workflow_step_executions wse
@@ -34,7 +34,7 @@ const updateWorkflowStep = async (
       LIMIT 1
     `,
       [activeExecution.id, test_type],
-    ) as any;
+    )) as any;
 
     if (!matchingStep) return;
 
@@ -49,14 +49,14 @@ const updateWorkflowStep = async (
     );
 
     // Check if workflow is fully completed
-    const pendingSteps = await db.queryOne(
+    const pendingSteps = (await db.queryOne(
       `
       SELECT COUNT(*) as count 
       FROM workflow_step_executions 
       WHERE execution_id = $1 AND status != 'COMPLETED'
     `,
       [activeExecution.id],
-    ) as any;
+    )) as any;
 
     if (Number(pendingSteps.count) === 0) {
       await db.execute(
@@ -128,7 +128,10 @@ export const TestService = {
 
     try {
       return await db.transaction(async (client) => {
-        const sampleResult = await client.query("SELECT id FROM samples WHERE id = $1", [sampleId]);
+        const sampleResult = await client.query(
+          "SELECT id FROM samples WHERE id = $1",
+          [sampleId],
+        );
         const sample = sampleResult[0];
         if (!sample) throw new Error(`Sample ${sampleId} not found`);
 
@@ -221,7 +224,10 @@ export const TestService = {
     const { raw_value, calculated_value, status, notes, params } = data;
 
     return await db.transaction(async (client) => {
-      const testResult = await client.query("SELECT * FROM tests WHERE id = $1", [id]);
+      const testResult = await client.query(
+        "SELECT * FROM tests WHERE id = $1",
+        [id],
+      );
       const test = testResult[0];
       if (!test) throw new Error("Test not found");
 

@@ -22,11 +22,11 @@ export const QCTrendsWidget: React.FC<QCTrendsWidgetProps> = ({ tests }) => {
     tests.forEach((t) => {
       if (!t.performed_at || t.calculated_value == null) return;
       // Using a shorter date format for technical density
-      const date = new Date(t.performed_at).toLocaleDateString(undefined, { 
-        month: 'numeric', 
-        day: 'numeric' 
+      const date = new Date(t.performed_at).toLocaleDateString(undefined, {
+        month: "numeric",
+        day: "numeric",
       });
-      
+
       if (!dailyData[date]) {
         dailyData[date] = { sum: 0, count: 0 };
       }
@@ -46,11 +46,19 @@ export const QCTrendsWidget: React.FC<QCTrendsWidgetProps> = ({ tests }) => {
   return (
     <div className="h-[240px] w-full group/chart relative">
       {/* 1. Technical Backdrop Definition */}
-      <svg style={{ height: 0, width: 0, position: 'absolute' }}>
+      <svg style={{ height: 0, width: 0, position: "absolute" }}>
         <defs>
           <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--brand-primary)" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="var(--brand-primary)" stopOpacity={0} />
+            <stop
+              offset="5%"
+              stopColor="var(--brand-primary)"
+              stopOpacity={0.3}
+            />
+            <stop
+              offset="95%"
+              stopColor="var(--brand-primary)"
+              stopOpacity={0}
+            />
           </linearGradient>
         </defs>
       </svg>
@@ -65,25 +73,25 @@ export const QCTrendsWidget: React.FC<QCTrendsWidgetProps> = ({ tests }) => {
             stroke="rgba(var(--brand-sage-rgb), 0.2)"
             vertical={true} // Vertical lines help time-series tracking
           />
-          
+
           <XAxis
             dataKey="date"
-            tick={{ 
-              fontSize: 8, 
-              fontFamily: "var(--font-mono)", 
-              fontWeight: 800, 
-              fill: "rgba(var(--brand-deep-rgb), 0.4)" 
+            tick={{
+              fontSize: 8,
+              fontFamily: "var(--font-mono)",
+              fontWeight: 800,
+              fill: "rgba(var(--brand-deep-rgb), 0.4)",
             }}
             axisLine={false}
             tickLine={false}
             dy={10}
           />
-          
+
           <YAxis
-            tick={{ 
-              fontSize: 8, 
-              fontFamily: "var(--font-mono)", 
-              fill: "rgba(var(--brand-sage-rgb), 0.5)" 
+            tick={{
+              fontSize: 8,
+              fontFamily: "var(--font-mono)",
+              fill: "rgba(var(--brand-sage-rgb), 0.5)",
             }}
             axisLine={false}
             tickLine={false}
@@ -113,16 +121,16 @@ export const QCTrendsWidget: React.FC<QCTrendsWidgetProps> = ({ tests }) => {
             strokeWidth={2.5}
             fillOpacity={1}
             fill="url(#lineGradient)"
-            dot={{ 
-              r: 3, 
-              fill: "var(--brand-deep)", 
-              stroke: "var(--brand-primary)", 
-              strokeWidth: 2 
+            dot={{
+              r: 3,
+              fill: "var(--brand-deep)",
+              stroke: "var(--brand-primary)",
+              strokeWidth: 2,
             }}
-            activeDot={{ 
-              r: 5, 
-              fill: "var(--brand-primary)", 
-              className: "animate-pulse" 
+            activeDot={{
+              r: 5,
+              fill: "var(--brand-primary)",
+              className: "animate-pulse",
             }}
             animationDuration={2000}
           />

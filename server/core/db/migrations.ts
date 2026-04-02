@@ -346,7 +346,9 @@ export const migrations: Migration[] = [
   {
     version: 15,
     up: async (client) => {
-      await client.execute(`ALTER TABLE users ALTER COLUMN pin_hash DROP NOT NULL`);
+      await client.execute(
+        `ALTER TABLE users ALTER COLUMN pin_hash DROP NOT NULL`,
+      );
     },
   },
   {
@@ -447,5 +449,5 @@ export const migrations: Migration[] = [
         ADD COLUMN IF NOT EXISTS sample_type TEXT;
       `);
     },
-  }
+  },
 ];

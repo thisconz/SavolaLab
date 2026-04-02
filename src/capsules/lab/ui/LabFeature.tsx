@@ -1,11 +1,11 @@
 import React, { useState, memo, useCallback, useMemo } from "react";
-import { 
-  Microscope, 
-  ClipboardList, 
-  FlaskConical, 
-  Plus, 
-  Activity, 
-  LayoutDashboard 
+import {
+  Microscope,
+  ClipboardList,
+  FlaskConical,
+  Plus,
+  Activity,
+  LayoutDashboard,
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import { LabPanel } from "../../../ui/components/LabPanel";
@@ -20,22 +20,26 @@ import { ErrorBoundary } from "../../../ui/components/ErrorBoundary";
 
 export const LabFeature: React.FC = memo(() => {
   const { samples, loading, error, refresh } = useLabSamples();
-  
+
   // FIX 1 & 3: Changed state type to number | null to match Sample.id (Error 2367 & 2345)
   const [selectedSampleId, setSelectedSampleId] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<"queue" | "details" | "bench">("queue");
+  const [viewMode, setViewMode] = useState<"queue" | "details" | "bench">(
+    "queue",
+  );
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
   const selectedSample = useMemo(
     () => samples?.find((s) => s.id === selectedSampleId) || null,
-    [samples, selectedSampleId]
+    [samples, selectedSampleId],
   );
 
   const activeCount = useMemo(
     // FIX 2: Use the SampleStatus enum/type instead of raw string if applicable (Error 2367)
     // Adjust 'SampleStatus.IN_PROGRESS' to match your actual core/types definition
-    () => samples?.filter(s => s.status === "in_progress" as SampleStatus).length || 0,
-    [samples]
+    () =>
+      samples?.filter((s) => s.status === ("in_progress" as SampleStatus))
+        .length || 0,
+    [samples],
   );
 
   const handleSampleSelect = useCallback((sample: Sample) => {
@@ -57,20 +61,34 @@ export const LabFeature: React.FC = memo(() => {
             <LayoutDashboard size={20} />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-brand-deep tracking-tight">Labrix Operator</h1>
-            <p className="text-xs text-brand-sage font-medium uppercase tracking-wider">Savola Facility Hub</p>
+            <h1 className="text-lg font-bold text-brand-deep tracking-tight">
+              Labrix Operator
+            </h1>
+            <p className="text-xs text-brand-sage font-medium uppercase tracking-wider">
+              Savola Facility Hub
+            </p>
           </div>
         </div>
-        
+
         <div className="flex gap-4">
           <div className="flex items-center gap-4 bg-white/50 border border-brand-sage/10 px-4 py-2 rounded-2xl">
-            <StatItem icon={Activity} label="Active" value={activeCount} color="text-emerald-500" />
+            <StatItem
+              icon={Activity}
+              label="Active"
+              value={activeCount}
+              color="text-emerald-500"
+            />
             <div className="w-px h-6 bg-brand-sage/20" />
-            <StatItem icon={FlaskConical} label="Queue" value={samples?.length || 0} color="text-brand-primary" />
+            <StatItem
+              icon={FlaskConical}
+              label="Queue"
+              value={samples?.length || 0}
+              color="text-brand-primary"
+            />
           </div>
-          <LabButton 
-            variant="primary" 
-            icon={Plus} 
+          <LabButton
+            variant="primary"
+            icon={Plus}
             onClick={() => setIsRegisterModalOpen(true)}
           >
             Register Sample
@@ -91,7 +109,7 @@ export const LabFeature: React.FC = memo(() => {
             <SampleQueue
               samples={samples ?? []}
               // FIX 4: selectedSampleId is now correctly passed as number (Error 2322)
-              selectedSampleId={selectedSampleId} 
+              selectedSampleId={selectedSampleId}
               onSampleSelect={handleSampleSelect}
             />
           </LabPanel>
@@ -139,7 +157,9 @@ export const LabFeature: React.FC = memo(() => {
 });
 
 /* Sub-components remain the same but ensure props are typed correctly */
-const WorkspaceTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const WorkspaceTransition: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.98, y: 10 }}
     animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -154,13 +174,17 @@ const WorkspaceTransition: React.FC<{ children: React.ReactNode }> = ({ children
 const StatItem = ({ icon: Icon, label, value, color }: any) => (
   <div className="flex items-center gap-2">
     <Icon size={14} className={color} />
-    <span className="text-[10px] font-black uppercase text-brand-sage tracking-tighter">{label}</span>
-    <span className="text-sm font-bold text-brand-deep leading-none">{value}</span>
+    <span className="text-[10px] font-black uppercase text-brand-sage tracking-tighter">
+      {label}
+    </span>
+    <span className="text-sm font-bold text-brand-deep leading-none">
+      {value}
+    </span>
   </div>
 );
 
 const EmptyWorkspace = () => (
-  <motion.div 
+  <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     className="h-full flex flex-col items-center justify-center gap-6 bg-white/40 rounded-[2.5rem] border-2 border-dashed border-brand-sage/10"
@@ -173,7 +197,9 @@ const EmptyWorkspace = () => (
     </div>
     <div className="text-center">
       <h2 className="text-xl font-bold text-brand-deep">Workspace Idle</h2>
-      <p className="text-brand-sage text-sm mt-1">Select a sample from the queue to start analysis.</p>
+      <p className="text-brand-sage text-sm mt-1">
+        Select a sample from the queue to start analysis.
+      </p>
     </div>
   </motion.div>
 );

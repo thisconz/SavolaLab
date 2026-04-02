@@ -15,7 +15,9 @@ interface EfficiencyWidgetProps {
   samples: Sample[];
 }
 
-export const EfficiencyWidget: React.FC<EfficiencyWidgetProps> = ({ samples }) => {
+export const EfficiencyWidget: React.FC<EfficiencyWidgetProps> = ({
+  samples,
+}) => {
   const data = useMemo(() => {
     const stageData: Record<string, { sum: number; count: number }> = {};
 
@@ -61,11 +63,11 @@ export const EfficiencyWidget: React.FC<EfficiencyWidgetProps> = ({ samples }) =
           <YAxis
             type="category"
             dataKey="name"
-            tick={{ 
-              fontSize: 8, 
-              fontFamily: "var(--font-mono)", 
+            tick={{
+              fontSize: 8,
+              fontFamily: "var(--font-mono)",
               fontWeight: 900,
-              fill: "rgba(var(--brand-deep-rgb), 0.5)" 
+              fill: "rgba(var(--brand-deep-rgb), 0.5)",
             }}
             axisLine={false}
             tickLine={false}
@@ -94,9 +96,13 @@ export const EfficiencyWidget: React.FC<EfficiencyWidgetProps> = ({ samples }) =
             animationEasing="ease-out"
           >
             {data.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={index === 0 ? "var(--brand-primary)" : "rgba(var(--brand-primary-rgb), 0.6)"} 
+              <Cell
+                key={`cell-${index}`}
+                fill={
+                  index === 0
+                    ? "var(--brand-primary)"
+                    : "rgba(var(--brand-primary-rgb), 0.6)"
+                }
                 className="hover:opacity-80 transition-opacity cursor-crosshair"
               />
             ))}
@@ -121,10 +127,16 @@ const CustomTooltip = ({ active, payload }: any) => {
         </div>
         <div className="space-y-1">
           <p className="text-[10px] font-mono text-white/90 uppercase">
-            STAGE: <span className="text-brand-primary">{payload[0].payload.name}</span>
+            STAGE:{" "}
+            <span className="text-brand-primary">
+              {payload[0].payload.name}
+            </span>
           </p>
           <p className="text-[10px] font-mono text-white/50">
-            AVG_LOAD: <span className="text-white font-bold">{payload[0].value} TEST_UNITS</span>
+            AVG_LOAD:{" "}
+            <span className="text-white font-bold">
+              {payload[0].value} TEST_UNITS
+            </span>
           </p>
         </div>
       </div>

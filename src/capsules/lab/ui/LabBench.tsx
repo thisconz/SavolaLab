@@ -24,7 +24,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "@/src/lib/recharts";
-import { Sample, TestResult, TestType, WorkflowStepExecutionStatus } from "../../../core/types";
+import {
+  Sample,
+  TestResult,
+  TestType,
+  WorkflowStepExecutionStatus,
+} from "../../../core/types";
 import { SampleStatus, SamplePriority } from "../../../core/types";
 import { LabPanel } from "../../../ui/components/LabPanel";
 import { LabApi } from "../api/lab.api";
@@ -40,14 +45,14 @@ interface LabBenchProps {
 
 /**
  * LabBench Component
- * 
+ *
  * The core interface for laboratory technicians to enter and validate test results.
  * It provides a dynamic, interactive environment for data entry, including:
  * - Real-time validation against predefined limits (e.g., Brix, Purity, ICUMSA).
  * - Automatic calculations (e.g., ICUMSA Colour based on Absorbance, Brix, and Cell Length).
  * - Historical trend visualization for specific test types to aid in quality control.
  * - Integration with the workflow engine to update step execution statuses.
- * 
+ *
  * @param {Sample} sample - The sample currently being tested.
  * @param {() => void} onComplete - Callback triggered when all tests are completed and saved.
  */
@@ -102,7 +107,10 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                       : t.params;
                   p = { ...p, ...parsed };
                 } catch (e) {
-                  console.warn(`Failed to parse colour params for test ${t.id}:`, e);
+                  console.warn(
+                    `Failed to parse colour params for test ${t.id}:`,
+                    e,
+                  );
                 }
               }
               initialColourParams[t.id] = p;
@@ -219,7 +227,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
         const activeExec = executions.find((e) => e.status === "IN_PROGRESS");
 
         // PASS 1: Parallel Data Persistence (Fast)
-        // We save/create all the test records first. 
+        // We save/create all the test records first.
         // We do NOT touch workflows here to avoid race conditions.
         const savedTests = await Promise.all(
           tests.map(async (test) => {
@@ -231,10 +239,13 @@ export const LabBench: React.FC<LabBenchProps> = memo(
               test_type: test.test_type,
               raw_value: rawValue,
               calculated_value: rawValue,
-              unit: TEST_VALIDATION_RULES[test.test_type as TestType]?.unit || "N/A",
+              unit:
+                TEST_VALIDATION_RULES[test.test_type as TestType]?.unit ||
+                "N/A",
               status: "VALIDATING",
               notes: notes[test.id] || null,
-              params: test.test_type === "Colour" ? colourParams[test.id] : null,
+              params:
+                test.test_type === "Colour" ? colourParams[test.id] : null,
             };
 
             if (test.id < 0) {
@@ -245,7 +256,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
             }
 
             return { id: savedTestId, type: test.test_type, value: rawValue };
-          })
+          }),
         );
 
         // PASS 2: Sequential Workflow Completion (Safe)
@@ -258,12 +269,12 @@ export const LabBench: React.FC<LabBenchProps> = memo(
             const stepIndex = localSteps.findIndex(
               (se) =>
                 se.test_type === result.type &&
-                (se.status === "IN_PROGRESS" || se.status === "PENDING")
+                (se.status === "IN_PROGRESS" || se.status === "PENDING"),
             );
 
             if (stepIndex !== -1) {
               const step = localSteps[stepIndex];
-              
+
               await WorkflowApi.completeStep(activeExec.id, step.step_id, {
                 status: "COMPLETED",
                 test_id: result.id,
@@ -271,7 +282,10 @@ export const LabBench: React.FC<LabBenchProps> = memo(
               });
 
               // CRITICAL: Update local state so the next iteration doesn't find this step again
-              localSteps[stepIndex] = { ...step, status: WorkflowStepExecutionStatus.COMPLETED };
+              localSteps[stepIndex] = {
+                ...step,
+                status: WorkflowStepExecutionStatus.COMPLETED,
+              };
             }
           }
         }

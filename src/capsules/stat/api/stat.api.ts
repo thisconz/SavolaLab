@@ -6,7 +6,11 @@ export const StatApi = {
     const res = await api.get<any>("/stats");
     return res.data || [];
   },
-  createStat: async (data: { department: string; reason: string; urgency?: string }): Promise<{ id: number }> => {
+  createStat: async (data: {
+    department: string;
+    reason: string;
+    urgency?: string;
+  }): Promise<{ id: number }> => {
     const res = await api.post<any>("/stats", data);
     return res.data;
   },

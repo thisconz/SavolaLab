@@ -1,5 +1,14 @@
 import React, { useState, memo, useMemo } from "react";
-import { Plus, Beaker, Layers, Activity, Hash, Settings, TestTube2, AlertCircle } from "lucide-react";
+import {
+  Plus,
+  Beaker,
+  Layers,
+  Activity,
+  Hash,
+  Settings,
+  TestTube2,
+  AlertCircle,
+} from "lucide-react";
 import { LabButton } from "../../../ui/components/LabButton";
 import { Modal } from "../../../ui/components/Modal";
 import type { SugarStage, Sample } from "../../../core/types";
@@ -32,7 +41,7 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      
+
       // Basic Validation
       if (!formData.batch_id.trim()) {
         setError("Batch ID is required for registration.");
@@ -73,7 +82,8 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
       onClose();
     };
 
-    const inputClasses = "w-full bg-white/80 backdrop-blur-sm border-2 border-brand-sage/20 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-brand-deep transition-all shadow-sm";
+    const inputClasses =
+      "w-full bg-white/80 backdrop-blur-sm border-2 border-brand-sage/20 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-brand-deep transition-all shadow-sm";
 
     return (
       <Modal
@@ -102,7 +112,9 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
                 required
                 type="text"
                 value={formData.batch_id}
-                onChange={(e) => setFormData({ ...formData, batch_id: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, batch_id: e.target.value })
+                }
                 placeholder="e.g. BT-8822"
                 className={inputClasses}
               />
@@ -115,7 +127,9 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
               </label>
               <select
                 value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                onChange={(e) =>
+                  setFormData({ ...formData, priority: e.target.value as any })
+                }
                 className={`${inputClasses} cursor-pointer`}
               >
                 <option value="NORMAL">NORMAL</option>
@@ -134,11 +148,18 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
               <select
                 required
                 value={formData.sugar_stage}
-                onChange={(e) => setFormData({ ...formData, sugar_stage: e.target.value as SugarStage })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    sugar_stage: e.target.value as SugarStage,
+                  })
+                }
                 className={`${inputClasses} cursor-pointer`}
               >
                 {SUGAR_STAGES.map((stage) => (
-                  <option key={stage} value={stage}>{stage}</option>
+                  <option key={stage} value={stage}>
+                    {stage}
+                  </option>
                 ))}
               </select>
             </div>
@@ -151,7 +172,9 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
               <input
                 type="text"
                 value={formData.sample_type}
-                onChange={(e) => setFormData({ ...formData, sample_type: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, sample_type: e.target.value })
+                }
                 placeholder="e.g. Raw Sugar"
                 className={inputClasses}
               />
@@ -167,7 +190,9 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
               <input
                 type="text"
                 value={formData.line_id}
-                onChange={(e) => setFormData({ ...formData, line_id: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, line_id: e.target.value })
+                }
                 className={inputClasses}
                 placeholder="L1"
               />
@@ -181,7 +206,9 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
               <input
                 type="text"
                 value={formData.equipment_id}
-                onChange={(e) => setFormData({ ...formData, equipment_id: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, equipment_id: e.target.value })
+                }
                 className={inputClasses}
                 placeholder="E102"
               />
@@ -194,7 +221,9 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
               </label>
               <select
                 value={formData.shift_id}
-                onChange={(e) => setFormData({ ...formData, shift_id: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, shift_id: e.target.value })
+                }
                 className={`${inputClasses} cursor-pointer`}
               >
                 <option value="">N/A</option>
@@ -228,7 +257,7 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
         </form>
       </Modal>
     );
-  }
+  },
 );
 
 RegisterSampleModal.displayName = "RegisterSampleModal";

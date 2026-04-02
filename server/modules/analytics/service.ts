@@ -20,18 +20,28 @@ export const AnalyticsService = {
     const grouped: Record<string, any> = {};
     for (const test of tests) {
       const date = new Date(test.updated_at);
-      const hour = `${date.getHours().toString().padStart(2, '0')}:00`;
-      
+      const hour = `${date.getHours().toString().padStart(2, "0")}:00`;
+
       if (!grouped[hour]) {
-        grouped[hour] = { time: hour, brix: null, purity: null, color: null, count: 0 };
+        grouped[hour] = {
+          time: hour,
+          brix: null,
+          purity: null,
+          color: null,
+          count: 0,
+        };
       }
-      
-      if (test.test_type === 'Brix') grouped[hour].brix = test.calculated_value;
-      if (test.test_type === 'Purity') grouped[hour].purity = test.calculated_value;
-      if (test.test_type === 'Color') grouped[hour].color = test.calculated_value;
+
+      if (test.test_type === "Brix") grouped[hour].brix = test.calculated_value;
+      if (test.test_type === "Purity")
+        grouped[hour].purity = test.calculated_value;
+      if (test.test_type === "Color")
+        grouped[hour].color = test.calculated_value;
     }
 
-    return Object.values(grouped).sort((a: any, b: any) => a.time.localeCompare(b.time));
+    return Object.values(grouped).sort((a: any, b: any) =>
+      a.time.localeCompare(b.time),
+    );
   },
 
   getVolumeData: async () => {
@@ -49,12 +59,12 @@ export const AnalyticsService = {
     }
 
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    return samples.map(s => {
+    return samples.map((s) => {
       const date = new Date(s.date);
       return {
         day: daysOfWeek[date.getDay()],
         volume: Number(s.volume) * 10, // Multiply by 10 to simulate tons
-        target: 1000
+        target: 1000,
       };
     });
   },
@@ -76,10 +86,10 @@ export const AnalyticsService = {
     };
 
     // USL and LSL (Upper/Lower Spec Limits)
-    const specs: Record<string, { usl: number, lsl: number }> = {
-      'Brix': { lsl: 60, usl: 70 },
-      'Purity': { lsl: 95, usl: 100 },
-      'Color': { lsl: 0, usl: 60 }
+    const specs: Record<string, { usl: number; lsl: number }> = {
+      Brix: { lsl: 60, usl: 70 },
+      Purity: { lsl: 95, usl: 100 },
+      Color: { lsl: 0, usl: 60 },
     };
 
     for (const test of tests) {
@@ -90,13 +100,13 @@ export const AnalyticsService = {
         const cpu = (usl - mean) / (3 * stddev);
         const cpl = (mean - lsl) / (3 * stddev);
         const val = Math.min(cpu, cpl);
-        
-        if (test.test_type === 'Brix') cpk.brixCpk = Number(val.toFixed(2));
-        if (test.test_type === 'Purity') cpk.purityCpk = Number(val.toFixed(2));
-        if (test.test_type === 'Color') cpk.colorCpk = Number(val.toFixed(2));
+
+        if (test.test_type === "Brix") cpk.brixCpk = Number(val.toFixed(2));
+        if (test.test_type === "Purity") cpk.purityCpk = Number(val.toFixed(2));
+        if (test.test_type === "Color") cpk.colorCpk = Number(val.toFixed(2));
       }
     }
 
     return cpk;
-  }
+  },
 };

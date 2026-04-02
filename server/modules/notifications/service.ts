@@ -55,7 +55,11 @@ export const NotificationService = {
         if (recipientId) {
           await client.execute(
             `INSERT INTO notifications (employee_number, type, message) VALUES ($1, $2, $3)`,
-            [recipientId, "OVERDUE_TEST", `Test ${test.test_type} for Batch ${test.batch_id} is overdue.`],
+            [
+              recipientId,
+              "OVERDUE_TEST",
+              `Test ${test.test_type} for Batch ${test.batch_id} is overdue.`,
+            ],
           );
         }
       }

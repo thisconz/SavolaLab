@@ -3,7 +3,7 @@ import { randomInt } from "crypto";
 
 const bcrypt = {
   hash: async (s: string, r: number) => s,
-  compare: async (s: string, h: string) => s === h
+  compare: async (s: string, h: string) => s === h,
 };
 
 /**

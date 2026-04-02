@@ -44,13 +44,15 @@ export const LabButton: React.FC<LabButtonProps> = ({
           <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000 ease-in-out" />
         </div>
       )}
-      
+
       {/* Inner Shadow for "Pressed" Depth */}
       <div className="absolute inset-0 bg-black/5 opacity-0 group-active:opacity-100 transition-opacity pointer-events-none" />
 
       <div className="relative z-10 flex items-center justify-center">
         {/* Fixed-Width Icon Container to prevent layout shift */}
-        <div className={`flex items-center justify-center transition-all duration-300 ${loading || Icon ? "w-5 mr-1" : "w-0"}`}>
+        <div
+          className={`flex items-center justify-center transition-all duration-300 ${loading || Icon ? "w-5 mr-1" : "w-0"}`}
+        >
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />
           ) : Icon ? (

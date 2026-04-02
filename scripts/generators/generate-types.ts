@@ -20,10 +20,12 @@ type TypeFile = {
 
 // Recursively collect type files
 function collectTypeFiles(dir: string): TypeFile[] {
-  const entries = fs.readdirSync(dir, { withFileTypes: true }).filter(e => !IGNORE.has(e.name));
+  const entries = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((e) => !IGNORE.has(e.name));
   let results: TypeFile[] = [];
 
-    for (const entry of entries) {
+  for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
 
     if (entry.isDirectory()) {
@@ -50,7 +52,7 @@ export function generateTypes(rootDir: string, outputDir: string) {
   // TXT output with code
   const txtPath = path.join(outputDir, "type-files.txt");
   const txtContent = typeFiles
-    .map(f => {
+    .map((f) => {
       const code = fs.readFileSync(f.path, "utf-8");
       return `// ===== ${f.path} =====\n${code}\n\n`;
     })

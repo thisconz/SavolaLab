@@ -149,7 +149,7 @@ export const SettingsPage: React.FC = () => {
       {/* Settings Sidebar */}
       <div className="w-80 bg-white rounded-3xl border border-brand-sage/10 overflow-hidden flex flex-col shadow-sm relative group/sidebar">
         <div className="absolute right-0 top-0 w-64 h-64 bg-linear-to-br from-brand-primary/5 to-transparent rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-transform duration-700 group-hover/sidebar:scale-150" />
-        
+
         <div className="p-8 border-b border-brand-sage/10 bg-white/50 backdrop-blur-md relative z-10">
           <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-primary" />
           <h2 className="text-xs font-black text-brand-deep uppercase tracking-[0.2em] flex items-center gap-3">
@@ -171,14 +171,21 @@ export const SettingsPage: React.FC = () => {
               }`}
             >
               {activeModule === m.id && (
-                <motion.div layoutId="activeSettingTab" className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-primary rounded-l-2xl" />
+                <motion.div
+                  layoutId="activeSettingTab"
+                  className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-primary rounded-l-2xl"
+                />
               )}
-              <div className={`p-2 rounded-xl transition-all duration-300 shadow-inner ${activeModule === m.id ? "bg-white/10 scale-110" : "bg-brand-mist group-hover:bg-brand-primary/10 group-hover:scale-105"}`}>
+              <div
+                className={`p-2 rounded-xl transition-all duration-300 shadow-inner ${activeModule === m.id ? "bg-white/10 scale-110" : "bg-brand-mist group-hover:bg-brand-primary/10 group-hover:scale-105"}`}
+              >
                 <m.icon
                   className={`w-4 h-4 transition-colors ${activeModule === m.id ? "text-brand-primary" : "text-brand-sage group-hover:text-brand-primary"}`}
                 />
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${activeModule === m.id ? "text-white" : "group-hover:text-brand-deep"}`}>
+              <span
+                className={`text-[10px] font-black uppercase tracking-widest transition-colors ${activeModule === m.id ? "text-white" : "group-hover:text-brand-deep"}`}
+              >
                 {m.label}
               </span>
               {activeModule === m.id && (
@@ -198,7 +205,9 @@ export const SettingsPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-4 mb-2">
               <div className="p-3 bg-brand-primary/10 rounded-2xl border border-brand-primary/20 shadow-inner">
-                {currentModule && <currentModule.icon className="w-6 h-6 text-brand-primary" />}
+                {currentModule && (
+                  <currentModule.icon className="w-6 h-6 text-brand-primary" />
+                )}
               </div>
               <h2 className="text-3xl font-light text-brand-deep tracking-tight">
                 {currentModule?.label}
@@ -416,19 +425,25 @@ export const SettingsPage: React.FC = () => {
                           {activeModule === "inventory" ? (
                             <>
                               <div className="flex flex-col gap-1">
-                                <span className="text-[9px] font-bold text-brand-sage uppercase tracking-[0.2em]">Type</span>
+                                <span className="text-[9px] font-bold text-brand-sage uppercase tracking-[0.2em]">
+                                  Type
+                                </span>
                                 <span className="font-mono text-xs font-medium text-brand-deep">
                                   {item.type}
                                 </span>
                               </div>
                               <div className="flex flex-col gap-1">
-                                <span className="text-[9px] font-bold text-brand-sage uppercase tracking-[0.2em]">Stock</span>
+                                <span className="text-[9px] font-bold text-brand-sage uppercase tracking-[0.2em]">
+                                  Stock
+                                </span>
                                 <span className="font-mono text-xs font-medium text-brand-deep">
                                   {item.quantity} {item.unit}
                                 </span>
                               </div>
                               <div className="flex flex-col gap-1">
-                                <span className="text-[9px] font-bold text-brand-sage uppercase tracking-[0.2em]">Expiry</span>
+                                <span className="text-[9px] font-bold text-brand-sage uppercase tracking-[0.2em]">
+                                  Expiry
+                                </span>
                                 <span
                                   className={`font-mono text-xs font-medium ${new Date(item.expiry_date) < new Date() ? "text-rose-500" : "text-brand-deep"}`}
                                 >
@@ -438,7 +453,9 @@ export const SettingsPage: React.FC = () => {
                             </>
                           ) : (
                             <div className="flex flex-col w-full gap-1">
-                              <span className="text-[9px] font-bold text-brand-sage uppercase tracking-[0.2em]">Details</span>
+                              <span className="text-[9px] font-bold text-brand-sage uppercase tracking-[0.2em]">
+                                Details
+                              </span>
                               <span className="font-mono text-xs font-medium text-brand-deep truncate opacity-80">
                                 {item.description ||
                                   item.value ||

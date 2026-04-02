@@ -27,7 +27,11 @@ export const OperationalService = {
     return result;
   },
 
-  getEquipment: async ({ lineId, limit = 100, offset = 0 }: EquipmentFilter = {}) => {
+  getEquipment: async ({
+    lineId,
+    limit = 100,
+    offset = 0,
+  }: EquipmentFilter = {}) => {
     let sql = "SELECT * FROM equipment";
     const params: any[] = [];
 
@@ -111,7 +115,7 @@ export const OperationalService = {
     const oee = 84.2;
     const yieldVal = 92.5;
     const energy = 42.1;
-    
+
     // Active Alarms from audit logs
     const alarmsResult = await db.query(`
       SELECT COUNT(*) as count FROM audit_logs 
@@ -121,8 +125,10 @@ export const OperationalService = {
     const activeAlarms = Number(alarmsResult[0]?.count) || 0;
 
     // Line Status
-    const linesResult = await db.query("SELECT * FROM production_lines ORDER BY name ASC");
-    
+    const linesResult = await db.query(
+      "SELECT * FROM production_lines ORDER BY name ASC",
+    );
+
     let lines = [];
     if (linesResult.length > 0) {
       // Generate realistic status based on line name
@@ -131,7 +137,7 @@ export const OperationalService = {
         let status = "Running";
         let uptime = 98 + (hash % 2);
         let oeeVal = 80 + (hash % 10);
-        
+
         if (hash % 5 === 0) {
           status = "Warning";
           uptime -= 5;
@@ -146,7 +152,7 @@ export const OperationalService = {
           name: line.name,
           status,
           uptime: `${uptime.toFixed(1)}%`,
-          oee: `${oeeVal}%`
+          oee: `${oeeVal}%`,
         };
       });
     }
@@ -156,9 +162,9 @@ export const OperationalService = {
         oee: `${oee}%`,
         yield: `${yieldVal}%`,
         energy: energy,
-        activeAlarms
+        activeAlarms,
       },
-      lines
+      lines,
     };
-  }
+  },
 };

@@ -20,10 +20,10 @@ type ExecutionWithWorkflow = WorkflowExecution & { workflow_name: string };
 
 /**
  * WorkflowsFeature Component
- * 
+ *
  * Manages and visualizes the execution of laboratory workflows for specific samples.
  * It provides a detailed view of the step-by-step progress of complex testing procedures.
- * 
+ *
  * Features:
  * - Sample selection with search and filtering capabilities.
  * - Visualization of workflow executions associated with a selected sample.

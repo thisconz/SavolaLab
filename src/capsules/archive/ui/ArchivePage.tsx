@@ -90,7 +90,7 @@ export const ArchivePage: React.FC = () => {
 
       const sheet = workbook.addWorksheet(activeSection.toUpperCase(), {
         views: [{ state: "frozen", xSplit: 0, ySplit: 6 }],
-        properties: { tabColor: { argb: "FF004B49" } }
+        properties: { tabColor: { argb: "FF004B49" } },
       });
 
       // 1. Add Title and Metadata
@@ -128,9 +128,11 @@ export const ArchivePage: React.FC = () => {
         sheet.getCell("D5").value = "Search Query:";
         sheet.getCell("E5").value = searchQuery;
       }
-      
+
       sheet.getCell("D6").value = "Data Integrity:";
-      sheet.getCell("E6").value = "VERIFIED - " + Math.random().toString(36).substring(2, 10).toUpperCase();
+      sheet.getCell("E6").value =
+        "VERIFIED - " +
+        Math.random().toString(36).substring(2, 10).toUpperCase();
 
       // Style metadata
       ["A4", "A5", "A6", "D4", "D5", "D6"].forEach((cellRef) => {
@@ -213,9 +215,13 @@ export const ArchivePage: React.FC = () => {
           const cell = dataRow.getCell(colIndex + 1);
           const val = formatValue(row[fieldName]);
           cell.value = val;
-          
+
           // Default alignment and borders
-          cell.alignment = { vertical: "middle", horizontal: "left", indent: 1 };
+          cell.alignment = {
+            vertical: "middle",
+            horizontal: "left",
+            indent: 1,
+          };
           cell.border = {
             top: { style: "thin", color: { argb: "FFE2E8F0" } },
             left: { style: "thin", color: { argb: "FFE2E8F0" } },
@@ -230,26 +236,62 @@ export const ArchivePage: React.FC = () => {
           } else if (typeof val === "number") {
             // Check if it's an integer or float
             cell.numFmt = Number.isInteger(val) ? "#,##0" : "#,##0.00";
-            cell.alignment = { vertical: "middle", horizontal: "right", indent: 1 };
+            cell.alignment = {
+              vertical: "middle",
+              horizontal: "right",
+              indent: 1,
+            };
           }
 
           // Conditional Formatting for Status
-          if (fieldName.toLowerCase().includes("status") || fieldName.toLowerCase().includes("priority")) {
+          if (
+            fieldName.toLowerCase().includes("status") ||
+            fieldName.toLowerCase().includes("priority")
+          ) {
             cell.font = { bold: true };
             cell.alignment = { vertical: "middle", horizontal: "center" };
             const statusStr = String(val).toUpperCase();
-            if (statusStr === "COMPLETED" || statusStr === "APPROVED" || statusStr === "ACTIVE") {
+            if (
+              statusStr === "COMPLETED" ||
+              statusStr === "APPROVED" ||
+              statusStr === "ACTIVE"
+            ) {
               cell.font.color = { argb: "FF15803D" }; // Green
-              cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDCFCE7" } };
-            } else if (statusStr === "PENDING" || statusStr === "IN_PROGRESS" || statusStr === "HIGH") {
+              cell.fill = {
+                type: "pattern",
+                pattern: "solid",
+                fgColor: { argb: "FFDCFCE7" },
+              };
+            } else if (
+              statusStr === "PENDING" ||
+              statusStr === "IN_PROGRESS" ||
+              statusStr === "HIGH"
+            ) {
               cell.font.color = { argb: "FFB45309" }; // Amber
-              cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEF3C7" } };
-            } else if (statusStr === "FAILED" || statusStr === "REJECTED" || statusStr === "CRITICAL" || statusStr === "STAT") {
+              cell.fill = {
+                type: "pattern",
+                pattern: "solid",
+                fgColor: { argb: "FFFEF3C7" },
+              };
+            } else if (
+              statusStr === "FAILED" ||
+              statusStr === "REJECTED" ||
+              statusStr === "CRITICAL" ||
+              statusStr === "STAT"
+            ) {
               cell.font.color = { argb: "FFB91C1C" }; // Red
-              cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEE2E2" } };
+              cell.fill = {
+                type: "pattern",
+                pattern: "solid",
+                fgColor: { argb: "FFFEE2E2" },
+              };
             } else {
               cell.font.color = { argb: "FF334155" };
-              cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF1F5F9" } };
+              cell.fill = {
+                type: "pattern",
+                pattern: "solid",
+                fgColor: { argb: "FFF1F5F9" },
+              };
             }
           } else {
             // Add alternating row colors for non-status cells
@@ -269,18 +311,24 @@ export const ArchivePage: React.FC = () => {
       const summaryRow = sheet.getRow(summaryRowIndex);
       summaryRow.getCell(1).value = "END OF REPORT";
       summaryRow.getCell(2).value = `Total Records Exported: ${data.length}`;
-      summaryRow.getCell(1).font = { bold: true, italic: true, color: { argb: "FF64748B" } };
-      summaryRow.getCell(2).font = { bold: true, italic: true, color: { argb: "FF64748B" } };
-      
+      summaryRow.getCell(1).font = {
+        bold: true,
+        italic: true,
+        color: { argb: "FF64748B" },
+      };
+      summaryRow.getCell(2).font = {
+        bold: true,
+        italic: true,
+        color: { argb: "FF64748B" },
+      };
+
       // 6. Auto-fit columns
       sheet.columns.forEach((column, i) => {
         let maxLength = 0;
         column.eachCell({ includeEmpty: true }, (cell, rowNumber) => {
           if (rowNumber > 7) {
             // Only check header and data rows
-            const columnLength = cell.value
-              ? cell.value.toString().length
-              : 10;
+            const columnLength = cell.value ? cell.value.toString().length : 10;
             if (columnLength > maxLength) {
               maxLength = columnLength;
             }
@@ -321,7 +369,7 @@ export const ArchivePage: React.FC = () => {
       <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm relative overflow-hidden group">
         <div className="absolute right-0 top-0 w-64 h-64 bg-linear-to-br from-brand-primary/5 to-transparent rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
         <div className="absolute left-0 bottom-0 w-full h-1 bg-linear-to-r from-transparent via-brand-primary/20 to-transparent opacity-0 group-hover:opacity-100 transform scale-x-0 group-hover:scale-x-100 transition-all duration-700 origin-left" />
-        
+
         <form
           onSubmit={handleSearch}
           className="flex flex-wrap gap-4 items-end relative z-10"
@@ -456,14 +504,21 @@ export const ArchivePage: React.FC = () => {
               }`}
             >
               {activeSection === s.id && (
-                <motion.div layoutId="activeTab" className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-primary rounded-l-3xl" />
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-primary rounded-l-3xl"
+                />
               )}
-              <div className={`p-2.5 rounded-2xl transition-all duration-300 shadow-inner ${activeSection === s.id ? "bg-brand-mist scale-110" : "bg-white border border-brand-sage/10 group-hover:scale-105"}`}>
+              <div
+                className={`p-2.5 rounded-2xl transition-all duration-300 shadow-inner ${activeSection === s.id ? "bg-brand-mist scale-110" : "bg-white border border-brand-sage/10 group-hover:scale-105"}`}
+              >
                 <s.icon
                   className={`w-5 h-5 ${activeSection === s.id ? "text-brand-primary" : "text-brand-sage group-hover:text-brand-primary"}`}
                 />
               </div>
-              <span className={`text-sm font-bold tracking-tight transition-colors ${activeSection === s.id ? "text-brand-deep" : "text-brand-sage group-hover:text-brand-deep"}`}>
+              <span
+                className={`text-sm font-bold tracking-tight transition-colors ${activeSection === s.id ? "text-brand-deep" : "text-brand-sage group-hover:text-brand-deep"}`}
+              >
                 {s.label}
               </span>
             </button>
@@ -473,7 +528,7 @@ export const ArchivePage: React.FC = () => {
         {/* Data Table */}
         <div className="flex-1 bg-white rounded-3xl border border-brand-sage/10 overflow-hidden flex flex-col shadow-sm relative group/table">
           <div className="absolute right-0 top-0 w-96 h-96 bg-linear-to-br from-brand-primary/5 to-transparent rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none transition-transform duration-700 group-hover/table:scale-150" />
-          
+
           <div className="px-8 py-6 border-b border-brand-sage/10 bg-white/50 backdrop-blur-md flex items-center justify-between relative z-10">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-brand-primary/10 rounded-2xl border border-brand-primary/20 shadow-inner">

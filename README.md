@@ -3,15 +3,15 @@
 ```
 ██╗      █████╗ ██████╗ ██████╗ ██╗██╗  ██╗
 ██║     ██╔══██╗██╔══██╗██╔══██╗██║╚██╗██╔╝
-██║     ███████║██████╔╝██████╔╝██║ ╚███╔╝ 
-██║     ██╔══██║██╔══██╗██╔══██╗██║ ██╔██╗ 
+██║     ███████║██████╔╝██████╔╝██║ ╚███╔╝
+██║     ██╔══██║██╔══██╗██╔══██╗██║ ██╔██╗
 ███████╗██║  ██║██████╔╝██║  ██║██║██╔╝ ██╗
 ╚══════╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝
 ```
 
 **Laboratory Intelligence & Execution System**
 
-*Deterministic workflows. Immutable data. Zero ambiguity.*
+_Deterministic workflows. Immutable data. Zero ambiguity._
 
 ![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=node.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white)
@@ -32,6 +32,7 @@ SavolaLab is a **Laboratory Information Management System (LIMS)** built specifi
 A batch of raw sugar arrives. By the time it leaves as certified white crystals, it has passed through 10+ process stages, each requiring specific chemical tests — Pol, Brix, Colour, Ash, pH, Purity, Moisture, Turbidity, and more. SavolaLab tracks every measurement, every technician, every approval, and every anomaly. Nothing is lost. Nothing can be altered after the fact. Everything is auditable.
 
 **What it replaces:**
+
 - Manual lab notebooks with no version control
 - Shared Excel sheets with no access control
 - WhatsApp groups for STAT escalations
@@ -39,6 +40,7 @@ A batch of raw sugar arrives. By the time it leaves as certified white crystals,
 - Monthly PDF reports nobody reads
 
 **What it delivers:**
+
 - Real-time sample queue visible to every shift
 - Instrument-linked calculations (ICUMSA colour from absorbance)
 - Automated workflow execution with step-by-step tracking
@@ -162,22 +164,22 @@ savolalab/
 
 ## Tech Stack
 
-| Domain | Technology | Why |
-|---|---|---|
-| **Runtime** | Node.js 20+ (ESM) | Native ESM, top-level await, no transpilation overhead |
-| **API Framework** | [Hono](https://hono.dev) v4 | Edge-first, zero-overhead routing, first-class middleware |
-| **Database** | [PostgreSQL](https://www.postgresql.org/) 15+ via `pg` | ACID transactions, trigger support, production-grade |
-| **Auth** | JWT (HS256) + bcrypt + OTP | Stateless sessions, hardware-safe password hashing |
-| **Frontend** | [React](https://react.dev/) 19 | Concurrent features, server components ready |
-| **Language** | TypeScript 5.8 | Strict mode, template literals, satisfies operator |
-| **Build** | [Vite](https://vite.dev/) 6 | Sub-second HMR, optimized production bundles |
-| **Styling** | Tailwind CSS v4 | CSS-first config, JIT, zero-runtime |
-| **Animation** | Motion v12 (Framer) | Spring physics, layout animations, AnimatePresence |
-| **State** | Zustand v5 + XState v5 | Minimal global state + formal state machines for complex UI |
-| **Charts** | Recharts v3 | Composable React chart primitives |
-| **List Perf** | [TanStack](https://tanstack.com/) Virtual v3 | Virtualized sample queue — handles thousands of rows |
-| **Monitoring** | [Sentry](https://sentry.io/) | Exception capture, performance tracing |
-| **Storage** | Firebase Storage | Certificate PDF hosting |
+| Domain            | Technology                                             | Why                                                         |
+| ----------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
+| **Runtime**       | Node.js 20+ (ESM)                                      | Native ESM, top-level await, no transpilation overhead      |
+| **API Framework** | [Hono](https://hono.dev) v4                            | Edge-first, zero-overhead routing, first-class middleware   |
+| **Database**      | [PostgreSQL](https://www.postgresql.org/) 15+ via `pg` | ACID transactions, trigger support, production-grade        |
+| **Auth**          | JWT (HS256) + bcrypt + OTP                             | Stateless sessions, hardware-safe password hashing          |
+| **Frontend**      | [React](https://react.dev/) 19                         | Concurrent features, server components ready                |
+| **Language**      | TypeScript 5.8                                         | Strict mode, template literals, satisfies operator          |
+| **Build**         | [Vite](https://vite.dev/) 6                            | Sub-second HMR, optimized production bundles                |
+| **Styling**       | Tailwind CSS v4                                        | CSS-first config, JIT, zero-runtime                         |
+| **Animation**     | Motion v12 (Framer)                                    | Spring physics, layout animations, AnimatePresence          |
+| **State**         | Zustand v5 + XState v5                                 | Minimal global state + formal state machines for complex UI |
+| **Charts**        | Recharts v3                                            | Composable React chart primitives                           |
+| **List Perf**     | [TanStack](https://tanstack.com/) Virtual v3           | Virtualized sample queue — handles thousands of rows        |
+| **Monitoring**    | [Sentry](https://sentry.io/)                           | Exception capture, performance tracing                      |
+| **Storage**       | Firebase Storage                                       | Certificate PDF hosting                                     |
 
 ---
 
@@ -197,11 +199,11 @@ The core of the system. When a technician opens a sample, they see every require
 
 Three priority levels with different visual treatments across the UI:
 
-| Priority | Colour | Behaviour |
-|---|---|---|
-| `NORMAL` | Sage green | Standard queue position |
-| `HIGH` | Amber | Elevated in sort order |
-| `STAT` | Crimson + pulse | Floats to top, pulsing border, animated presence indicator |
+| Priority | Colour          | Behaviour                                                  |
+| -------- | --------------- | ---------------------------------------------------------- |
+| `NORMAL` | Sage green      | Standard queue position                                    |
+| `HIGH`   | Amber           | Elevated in sort order                                     |
+| `STAT`   | Crimson + pulse | Floats to top, pulsing border, animated presence indicator |
 
 STAT samples are sorted before HIGH, which are sorted before NORMAL. Within the same priority, newest first.
 
@@ -220,6 +222,7 @@ Step 4 → Ash          [min: 0,     max: 0.04]
 ```
 
 When a workflow execution is started for a sample:
+
 1. All steps are created in `PENDING` state
 2. As test results are recorded, the engine matches them to pending steps by `test_type`
 3. Each matched step transitions to `COMPLETED` with the result value and timestamp
@@ -241,15 +244,15 @@ Database Layer        →  PostgreSQL triggers (cannot be bypassed by any applic
 
 The database triggers are the final, unbypassable guarantee:
 
-| Trigger | Table | Event | Effect |
-|---|---|---|---|
-| `prevent_extra_sample_types` | `sample_types` | `BEFORE INSERT` | Caps at 20 entries |
-| `protect_completed_sample` | `samples` | `BEFORE UPDATE/DELETE` | Blocks if status is COMPLETED or APPROVED |
-| `protect_completed_test` | `tests` | `BEFORE UPDATE` | Blocks if status is APPROVED |
-| `prevent_test_deletion` | `tests` | `BEFORE DELETE` | Always raises + writes audit log |
-| `protect_audit_logs` | `audit_logs` | `BEFORE UPDATE/DELETE` | Always raises — log is forever |
-| `prevent_employee_delete` | `employees` | `BEFORE DELETE` | Blocks employees with related records |
-| `inventory_low_stock_alert` | `inventory` | `AFTER UPDATE` | Creates admin notification when qty ≤ min |
+| Trigger                      | Table          | Event                  | Effect                                    |
+| ---------------------------- | -------------- | ---------------------- | ----------------------------------------- |
+| `prevent_extra_sample_types` | `sample_types` | `BEFORE INSERT`        | Caps at 20 entries                        |
+| `protect_completed_sample`   | `samples`      | `BEFORE UPDATE/DELETE` | Blocks if status is COMPLETED or APPROVED |
+| `protect_completed_test`     | `tests`        | `BEFORE UPDATE`        | Blocks if status is APPROVED              |
+| `prevent_test_deletion`      | `tests`        | `BEFORE DELETE`        | Always raises + writes audit log          |
+| `protect_audit_logs`         | `audit_logs`   | `BEFORE UPDATE/DELETE` | Always raises — log is forever            |
+| `prevent_employee_delete`    | `employees`    | `BEFORE DELETE`        | Blocks employees with related records     |
+| `inventory_low_stock_alert`  | `inventory`    | `AFTER UPDATE`         | Creates admin notification when qty ≤ min |
 
 ### 🛡️ Authentication & Lockout
 
@@ -279,15 +282,15 @@ Passwords and PINs are hashed with bcrypt at 12 rounds. OTPs are also bcrypt-has
 
 ### Permission Matrix
 
-| Role | View Results | Input Data | Edit Formulas | Change Specs | Review Tests |
-|---|:---:|:---:|:---:|:---:|:---:|
-| `ADMIN` | ✓ | ✓ | ✓ | ✓ | — |
-| `HEAD_MANAGER` | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `ASSISTING_MANAGER` | ✓ | ✓ | ✓ | ✓ | — |
-| `SHIFT_CHEMIST` | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `CHEMIST` | ✓ | ✓ | ✓ | ✓ | — |
-| `ENGINEER` | ✓ | — | — | — | — |
-| `DISPATCH` | ✓ | — | — | — | — |
+| Role                | View Results | Input Data | Edit Formulas | Change Specs | Review Tests |
+| ------------------- | :----------: | :--------: | :-----------: | :----------: | :----------: |
+| `ADMIN`             |      ✓       |     ✓      |       ✓       |      ✓       |      —       |
+| `HEAD_MANAGER`      |      ✓       |     ✓      |       ✓       |      ✓       |      ✓       |
+| `ASSISTING_MANAGER` |      ✓       |     ✓      |       ✓       |      ✓       |      —       |
+| `SHIFT_CHEMIST`     |      ✓       |     ✓      |       ✓       |      ✓       |      ✓       |
+| `CHEMIST`           |      ✓       |     ✓      |       ✓       |      ✓       |      —       |
+| `ENGINEER`          |      ✓       |     —      |       —       |      —       |      —       |
+| `DISPATCH`          |      ✓       |     —      |       —       |      —       |      —       |
 
 Only `SHIFT_CHEMIST` and `HEAD_MANAGER` can review (approve/disapprove) test results. This is enforced via `isReviewer()` in `server/core/types.ts` — a type guard that doubles as a runtime check.
 
@@ -295,19 +298,19 @@ Only `SHIFT_CHEMIST` and `HEAD_MANAGER` can review (approve/disapprove) test res
 
 RBAC also governs which application modules each role can access:
 
-| Tab | ADMIN | HEAD_MGR | ASST_MGR | SHIFT_CHEM | CHEMIST | ENGINEER | DISPATCH |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Dashboard | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Lab Bench | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
-| STAT | ✓ | ✓ | ✓ | ✓ | ✓ | — | — |
-| Dispatch | ✓ | ✓ | ✓ | ✓ | ✓ | — | ✓ |
-| Workflows | ✓ | ✓ | ✓ | — | — | — | — |
-| Analytics | ✓ | ✓ | ✓ | — | — | — | — |
-| Plant Intel | ✓ | ✓ | — | — | — | ✓ | — |
-| Assets | ✓ | ✓ | ✓ | — | — | — | — |
-| Audit | ✓ | ✓ | — | — | — | — | — |
-| Settings | ✓ | ✓ | — | — | — | — | — |
-| Archive | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Tab         | ADMIN | HEAD_MGR | ASST_MGR | SHIFT_CHEM | CHEMIST | ENGINEER | DISPATCH |
+| ----------- | :---: | :------: | :------: | :--------: | :-----: | :------: | :------: |
+| Dashboard   |   ✓   |    ✓     |    ✓     |     ✓      |    ✓    |    ✓     |    ✓     |
+| Lab Bench   |   ✓   |    ✓     |    ✓     |     ✓      |    ✓    |    —     |    —     |
+| STAT        |   ✓   |    ✓     |    ✓     |     ✓      |    ✓    |    —     |    —     |
+| Dispatch    |   ✓   |    ✓     |    ✓     |     ✓      |    ✓    |    —     |    ✓     |
+| Workflows   |   ✓   |    ✓     |    ✓     |     —      |    —    |    —     |    —     |
+| Analytics   |   ✓   |    ✓     |    ✓     |     —      |    —    |    —     |    —     |
+| Plant Intel |   ✓   |    ✓     |    —     |     —      |    —    |    ✓     |    —     |
+| Assets      |   ✓   |    ✓     |    ✓     |     —      |    —    |    —     |    —     |
+| Audit       |   ✓   |    ✓     |    —     |     —      |    —    |    —     |    —     |
+| Settings    |   ✓   |    ✓     |    —     |     —      |    —    |    —     |    —     |
+| Archive     |   ✓   |    ✓     |    ✓     |     ✓      |    ✓    |    ✓     |    ✓     |
 
 ---
 
@@ -347,6 +350,7 @@ SLOW_QUERY_MS=50
 ```
 
 > **Generate a secure JWT secret:**
+>
 > ```bash
 > openssl rand -base64 32
 > ```
@@ -413,48 +417,48 @@ npm run gen:types      # Collect *.types.ts files → scripts/output/typesStruct
 
 > All routes require `Authorization: Bearer <token>` or `token` cookie unless marked **Public**.
 
-### Auth  `/api/auth`
+### Auth `/api/auth`
 
-| Method | Endpoint | Access | Description |
-|---|---|---|---|
-| `GET` | `/users` | Public | Active user list for login screen |
-| `POST` | `/verify-employee` | Public | Identity check → OTP dispatch |
-| `POST` | `/confirm-otp` | Public | Validate 6-digit OTP |
-| `POST` | `/setup-credentials` | Public | Set password + PIN for new account |
-| `POST` | `/login` | Public | Authenticate → set `httpOnly` JWT cookie |
-| `GET` | `/me` | Auth | Current user profile |
-| `POST` | `/logout` | Auth | Clear auth cookie |
+| Method | Endpoint             | Access | Description                              |
+| ------ | -------------------- | ------ | ---------------------------------------- |
+| `GET`  | `/users`             | Public | Active user list for login screen        |
+| `POST` | `/verify-employee`   | Public | Identity check → OTP dispatch            |
+| `POST` | `/confirm-otp`       | Public | Validate 6-digit OTP                     |
+| `POST` | `/setup-credentials` | Public | Set password + PIN for new account       |
+| `POST` | `/login`             | Public | Authenticate → set `httpOnly` JWT cookie |
+| `GET`  | `/me`                | Auth   | Current user profile                     |
+| `POST` | `/logout`            | Auth   | Clear auth cookie                        |
 
-### Samples  `/api/samples`
+### Samples `/api/samples`
 
-| Method | Endpoint | Permission | Description |
-|---|---|---|---|
-| `GET` | `/` | `view_results` | All samples with test counts + technician name |
-| `POST` | `/` | `input_data` | Register new sample |
-| `PUT` | `/:id` | `input_data` | Update batch ID, stage, priority, status |
-| `GET` | `/:id/tests` | `view_results` | Tests for sample (or stage template stubs) |
-| `GET` | `/previous-results` | `view_results` | Historical results by `?stage=&testType=` |
+| Method | Endpoint            | Permission     | Description                                    |
+| ------ | ------------------- | -------------- | ---------------------------------------------- |
+| `GET`  | `/`                 | `view_results` | All samples with test counts + technician name |
+| `POST` | `/`                 | `input_data`   | Register new sample                            |
+| `PUT`  | `/:id`              | `input_data`   | Update batch ID, stage, priority, status       |
+| `GET`  | `/:id/tests`        | `view_results` | Tests for sample (or stage template stubs)     |
+| `GET`  | `/previous-results` | `view_results` | Historical results by `?stage=&testType=`      |
 
-### Tests  `/api/tests`
+### Tests `/api/tests`
 
-| Method | Endpoint | Permission | Description |
-|---|---|---|---|
-| `GET` | `/` | `view_results` | All test results (last 500) |
-| `POST` | `/` | `input_data` | Create test result (triggers workflow sync) |
-| `PUT` | `/:id` | `input_data` | Update result values, notes, params |
-| `POST` | `/:id/review` | Reviewer only | Approve or disapprove |
-| `DELETE` | `/:id` | — | **Always blocked** · Logs attempt · Returns `403` |
+| Method   | Endpoint      | Permission     | Description                                       |
+| -------- | ------------- | -------------- | ------------------------------------------------- |
+| `GET`    | `/`           | `view_results` | All test results (last 500)                       |
+| `POST`   | `/`           | `input_data`   | Create test result (triggers workflow sync)       |
+| `PUT`    | `/:id`        | `input_data`   | Update result values, notes, params               |
+| `POST`   | `/:id/review` | Reviewer only  | Approve or disapprove                             |
+| `DELETE` | `/:id`        | —              | **Always blocked** · Logs attempt · Returns `403` |
 
-### Workflows  `/api/workflows`
+### Workflows `/api/workflows`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | All active workflows with their steps |
-| `POST` | `/` | Create workflow with steps |
-| `POST` | `/:id/execute` | Start execution for `{ sample_id }` |
-| `POST` | `/executions/:id/steps/:step_id/start` | Transition step to IN_PROGRESS |
-| `POST` | `/executions/:id/steps/:step_id/complete` | Complete step with result |
-| `GET` | `/executions/:sample_id` | All executions for a sample with step details |
+| Method | Endpoint                                  | Description                                   |
+| ------ | ----------------------------------------- | --------------------------------------------- |
+| `GET`  | `/`                                       | All active workflows with their steps         |
+| `POST` | `/`                                       | Create workflow with steps                    |
+| `POST` | `/:id/execute`                            | Start execution for `{ sample_id }`           |
+| `POST` | `/executions/:id/steps/:step_id/start`    | Transition step to IN_PROGRESS                |
+| `POST` | `/executions/:id/steps/:step_id/complete` | Complete step with result                     |
+| `GET`  | `/executions/:sample_id`                  | All executions for a sample with step details |
 
 ### Other Endpoints
 
@@ -462,6 +466,7 @@ npm run gen:types      # Collect *.types.ts files → scripts/output/typesStruct
 <summary><strong>Notifications · Audit · Archive · Operational · Settings · Telemetry · Stats</strong></summary>
 
 **Notifications** `/api/notifications`
+
 ```
 GET  /                  → notifications + unreadCount
 POST /:id/read          → mark one as read
@@ -470,12 +475,14 @@ POST /check-overdue     → scan for tests pending > 4h, create notifications
 ```
 
 **Audit Logs** `/api/audit-logs` _(ADMIN / managers only for GET)_
+
 ```
 GET  /                  → paginated log with filters (employee, action, dates)
 POST /                  → write client-side event to audit trail
 ```
 
 **Archive** `/api/archive`
+
 ```
 GET  /samples           → search with: sample_id, batch_id, start_date, end_date, status, technician, stage, priority
 GET  /tests             → search with: sample_id, batch_id, start_date, end_date, test_type, technician, status
@@ -483,9 +490,11 @@ GET  /certificates      → search with: batch_id, start_date, end_date, status
 GET  /instruments       → search with: status, start_date, end_date
 GET  /audit             → search with: employee_number, action, start_date, end_date, technician
 ```
+
 All archive endpoints support `?limit=&offset=` pagination (max 200 for samples/tests, 500 for audit).
 
 **Operational** `/api/operational`
+
 ```
 GET  /production-lines  → all lines
 GET  /equipment         → equipment, required: ?line_id=
@@ -495,29 +504,35 @@ GET  /certificates      → all certificates (optional: ?status=)
 ```
 
 **Settings** `/api/settings`
+
 ```
 GET  /preferences       → key-value system preferences map
 GET  /:table            → read allowed table (allowlist enforced server-side)
 POST /:table            → create record
 PUT  /:table/:id        → update record
 ```
+
 Allowed tables: `sample_types`, `process_stages`, `measurement_units`, `test_methods`, `instruments`, `clients`, `notification_rules`, `system_preferences`, `employees`, `production_lines`, `inventory`
 
 **Telemetry** `/api/telemetry`
+
 ```
 GET  /                  → { cpuLoad, memory, dbSync, uptime, activeUsers, errorRate, throughput, stats }
 ```
 
 **Stats** `/api/stats`
+
 ```
 GET  /                  → all STAT requests ordered by urgency then date
 POST /                  → create STAT request { department, reason, urgency }
 ```
 
 **Health**
+
 ```
 GET  /health            → { status: "ok", uptime, env, timestamp }
 ```
+
 </details>
 
 ---
@@ -656,17 +671,17 @@ The `ApiClient` singleton in `core/http/client.ts` has several deliberate behavi
 
 Chemical test validation ranges — the system enforces these both visually and on submission:
 
-| Test | Min | Max | Unit | Step |
-|---|---|---|---|---|
-| Colour | 0 | 10,000 | IU | 1 |
-| Brix | 0 | 100 | % | 0.1 |
-| Pol | 0 | 100 | % | 0.01 |
-| Purity | 0 | 100 | % | 0.01 |
-| Ash | 0 | 5 | % | 0.001 |
-| Moisture | 0 | 10 | % | 0.001 |
-| pH | 0 | 14 | pH | 0.1 |
-| Invert | 0 | 5 | % | 0.01 |
-| Turbidity | 0 | 1,000 | NTU | 1 |
+| Test      | Min | Max    | Unit | Step  |
+| --------- | --- | ------ | ---- | ----- |
+| Colour    | 0   | 10,000 | IU   | 1     |
+| Brix      | 0   | 100    | %    | 0.1   |
+| Pol       | 0   | 100    | %    | 0.01  |
+| Purity    | 0   | 100    | %    | 0.01  |
+| Ash       | 0   | 5      | %    | 0.001 |
+| Moisture  | 0   | 10     | %    | 0.001 |
+| pH        | 0   | 14     | pH   | 0.1   |
+| Invert    | 0   | 5      | %    | 0.01  |
+| Turbidity | 0   | 1,000  | NTU  | 1     |
 
 ---
 
@@ -714,43 +729,43 @@ path:     /
 
 17 sample types covering the full refining chain:
 
-| Stage | Sample Types |
-|---|---|
-| **Front-end** | Raw Sugar |
-| **Refining** | Screen Melt, Polish Liquor, Fine Liquor |
-| **Carbonation** | SAT A/B/C/Out, Milk Lime, Mud |
-| **Evaporation** | Evaporator Liquor |
-| **Centrifuge** | Wash Water |
-| **Filtration** | Filter Supply |
-| **Utilities** | Sweet Water, Clean Condensate, Effluent Samples |
-| **Finished Goods** | White Sugar, Brown Sugar, Icing Sugar |
+| Stage              | Sample Types                                    |
+| ------------------ | ----------------------------------------------- |
+| **Front-end**      | Raw Sugar                                       |
+| **Refining**       | Screen Melt, Polish Liquor, Fine Liquor         |
+| **Carbonation**    | SAT A/B/C/Out, Milk Lime, Mud                   |
+| **Evaporation**    | Evaporator Liquor                               |
+| **Centrifuge**     | Wash Water                                      |
+| **Filtration**     | Filter Supply                                   |
+| **Utilities**      | Sweet Water, Clean Condensate, Effluent Samples |
+| **Finished Goods** | White Sugar, Brown Sugar, Icing Sugar           |
 
 ### System Preferences Reference
 
-| Key | Default | Description |
-|---|---|---|
-| `timezone` | `Asia/Riyadh` | Plant timezone for date formatting |
-| `production_day_start` | `06:00:00` | Shift day boundary |
-| `date_format_db` | `YYYY-MM-DD` | Database date storage format |
-| `date_format_ui` | `DD-MMM-YYYY` | Display format |
-| `decimal_ph` | `1` | pH result decimal places |
-| `decimal_brix` | `2` | Brix result decimal places |
-| `decimal_color_liquor` | `1` | Colour (liquor) decimal places |
-| `decimal_color_white` | `0` | Colour (white sugar) decimal places |
-| `decimal_ash_cao` | `4` | Ash/CaO decimal places |
-| `temperature_unit` | `C` | Celsius or Fahrenheit |
-| `mass_unit` | `kg` | Mass unit for reports |
-| `volume_unit` | `m3/hr` | Flow rate unit |
-| `cell_length_white` | `16.3` | Colour photometer cell length — white sugar |
-| `cell_length_liquor` | `2.0` | Colour photometer cell length — liquor |
-| `wavelength_color` | `420` | Absorbance wavelength (nm) for colour |
-| `wavelength_minute_sugar` | `565` | Wavelength for minute sugar starch test |
-| `ash_factor` | `C` | Conductivity ash correction factor |
-| `hcl_molarity` | `0.5` | HCl concentration for ash calculation |
-| `ph_buffer_4` | `4.0` | pH calibration buffer 1 |
-| `ph_buffer_7` | `7.0` | pH calibration buffer 2 |
-| `ph_buffer_10` | `10.0` | pH calibration buffer 3 |
-| `allowed_slope_pct` | `2` | Max acceptable electrode slope deviation % |
+| Key                       | Default       | Description                                 |
+| ------------------------- | ------------- | ------------------------------------------- |
+| `timezone`                | `Asia/Riyadh` | Plant timezone for date formatting          |
+| `production_day_start`    | `06:00:00`    | Shift day boundary                          |
+| `date_format_db`          | `YYYY-MM-DD`  | Database date storage format                |
+| `date_format_ui`          | `DD-MMM-YYYY` | Display format                              |
+| `decimal_ph`              | `1`           | pH result decimal places                    |
+| `decimal_brix`            | `2`           | Brix result decimal places                  |
+| `decimal_color_liquor`    | `1`           | Colour (liquor) decimal places              |
+| `decimal_color_white`     | `0`           | Colour (white sugar) decimal places         |
+| `decimal_ash_cao`         | `4`           | Ash/CaO decimal places                      |
+| `temperature_unit`        | `C`           | Celsius or Fahrenheit                       |
+| `mass_unit`               | `kg`          | Mass unit for reports                       |
+| `volume_unit`             | `m3/hr`       | Flow rate unit                              |
+| `cell_length_white`       | `16.3`        | Colour photometer cell length — white sugar |
+| `cell_length_liquor`      | `2.0`         | Colour photometer cell length — liquor      |
+| `wavelength_color`        | `420`         | Absorbance wavelength (nm) for colour       |
+| `wavelength_minute_sugar` | `565`         | Wavelength for minute sugar starch test     |
+| `ash_factor`              | `C`           | Conductivity ash correction factor          |
+| `hcl_molarity`            | `0.5`         | HCl concentration for ash calculation       |
+| `ph_buffer_4`             | `4.0`         | pH calibration buffer 1                     |
+| `ph_buffer_7`             | `7.0`         | pH calibration buffer 2                     |
+| `ph_buffer_10`            | `10.0`        | pH calibration buffer 3                     |
+| `allowed_slope_pct`       | `2`           | Max acceptable electrode slope deviation %  |
 
 ---
 
@@ -847,8 +862,8 @@ npm run gen:types
 
 ---
 
-*Built for the QC Division — Savola Group*
+_Built for the QC Division — Savola Group_
 
-*Precision is not optional when every gram matters.*
+_Precision is not optional when every gram matters._
 
 </div>

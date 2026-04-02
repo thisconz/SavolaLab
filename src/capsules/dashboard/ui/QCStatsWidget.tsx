@@ -32,15 +32,18 @@ export const QCStatsWidget: React.FC<QCStatsWidgetProps> = ({ samples }) => {
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [samples]);
 
-  const totalSamples = useMemo(() => 
-    data.reduce((acc, curr) => acc + curr.value, 0), 
-  [data]);
+  const totalSamples = useMemo(
+    () => data.reduce((acc, curr) => acc + curr.value, 0),
+    [data],
+  );
 
   return (
     <div className="h-[240px] w-full relative">
       {/* Central Statistical Readout */}
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
-        <span className="text-[8px] font-black text-brand-sage/40 uppercase tracking-[0.2em]">Total_Units</span>
+        <span className="text-[8px] font-black text-brand-sage/40 uppercase tracking-[0.2em]">
+          Total_Units
+        </span>
         <span className="text-2xl font-mono font-black text-brand-deep leading-none">
           {totalSamples}
         </span>
@@ -63,7 +66,10 @@ export const QCStatsWidget: React.FC<QCStatsWidgetProps> = ({ samples }) => {
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={STATUS_COLORS[entry.name] || "rgba(var(--brand-sage-rgb), 0.2)"}
+                fill={
+                  STATUS_COLORS[entry.name] ||
+                  "rgba(var(--brand-sage-rgb), 0.2)"
+                }
                 className="hover:opacity-80 transition-opacity cursor-pointer outline-none"
               />
             ))}
@@ -76,7 +82,7 @@ export const QCStatsWidget: React.FC<QCStatsWidgetProps> = ({ samples }) => {
             align="center"
             iconType="rect"
             iconSize={8}
-            wrapperStyle={{ paddingTop: '10px' }}
+            wrapperStyle={{ paddingTop: "10px" }}
             formatter={(value) => (
               <span className="text-[9px] font-black font-mono uppercase tracking-tighter text-brand-sage/70 px-1">
                 {value}
@@ -97,16 +103,17 @@ const CustomPieTooltip = ({ active, payload }: any) => {
     return (
       <div className="bg-brand-deep/95 backdrop-blur-md border border-white/10 p-2.5 rounded-lg shadow-xl">
         <div className="flex items-center gap-2 mb-1">
-          <div 
-            className="w-1.5 h-1.5 rounded-sm" 
-            style={{ backgroundColor: STATUS_COLORS[name] || '#ccc' }} 
+          <div
+            className="w-1.5 h-1.5 rounded-sm"
+            style={{ backgroundColor: STATUS_COLORS[name] || "#ccc" }}
           />
           <p className="text-[8px] font-black text-white/40 uppercase tracking-widest">
             Status_Metrics
           </p>
         </div>
         <p className="text-[10px] font-mono text-white">
-          {name}: <span className="text-brand-primary font-bold">{value} UNITS</span>
+          {name}:{" "}
+          <span className="text-brand-primary font-bold">{value} UNITS</span>
         </p>
       </div>
     );

@@ -1,6 +1,6 @@
 export function format(date: Date | number | string, formatStr: string) {
   const d = new Date(date);
-  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+  return d.toLocaleDateString() + " " + d.toLocaleTimeString();
 }
 export function parseISO(dateString: string) {
   return new Date(dateString);

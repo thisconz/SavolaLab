@@ -56,11 +56,10 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen bg-white instrument-grid flex items-center justify-center p-6 relative overflow-hidden">
           {/* Emergency Scanline Overlay */}
           <div className="absolute inset-0 bg-lab-laser/3 animate-pulse pointer-events-none" />
-          
+
           <div className="max-w-xl w-full z-10">
             {/* The "Black Box" Fault Terminal */}
             <div className="bg-brand-deep rounded-sm shadow-[0_0_50px_rgba(239,68,68,0.15)] border border-lab-laser/30 overflow-hidden">
-              
               {/* Terminal Header */}
               <div className="bg-lab-laser px-6 py-2 flex justify-between items-center">
                 <div className="flex items-center gap-2">
@@ -82,7 +81,9 @@ export class ErrorBoundary extends Component<Props, State> {
                   </div>
                   <div className="text-left">
                     <h2 className="text-lg font-black text-white uppercase tracking-tighter leading-none">
-                      {isFirebaseError ? "Database Access Breach" : "Core Runtime Violation"}
+                      {isFirebaseError
+                        ? "Database Access Breach"
+                        : "Core Runtime Violation"}
                     </h2>
                     <p className="text-[9px] text-brand-primary font-bold uppercase tracking-widest mt-1">
                       Status: Execution_Halted // Safe_Mode_Active
@@ -92,25 +93,29 @@ export class ErrorBoundary extends Component<Props, State> {
 
                 {/* Diagnostic Trace Box */}
                 <div className="relative group">
-                   <div className="absolute -top-2 left-4 px-2 bg-brand-deep text-[8px] font-mono text-brand-sage uppercase">
-                     Diagnostic_Dump
-                   </div>
-                   <div className="w-full bg-black/40 border border-white/10 rounded-sm p-5 font-mono mb-8">
-                     <p className="text-[11px] text-lab-laser leading-relaxed break-all">
-                       <span className="opacity-40 mr-2">&gt;</span>
-                       {errorMessage}
-                     </p>
-                     <div className="mt-4 flex gap-4">
-                        <div className="flex items-center gap-1">
-                          <Hash className="w-3 h-3 text-brand-primary" />
-                          <span className="text-[9px] text-brand-sage uppercase font-bold">Stack_Locked</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Terminal className="w-3 h-3 text-brand-primary" />
-                          <span className="text-[9px] text-brand-sage uppercase font-bold">Node_Isolated</span>
-                        </div>
-                     </div>
-                   </div>
+                  <div className="absolute -top-2 left-4 px-2 bg-brand-deep text-[8px] font-mono text-brand-sage uppercase">
+                    Diagnostic_Dump
+                  </div>
+                  <div className="w-full bg-black/40 border border-white/10 rounded-sm p-5 font-mono mb-8">
+                    <p className="text-[11px] text-lab-laser leading-relaxed break-all">
+                      <span className="opacity-40 mr-2">&gt;</span>
+                      {errorMessage}
+                    </p>
+                    <div className="mt-4 flex gap-4">
+                      <div className="flex items-center gap-1">
+                        <Hash className="w-3 h-3 text-brand-primary" />
+                        <span className="text-[9px] text-brand-sage uppercase font-bold">
+                          Stack_Locked
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Terminal className="w-3 h-3 text-brand-primary" />
+                        <span className="text-[9px] text-brand-sage uppercase font-bold">
+                          Node_Isolated
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Emergency Kill Switch */}
@@ -121,9 +126,10 @@ export class ErrorBoundary extends Component<Props, State> {
                   <RefreshCw className="w-4 h-4 transition-transform group-hover:rotate-180 duration-500" />
                   Attempt System Reboot
                 </button>
-                
+
                 <p className="text-center mt-6 text-[8px] font-bold text-brand-sage/40 uppercase tracking-[0.5em]">
-                  Personnel Authorized Access Only // Contact Admin if Persistence Continues
+                  Personnel Authorized Access Only // Contact Admin if
+                  Persistence Continues
                 </p>
               </div>
             </div>

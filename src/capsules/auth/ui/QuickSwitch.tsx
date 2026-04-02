@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { X, LogOut, Shield, User, Activity, ChevronRight, Fingerprint } from "lucide-react";
+import {
+  X,
+  LogOut,
+  Shield,
+  User,
+  Activity,
+  ChevronRight,
+  Fingerprint,
+} from "lucide-react";
 import { useAuthStore } from "../../../orchestrator/state/auth.store";
 import { useAuthFlow } from "../hooks/useAuthFlow";
 import clsx from "@/src/lib/clsx";
@@ -11,7 +19,10 @@ interface QuickSwitchProps {
   onClose: () => void;
 }
 
-export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => {
+export const QuickSwitch: React.FC<QuickSwitchProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const { currentUser, logout } = useAuthStore();
   const { users, handleUserSelect } = useAuthFlow();
   const [mounted, setMounted] = useState(false);
@@ -41,7 +52,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
             {/* Structural Header */}
             <div className="relative p-10 pb-8 overflow-hidden bg-linear-to-b from-brand-mist/20 to-transparent">
               <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-brand-primary to-transparent opacity-50" />
-              
+
               <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-5">
                   <div className="w-14 h-14 rounded-2xl bg-brand-deep flex items-center justify-center shadow-lg ring-4 ring-brand-primary/10">
@@ -90,14 +101,18 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                         "w-full flex items-center p-1 rounded-3xl border transition-all duration-500 group relative",
                         isActive
                           ? "border-brand-primary/30 bg-white shadow-xl shadow-brand-primary/5"
-                          : "border-transparent bg-brand-mist/30 hover:bg-white hover:border-brand-primary/20 hover:shadow-lg"
+                          : "border-transparent bg-brand-mist/30 hover:bg-white hover:border-brand-primary/20 hover:shadow-lg",
                       )}
                     >
                       <div className="flex items-center gap-4 w-full p-3">
-                        <div className={clsx(
-                          "w-14 h-14 rounded-2xl flex items-center justify-center font-black text-lg transition-all",
-                          isActive ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20" : "bg-white text-brand-sage shadow-sm"
-                        )}>
+                        <div
+                          className={clsx(
+                            "w-14 h-14 rounded-2xl flex items-center justify-center font-black text-lg transition-all",
+                            isActive
+                              ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
+                              : "bg-white text-brand-sage shadow-sm",
+                          )}
+                        >
                           {user.initials}
                         </div>
 
@@ -123,10 +138,14 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                           </div>
                         </div>
 
-                        <div className={clsx(
-                          "w-10 h-10 rounded-full flex items-center justify-center transition-all",
-                          isActive ? "bg-brand-primary/10 text-brand-primary" : "opacity-0 group-hover:opacity-100 bg-brand-mist text-brand-sage"
-                        )}>
+                        <div
+                          className={clsx(
+                            "w-10 h-10 rounded-full flex items-center justify-center transition-all",
+                            isActive
+                              ? "bg-brand-primary/10 text-brand-primary"
+                              : "opacity-0 group-hover:opacity-100 bg-brand-mist text-brand-sage",
+                          )}
+                        >
                           <ChevronRight className="w-5 h-5" />
                         </div>
                       </div>
@@ -157,7 +176,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                   SEC-LEVEL 4
                 </div>
               </button>
-              
+
               <p className="text-center mt-6 text-[9px] font-bold text-brand-sage/40 uppercase tracking-[0.5em]">
                 Labrix Security Protocol v1.0.0
               </p>
@@ -166,6 +185,6 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 };

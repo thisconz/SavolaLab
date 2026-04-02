@@ -9,7 +9,9 @@ export type WorkflowStepInput = {
 
 export const WorkflowService = {
   getWorkflows: async () => {
-    const workflows = await db.query("SELECT * FROM workflows WHERE is_active = 1") as any[];
+    const workflows = (await db.query(
+      "SELECT * FROM workflows WHERE is_active = 1",
+    )) as any[];
     const result = [];
     for (const wf of workflows) {
       const steps = await db.query(
@@ -56,9 +58,18 @@ export const WorkflowService = {
     });
   },
 
-  executeWorkflow: async (workflowId: string | number, sampleId: string | number) => {
-    const workflowExists = await db.queryOne("SELECT id FROM workflows WHERE id = $1", [workflowId]);
-    const sampleExists = await db.queryOne("SELECT id FROM samples WHERE id = $1", [sampleId]);
+  executeWorkflow: async (
+    workflowId: string | number,
+    sampleId: string | number,
+  ) => {
+    const workflowExists = await db.queryOne(
+      "SELECT id FROM workflows WHERE id = $1",
+      [workflowId],
+    );
+    const sampleExists = await db.queryOne(
+      "SELECT id FROM samples WHERE id = $1",
+      [sampleId],
+    );
     if (!workflowExists) throw new Error(`Workflow ${workflowId} not found`);
     if (!sampleExists) throw new Error(`Sample ${sampleId} not found`);
 
@@ -138,7 +149,7 @@ export const WorkflowService = {
   },
 
   getExecutionsBySample: async (sampleId: string | number) => {
-    const executions = await db.query(
+    const executions = (await db.query(
       `
       SELECT we.*, w.name as workflow_name 
       FROM workflow_executions we
@@ -147,7 +158,7 @@ export const WorkflowService = {
       ORDER BY we.started_at DESC
     `,
       [sampleId],
-    ) as any[];
+    )) as any[];
 
     const result = [];
     for (const exec of executions) {

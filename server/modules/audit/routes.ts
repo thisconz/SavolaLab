@@ -44,19 +44,24 @@ function getClientIp(c: any): string {
  */
 
 // GET logs (should be restricted later via RBAC)
-app.get("/", authenticateToken, requireRoles("ADMIN", "HEAD_MANAGER", "ASSISTING_MANAGER"), async (c) => {
-  const filters: AuditFilters = {
-    employee_number: c.req.query("employee_number"),
-    action: c.req.query("action"),
-    start_date: c.req.query("start_date"),
-    end_date: c.req.query("end_date"),
-    limit: Number(c.req.query("limit") || 50),
-    offset: Number(c.req.query("offset") || 0),
-  };
+app.get(
+  "/",
+  authenticateToken,
+  requireRoles("ADMIN", "HEAD_MANAGER", "ASSISTING_MANAGER"),
+  async (c) => {
+    const filters: AuditFilters = {
+      employee_number: c.req.query("employee_number"),
+      action: c.req.query("action"),
+      start_date: c.req.query("start_date"),
+      end_date: c.req.query("end_date"),
+      limit: Number(c.req.query("limit") || 50),
+      offset: Number(c.req.query("offset") || 0),
+    };
 
-  const logs = await AuditService.getLogs(filters);
+    const logs = await AuditService.getLogs(filters);
     return c.json({ success: true, data: logs });
-});
+  },
+);
 
 // CREATE log (non-blocking safe)
 app.post("/", authenticateToken, async (c) => {

@@ -43,25 +43,25 @@ export const PlantOverviewWidget: React.FC<PlantOverviewWidgetProps> = ({
             stroke="rgba(var(--brand-sage-rgb), 0.15)"
             vertical={false}
           />
-          
+
           <XAxis
             dataKey="name"
-            tick={{ 
-              fontSize: 8, 
-              fontFamily: "var(--font-mono)", 
-              fontWeight: 800, 
-              fill: "rgba(var(--brand-deep-rgb), 0.4)" 
+            tick={{
+              fontSize: 8,
+              fontFamily: "var(--font-mono)",
+              fontWeight: 800,
+              fill: "rgba(var(--brand-deep-rgb), 0.4)",
             }}
             axisLine={false}
             tickLine={false}
             dy={10}
           />
-          
+
           <YAxis
-            tick={{ 
-              fontSize: 8, 
-              fontFamily: "var(--font-mono)", 
-              fill: "rgba(var(--brand-sage-rgb), 0.6)" 
+            tick={{
+              fontSize: 8,
+              fontFamily: "var(--font-mono)",
+              fill: "rgba(var(--brand-sage-rgb), 0.6)",
             }}
             axisLine={false}
             tickLine={false}
@@ -72,11 +72,7 @@ export const PlantOverviewWidget: React.FC<PlantOverviewWidgetProps> = ({
             content={<CustomTooltip />}
           />
 
-          <Bar 
-            dataKey="value" 
-            animationDuration={1200}
-            radius={[4, 4, 0, 0]}
-          >
+          <Bar dataKey="value" animationDuration={1200} radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
@@ -106,10 +102,16 @@ const CustomTooltip = ({ active, payload }: any) => {
         </div>
         <div className="space-y-1">
           <p className="text-[10px] font-mono text-white/90">
-            LOC: <span className="text-brand-primary">{payload[0].payload.name}</span>
+            LOC:{" "}
+            <span className="text-brand-primary">
+              {payload[0].payload.name}
+            </span>
           </p>
           <p className="text-[10px] font-mono text-white/50">
-            QTY: <span className="text-white font-bold">{payload[0].value} UNITS</span>
+            QTY:{" "}
+            <span className="text-white font-bold">
+              {payload[0].value} UNITS
+            </span>
           </p>
         </div>
       </div>

@@ -58,11 +58,11 @@ export const Modal: React.FC<ModalProps> = ({
             initial={{ opacity: 0, scale: 0.98, y: 10, filter: "blur(10px)" }}
             animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, scale: 0.98, y: 15, filter: "blur(5px)" }}
-            transition={{ 
-              type: "spring", 
-              damping: 28, 
+            transition={{
+              type: "spring",
+              damping: 28,
               stiffness: 260,
-              filter: { duration: 0.2 } 
+              filter: { duration: 0.2 },
             }}
             className={clsx(
               "relative w-full bg-white/95 rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)]",
@@ -84,9 +84,12 @@ export const Modal: React.FC<ModalProps> = ({
                     <Hexagon className="w-5 h-5 text-brand-primary fill-brand-primary/5" />
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col">
-                  <h3 id="modal-title" className="text-sm font-black uppercase tracking-[0.2em] text-brand-deep leading-none">
+                  <h3
+                    id="modal-title"
+                    className="text-sm font-black uppercase tracking-[0.2em] text-brand-deep leading-none"
+                  >
                     {title}
                   </h3>
                   <div className="h-0.5 w-8 bg-brand-primary/30 mt-2 rounded-full" />

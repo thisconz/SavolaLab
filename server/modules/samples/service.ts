@@ -47,7 +47,10 @@ export const SampleService = {
   },
 
   // --- Create a new sample ---
-  createSample: async (data: SampleData, technicianId: string): Promise<number> => {
+  createSample: async (
+    data: SampleData,
+    technicianId: string,
+  ): Promise<number> => {
     const rows = await db.query(
       `
       INSERT INTO samples (batch_id, source_stage, sample_type, priority, technician_id, line_id, equipment_id, shift_id) 
@@ -79,7 +82,9 @@ export const SampleService = {
     const sampleId = Number(id);
     if (isNaN(sampleId)) throw new Error("Invalid sample ID");
 
-    const oldSample = await db.queryOne("SELECT * FROM samples WHERE id = $1", [sampleId]);
+    const oldSample = await db.queryOne("SELECT * FROM samples WHERE id = $1", [
+      sampleId,
+    ]);
     if (!oldSample) throw new Error("Sample not found");
 
     await db.execute(
@@ -157,10 +162,16 @@ export const SampleService = {
     const sampleId = Number(id);
     if (isNaN(sampleId)) throw new Error("Invalid sample ID");
 
-    const tests: SampleTest[] = await db.query("SELECT * FROM tests WHERE sample_id = $1", [sampleId]);
+    const tests: SampleTest[] = await db.query(
+      "SELECT * FROM tests WHERE sample_id = $1",
+      [sampleId],
+    );
 
     if (tests.length === 0) {
-      const sample = await db.queryOne("SELECT source_stage, batch_id FROM samples WHERE id = $1", [sampleId]);
+      const sample = await db.queryOne(
+        "SELECT source_stage, batch_id FROM samples WHERE id = $1",
+        [sampleId],
+      );
       if (!sample) return [];
 
       const DEFAULT_TESTS: Record<string, string[]> = {

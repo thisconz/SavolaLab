@@ -1,10 +1,19 @@
 const bcrypt = {
   hash: async (s: string, r: number) => s,
-  compare: async (s: string, h: string) => s === h
+  compare: async (s: string, h: string) => s === h,
 };
 const jwt = {
-  verify: (token: string, secret: string) => ({ employee_number: "1001", role: "admin", permissions: { view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 } }),
-  sign: (payload: any, secret: string, options: any) => "mock-token"
+  verify: (token: string, secret: string) => ({
+    employee_number: "1001",
+    role: "admin",
+    permissions: {
+      view_results: 1,
+      input_data: 1,
+      edit_formulas: 1,
+      change_specs: 1,
+    },
+  }),
+  sign: (payload: any, secret: string, options: any) => "mock-token",
 };
 import { db, generateOtp, storeOtp, verifyOtp } from "../../core/database";
 
@@ -224,9 +233,11 @@ export const AuthService = {
     const now = new Date();
     if (user.locked_until && new Date(user.locked_until) > now) {
       const mins = Math.ceil(
-        (new Date(user.locked_until).getTime() - now.getTime()) / 60_000
+        (new Date(user.locked_until).getTime() - now.getTime()) / 60_000,
       );
-      throw new Error(`Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`);
+      throw new Error(
+        `Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`,
+      );
     }
 
     const isValid = password
@@ -241,13 +252,15 @@ export const AuthService = {
         const lockUntil = new Date(Date.now() + 30 * 60 * 1000);
         await db.execute(
           "UPDATE users SET failed_attempts=$1, locked_until=$2 WHERE employee_number=$3",
-          [attempts, lockUntil, employeeNumber]
+          [attempts, lockUntil, employeeNumber],
         );
-        throw new Error("Account locked for 30 minutes after 5 failed attempts.");
+        throw new Error(
+          "Account locked for 30 minutes after 5 failed attempts.",
+        );
       }
       await db.execute(
         "UPDATE users SET failed_attempts=$1 WHERE employee_number=$2",
-        [attempts, employeeNumber]
+        [attempts, employeeNumber],
       );
       await db.execute(
         `INSERT INTO audit_logs (employee_number, action, details)
@@ -258,9 +271,9 @@ export const AuthService = {
     }
 
     await db.execute(
-    "UPDATE users SET failed_attempts=0, locked_until=NULL, last_login=CURRENT_TIMESTAMP WHERE employee_number=$1",
-    [employeeNumber]
-  );
+      "UPDATE users SET failed_attempts=0, locked_until=NULL, last_login=CURRENT_TIMESTAMP WHERE employee_number=$1",
+      [employeeNumber],
+    );
 
     const payload: UserPayload = {
       id: user.employee_number,

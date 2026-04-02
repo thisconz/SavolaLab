@@ -18,8 +18,8 @@ interface PriorityWidgetProps {
 // Semantic tokens mapped to Labrix OS palette
 const PRIORITY_MAP: Record<string, { color: string; label: string }> = {
   NORMAL: { color: "rgba(var(--brand-sage-rgb), 0.4)", label: "LVL_01" },
-  HIGH:   { color: "var(--brand-primary)", label: "LVL_02" },
-  STAT:   { color: "#FF4D4D", label: "CRITICAL" }, // Direct highlight for emergency
+  HIGH: { color: "var(--brand-primary)", label: "LVL_02" },
+  STAT: { color: "#FF4D4D", label: "CRITICAL" }, // Direct highlight for emergency
 };
 
 export const PriorityWidget: React.FC<PriorityWidgetProps> = ({ samples }) => {
@@ -36,7 +36,7 @@ export const PriorityWidget: React.FC<PriorityWidgetProps> = ({ samples }) => {
     <div className="h-[240px] w-full relative">
       {/* Decorative Scanner Overlay */}
       <div className="absolute inset-0 pointer-events-none border-l border-brand-primary/5 z-0" />
-      
+
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
@@ -48,7 +48,7 @@ export const PriorityWidget: React.FC<PriorityWidgetProps> = ({ samples }) => {
             stroke="rgba(var(--brand-sage-rgb), 0.2)"
             vertical={false}
           />
-          
+
           <XAxis
             dataKey="name"
             tick={({ x, y, payload }) => (
@@ -67,9 +67,13 @@ export const PriorityWidget: React.FC<PriorityWidgetProps> = ({ samples }) => {
             axisLine={false}
             tickLine={false}
           />
-          
+
           <YAxis
-            tick={{ fontSize: 8, fontFamily: "var(--font-mono)", fill: "rgba(var(--brand-sage-rgb), 0.5)" }}
+            tick={{
+              fontSize: 8,
+              fontFamily: "var(--font-mono)",
+              fill: "rgba(var(--brand-sage-rgb), 0.5)",
+            }}
             axisLine={false}
             tickLine={false}
           />
@@ -88,7 +92,9 @@ export const PriorityWidget: React.FC<PriorityWidgetProps> = ({ samples }) => {
                   fill={PRIORITY_MAP[entry.name]?.color || "#6b7280"}
                   // STAT bars get a subtle drop-shadow "glow" in CSS
                   style={{
-                    filter: isStat ? "drop-shadow(0 0 8px rgba(255, 77, 77, 0.4))" : "none"
+                    filter: isStat
+                      ? "drop-shadow(0 0 8px rgba(255, 77, 77, 0.4))"
+                      : "none",
                   }}
                   className="hover:brightness-110 transition-all cursor-help"
                 />
@@ -111,18 +117,22 @@ const PriorityTooltip = ({ active, payload }: any) => {
     return (
       <div className="bg-brand-deep border border-white/10 p-3 rounded-lg shadow-xl backdrop-blur-xl">
         <div className="flex items-center gap-2 mb-1.5">
-          <div className={`w-2 h-2 rounded-full ${isStat ? "bg-[#FF4D4D] animate-pulse" : "bg-brand-primary"}`} />
+          <div
+            className={`w-2 h-2 rounded-full ${isStat ? "bg-[#FF4D4D] animate-pulse" : "bg-brand-primary"}`}
+          />
           <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.2em]">
             Priority_Status
           </p>
         </div>
-        <p className={`text-xs font-mono font-bold mb-1 ${isStat ? "text-[#FF4D4D]" : "text-white"}`}>
+        <p
+          className={`text-xs font-mono font-bold mb-1 ${isStat ? "text-[#FF4D4D]" : "text-white"}`}
+        >
           {name} :: {payload[0].value} UNITS
         </p>
         <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-brand-primary/50" 
-            style={{ width: `${Math.min(payload[0].value, 100)}%` }} 
+          <div
+            className="h-full bg-brand-primary/50"
+            style={{ width: `${Math.min(payload[0].value, 100)}%` }}
           />
         </div>
       </div>

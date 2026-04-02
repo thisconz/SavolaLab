@@ -25,11 +25,11 @@ export interface TelemetryFilter {
 export const TelemetryService = {
   getTelemetry: async (filter?: TelemetryFilter): Promise<TelemetryMetrics> => {
     const hasFilter = !!filter?.startDate;
-    const timeConstraint = hasFilter 
-      ? `created_at BETWEEN $1 AND $2` 
+    const timeConstraint = hasFilter
+      ? `created_at BETWEEN $1 AND $2`
       : `created_at > NOW() - interval '24 hours'`;
-    const params = hasFilter 
-      ? [filter.startDate, filter.endDate ?? new Date().toISOString()] 
+    const params = hasFilter
+      ? [filter.startDate, filter.endDate ?? new Date().toISOString()]
       : [];
 
     // --- 1. System Metrics (Synchronous/OS Level) ---
@@ -41,7 +41,10 @@ export const TelemetryService = {
     const uptimeSeconds = Math.floor(process.uptime());
     const days = Math.floor(uptimeSeconds / (24 * 3600));
     const hours = Math.floor((uptimeSeconds % (24 * 3600)) / 3600);
-    const uptime = days > 0 ? `${days}d ${hours}h` : `${hours}h ${Math.floor((uptimeSeconds % 3600) / 60)}m`;
+    const uptime =
+      days > 0
+        ? `${days}d ${hours}h`
+        : `${hours}h ${Math.floor((uptimeSeconds % 3600) / 60)}m`;
 
     // --- 2. Database Metrics (Parallel Execution) ---
     // We initiate all promises at once.
@@ -52,24 +55,33 @@ export const TelemetryService = {
       activeUsersRes,
       totalLogsRes,
       errorLogsRes,
-      throughputRes
+      throughputRes,
     ] = await Promise.all([
-      db.queryOne<{ count: string }>("SELECT COUNT(*) AS count FROM samples WHERE status NOT IN ('COMPLETED', 'ARCHIVED')"),
-      db.queryOne<{ count: string }>("SELECT COUNT(*) AS count FROM tests WHERE status = 'PENDING'"),
-      db.queryOne<{ created_at: string }>("SELECT created_at FROM audit_logs ORDER BY created_at DESC LIMIT 1"),
+      db.queryOne<{ count: string }>(
+        "SELECT COUNT(*) AS count FROM samples WHERE status NOT IN ('COMPLETED', 'ARCHIVED')",
+      ),
+      db.queryOne<{ count: string }>(
+        "SELECT COUNT(*) AS count FROM tests WHERE status = 'PENDING'",
+      ),
+      db.queryOne<{ created_at: string }>(
+        "SELECT created_at FROM audit_logs ORDER BY created_at DESC LIMIT 1",
+      ),
       db.queryOne<{ count: string }>(
         `SELECT COUNT(DISTINCT employee_number) AS count FROM audit_logs WHERE ${hasFilter ? timeConstraint : "created_at > NOW() - interval '1 hour'"}`,
-        params
+        params,
       ),
-      db.queryOne<{ count: string }>(`SELECT COUNT(*) AS count FROM audit_logs WHERE ${timeConstraint}`, params),
+      db.queryOne<{ count: string }>(
+        `SELECT COUNT(*) AS count FROM audit_logs WHERE ${timeConstraint}`,
+        params,
+      ),
       db.queryOne<{ count: string }>(
         `SELECT COUNT(*) AS count FROM audit_logs WHERE (action LIKE '%FAILURE%' OR action LIKE '%ERROR%') AND ${timeConstraint}`,
-        params
+        params,
       ),
       db.queryOne<{ count: string }>(
-        `SELECT COUNT(*) AS count FROM tests WHERE status = 'COMPLETED' AND ${timeConstraint.replace('created_at', 'updated_at')}`,
-        params
-      )
+        `SELECT COUNT(*) AS count FROM tests WHERE status = 'COMPLETED' AND ${timeConstraint.replace("created_at", "updated_at")}`,
+        params,
+      ),
     ]);
 
     // --- 3. Calculations ---
@@ -80,7 +92,7 @@ export const TelemetryService = {
     return {
       cpuLoad,
       memory: memUsage,
-      latency: `12ms`, 
+      latency: `12ms`,
       dbSync: "ACTIVE",
       uptime,
       activeUsers: Number(activeUsersRes?.count ?? 0),

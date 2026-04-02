@@ -18,7 +18,8 @@ export const AuditFeature: React.FC = memo(() => {
                   Governance, Audit, and Traceability
                 </p>
                 <p className="text-xs text-brand-sage font-medium max-w-md text-center">
-                  Immutable records and comprehensive tracking for compliance and quality assurance.
+                  Immutable records and comprehensive tracking for compliance
+                  and quality assurance.
                 </p>
               </div>
             </LabPanel>

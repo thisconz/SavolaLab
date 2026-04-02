@@ -1,6 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { generateStructure, renderTreeText } from "./generators/generate-structure";
+import {
+  generateStructure,
+  renderTreeText,
+} from "./generators/generate-structure";
 import { generateTypes } from "./generators/generate-types";
 
 // ---------- CONFIG ----------

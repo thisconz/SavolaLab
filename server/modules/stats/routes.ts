@@ -12,7 +12,10 @@ app.get("/", authenticateToken, async (c) => {
     return c.json({ success: true, data: stats });
   } catch (err: any) {
     console.error("Error fetching stats:", err);
-    return c.json({ success: false, error: err.message || "Failed to fetch stats" }, 500);
+    return c.json(
+      { success: false, error: err.message || "Failed to fetch stats" },
+      500,
+    );
   }
 });
 

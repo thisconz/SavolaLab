@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { ArrowLeft, UserPlus, CheckCircle2, ShieldAlert, Fingerprint, KeyRound, UserCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  UserPlus,
+  CheckCircle2,
+  ShieldAlert,
+  Fingerprint,
+  KeyRound,
+  UserCheck,
+} from "lucide-react";
 import { AuthApi } from "../api/auth.api";
 
 interface RegistrationFlowProps {
@@ -104,7 +112,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
         className="flex flex-col items-center justify-center py-10 text-center"
       >
         <div className="relative mb-8">
-          <motion.div 
+          <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", damping: 12 }}
@@ -114,7 +122,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
           </motion.div>
           <div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-20 -z-10" />
         </div>
-        
+
         <h2 className="text-lg font-black text-brand-deep uppercase tracking-[0.3em] mb-3">
           Access Granted
         </h2>
@@ -151,7 +159,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               <div
                 key={idx}
                 className={`h-1 rounded-full transition-all duration-700 ${
-                  idx <= currentStepIndex ? "w-8 bg-brand-primary shadow-[0_0_10px_rgba(177,190,155,0.4)]" : "w-4 bg-brand-mist"
+                  idx <= currentStepIndex
+                    ? "w-8 bg-brand-primary shadow-[0_0_10px_rgba(177,190,155,0.4)]"
+                    : "w-4 bg-brand-mist"
                 }`}
               />
             ))}
@@ -160,7 +170,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
 
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-xl bg-brand-mist/30 flex items-center justify-center border border-brand-sage/10 text-brand-primary">
-            {React.createElement(steps[currentStepIndex].icon, { className: "w-5 h-5" })}
+            {React.createElement(steps[currentStepIndex].icon, {
+              className: "w-5 h-5",
+            })}
           </div>
           <div>
             <h2 className="text-xs font-black text-brand-deep uppercase tracking-[0.25em]">
@@ -181,14 +193,22 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
           exit={{ opacity: 0, x: -10 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         >
-          <form 
-            onSubmit={step === "verify" ? handleVerify : step === "otp" ? handleOtp : handleCredentials} 
+          <form
+            onSubmit={
+              step === "verify"
+                ? handleVerify
+                : step === "otp"
+                  ? handleOtp
+                  : handleCredentials
+            }
             className="space-y-5"
           >
             {step === "verify" && (
               <>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">Personnel ID</label>
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">
+                    Personnel ID
+                  </label>
                   <input
                     type="text"
                     required
@@ -199,7 +219,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">Government ID</label>
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">
+                    Government ID
+                  </label>
                   <input
                     type="text"
                     required
@@ -210,7 +232,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">Birth Date</label>
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">
+                    Birth Date
+                  </label>
                   <input
                     type="date"
                     required
@@ -227,11 +251,14 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                 <div className="p-6 bg-brand-deep/5 rounded-[2rem] border border-brand-primary/10 text-center relative overflow-hidden">
                   <KeyRound className="w-6 h-6 text-brand-primary mx-auto mb-3 opacity-60" />
                   <p className="text-[10px] text-brand-sage font-mono uppercase tracking-widest leading-relaxed">
-                    A secure 6-digit token has been transmitted to your mobile device.
+                    A secure 6-digit token has been transmitted to your mobile
+                    device.
                   </p>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block text-center">Enter Security Token</label>
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block text-center">
+                    Enter Security Token
+                  </label>
                   <input
                     type="text"
                     required
@@ -248,7 +275,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             {step === "credentials" && (
               <>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">Master Password</label>
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">
+                    Master Password
+                  </label>
                   <input
                     type="password"
                     required
@@ -259,7 +288,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">Confirm Credentials</label>
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">
+                    Confirm Credentials
+                  </label>
                   <input
                     type="password"
                     required
@@ -271,8 +302,12 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                 </div>
                 <div className="space-y-1.5 pt-2">
                   <div className="flex justify-between items-center ml-1">
-                    <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest">Quick-Switch PIN</label>
-                    <span className="text-[8px] font-bold text-brand-primary/60 uppercase">4 Digits</span>
+                    <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest">
+                      Quick-Switch PIN
+                    </label>
+                    <span className="text-[8px] font-bold text-brand-primary/60 uppercase">
+                      4 Digits
+                    </span>
                   </div>
                   <input
                     type="password"
@@ -311,7 +346,11 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   <span>Processing...</span>
                 </div>
               ) : (
-                <span>{step === "credentials" ? "Finalize Account" : "Initiate Next Phase"}</span>
+                <span>
+                  {step === "credentials"
+                    ? "Finalize Account"
+                    : "Initiate Next Phase"}
+                </span>
               )}
             </button>
           </form>

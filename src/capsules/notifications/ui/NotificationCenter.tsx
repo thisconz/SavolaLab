@@ -10,12 +10,13 @@ import {
 } from "lucide-react";
 import { NotificationApi } from "../api/notification.api";
 import { Notification } from "../../../core/types";
-import { useNotifications } from "../hooks/useNotifications"
+import { useNotifications } from "../hooks/useNotifications";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 
 export const NotificationCenter: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } =
+    useNotifications();
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -47,8 +48,10 @@ export const NotificationCenter: React.FC = () => {
       >
         {/* Hover Gradient */}
         <div className="absolute inset-0 bg-linear-to-tr from-brand-primary/0 via-brand-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-        
-        <Bell className={`w-5 h-5 relative z-10 transition-transform duration-300 group-hover:scale-110 ${unreadCount > 0 ? "animate-pulse" : ""}`} />
+
+        <Bell
+          className={`w-5 h-5 relative z-10 transition-transform duration-300 group-hover:scale-110 ${unreadCount > 0 ? "animate-pulse" : ""}`}
+        />
         {unreadCount > 0 && (
           <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-lab-laser text-white text-[10px] font-black flex items-center justify-center rounded-xl border-2 border-white shadow-lg z-20">
             {unreadCount}
@@ -137,9 +140,7 @@ export const NotificationCenter: React.FC = () => {
                             </div>
                             {!notification.is_read && (
                               <button
-                                onClick={() =>
-                                  markAsRead(notification.id)
-                                }
+                                onClick={() => markAsRead(notification.id)}
                                 className="px-4 py-1.5 rounded-xl bg-white border border-brand-sage/20 text-brand-primary text-[9px] font-black uppercase tracking-widest hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-all shadow-sm active:scale-95"
                               >
                                 Acknowledge
