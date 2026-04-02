@@ -1,4 +1,4 @@
-import { createAuditLog } from "../../core/database/events";
+import { createAuditLog } from "../../core/db/events";
 import { db } from "../../core/database";
 
 export type WorkflowStepInput = {

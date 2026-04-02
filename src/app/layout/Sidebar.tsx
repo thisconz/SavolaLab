@@ -1,26 +1,18 @@
-﻿import React, { memo, useMemo } from "react";
+﻿import React, { memo, useMemo, useState } from "react";
 import {
-  LayoutDashboard,
-  Microscope,
-  Zap,
-  Truck,
-  BarChart3,
-  ListChecks,
-  Factory,
-  Database,
-  ShieldAlert,
-  Settings,
-  ChevronRight,
+  LayoutDashboard, Microscope, Zap, Truck, BarChart3,
+  ListChecks, Factory, Database, ShieldAlert, Settings,
+  ChevronRight, Archive, LogOut, User as UserIcon, RefreshCw
 } from "lucide-react";
+import { motion, AnimatePresence } from "@/src/lib/motion";
 import { LogoRoot, LogoIcon } from "../../ui/components/Logo";
 import { useAppStore, AppTab } from "../../orchestrator/state/app.store";
 import { useAuthStore } from "../../orchestrator/state/auth.store";
+import { QuickSwitch } from "../../capsules/auth";
 import { isTabAllowed } from "../../core/rbac";
-import clsx from "clsx";
+import clsx from "@/src/lib/clsx";
 
-interface SidebarProps {
-  activeTab: AppTab;
-}
+/* --- Refined NavItem with Motion --- */
 
 interface NavItemProps {
   icon: any;
@@ -29,172 +21,169 @@ interface NavItemProps {
   onClick: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({
-  icon: Icon,
-  label,
-  active,
-  onClick,
-}) => (
+const NavItem = ({ icon: Icon, label, active, onClick }: NavItemProps) => (
   <button
     onClick={onClick}
     className={clsx(
-      "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 group relative text-left",
+      "w-full flex items-center gap-4 px-5 py-3 rounded-2xl transition-all duration-300 group relative overflow-hidden",
       active
-        ? "bg-brand-primary/10 text-brand-primary"
-        : "text-brand-sage hover:bg-brand-mist hover:text-brand-deep",
+        ? "bg-brand-primary/10 text-brand-deep shadow-[inset_0_1px_2px_rgba(var(--brand-primary-rgb),0.05)]"
+        : "text-brand-sage hover:bg-brand-mist/60 hover:text-brand-deep"
     )}
   >
-    {active && (
-      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-primary rounded-r-full" />
-    )}
-    <Icon
-      className={clsx(
-        "w-4 h-4 transition-transform duration-300",
-        active ? "scale-110" : "group-hover:scale-110",
+    <AnimatePresence>
+      {active && (
+        <motion.div 
+          layoutId="laser-indicator"
+          className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-brand-primary rounded-r-full shadow-[0_0_12px_rgba(var(--brand-primary-rgb),1)]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        />
       )}
-    />
-    <span
-      className={clsx(
-        "text-xs font-bold tracking-wide flex-1",
-        active
-          ? "text-brand-primary"
-          : "text-brand-deep/70 group-hover:text-brand-deep",
-      )}
-    >
+    </AnimatePresence>
+
+    <div className={clsx(
+      "relative z-10 transition-transform duration-500",
+      active ? "scale-110 text-brand-primary" : "group-hover:scale-110 group-hover:text-brand-primary/70"
+    )}>
+      <Icon className="w-4.5 h-4.5" />
+    </div>
+
+    <span className={clsx(
+      "text-[10px] font-black uppercase tracking-[0.2em] flex-1 text-left z-10 transition-all duration-300",
+      active ? "translate-x-1" : "group-hover:translate-x-0.5"
+    )}>
       {label}
     </span>
-    {active && <ChevronRight className="w-3 h-3 opacity-50" />}
+
+    {active && (
+      <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }}>
+        <ChevronRight className="w-3 h-3 text-brand-primary/40" />
+      </motion.div>
+    )}
   </button>
 );
 
-const NavSection: React.FC<{ title: string; children: React.ReactNode }> = ({
-  title,
-  children,
-}) => (
-  <div className="mb-6">
-    <h4 className="px-4 text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] mb-2 opacity-60">
-      {title}
-    </h4>
-    <div className="flex flex-col gap-1">{children}</div>
-  </div>
-);
+/* --- Main Sidebar --- */
 
-export const Sidebar: React.FC<SidebarProps> = memo(({ activeTab }) => {
+export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => {
   const { setActiveTab } = useAppStore();
-  const { currentUser } = useAuthStore();
+  const { currentUser, logout } = useAuthStore();
+  const [isSwitchOpen, setIsSwitchOpen] = useState(false);
 
-  const navItems = [
-    {
-      icon: LayoutDashboard,
-      tab: "dashboard" as AppTab,
-      label: "Dashboard",
-      section: "Overview",
-    },
-    {
-      icon: Microscope,
-      tab: "lab" as AppTab,
-      label: "Lab Bench",
-      section: "Operations",
-    },
-    {
-      icon: Zap,
-      tab: "stat" as AppTab,
-      label: "STAT Requests",
-      section: "Operations",
-    },
-    {
-      icon: Truck,
-      tab: "dispatch" as AppTab,
-      label: "Dispatch",
-      section: "Operations",
-    },
-    {
-      icon: ListChecks,
-      tab: "workflows" as AppTab,
-      label: "Workflows",
-      section: "Operations",
-    },
-    {
-      icon: BarChart3,
-      tab: "analytics" as AppTab,
-      label: "Analytics",
-      section: "Intelligence",
-    },
-    {
-      icon: Factory,
-      tab: "intelligence" as AppTab,
-      label: "Plant Intel",
-      section: "Intelligence",
-    },
-    {
-      icon: Database,
-      tab: "assets" as AppTab,
-      label: "Assets",
-      section: "System",
-    },
-    {
-      icon: ShieldAlert,
-      tab: "audit" as AppTab,
-      label: "Audit",
-      section: "System",
-    },
-  ];
+  const NAV_CONFIG = useMemo(() => [
+    { section: "Overview", items: [{ icon: LayoutDashboard, tab: "dashboard", label: "Dashboard" }] },
+    { section: "Operations", items: [
+      { icon: Microscope, tab: "lab", label: "Lab Bench" },
+      { icon: Zap, tab: "stat", label: "STAT Requests" },
+      { icon: Truck, tab: "dispatch", label: "Dispatch" },
+      { icon: ListChecks, tab: "workflows", label: "Workflows" },
+    ]},
+    { section: "Intelligence", items: [
+      { icon: BarChart3, tab: "analytics", label: "Analytics" },
+      { icon: Factory, tab: "intelligence", label: "Plant Intel" },
+    ]},
+    { section: "System", items: [
+      { icon: Database, tab: "assets", label: "Assets" },
+      { icon: ShieldAlert, tab: "audit", label: "Audit Log" },
+    ]}
+  ], []);
 
-  const filteredNavItems = navItems.filter((item) =>
-    currentUser
-      ? isTabAllowed(currentUser.role, item.tab)
-      : item.tab === "dashboard",
-  );
-
-  const sections = ["Overview", "Operations", "Intelligence", "System"];
+  const filteredNav = useMemo(() => {
+    return NAV_CONFIG.map(section => ({
+      ...section,
+      items: section.items.filter(item => 
+        currentUser ? isTabAllowed(currentUser.role, item.tab as AppTab) : item.tab === "dashboard"
+      )
+    })).filter(section => section.items.length > 0);
+  }, [currentUser, NAV_CONFIG]);
 
   return (
-    <nav className="w-64 flex flex-col py-6 border-r border-brand-sage/10 bg-white/50 backdrop-blur-xl z-20 shadow-2xl relative overflow-y-auto custom-scrollbar">
-      <div className="px-6 mb-8 cursor-pointer">
+    <nav className="w-68 h-full flex flex-col border-r border-brand-sage/15 bg-white/70 backdrop-blur-3xl z-50 relative">
+      
+      {/* 1. Header: Brand Identity */}
+      <div className="p-8 pb-10">
         <LogoRoot size="lg" variant="dark">
           <LogoIcon animated />
         </LogoRoot>
       </div>
 
-      <div className="flex-1 px-3">
-        {sections.map((section) => {
-          const sectionItems = filteredNavItems.filter(
-            (item) => item.section === section,
-          );
-          if (sectionItems.length === 0) return null;
-
-          return (
-            <NavSection key={section} title={section}>
-              {sectionItems.map((item) => (
+      {/* 2. Scroll Area: Structured Navigation */}
+      <div className="flex-1 px-4 overflow-y-auto custom-scrollbar space-y-8 pb-10">
+        {filteredNav.map((section) => (
+          <div key={section.section}>
+            <h4 className="px-5 text-[8px] font-black text-brand-sage/50 uppercase tracking-[0.4em] mb-4">
+              {section.section}
+            </h4>
+            <div className="flex flex-col gap-1.5">
+              {section.items.map((item) => (
                 <NavItem
                   key={item.tab}
                   icon={item.icon}
                   active={activeTab === item.tab}
-                  onClick={() => setActiveTab(item.tab)}
+                  onClick={() => setActiveTab(item.tab as AppTab)}
                   label={item.label}
                 />
               ))}
-            </NavSection>
-          );
-        })}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="px-3 pt-4 border-t border-brand-sage/10 mt-auto">
-        <NavSection title="Configuration">
-          <NavItem
-            icon={Database}
-            active={activeTab === "archive"}
-            onClick={() => setActiveTab("archive")}
-            label="Archives"
-          />
-          <NavItem
-            icon={Settings}
-            active={activeTab === "settings"}
-            onClick={() => setActiveTab("settings")}
-            label="Settings"
-          />
-        </NavSection>
+      {/* 3. Footer: Session & Configuration */}
+      <div className="p-4 mt-auto">
+        <div className="bg-brand-mist/40 rounded-3xl p-2 border border-brand-sage/10 backdrop-blur-sm">
+          {/* Quick Config Links */}
+          <div className="flex flex-col gap-1 mb-2">
+            <NavItem 
+              icon={Archive} 
+              label="Archives" 
+              active={activeTab === "archive"} 
+              onClick={() => setActiveTab("archive")} 
+            />
+            <NavItem 
+              icon={Settings} 
+              label="Settings" 
+              active={activeTab === "settings"} 
+              onClick={() => setActiveTab("settings")} 
+            />
+          </div>
+
+          {/* User Anchor Pod */}
+          <div className="flex items-center gap-2 bg-brand-mist/50 p-1.5 rounded-2xl border border-brand-sage/10 shadow-inner group/pod">
+            <button
+              onClick={() => setIsSwitchOpen(true)}
+              className="relative w-11 h-11 rounded-xl bg-white shadow-xs flex items-center justify-center transition-all hover:scale-105 active:scale-95 group/btn overflow-hidden"
+            >
+              <span className="text-[11px] font-black text-brand-deep group-hover/btn:opacity-0 transition-opacity">
+                {currentUser?.initials || "??"}
+              </span>
+              <div className="absolute inset-0 bg-brand-deep text-brand-primary flex items-center justify-center translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300">
+                <RefreshCw className="w-4 h-4 animate-spin-slow" />
+              </div>
+            </button>
+
+            <div className="flex-1 min-w-0 px-1">
+              <p className="text-[10px] font-black text-brand-deep truncate uppercase tracking-tighter">
+                {currentUser?.name || "Unauthenticated"}
+              </p>
+              <p className="text-[8px] font-bold text-brand-sage uppercase tracking-widest opacity-60">
+                {currentUser?.role || "GUEST_ACCESS"}
+              </p>
+            </div>
+
+            <button 
+              onClick={logout}
+              className="p-2.5 text-brand-sage hover:text-lab-laser hover:bg-white rounded-xl transition-all"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
       </div>
+
+      <QuickSwitch isOpen={isSwitchOpen} onClose={() => setIsSwitchOpen(false)} />
     </nav>
   );
 });

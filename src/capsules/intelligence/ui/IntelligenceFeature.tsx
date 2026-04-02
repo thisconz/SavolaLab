@@ -47,7 +47,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
         {/* Top Metrics */}
         <div className="grid grid-cols-4 gap-8 shrink-0">
           <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
+            <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">Overall Equipment Effectiveness</p>
               <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 shadow-inner">
@@ -61,7 +61,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
             </div>
           </div>
           <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-brand-primary/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
+            <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-brand-primary/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">Plant Yield</p>
               <div className="p-2 bg-brand-primary/10 rounded-xl border border-brand-primary/20 shadow-inner">
@@ -75,7 +75,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
             </div>
           </div>
           <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-amber-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
+            <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-amber-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">Energy Consumption</p>
               <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20 shadow-inner">
@@ -89,7 +89,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
             </div>
           </div>
           <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
-            <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-rose-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
+            <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-rose-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">Active Alarms</p>
               <div className="p-2 bg-rose-500/10 rounded-xl border border-rose-500/20 shadow-inner">
@@ -165,7 +165,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
             <LabPanel title="Predictive Maintenance" icon={Activity}>
               <div className="flex flex-col gap-4 p-4">
                 <div className="p-5 bg-amber-500/10 border border-amber-500/30 rounded-2xl relative overflow-hidden group">
-                  <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-amber-500/20 to-transparent rounded-full blur-xl -mr-12 -mt-12 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
+                  <div className="absolute right-0 top-0 w-24 h-24 bg-linear-to-br from-amber-500/20 to-transparent rounded-full blur-xl -mr-12 -mt-12 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
                   <div className="flex items-center gap-3 mb-3 relative z-10">
                     <div className="p-2 bg-amber-500/20 rounded-lg">
                       <AlertTriangle className="w-4 h-4 text-amber-600" />
@@ -176,7 +176,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
                   <p className="text-xs text-brand-sage font-medium leading-relaxed relative z-10">Vibration levels increasing. Predicted failure in 48 hours if unaddressed.</p>
                 </div>
               <div className="p-5 bg-brand-mist border border-brand-sage/20 rounded-2xl relative overflow-hidden group hover:shadow-md transition-all duration-300">
-                <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-brand-primary/10 to-transparent rounded-full blur-xl -mr-12 -mt-12 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
+                <div className="absolute right-0 top-0 w-24 h-24 bg-linear-to-br from-brand-primary/10 to-transparent rounded-full blur-xl -mr-12 -mt-12 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
                 <div className="flex items-center gap-3 mb-3 relative z-10">
                   <div className="p-2 bg-white rounded-lg shadow-sm">
                     <Clock className="w-4 h-4 text-brand-primary" />

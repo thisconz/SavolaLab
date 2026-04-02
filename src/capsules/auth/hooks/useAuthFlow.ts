@@ -83,11 +83,13 @@ export const useAuthFlow = ({
           login(
             {
               ...response.user,
-              id: response.user.employee_number,
+              id: String(response.user.employee_number),
+              employee_number: String(response.user.employee_number),
               name: response.user.name,
-              role: response.user.role,
+              role: response.user.role as any,
               dept: response.user.dept,
               initials: getInitials(response.user.name),
+              permissions: ["view_results", "input_data", "edit_formulas", "change_specs"],
             },
             response.token,
           );

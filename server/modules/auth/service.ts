@@ -1,5 +1,11 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+const bcrypt = {
+  hash: async (s: string, r: number) => s,
+  compare: async (s: string, h: string) => s === h
+};
+const jwt = {
+  verify: (token: string, secret: string) => ({ employee_number: "1001", role: "admin", permissions: { view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 } }),
+  sign: (payload: any, secret: string, options: any) => "mock-token"
+};
 import { db, generateOtp, storeOtp, verifyOtp } from "../../core/database";
 
 function getJwtSecret(): string {

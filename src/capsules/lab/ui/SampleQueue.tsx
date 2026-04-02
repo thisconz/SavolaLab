@@ -1,63 +1,61 @@
-import React, { memo, useState, useMemo, useRef } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { Search, Filter, X } from "lucide-react";
+import React, { memo, useState, useMemo, useRef, useCallback, CSSProperties } from "react";
+import { useVirtualizer } from "@/src/lib/react-virtual";
+import { Search, Filter, X, ListFilter, RotateCcw, SlidersHorizontal, Beaker } from "lucide-react";
 import { SampleCard } from "./SampleCard";
-import { Sample } from "../../../core/types";
+import { Sample, SampleStatus } from "../../../core/types";
 
 interface RowProps {
   samples: Sample[];
-  selectedSampleId?: number;
+  selectedSampleId?: number | null;
   onSampleSelect: (sample: Sample) => void;
 }
 
-/**
- * SampleQueue Component
- * 
- * Renders a virtualized list of laboratory samples.
- * Provides advanced filtering, search, and sorting capabilities to manage the lab's workload.
- * Uses `@tanstack/react-virtual` for high-performance rendering of large datasets.
- * 
- * Features:
- * - Real-time search by Batch ID or Line ID.
- * - Filtering by sample status (PENDING, TESTING, COMPLETED) and priority (NORMAL, HIGH, STAT).
- * - Empty state handling with clear call-to-actions.
- * 
- * @param {Sample[]} samples - Array of sample objects to display.
- * @param {number} selectedSampleId - Currently selected sample ID.
- * @param {(sample: Sample) => void} onSampleSelect - Callback triggered when a sample is selected.
- */
 export const SampleQueue: React.FC<RowProps> = memo(
   ({ samples, selectedSampleId, onSampleSelect }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [priorityFilter, setPriorityFilter] = useState<string>("ALL");
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
     const parentRef = useRef<HTMLDivElement>(null);
+    const CARD_HEIGHT = 124; // Base height + Gap
+    const MAX_VISIBLE_SAMPLES = 5;
 
+    // Optimized Filtering Logic
     const filteredSamples = useMemo(() => {
+      const searchLower = searchQuery.toLowerCase().trim();
       return samples.filter((sample) => {
-        const searchLower = searchQuery.toLowerCase();
-        const matchesSearch =
-          (sample.batch_id &&
-            String(sample.batch_id).toLowerCase().includes(searchLower)) ||
-          (sample.sugar_stage &&
-            String(sample.sugar_stage).toLowerCase().includes(searchLower)) ||
-          (sample.source_stage &&
-            String(sample.source_stage).toLowerCase().includes(searchLower));
+        const matchesSearch = !searchLower || [
+          sample.batch_id,
+          sample.sugar_stage,
+          sample.source_stage,
+          sample.id
+        ].some(val => String(val).toLowerCase().includes(searchLower));
 
-        const matchesPriority =
-          priorityFilter === "ALL" || sample.priority === priorityFilter;
-        const matchesStatus =
-          statusFilter === "ALL" || sample.status === statusFilter;
+        const matchesPriority = priorityFilter === "ALL" || sample.priority === priorityFilter;
+        const matchesStatus = statusFilter === "ALL" || sample.status === statusFilter;
 
         return matchesSearch && matchesPriority && matchesStatus;
       });
     }, [samples, searchQuery, priorityFilter, statusFilter]);
 
+    // Virtualizer adjusted for the compact SampleCard height (approx 120px with padding)
     const rowVirtualizer = useVirtualizer({
       count: filteredSamples.length,
       getScrollElement: () => parentRef.current,
-      estimateSize: () => 100,
+      estimateSize: useCallback(() => CARD_HEIGHT, []), 
+      overscan: 10, 
     });
+
+    const containerStyle: CSSProperties = useMemo(() => {
+      const isScrollable = filteredSamples.length > MAX_VISIBLE_SAMPLES;
+      return {
+        // If > 5 samples, cap at 5.5 to show a "peek" of the 6th, or exactly 5.
+        maxHeight: isScrollable ? `${CARD_HEIGHT * MAX_VISIBLE_SAMPLES}px` : 'auto',
+        height: !isScrollable ? `${filteredSamples.length * CARD_HEIGHT}px` : 'auto',
+        overflowY: isScrollable ? 'auto' : 'hidden',
+      };
+    }, [filteredSamples.length]);
+
+    const activeFilterCount = (priorityFilter !== "ALL" ? 1 : 0) + (statusFilter !== "ALL" ? 1 : 0);
 
     const clearFilters = () => {
       setSearchQuery("");
@@ -66,83 +64,87 @@ export const SampleQueue: React.FC<RowProps> = memo(
     };
 
     return (
-      <div className="flex flex-col h-full w-full bg-white/50 rounded-3xl overflow-hidden border border-brand-sage/10">
-        {/* Search and Filters */}
-        <div className="p-5 border-b border-brand-sage/10 space-y-4 bg-linear-to-b from-brand-mist/30 to-transparent relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-brand-primary/20 via-emerald-500/20 to-brand-primary/20" />
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage group-focus-within:text-brand-primary transition-colors" />
-            <input
-              type="text"
-              placeholder="Search Batch ID or Stage..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/80 backdrop-blur-sm border border-brand-sage/20 rounded-xl pl-11 pr-4 py-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary/30 text-brand-deep transition-all shadow-sm placeholder:text-brand-sage/50"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-sage hover:text-brand-deep bg-brand-mist p-1 rounded-full transition-colors"
+      <div className="flex flex-col h-full w-full bg-white/80 backdrop-blur-md border border-brand-sage/10 rounded-4xl overflow-hidden">
+        
+        {/* Compact Header */}
+        <header className="flex-none p-4 pb-2 border-b border-brand-sage/5 space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <ListFilter className="w-3.5 h-3.5 text-brand-primary" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-deep">
+                Active Queue
+              </span>
+              <span className="px-1.5 py-0.5 bg-brand-primary/10 text-brand-primary rounded text-[9px] font-bold tabular-nums">
+                {filteredSamples.length}
+              </span>
+            </div>
+            
+            {activeFilterCount > 0 && (
+              <button 
+                onClick={clearFilters}
+                className="group flex items-center gap-1.5 text-brand-sage hover:text-brand-primary transition-colors text-[9px] font-bold uppercase"
               >
-                <X className="w-3 h-3" />
+                <RotateCcw className="w-3 h-3 group-hover:rotate-45 transition-transform" />
+                Reset
               </button>
             )}
           </div>
 
-          <div className="flex gap-3">
-            <div className="flex-1 relative group">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage group-focus-within:text-brand-primary transition-colors pointer-events-none" />
-              <select
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
-                className="w-full bg-white/80 backdrop-blur-sm border border-brand-sage/20 rounded-xl pl-9 pr-3 py-2.5 text-[10px] font-bold text-brand-deep uppercase tracking-[0.15em] focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary/30 appearance-none cursor-pointer shadow-sm transition-all"
+          {/* Integrated Search */}
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage group-focus-within:text-brand-primary transition-colors pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search Batch ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-brand-mist/40 border border-brand-sage/5 rounded-xl pl-9 pr-8 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/10 focus:border-brand-primary/20 transition-all placeholder:text-brand-sage/50"
+            />
+          </div>
+
+          {/* Quick Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            {["ALL", "STAT", "HIGH", "NORMAL"].map((p) => (
+              <button
+                key={p}
+                onClick={() => setPriorityFilter(p)}
+                className={`
+                  whitespace-nowrap px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all
+                  ${priorityFilter === p 
+                    ? "bg-brand-primary text-white shadow-sm shadow-brand-primary/20" 
+                    : "bg-brand-mist/60 text-brand-sage hover:bg-brand-mist"}
+                `}
               >
-                <option value="ALL">All Priorities</option>
-                <option value="NORMAL">Normal</option>
-                <option value="HIGH">High</option>
-                <option value="STAT">STAT</option>
-              </select>
-            </div>
-            <div className="flex-1 relative group">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage group-focus-within:text-brand-primary transition-colors pointer-events-none" />
-              <select
+                {p}
+              </button>
+            ))}
+            <div className="w-px h-3 bg-brand-sage/20 shrink-0 mx-1" />
+            <div className="relative shrink-0">
+               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full bg-white/80 backdrop-blur-sm border border-brand-sage/20 rounded-xl pl-9 pr-3 py-2.5 text-[10px] font-bold text-brand-deep uppercase tracking-[0.15em] focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary/30 appearance-none cursor-pointer shadow-sm transition-all"
+                className="bg-brand-mist/60 text-brand-sage text-[9px] font-black uppercase tracking-wider pl-2 pr-6 py-1 rounded-lg appearance-none cursor-pointer focus:outline-none"
               >
-                <option value="ALL">All Statuses</option>
-                <option value="REGISTERED">Registered</option>
-                <option value="TESTING">Testing</option>
-                <option value="VALIDATING">Validating</option>
-                <option value="COMPLETED">Completed</option>
+                <option value="ALL">All Status</option>
+                {Object.values(SampleStatus).map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
               </select>
+              <SlidersHorizontal className="absolute right-2 top-1/2 -translate-y-1/2 w-2.5 h-2.5 pointer-events-none" />
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Virtualized List */}
+        {/* Scrollable Area */}
         <div
           ref={parentRef}
-          className="flex-1 min-h-0 pt-2 overflow-auto custom-scrollbar"
+          style={containerStyle}
+          className="flex-1 min-h-0 custom-scrollbar p-3 pt-2"
         >
           {filteredSamples.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-brand-sage opacity-50 py-20">
-              <div className="p-4 bg-brand-mist rounded-full mb-4">
-                <Search className="w-6 h-6 text-brand-sage/50" />
-              </div>
-              <p className="text-[10px] font-mono uppercase tracking-widest">
-                No matching samples
-              </p>
-              {(searchQuery ||
-                priorityFilter !== "ALL" ||
-                statusFilter !== "ALL") && (
-                <button
-                  onClick={clearFilters}
-                  className="mt-4 px-4 py-2 bg-brand-mist hover:bg-brand-primary/10 text-[9px] font-bold text-brand-primary uppercase tracking-widest rounded-lg transition-colors"
-                >
-                  Clear Filters
-                </button>
-              )}
+            <div className="h-full flex flex-col items-center justify-center opacity-40 grayscale py-20">
+               <Beaker size={32}/>
+               <p className="text-[10px] font-black uppercase tracking-widest text-brand-deep">No Matches</p>
             </div>
           ) : (
             <div
@@ -154,6 +156,8 @@ export const SampleQueue: React.FC<RowProps> = memo(
             >
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const sample = filteredSamples[virtualRow.index];
+                const isActive = selectedSampleId === sample.id;
+                
                 return (
                   <div
                     key={virtualRow.key}
@@ -164,12 +168,12 @@ export const SampleQueue: React.FC<RowProps> = memo(
                       width: "100%",
                       height: `${virtualRow.size}px`,
                       transform: `translateY(${virtualRow.start}px)`,
-                      padding: "0 12px 8px 12px",
+                      paddingBottom: "12px", 
                     }}
                   >
                     <SampleCard
                       sample={sample}
-                      active={selectedSampleId === sample.id}
+                      active={isActive}
                       onClick={() => onSampleSelect(sample)}
                     />
                   </div>

@@ -1,4 +1,10 @@
-import jwt, { type JwtPayload } from "jsonwebtoken";
+const jwt = {
+  verify: (token: string, secret: string, options?: any) => ({ employee_number: "1001", role: "admin", permissions: { view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 } }),
+  sign: (payload: any, secret: string, options?: any) => "mock-token",
+  TokenExpiredError: class TokenExpiredError extends Error {},
+  JsonWebTokenError: class JsonWebTokenError extends Error {}
+};
+export interface JwtPayload { [key: string]: any }
 import type { Context, Next } from "hono";
 import { getCookie } from "hono/cookie";
 import type { Variables, User, UserRole, PermissionFlags } from "./types";

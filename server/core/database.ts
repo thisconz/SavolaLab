@@ -1,7 +1,7 @@
-import { db } from "./database/client";
-import { runMigrations } from "./database/runner";
-import { seedDatabase } from "./database/seeds";
-import { initSecurityTriggers } from "./database/security";
+import { db } from "./db/client";
+import { runMigrations } from "./db/runner";
+import { seedDatabase } from "./db/seeds";
+import { initSecurityTriggers } from "./db/security";
 
 let initialized = false;
 let initializing = false;
@@ -77,5 +77,5 @@ export async function initDatabase(): Promise<void> {
 export { db };
 
 // Public API surface
-export * from "./database/security";
-export * from "./database/events";
+export * from "./db/security";
+export * from "./db/events";

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, memo } from "react";
 import { Hexagon } from "lucide-react";
-import clsx from "clsx";
+import clsx from "@/src/lib/clsx";
 
 /* ============================= */
 /* Types */
@@ -105,29 +105,42 @@ export const LogoIcon: React.FC<LogoIconProps> = memo(
     return (
       <div
         className={clsx(
-          "relative flex items-center justify-center text-brand-primary",
-          interactive && "transition-transform duration-300 hover:scale-110",
-          className,
+          "relative flex items-center justify-center text-brand-primary transition-all duration-500 ease-out",
+          "isolation-auto will-change-transform", // Performance optimization
+          interactive && "cursor-pointer hover:scale-110 active:scale-95 hover:rotate-3",
+          className
         )}
       >
-        {/* Rotating hex */}
-        <Hexagon
-          size={config.icon}
-          strokeWidth={2.2}
-          className={clsx(
-            animated && "animate-[spin_12s_linear_infinite]",
-            "opacity-90",
-          )}
-        />
-
-        {/* Pulse ring */}
+        {/* Ambient Glow - Subtle breathing effect behind the icon */}
         {animated && (
-          <span className="absolute h-full w-full rounded-full border border-current opacity-20 animate-ping" />
+          <div className="absolute inset-0 bg-current opacity-10 blur-xl animate-pulse rounded-full" />
         )}
 
-        {/* Core node */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-1.5 h-1.5 bg-current rounded-full shadow-[0_0_6px_currentColor]" />
+        {/* Rotating hex - Now using backface-visibility for smoother rendering */}
+        <div className={clsx(
+          "relative z-10 transition-transform duration-700",
+          animated && "animate-[spin_12s_linear_infinite]"
+        )} style={{ backfaceVisibility: 'hidden' }}>
+          <Hexagon
+            size={config.icon}
+            strokeWidth={2.2}
+            className="opacity-90 drop-shadow-[0_0_8px_rgba(var(--brand-primary-rgb),0.5)]"
+          />
+        </div>
+
+        {/* Multi-stage Pulse - More premium than a single standard ping */}
+        {animated && (
+          <>
+            <span className="absolute h-full w-full rounded-full border border-current opacity-20 animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite]" />
+            <span className="absolute h-[70%] w-[70%] rounded-full border border-current opacity-10 animate-[ping_3.5s_linear_infinite]" />
+          </>
+        )}
+
+        {/* Core node - Enhanced with a blurred pseudo-glow */}
+        <div className="absolute inset-0 flex items-center justify-center z-20">
+          <div className="relative w-1.5 h-1.5 bg-current rounded-full shadow-[0_0_10px_currentColor]">
+            <div className="absolute inset-0 rounded-full bg-current animate-pulse blur-[2px] opacity-60" />
+          </div>
         </div>
       </div>
     );
@@ -145,7 +158,7 @@ interface LogoTextProps {
 }
 
 export const LogoText: React.FC<LogoTextProps> = memo(
-  ({ title = "SavolaLab", subtitle = "QC Platform v1.0", className }) => {
+  ({ title = "Labrix", subtitle = "Quality Control Platform v1.0.0", className }) => {
     const { size, variant } = useLogo();
     const config = sizeConfig[size];
 
@@ -177,7 +190,7 @@ export const LogoText: React.FC<LogoTextProps> = memo(
         {subtitle && (
           <span
             className={clsx(
-              "font-mono uppercase tracking-[0.3em] opacity-70 mt-1 text-[10px]",
+              "font-mono uppercase tracking-[0.3em] opacity-70 mt-1 text-[9px]",
               config.subtitle,
               textColor,
             )}
@@ -195,7 +208,7 @@ export const LogoText: React.FC<LogoTextProps> = memo(
 /* ============================= */
 
 function splitTitle(title: string): [string, string] {
-  const index = title.toLowerCase().lastIndexOf("lab");
+  const index = title.toLowerCase().lastIndexOf("ix");
   if (index === -1) return [title, ""];
   return [title.slice(0, index), title.slice(index)];
 }

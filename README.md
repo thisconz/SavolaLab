@@ -1,17 +1,17 @@
 <div align="center">
 
 ```
- ██████╗  █████╗ ██╗   ██╗ ██████╗ ██╗      █████╗ ██╗      █████╗ ██████╗
-██╔════╝ ██╔══██╗██║   ██║██╔═══██╗██║     ██╔══██╗██║     ██╔══██╗██╔══██╗
-███████╗ ███████║██║   ██║██║   ██║██║     ███████║██║     ███████║██████╔╝
-╚════██║ ██╔══██║╚██╗ ██╔╝██║   ██║██║     ██╔══██║██║     ██╔══██║██╔══██╗
- ██████╔╝██║  ██║ ╚████╔╝ ╚██████╔╝███████╗██║  ██║███████╗██║  ██║██████╔╝
- ╚═════╝ ╚═╝  ╚═╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═════╝
+██╗      █████╗ ██████╗ ██████╗ ██╗██╗  ██╗
+██║     ██╔══██╗██╔══██╗██╔══██╗██║╚██╗██╔╝
+██║     ███████║██████╔╝██████╔╝██║ ╚███╔╝ 
+██║     ██╔══██║██╔══██╗██╔══██╗██║ ██╔██╗ 
+███████╗██║  ██║██████╔╝██║  ██║██║██╔╝ ██╗
+╚══════╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝
 ```
 
-**Enterprise Quality Control Laboratory Platform**
+**Laboratory Intelligence & Execution System**
 
-*From raw cane to certified crystal — every gram, every test, every shift.*
+*Deterministic workflows. Immutable data. Zero ambiguity.*
 
 ![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=node.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white)
@@ -25,7 +25,7 @@
 
 ---
 
-## What Is This
+## What Is Labrix
 
 SavolaLab is a **Laboratory Information Management System (LIMS)** built specifically for industrial sugar refineries. It replaces paper logbooks, spreadsheet chaos, and disconnected QC systems with a single real-time platform that handles the entire quality lifecycle.
 

@@ -1,10 +1,10 @@
 import React, { memo, useState, useEffect } from "react";
 import { Zap, Plus, AlertCircle, Clock, CheckCircle2, Factory, FileText, ArrowRight, Activity } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "@/src/lib/motion";
 import { LabPanel } from "../../../ui/components/LabPanel";
 import { StatApi } from "../api/stat.api";
 import { StatRequest } from "../../../core/types";
-import clsx from "clsx";
+import clsx from "@/src/lib/clsx";
 
 /**
  * StatFeature Component

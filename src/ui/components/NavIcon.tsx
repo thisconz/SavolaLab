@@ -1,6 +1,6 @@
 import React from "react";
 import { LucideIcon } from "lucide-react";
-import { motion } from "motion/react";
+import { motion } from "@/src/lib/motion";
 
 interface NavIconProps {
   icon: LucideIcon;

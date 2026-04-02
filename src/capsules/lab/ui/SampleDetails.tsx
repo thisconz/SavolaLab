@@ -16,6 +16,8 @@ import {
   Factory,
   Cpu,
   CheckCircle2,
+  TrendingUp,
+  Fingerprint,
 } from "lucide-react";
 import type { Sample, TestResult } from "../../../core/types";
 import { LabPanel } from "../../../ui/components/LabPanel";
@@ -23,7 +25,7 @@ import { LabButton } from "../../../ui/components/LabButton";
 import { LabApi } from "../api/lab.api";
 import { AuditApi } from "../../audit/api/audit.api";
 import { useAuthStore } from "../../../orchestrator/state/auth.store";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "@/src/lib/motion";
 
 interface SampleDetailsProps {
   sample: Sample;
@@ -32,33 +34,27 @@ interface SampleDetailsProps {
   onUpdate: () => void;
 }
 
-/**
- * SampleDetails Component
- * 
- * Displays comprehensive information about a specific laboratory sample.
- * Allows users to view sample metadata, edit specific fields (like priority, shift, etc.),
- * and view registered test results once the sample analysis is completed or in progress.
- * 
- * @param {Sample} sample - The sample object containing all metadata.
- * @param {() => void} onBack - Callback to navigate back to the sample queue.
- * @param {() => void} onStartTesting - Callback to initiate the testing workflow for this sample.
- * @param {() => void} onUpdate - Callback triggered when sample details are successfully updated.
- */
 export const SampleDetails: React.FC<SampleDetailsProps> = memo(
   ({ sample, onBack, onStartTesting, onUpdate }) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [editedSample, setEditedSample] = useState<Partial<Sample>>({
-      priority: sample.priority,
-      batch_id: sample.batch_id,
-      source_stage: sample.source_stage,
-      line_id: sample.line_id,
-      equipment_id: sample.equipment_id,
-      shift_id: sample.shift_id,
-    });
+    const [editedSample, setEditedSample] = useState<Partial<Sample>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [testResults, setTestResults] = useState<TestResult[]>([]);
     const [loadingTests, setLoadingTests] = useState(false);
     const { currentUser } = useAuthStore();
+
+    useEffect(() => {
+      if (isEditing) {
+        setEditedSample({
+          priority: sample.priority,
+          batch_id: sample.batch_id,
+          source_stage: sample.source_stage,
+          line_id: sample.line_id,
+          equipment_id: sample.equipment_id,
+          sample_type: sample.sample_type,
+        });
+      }
+    }, [isEditing, sample]);
 
     useEffect(() => {
       const fetchTests = async () => {
@@ -81,397 +77,188 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
       setIsSaving(true);
       try {
         await LabApi.updateSample(sample.id, editedSample);
-
-        // Log to audit trail
-        const changes = [];
-        if (editedSample.priority !== sample.priority)
-          changes.push(
-            `Priority: ${sample.priority} -> ${editedSample.priority}`,
-          );
-        if (editedSample.batch_id !== sample.batch_id)
-          changes.push(
-            `Batch ID: ${sample.batch_id} -> ${editedSample.batch_id}`,
-          );
-        if (editedSample.source_stage !== sample.source_stage)
-          changes.push(
-            `Stage: ${sample.source_stage} -> ${editedSample.source_stage}`,
-          );
-        if (editedSample.sample_type !== sample.sample_type)
-          changes.push(
-            `Type: ${sample.sample_type} -> ${editedSample.sample_type}`,
-          );
-        if (editedSample.line_id !== sample.line_id)
-          changes.push(`Line: ${sample.line_id} -> ${editedSample.line_id}`);
-        if (editedSample.equipment_id !== sample.equipment_id)
-          changes.push(
-            `Equip: ${sample.equipment_id} -> ${editedSample.equipment_id}`,
-          );
-        if (editedSample.shift_id !== sample.shift_id)
-          changes.push(`Shift: ${sample.shift_id} -> ${editedSample.shift_id}`);
+        const changes = Object.keys(editedSample)
+          .filter((key) => editedSample[key as keyof Sample] !== sample[key as keyof Sample]);
 
         if (changes.length > 0) {
-          await AuditApi.log(
-            "SAMPLE_UPDATED",
-            `Updated sample #${sample.id} (${sample.batch_id}). Changes: ${changes.join(", ")}`,
-          );
+          await AuditApi.log("SAMPLE_UPDATED", `Modified by ${currentUser?.name}`);
         }
-
         setIsEditing(false);
         onUpdate();
-      } catch (err) {
-        console.error("Failed to update sample", err);
       } finally {
         setIsSaving(false);
       }
     };
 
+    const isStat = sample.priority === "STAT";
+
     return (
       <LabPanel
-        title={`Sample Details`}
-        icon={Beaker}
+        title="Diagnostic View"
+        icon={Fingerprint}
         actions={
-          <button
-            onClick={onBack}
-            className="text-[10px] font-bold uppercase text-brand-sage hover:text-brand-primary flex items-center gap-1.5 transition-colors bg-brand-mist/50 px-3 py-1.5 rounded-lg hover:bg-brand-primary/10"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Queue
+          <button onClick={onBack} className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase text-brand-sage hover:text-brand-primary bg-brand-mist/50 rounded-lg transition-all border border-brand-sage/10">
+            <ArrowLeft size={14} /> Back
           </button>
         }
       >
-        <div className="flex flex-col h-full gap-6">
-          {/* Header Section */}
-          <div className="flex items-start justify-between p-6 bg-gradient-to-br from-brand-mist/40 via-brand-mist/20 to-transparent rounded-3xl border border-brand-sage/10 relative overflow-hidden shadow-sm">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-brand-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
-
-            <div className="relative z-10">
-              <div className="flex items-center gap-4 mb-3">
-                <div className="w-12 h-12 rounded-2xl bg-white shadow-md shadow-brand-primary/5 border border-brand-sage/10 flex items-center justify-center text-brand-primary">
-                  <Beaker className="w-6 h-6" />
+        <div className="flex flex-col h-full space-y-6 overflow-hidden">
+          
+          {/* Status Hero Card */}
+          <header className={`relative p-6 rounded-3xl border transition-all duration-500 shadow-2xl shadow-brand-deep/5 overflow-hidden ${
+            isStat ? 'bg-white border-lab-laser/20' : 'bg-white border-brand-sage/10'
+          }`}>
+            <div className="relative z-10 flex items-start justify-between">
+              <div className="flex items-center gap-5">
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-transform duration-700 ${
+                  isStat ? 'bg-lab-laser text-white scale-110' : 'bg-brand-primary text-white'
+                }`}>
+                  <Beaker size={32} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-black text-brand-deep uppercase tracking-[0.1em]">
-                    {sample.batch_id}
-                  </h2>
-                  <div className="flex items-center gap-3 text-[11px] font-mono text-brand-sage uppercase tracking-widest mt-1.5">
-                    <span className="flex items-center gap-1.5 bg-white/50 px-2 py-1 rounded-lg border border-brand-sage/5">
-                      <Clock className="w-3.5 h-3.5" />{" "}
-                      {new Date(sample.created_at).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                    <span className="text-brand-sage/30">•</span>
-                    <span className="flex items-center gap-1.5 bg-white/50 px-2 py-1 rounded-lg border border-brand-sage/5">
-                      <MapPin className="w-3.5 h-3.5" /> {sample.source_stage}
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-3xl font-black text-brand-deep tracking-tighter tabular-nums">
+                      {sample.batch_id}
+                    </h2>
+                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${isStat ? 'bg-lab-laser text-white animate-pulse' : 'bg-brand-mist text-brand-sage'}`}>
+                      {sample.priority}
                     </span>
                   </div>
+                  <p className="text-[10px] font-bold text-brand-sage uppercase tracking-widest mt-1 flex items-center gap-2">
+                    <MapPin size={12} className="opacity-40" /> {sample.source_stage} • <Clock size={12} className="opacity-40" /> {new Date(sample.created_at).toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <div className="text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] mb-2">Process Phase</div>
+                <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider ${
+                   sample.status === "COMPLETED" ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
+                }`}>
+                   {sample.status === "TESTING" && <Activity size={12} className="animate-pulse" />}
+                   {sample.status}
                 </div>
               </div>
             </div>
+          </header>
 
-            <div className="relative z-10 flex flex-col items-end gap-3">
-              <div
-                className={`px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm backdrop-blur-sm ${
-                  sample.priority === "STAT"
-                    ? "bg-lab-laser/10 text-lab-laser border-lab-laser/20"
-                    : sample.priority === "HIGH"
-                      ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                      : "bg-brand-primary/10 text-brand-primary border-brand-primary/20"
-                }`}
-              >
-                {sample.priority} PRIORITY
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-2">
+            {/* Bento Grid Parameters */}
+            <section>
+              <div className="flex items-center gap-2 px-1 mb-3">
+                <Settings size={14} className="text-brand-primary" />
+                <h3 className="text-[10px] font-black text-brand-deep uppercase tracking-widest">Metadata Grid</h3>
               </div>
-              <div
-                className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] bg-white/50 px-3 py-1.5 rounded-xl border border-brand-sage/10 shadow-sm ${
-                  sample.status === "COMPLETED"
-                    ? "text-emerald-600"
-                    : "text-brand-sage"
-                }`}
-              >
-                {sample.status === "TESTING" && (
-                  <Activity className="w-3.5 h-3.5 text-brand-primary animate-pulse" />
-                )}
-                {sample.status}
+              
+              <div className="grid grid-cols-6 gap-3">
+                <AnimatePresence mode="popLayout">
+                  {isEditing ? (
+                    <div className="col-span-6 grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-bottom-2">
+                      <EditField icon={Hash} label="Batch ID" value={editedSample.batch_id} onChange={(v: string) => setEditedSample(p => ({...p, batch_id: v}))} />
+                      <div className="p-4 bg-brand-mist/20 border border-brand-primary/20 rounded-2xl">
+                         <label className="text-[9px] font-black text-brand-primary uppercase tracking-widest block mb-2">Priority</label>
+                         <select className="w-full bg-transparent text-xs font-bold text-brand-deep uppercase" value={editedSample.priority} onChange={(e) => setEditedSample(p => ({...p, priority: e.target.value as any}))}>
+                            <option value="NORMAL">Normal</option>
+                            <option value="HIGH">High</option>
+                            <option value="STAT">STAT</option>
+                         </select>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <DetailTile className="col-span-3" icon={Layers} label="Type" value={sample.sample_type} highlight />
+                      <DetailTile className="col-span-3" icon={Factory} label="Line" value={sample.line_id} />
+                      <DetailTile className="col-span-2" icon={Cpu} label="Equipment" value={sample.equipment_id} />
+                      <DetailTile className="col-span-4" icon={TestTube2} label="Requirement" value={`${sample.test_count} Standard Tests`} />
+                    </>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
-          </div>
+            </section>
 
-          {/* Details Grid */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
-            <div className="grid grid-cols-2 gap-4">
-              <AnimatePresence mode="popLayout">
-                {isEditing ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="col-span-2 grid grid-cols-2 gap-4"
-                  >
-                    <EditField
-                      icon={Hash}
-                      label="Batch ID"
-                      value={editedSample.batch_id}
-                      onChange={(v: string) =>
-                        setEditedSample((prev) => ({ ...prev, batch_id: v }))
-                      }
-                    />
-                    <div className="p-4 bg-white/50 backdrop-blur-sm border-2 border-brand-primary/20 rounded-2xl shadow-sm focus-within:border-brand-primary focus-within:ring-4 focus-within:ring-brand-primary/10 transition-all">
-                      <div className="flex items-center gap-2 text-[9px] font-black text-brand-primary uppercase tracking-[0.15em] mb-2">
-                        <AlertCircle className="w-4 h-4" /> Priority Level
-                      </div>
-                      <select
-                        value={editedSample.priority}
-                        onChange={(e) =>
-                          setEditedSample((prev) => ({
-                            ...prev,
-                            priority: e.target.value as any,
-                          }))
-                        }
-                        className="w-full bg-transparent text-sm font-bold text-brand-deep uppercase focus:outline-none cursor-pointer"
-                      >
-                        <option value="NORMAL">NORMAL</option>
-                        <option value="HIGH">HIGH</option>
-                        <option value="STAT">STAT</option>
-                      </select>
-                    </div>
-                    <EditField
-                      icon={MapPin}
-                      label="Source Stage"
-                      value={editedSample.source_stage}
-                      onChange={(v: string) =>
-                        setEditedSample((prev) => ({
-                          ...prev,
-                          source_stage: v,
-                        }))
-                      }
-                    />
-                    <EditField
-                      icon={Layers}
-                      label="Sample Type"
-                      value={editedSample.sample_type || ""}
-                      onChange={(v: string) =>
-                        setEditedSample((prev) => ({
-                          ...prev,
-                          sample_type: v,
-                        }))
-                      }
-                    />
-                    <EditField
-                      icon={Factory}
-                      label="Line ID"
-                      value={editedSample.line_id}
-                      onChange={(v: string) =>
-                        setEditedSample((prev) => ({ ...prev, line_id: v }))
-                      }
-                    />
-                    <EditField
-                      icon={Cpu}
-                      label="Equipment ID"
-                      value={editedSample.equipment_id}
-                      onChange={(v: string) =>
-                        setEditedSample((prev) => ({ ...prev, equipment_id: v }))
-                      }
-                    />
-                    <div className="p-4 bg-white/50 backdrop-blur-sm border-2 border-brand-primary/20 rounded-2xl shadow-sm focus-within:border-brand-primary focus-within:ring-4 focus-within:ring-brand-primary/10 transition-all">
-                      <div className="flex items-center gap-2 text-[9px] font-black text-brand-primary uppercase tracking-[0.15em] mb-2">
-                        <Activity className="w-4 h-4" /> Shift
-                      </div>
-                      <select
-                        value={editedSample.shift_id || ""}
-                        onChange={(e) =>
-                          setEditedSample((prev) => ({
-                            ...prev,
-                            shift_id: e.target.value || undefined,
-                          }))
-                        }
-                        className="w-full bg-transparent text-sm font-bold text-brand-deep uppercase focus:outline-none cursor-pointer"
-                      >
-                        <option value="">N/A</option>
-                        <option value="A">Shift A</option>
-                        <option value="B">Shift B</option>
-                        <option value="C">Shift C</option>
-                      </select>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="col-span-2 grid grid-cols-2 gap-4"
-                  >
-                    <DetailItem
-                      icon={Hash}
-                      label="Batch ID"
-                      value={sample.batch_id}
-                    />
-                    <DetailItem
-                      icon={Layers}
-                      label="Sample Type"
-                      value={sample.sample_type || "N/A"}
-                    />
-                    <DetailItem
-                      icon={MapPin}
-                      label="Source Stage"
-                      value={sample.source_stage}
-                    />
-                    <DetailItem
-                      icon={TestTube2}
-                      label="Required Tests"
-                      value={`${sample.test_count} Tests`}
-                      highlight
-                    />
-
-                    <div className="col-span-2 grid grid-cols-3 gap-4 mt-2 pt-4 border-t border-brand-sage/10">
-                      <DetailItem
-                        icon={Factory}
-                        label="Line ID"
-                        value={sample.line_id || "N/A"}
-                      />
-                      <DetailItem
-                        icon={Cpu}
-                        label="Equip ID"
-                        value={sample.equipment_id || "N/A"}
-                      />
-                      <DetailItem
-                        icon={Activity}
-                        label="Shift"
-                        value={sample.shift_id || "N/A"}
-                      />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Test Results Section */}
-            {testResults.length > 0 && !isEditing && (
-              <div className="mt-8">
-                <h3 className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                  <TestTube2 className="w-4 h-4" />
-                  Registered Test Results
-                </h3>
-                <div className="grid grid-cols-1 gap-3">
-                  {testResults.map((result) => (
-                    <div
-                      key={result.id}
-                      className="flex items-center justify-between p-4 bg-white/50 backdrop-blur-sm border border-brand-sage/10 rounded-2xl hover:shadow-sm transition-all"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-xl ${result.status === "COMPLETED" ? "bg-emerald-50 text-emerald-600" : "bg-brand-mist text-brand-primary"}`}>
-                          {result.status === "COMPLETED" ? <CheckCircle2 className="w-4 h-4" /> : <Activity className="w-4 h-4 animate-pulse" />}
-                        </div>
-                        <div>
-                          <div className="text-xs font-black text-brand-deep uppercase tracking-wider">
-                            {result.test_type}
+            {/* Instrument Readout (Test Results) */}
+            <AnimatePresence>
+              {testResults.length > 0 && !isEditing && (
+                <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+                  <div className="flex items-center gap-2 px-1">
+                    <TrendingUp size={14} className="text-emerald-500" />
+                    <h3 className="text-[10px] font-black text-brand-deep uppercase tracking-widest">Live Instrument Readout</h3>
+                  </div>
+                  <div className="grid gap-2">
+                    {testResults.map((result) => (
+                      <div key={result.id} className="flex items-center justify-between p-4 bg-linear-to-r from-brand-mist/40 to-transparent border border-brand-sage/10 rounded-2xl group hover:border-brand-primary/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${result.status === "COMPLETED" ? 'bg-emerald-500/10 text-emerald-500' : 'bg-brand-primary/10 text-brand-primary'}`}>
+                             {result.status === "COMPLETED" ? <CheckCircle2 size={18} /> : <Activity size={18} className="animate-spin-slow" />}
                           </div>
-                          <div className="text-[9px] font-bold text-brand-sage uppercase tracking-widest mt-0.5">
-                            {new Date(result.performed_at).toLocaleString()}
+                          <div>
+                            <div className="text-[11px] font-black text-brand-deep uppercase">{result.test_type}</div>
+                            <div className="text-[8px] font-bold text-brand-sage tracking-widest">{result.status}</div>
                           </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-black text-brand-deep">
-                          {result.calculated_value !== null ? result.calculated_value : "-"} <span className="text-[10px] text-brand-sage font-bold">{result.unit}</span>
-                        </div>
-                        <div className="text-[9px] font-bold text-brand-sage uppercase tracking-widest mt-0.5">
-                          {result.status}
+                        <div className="text-right">
+                          <span className="text-xl font-black text-brand-deep tabular-nums">{result.calculated_value || "---"}</span>
+                          <span className="text-[9px] font-bold text-brand-sage ml-1 uppercase">{result.unit}</span>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    ))}
+                  </div>
+                </motion.section>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Actions Footer */}
-          <div className="pt-6 border-t border-brand-sage/10 flex gap-4 mt-auto">
+          {/* Action Bar */}
+          <footer className="pt-4 border-t border-brand-sage/10 flex gap-3">
             {isEditing ? (
               <>
-                <LabButton
-                  variant="secondary"
-                  onClick={() => setIsEditing(false)}
-                  icon={X}
-                >
-                  Cancel
-                </LabButton>
-                <LabButton
-                  variant="primary"
-                  fullWidth
-                  onClick={handleSave}
-                  loading={isSaving}
-                  icon={Save}
-                >
-                  Save Changes
-                </LabButton>
+                <LabButton variant="secondary" onClick={() => setIsEditing(false)} icon={X}>Cancel</LabButton>
+                <LabButton variant="primary" fullWidth onClick={handleSave} loading={isSaving} icon={Save}>Commit Changes</LabButton>
               </>
             ) : (
               <>
-                <LabButton
-                  variant="secondary"
-                  onClick={() => setIsEditing(true)}
-                  icon={Edit2}
-                >
-                  Edit
-                </LabButton>
-                <LabButton
-                  variant="primary"
-                  fullWidth
-                  onClick={onStartTesting}
-                  disabled={sample.status === "COMPLETED"}
+                <LabButton variant="secondary" onClick={() => setIsEditing(true)} icon={Edit2}>Adjust</LabButton>
+                <LabButton 
+                  variant="primary" 
+                  fullWidth 
+                  onClick={onStartTesting} 
+                  disabled={sample.status === "COMPLETED"} 
                   icon={TestTube2}
+                  className="shadow-lg shadow-brand-primary/20"
                 >
-                  {sample.status === "COMPLETED"
-                    ? "Analysis Complete"
-                    : "Start Analysis"}
+                  {sample.status === "COMPLETED" ? "Analysis Archived" : "Initiate Lab Run"}
                 </LabButton>
               </>
             )}
-          </div>
+          </footer>
         </div>
       </LabPanel>
     );
-  },
+  }
 );
 
-const DetailItem = ({ icon: Icon, label, value, highlight, small }: any) => (
-  <div
-    className={`p-4 rounded-2xl border transition-all ${
-      highlight
-        ? "bg-gradient-to-br from-brand-primary/10 to-brand-primary/5 border-brand-primary/20 shadow-sm"
-        : "bg-white/50 backdrop-blur-sm border-brand-sage/10 hover:border-brand-sage/30 hover:shadow-sm"
-    }`}
-  >
-    <div
-      className={`flex items-center gap-2 font-black uppercase tracking-[0.15em] mb-1.5 ${
-        highlight ? "text-brand-primary" : "text-brand-sage"
-      } ${small ? "text-[8px]" : "text-[9px]"}`}
-    >
-      {Icon && <Icon className={small ? "w-3 h-3" : "w-4 h-4"} />}
-      {label}
+/* Compact Sub-Components */
+
+const DetailTile = ({ icon: Icon, label, value, highlight, className }: any) => (
+  <motion.div layout className={`p-4 rounded-2xl border transition-all ${className} ${
+    highlight ? "bg-brand-primary/5 border-brand-primary/20" : "bg-white border-brand-sage/5"
+  }`}>
+    <div className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-tighter mb-1 ${highlight ? 'text-brand-primary' : 'text-brand-sage'}`}>
+      <Icon size={10} /> {label}
     </div>
-    <div
-      className={`font-bold text-brand-deep uppercase truncate ${small ? "text-[10px]" : "text-sm"}`}
-    >
-      {value}
-    </div>
-  </div>
+    <div className="text-xs font-black text-brand-deep uppercase truncate">{value || "N/A"}</div>
+  </motion.div>
 );
 
 const EditField = ({ icon: Icon, label, value, onChange }: any) => (
-  <div className="p-4 bg-white/50 backdrop-blur-sm border-2 border-brand-primary/20 rounded-2xl shadow-sm focus-within:border-brand-primary focus-within:ring-4 focus-within:ring-brand-primary/10 transition-all">
-    <div className="flex items-center gap-2 text-[9px] font-black text-brand-primary uppercase tracking-[0.15em] mb-2">
-      {Icon && <Icon className="w-4 h-4" />}
-      {label}
-    </div>
-    <input
-      type="text"
-      value={value}
+  <div className="p-4 bg-white border-2 border-brand-primary/10 rounded-2xl focus-within:border-brand-primary transition-all">
+    <label className="flex items-center gap-1.5 text-[9px] font-black text-brand-primary uppercase tracking-widest mb-1">
+      <Icon size={10} /> {label}
+    </label>
+    <input 
+      className="w-full bg-transparent text-xs font-bold text-brand-deep outline-none"
+      value={value || ""}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-transparent text-sm font-bold text-brand-deep uppercase focus:outline-none placeholder:text-brand-sage/40"
-      placeholder={`Enter ${label.toLowerCase()}...`}
     />
   </div>
 );

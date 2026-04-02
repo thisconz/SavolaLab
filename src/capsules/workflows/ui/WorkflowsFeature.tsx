@@ -14,7 +14,7 @@ import { LabApi } from "../../lab/api/lab.api";
 import { WorkflowApi } from "../api/workflow.api";
 import { WorkflowExecution } from "../../../core/types";
 import type { Sample } from "../../../core/types";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "@/src/lib/motion";
 
 type ExecutionWithWorkflow = WorkflowExecution & { workflow_name: string };
 

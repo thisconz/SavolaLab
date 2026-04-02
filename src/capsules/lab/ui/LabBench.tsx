@@ -23,7 +23,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts";
+} from "@/src/lib/recharts";
 import { Sample, TestResult, TestType, WorkflowStepExecutionStatus } from "../../../core/types";
 import { SampleStatus, SamplePriority } from "../../../core/types";
 import { LabPanel } from "../../../ui/components/LabPanel";
@@ -31,7 +31,7 @@ import { LabApi } from "../api/lab.api";
 import { WorkflowApi } from "../../workflows/api/workflow.api";
 import { TEST_VALIDATION_RULES } from "../constants/validation.constants";
 import { calculateICUMSA } from "../../../core/utils/calculations.util";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "@/src/lib/motion";
 
 interface LabBenchProps {
   sample: Sample;

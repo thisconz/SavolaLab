@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, UserPlus, CheckCircle2, ShieldAlert } from "lucide-react";
+import { motion, AnimatePresence } from "@/src/lib/motion";
+import { ArrowLeft, UserPlus, CheckCircle2, ShieldAlert, Fingerprint, KeyRound, UserCheck } from "lucide-react";
 import { AuthApi } from "../api/auth.api";
 
 interface RegistrationFlowProps {
@@ -19,23 +19,19 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   const [error, setError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Verify State
+  // Form State
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [nationalId, setNationalId] = useState("");
   const [dob, setDob] = useState("");
-
-  // OTP State
   const [otp, setOtp] = useState("");
-
-  // Credentials State
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pin, setPin] = useState("");
 
-  const steps: { id: Step; label: string }[] = [
-    { id: "verify", label: "Identity" },
-    { id: "otp", label: "Verification" },
-    { id: "credentials", label: "Security" },
+  const steps: { id: Step; label: string; icon: any }[] = [
+    { id: "verify", label: "Identity", icon: UserPlus },
+    { id: "otp", label: "Verification", icon: ShieldAlert },
+    { id: "credentials", label: "Security", icon: Fingerprint },
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.id === step);
@@ -52,9 +48,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       });
       setStep("otp");
     } catch (err: any) {
-      setError(
-        err.message || "Verification failed. Please check your details.",
-      );
+      setError(err.message || "Verification failed. Check system records.");
     } finally {
       setLoading(false);
     }
@@ -68,7 +62,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       await AuthApi.confirmOtp(employeeNumber, otp);
       setStep("credentials");
     } catch (err: any) {
-      setError(err.message || "Invalid OTP.");
+      setError(err.message || "Invalid security token.");
     } finally {
       setLoading(false);
     }
@@ -77,11 +71,11 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   const handleCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("Credentials mismatch");
       return;
     }
     if (pin.length !== 4) {
-      setError("PIN must be exactly 4 digits");
+      setError("PIN must be 4 digits");
       return;
     }
 
@@ -94,11 +88,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
         pin,
       });
       setIsSuccess(true);
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
+      setTimeout(onSuccess, 2200);
     } catch (err: any) {
-      setError(err.message || "Failed to setup credentials.");
+      setError(err.message || "Registry synchronization failed.");
     } finally {
       setLoading(false);
     }
@@ -109,24 +101,33 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center justify-center py-12 text-center"
+        className="flex flex-col items-center justify-center py-10 text-center"
       >
-        <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6 border-2 border-emerald-100 shadow-xl shadow-emerald-500/10">
-          <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+        <div className="relative mb-8">
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", damping: 12 }}
+            className="w-24 h-24 bg-emerald-500 rounded-3xl flex items-center justify-center border-4 border-white shadow-2xl shadow-emerald-500/20"
+          >
+            <CheckCircle2 className="w-12 h-12 text-white" />
+          </motion.div>
+          <div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-20 -z-10" />
         </div>
-        <h2 className="text-xl font-black text-brand-deep uppercase tracking-widest mb-2">
-          Registry Complete
+        
+        <h2 className="text-lg font-black text-brand-deep uppercase tracking-[0.3em] mb-3">
+          Access Granted
         </h2>
-        <p className="text-xs text-brand-sage font-mono uppercase tracking-tighter max-w-240px">
-          Your credentials have been securely provisioned. Redirecting to
-          terminal...
+        <p className="text-[10px] text-brand-sage font-mono uppercase tracking-widest max-w-[280px] leading-relaxed">
+          Registry synchronization complete. Secure environment initializing...
         </p>
-        <div className="mt-8 w-48 h-1 bg-brand-mist rounded-full overflow-hidden">
+
+        <div className="mt-10 w-full max-w-[200px] h-1 bg-brand-mist/30 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: "100%" }}
-            transition={{ duration: 2 }}
-            className="h-full bg-emerald-500"
+            transition={{ duration: 2, ease: "easeInOut" }}
+            className="h-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
           />
         </div>
       </motion.div>
@@ -134,251 +135,187 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
+    <div className="space-y-8">
+      {/* Header & Step Progress */}
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
           <button
             onClick={onBack}
-            className="p-2.5 hover:bg-brand-mist/50 rounded-xl text-brand-sage transition-all duration-300 hover:text-brand-deep border border-transparent hover:border-brand-sage/20 hover:shadow-sm"
+            className="group flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest hover:text-brand-primary transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back
           </button>
-          <div>
-            <h2 className="text-sm font-black text-brand-deep uppercase tracking-[0.2em]">
-              Account Registry
-            </h2>
-            <p className="text-[9px] text-brand-sage font-mono uppercase mt-0.5 opacity-60 tracking-widest">
-              Secure Enrollment Protocol
-            </p>
+          <div className="flex gap-1.5">
+            {steps.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-1 rounded-full transition-all duration-700 ${
+                  idx <= currentStepIndex ? "w-8 bg-brand-primary shadow-[0_0_10px_rgba(177,190,155,0.4)]" : "w-4 bg-brand-mist"
+                }`}
+              />
+            ))}
           </div>
         </div>
-        <div className="flex gap-2">
-          {steps.map((s, idx) => (
-            <div
-              key={s.id}
-              className={`h-1.5 w-8 rounded-full transition-all duration-500 ${
-                idx <= currentStepIndex
-                  ? "bg-brand-primary shadow-[0_0_12px_rgba(177,190,155,0.6)]"
-                  : "bg-brand-mist"
-              }`}
-            />
-          ))}
+
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-brand-mist/30 flex items-center justify-center border border-brand-sage/10 text-brand-primary">
+            {React.createElement(steps[currentStepIndex].icon, { className: "w-5 h-5" })}
+          </div>
+          <div>
+            <h2 className="text-xs font-black text-brand-deep uppercase tracking-[0.25em]">
+              {steps[currentStepIndex].label} Protocol
+            </h2>
+            <p className="text-[9px] text-brand-sage font-mono uppercase tracking-widest opacity-60">
+              Registry Phase {currentStepIndex + 1} of 3
+            </p>
+          </div>
         </div>
       </div>
 
       <AnimatePresence mode="wait">
-        {step === "verify" && (
-          <motion.div
-            key="verify"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -10 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <form 
+            onSubmit={step === "verify" ? handleVerify : step === "otp" ? handleOtp : handleCredentials} 
+            className="space-y-5"
           >
-            <form onSubmit={handleVerify} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] ml-1">
-                  Employee Number
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={employeeNumber}
-                  onChange={(e) => setEmployeeNumber(e.target.value)}
-                  className="w-full bg-white/50 backdrop-blur-sm border-2 border-brand-sage/10 rounded-2xl px-5 py-4 text-sm font-mono font-bold text-brand-deep focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 transition-all placeholder:opacity-30 placeholder:font-normal"
-                  placeholder="e.g. EMP001"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] ml-1">
-                  National ID
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={nationalId}
-                  onChange={(e) => setNationalId(e.target.value)}
-                  className="w-full bg-white/50 backdrop-blur-sm border-2 border-brand-sage/10 rounded-2xl px-5 py-4 text-sm font-mono font-bold text-brand-deep focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 transition-all placeholder:opacity-30 placeholder:font-normal"
-                  placeholder="Enter National ID"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] ml-1">
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
-                  className="w-full bg-white/50 backdrop-blur-sm border-2 border-brand-sage/10 rounded-2xl px-5 py-4 text-sm font-mono font-bold text-brand-deep focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 transition-all"
-                />
-              </div>
-
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="p-4 bg-rose-50/80 backdrop-blur-sm border border-rose-200 rounded-2xl"
-                >
-                  <p className="text-[10px] text-rose-600 font-black uppercase tracking-widest text-center leading-relaxed">
-                    {error}
-                  </p>
-                </motion.div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || !employeeNumber || !nationalId || !dob}
-                className="w-full py-5 mt-6 rounded-1.5rem font-black uppercase tracking-[0.2em] text-[10px] transition-all duration-300 bg-brand-primary text-white shadow-xl shadow-brand-primary/20 hover:bg-brand-primary/90 hover:shadow-2xl hover:shadow-brand-primary/30 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-xl active:scale-95"
-              >
-                {loading ? "Verifying Protocol..." : "Continue to Verification"}
-              </button>
-            </form>
-          </motion.div>
-        )}
-
-        {step === "otp" && (
-          <motion.div
-            key="otp"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          >
-            <form onSubmit={handleOtp} className="space-y-6">
-              <div className="p-8 bg-white/50 backdrop-blur-sm rounded-2rem border-2 border-brand-sage/10 mb-8 text-center relative overflow-hidden shadow-sm">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-brand-primary/10 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                <div className="w-16 h-16 bg-brand-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-brand-primary/20 shadow-inner">
-                  <ShieldAlert className="w-8 h-8 text-brand-primary" />
+            {step === "verify" && (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">Personnel ID</label>
+                  <input
+                    type="text"
+                    required
+                    value={employeeNumber}
+                    onChange={(e) => setEmployeeNumber(e.target.value)}
+                    className="w-full bg-brand-mist/10 border-2 border-brand-sage/5 rounded-2xl px-5 py-4 text-sm font-mono font-bold text-brand-deep focus:border-brand-primary/40 focus:bg-white focus:outline-none transition-all placeholder:text-brand-sage/20"
+                    placeholder="EMP-XXXXX"
+                  />
                 </div>
-                <p className="text-xs text-brand-deep font-black uppercase tracking-widest">
-                  Verification Code Sent
-                </p>
-                <p className="text-[10px] text-brand-sage font-mono mt-3 leading-relaxed opacity-80 max-w-240px mx-auto">
-                  Please enter the 6-digit code sent to your registered contact.
-                </p>
-                <div className="mt-6 inline-block px-4 py-2 bg-brand-primary/10 border border-brand-primary/20 rounded-xl shadow-sm">
-                  <p className="text-[9px] text-brand-primary font-black uppercase tracking-widest">
-                    Demo Bypass: 123456
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">Government ID</label>
+                  <input
+                    type="text"
+                    required
+                    value={nationalId}
+                    onChange={(e) => setNationalId(e.target.value)}
+                    className="w-full bg-brand-mist/10 border-2 border-brand-sage/5 rounded-2xl px-5 py-4 text-sm font-mono font-bold text-brand-deep focus:border-brand-primary/40 focus:bg-white focus:outline-none transition-all"
+                    placeholder="National Identification"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">Birth Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                    className="w-full bg-brand-mist/10 border-2 border-brand-sage/5 rounded-2xl px-5 py-4 text-sm font-mono font-bold text-brand-deep focus:border-brand-primary/40 focus:bg-white focus:outline-none transition-all"
+                  />
+                </div>
+              </>
+            )}
+
+            {step === "otp" && (
+              <div className="space-y-6">
+                <div className="p-6 bg-brand-deep/5 rounded-[2rem] border border-brand-primary/10 text-center relative overflow-hidden">
+                  <KeyRound className="w-6 h-6 text-brand-primary mx-auto mb-3 opacity-60" />
+                  <p className="text-[10px] text-brand-sage font-mono uppercase tracking-widest leading-relaxed">
+                    A secure 6-digit token has been transmitted to your mobile device.
                   </p>
                 </div>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block text-center">Enter Security Token</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                    className="w-full bg-white border-2 border-brand-sage/10 rounded-2xl py-5 text-center text-3xl tracking-[0.6em] font-mono font-black text-brand-primary focus:border-brand-primary focus:outline-none transition-all"
+                    placeholder="000000"
+                  />
+                </div>
               </div>
+            )}
 
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] ml-1">
-                  6-Digit OTP
-                </label>
-                <input
-                  type="text"
-                  required
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  className="w-full bg-white/50 backdrop-blur-sm border-2 border-brand-sage/10 rounded-2xl px-5 py-5 text-center text-3xl tracking-[0.5em] font-mono font-black text-brand-deep focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 transition-all placeholder:opacity-20"
-                  placeholder="------"
-                />
-              </div>
+            {step === "credentials" && (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">Master Password</label>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-brand-mist/10 border-2 border-brand-sage/5 rounded-2xl px-5 py-4 text-sm font-mono font-bold text-brand-deep focus:border-brand-primary/40 focus:bg-white focus:outline-none transition-all"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">Confirm Credentials</label>
+                  <input
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full bg-brand-mist/10 border-2 border-brand-sage/5 rounded-2xl px-5 py-4 text-sm font-mono font-bold text-brand-deep focus:border-brand-primary/40 focus:bg-white focus:outline-none transition-all"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div className="space-y-1.5 pt-2">
+                  <div className="flex justify-between items-center ml-1">
+                    <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest">Quick-Switch PIN</label>
+                    <span className="text-[8px] font-bold text-brand-primary/60 uppercase">4 Digits</span>
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    maxLength={4}
+                    value={pin}
+                    onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+                    className="w-full bg-white border-2 border-brand-sage/10 rounded-2xl py-4 text-center text-2xl tracking-[0.5em] font-mono font-black text-brand-deep focus:border-brand-primary focus:outline-none transition-all"
+                    placeholder="0000"
+                  />
+                </div>
+              </>
+            )}
 
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="p-4 bg-rose-50/80 backdrop-blur-sm border border-rose-200 rounded-2xl"
-                >
-                  <p className="text-[10px] text-rose-600 font-black uppercase tracking-widest text-center leading-relaxed">
-                    {error}
-                  </p>
-                </motion.div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || otp.length !== 6}
-                className="w-full py-5 mt-6 rounded-1.5rem font-black uppercase tracking-[0.2em] text-[10px] transition-all duration-300 bg-brand-primary text-white shadow-xl shadow-brand-primary/20 hover:bg-brand-primary/90 hover:shadow-2xl hover:shadow-brand-primary/30 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-xl active:scale-95"
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-2xl"
               >
-                {loading ? "Validating Token..." : "Confirm Identity"}
-              </button>
-            </form>
-          </motion.div>
-        )}
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <p className="text-[9px] text-red-600 font-black uppercase tracking-widest leading-tight">
+                  {error}
+                </p>
+              </motion.div>
+            )}
 
-        {step === "credentials" && (
-          <motion.div
-            key="credentials"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          >
-            <form onSubmit={handleCredentials} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] ml-1">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/50 backdrop-blur-sm border-2 border-brand-sage/10 rounded-2xl px-5 py-4 text-sm font-mono font-bold text-brand-deep focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 transition-all placeholder:opacity-30 placeholder:font-normal"
-                  placeholder="Minimum 8 characters"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] ml-1">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-white/50 backdrop-blur-sm border-2 border-brand-sage/10 rounded-2xl px-5 py-4 text-sm font-mono font-bold text-brand-deep focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 transition-all placeholder:opacity-30 placeholder:font-normal"
-                  placeholder="Confirm password"
-                />
-              </div>
-              <div className="space-y-2 pt-2">
-                <label className="text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] ml-1">
-                  4-Digit PIN (Quick Switch)
-                </label>
-                <input
-                  type="password"
-                  required
-                  maxLength={4}
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                  className="w-full bg-white/50 backdrop-blur-sm border-2 border-brand-sage/10 rounded-2xl px-5 py-4 text-center text-2xl tracking-[0.5em] font-mono font-black text-brand-deep focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary/30 transition-all placeholder:opacity-20"
-                  placeholder="----"
-                />
-              </div>
-
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="p-4 bg-rose-50/80 backdrop-blur-sm border border-rose-200 rounded-2xl"
-                >
-                  <p className="text-[10px] text-rose-600 font-black uppercase tracking-widest text-center leading-relaxed">
-                    {error}
-                  </p>
-                </motion.div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-5 rounded-2xl font-black uppercase tracking-[0.25em] text-[10px] transition-all duration-500 bg-brand-deep text-white hover:bg-brand-primary shadow-xl shadow-brand-deep/20 hover:shadow-brand-primary/30 active:scale-[0.98] disabled:opacity-50"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Processing...</span>
+                </div>
+              ) : (
+                <span>{step === "credentials" ? "Finalize Account" : "Initiate Next Phase"}</span>
               )}
-
-              <button
-                type="submit"
-                disabled={
-                  loading || !password || !confirmPassword || pin.length !== 4
-                }
-                className="w-full py-5 mt-6 rounded-1.5rem font-black uppercase tracking-[0.2em] text-[10px] transition-all duration-300 bg-brand-primary text-white shadow-xl shadow-brand-primary/20 hover:bg-brand-primary/90 hover:shadow-2xl hover:shadow-brand-primary/30 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-xl active:scale-95"
-              >
-                {loading ? "Finalizing Setup..." : "Complete Registry"}
-              </button>
-            </form>
-          </motion.div>
-        )}
+            </button>
+          </form>
+        </motion.div>
       </AnimatePresence>
     </div>
   );

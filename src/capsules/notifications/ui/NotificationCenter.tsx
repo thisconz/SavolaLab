@@ -11,7 +11,7 @@ import {
 import { NotificationApi } from "../api/notification.api";
 import { Notification } from "../../../core/types";
 import { useNotifications } from "../hooks/useNotifications"
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "@/src/lib/motion";
 
 export const NotificationCenter: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);

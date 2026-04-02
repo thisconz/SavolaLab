@@ -1,5 +1,6 @@
-// server/core/types.ts
-
+// ─────────────────────────────────────────────
+// Types and interfaces for user management and permissions
+// ─────────────────────────────────────────────
 export type UserRole =
   | "ADMIN"
   | "CHEMIST"

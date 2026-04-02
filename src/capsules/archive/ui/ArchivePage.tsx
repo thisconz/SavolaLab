@@ -16,7 +16,7 @@ import {
   Tag,
   X,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "@/src/lib/motion";
 import { ArchiveApi } from "../api/archive.api";
 import { Modal } from "../../../ui/components/Modal";
 
@@ -80,7 +80,7 @@ export const ArchivePage: React.FC = () => {
 
     try {
       const ExcelJS = (await import("exceljs")).default;
-      const { saveAs } = await import("file-saver");
+      const { saveAs } = await import("@/src/lib/file-saver");
 
       const workbook = new ExcelJS.Workbook();
       workbook.creator = "Savola Lab System";

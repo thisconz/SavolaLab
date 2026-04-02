@@ -1,4 +1,4 @@
-import { createNotification } from "../../core/database/events";
+import { createNotification } from "../../core/db/events";
 import { db } from "../../core/database";
 
 export type SampleData = {
