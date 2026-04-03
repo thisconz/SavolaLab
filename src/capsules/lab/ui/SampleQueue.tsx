@@ -1,16 +1,7 @@
-import React, {
-  memo,
-  useState,
-  useMemo,
-  useRef,
-  useCallback,
-  CSSProperties,
-} from "react";
+import React, { memo, useState, useMemo, useRef, useCallback } from "react";
 import { useVirtualizer } from "@/src/lib/react-virtual";
 import {
   Search,
-  Filter,
-  X,
   ListFilter,
   RotateCcw,
   SlidersHorizontal,
@@ -19,160 +10,131 @@ import {
 import { SampleCard } from "./SampleCard";
 import { Sample, SampleStatus } from "../../../core/types";
 
-interface RowProps {
+interface SampleQueueProps {
   samples: Sample[];
   selectedSampleId?: number | null;
   onSampleSelect: (sample: Sample) => void;
 }
 
-export const SampleQueue: React.FC<RowProps> = memo(
+export const SampleQueue: React.FC<SampleQueueProps> = memo(
   ({ samples, selectedSampleId, onSampleSelect }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [priorityFilter, setPriorityFilter] = useState<string>("ALL");
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
+    
     const parentRef = useRef<HTMLDivElement>(null);
-    const CARD_HEIGHT = 124; // Base height + Gap
+    const CARD_HEIGHT = 124; 
     const MAX_VISIBLE_SAMPLES = 5;
 
-    // Optimized Filtering Logic
+    // 1. ADVANCED FILTERING LOGIC
     const filteredSamples = useMemo(() => {
-      const searchLower = searchQuery.toLowerCase().trim();
-      return samples.filter((sample) => {
-        const matchesSearch =
-          !searchLower ||
-          [
-            sample.batch_id,
-            sample.sugar_stage,
-            sample.source_stage,
-            sample.id,
-          ].some((val) => String(val).toLowerCase().includes(searchLower));
+      const query = searchQuery.toLowerCase().trim();
+      return samples.filter((s) => {
+        const matchesSearch = !query || [
+          s.batch_id, 
+          s.sugar_stage, 
+          s.source_stage, 
+          s.id
+        ].some(v => String(v).toLowerCase().includes(query));
 
-        const matchesPriority =
-          priorityFilter === "ALL" || sample.priority === priorityFilter;
-        const matchesStatus =
-          statusFilter === "ALL" || sample.status === statusFilter;
+        const matchesPriority = priorityFilter === "ALL" || s.priority === priorityFilter;
+        const matchesStatus = statusFilter === "ALL" || s.status === statusFilter;
 
         return matchesSearch && matchesPriority && matchesStatus;
       });
     }, [samples, searchQuery, priorityFilter, statusFilter]);
 
-    // Virtualizer adjusted for the compact SampleCard height (approx 120px with padding)
+    // 2. VIRTUALIZATION ENGINE
     const rowVirtualizer = useVirtualizer({
       count: filteredSamples.length,
       getScrollElement: () => parentRef.current,
       estimateSize: useCallback(() => CARD_HEIGHT, []),
-      overscan: 10,
+      overscan: 5,
     });
 
-    const containerStyle: CSSProperties = useMemo(() => {
-      const isScrollable = filteredSamples.length > MAX_VISIBLE_SAMPLES;
-      return {
-        // If > 5 samples, cap at 5.5 to show a "peek" of the 6th, or exactly 5.
-        maxHeight: isScrollable
-          ? `${CARD_HEIGHT * MAX_VISIBLE_SAMPLES}px`
-          : "auto",
-        height: !isScrollable
-          ? `${filteredSamples.length * CARD_HEIGHT}px`
-          : "auto",
-        overflowY: isScrollable ? "auto" : "hidden",
-      };
-    }, [filteredSamples.length]);
-
-    const activeFilterCount =
-      (priorityFilter !== "ALL" ? 1 : 0) + (statusFilter !== "ALL" ? 1 : 0);
-
-    const clearFilters = () => {
-      setSearchQuery("");
-      setPriorityFilter("ALL");
-      setStatusFilter("ALL");
-    };
+    const activeFilterCount = (priorityFilter !== "ALL" ? 1 : 0) + (statusFilter !== "ALL" ? 1 : 0);
 
     return (
-      <div className="flex flex-col h-full w-full bg-white/80 backdrop-blur-md border border-brand-sage/10 rounded-4xl overflow-hidden">
-        {/* Compact Header */}
-        <header className="flex-none p-4 pb-2 border-b border-brand-sage/5 space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-2">
-              <ListFilter className="w-3.5 h-3.5 text-brand-primary" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-deep">
-                Active Queue
+      <div className="flex flex-col h-full w-full bg-white/80 backdrop-blur-xl border border-brand-sage/10 rounded-4xl overflow-hidden shadow-inner">
+        
+        {/* HEADER: OPERATIONAL FILTERS */}
+        <header className="flex-none p-5 pb-3 border-b border-brand-sage/5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-1 h-3 bg-brand-primary rounded-full" />
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-brand-deep">
+                Live_Queue
               </span>
-              <span className="px-1.5 py-0.5 bg-brand-primary/10 text-brand-primary rounded text-[9px] font-bold tabular-nums">
-                {filteredSamples.length}
+              <span className="px-2 py-0.5 bg-brand-deep text-white rounded text-[9px] font-mono font-bold">
+                {filteredSamples.length.toString().padStart(3, '0')}
               </span>
             </div>
 
             {activeFilterCount > 0 && (
               <button
-                onClick={clearFilters}
-                className="group flex items-center gap-1.5 text-brand-sage hover:text-brand-primary transition-colors text-[9px] font-bold uppercase"
+                onClick={() => { setSearchQuery(""); setPriorityFilter("ALL"); setStatusFilter("ALL"); }}
+                className="flex items-center gap-1.5 text-brand-primary hover:text-brand-deep transition-colors text-[9px] font-black uppercase tracking-tighter"
               >
-                <RotateCcw className="w-3 h-3 group-hover:rotate-45 transition-transform" />
-                Reset
+                <RotateCcw className="w-3 h-3" />
+                Reset_Filters
               </button>
             )}
           </div>
 
-          {/* Integrated Search */}
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage group-focus-within:text-brand-primary transition-colors pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage/40 group-focus-within:text-brand-primary transition-colors" />
             <input
               type="text"
-              placeholder="Search Batch ID..."
+              placeholder="Filter by Batch, Stage, or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-brand-mist/40 border border-brand-sage/5 rounded-xl pl-9 pr-8 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-primary/10 focus:border-brand-primary/20 transition-all placeholder:text-brand-sage/50"
+              className="w-full bg-brand-mist/30 border border-brand-sage/5 rounded-xl pl-9 pr-4 py-2.5 text-xs font-mono focus:outline-none focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all placeholder:text-brand-sage/30"
             />
           </div>
 
-          {/* Quick Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
             {["ALL", "STAT", "HIGH", "NORMAL"].map((p) => (
               <button
                 key={p}
                 onClick={() => setPriorityFilter(p)}
-                className={`
-                  whitespace-nowrap px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all
-                  ${
-                    priorityFilter === p
-                      ? "bg-brand-primary text-white shadow-sm shadow-brand-primary/20"
-                      : "bg-brand-mist/60 text-brand-sage hover:bg-brand-mist"
-                  }
-                `}
+                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${
+                  priorityFilter === p
+                    ? "bg-brand-primary border-brand-primary text-white shadow-lg shadow-brand-primary/20"
+                    : "bg-transparent border-brand-sage/10 text-brand-sage hover:border-brand-primary/40"
+                }`}
               >
                 {p}
               </button>
             ))}
             <div className="w-px h-3 bg-brand-sage/20 shrink-0 mx-1" />
-            <div className="relative shrink-0">
+            <div className="relative">
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-brand-mist/60 text-brand-sage text-[9px] font-black uppercase tracking-wider pl-2 pr-6 py-1 rounded-lg appearance-none cursor-pointer focus:outline-none"
+                className="bg-brand-mist/50 border border-brand-sage/10 text-brand-sage text-[9px] font-black uppercase tracking-widest pl-3 pr-8 py-1.5 rounded-lg appearance-none cursor-pointer focus:outline-none focus:border-brand-primary/40"
               >
-                <option value="ALL">All Status</option>
+                <option value="ALL">Status_All</option>
                 {Object.values(SampleStatus).map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
+                  <option key={s} value={s}>{s}</option>
                 ))}
               </select>
-              <SlidersHorizontal className="absolute right-2 top-1/2 -translate-y-1/2 w-2.5 h-2.5 pointer-events-none" />
+              <SlidersHorizontal className="absolute right-2.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-brand-sage pointer-events-none" />
             </div>
           </div>
         </header>
 
-        {/* Scrollable Area */}
+        {/* VIRTUALIZED LIST AREA */}
         <div
           ref={parentRef}
-          style={containerStyle}
-          className="flex-1 min-h-0 custom-scrollbar p-3 pt-2"
+          className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4"
         >
           {filteredSamples.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center opacity-40 grayscale py-20">
-              <Beaker size={32} />
-              <p className="text-[10px] font-black uppercase tracking-widest text-brand-deep">
-                No Matches
+            <div className="h-full flex flex-col items-center justify-center py-20 animate-in fade-in zoom-in duration-500">
+              <div className="p-5 bg-brand-mist/20 rounded-full mb-4">
+                <Beaker className="w-8 h-8 text-brand-sage/20" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-sage/40">
+                Zero_Intercepts
               </p>
             </div>
           ) : (
@@ -185,8 +147,6 @@ export const SampleQueue: React.FC<RowProps> = memo(
             >
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const sample = filteredSamples[virtualRow.index];
-                const isActive = selectedSampleId === sample.id;
-
                 return (
                   <div
                     key={virtualRow.key}
@@ -202,7 +162,7 @@ export const SampleQueue: React.FC<RowProps> = memo(
                   >
                     <SampleCard
                       sample={sample}
-                      active={isActive}
+                      active={selectedSampleId === sample.id}
                       onClick={() => onSampleSelect(sample)}
                     />
                   </div>
@@ -213,7 +173,7 @@ export const SampleQueue: React.FC<RowProps> = memo(
         </div>
       </div>
     );
-  },
+  }
 );
 
 SampleQueue.displayName = "SampleQueue";

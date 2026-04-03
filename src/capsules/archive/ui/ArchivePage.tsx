@@ -54,7 +54,7 @@ export const ArchivePage: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const result = await ArchiveApi.search(activeSection, {
+      const result = await ArchiveApi.search(activeSection as any, {
         ...filters,
         batch_id: searchQuery || filters.batch_id,
       });
@@ -83,8 +83,8 @@ export const ArchivePage: React.FC = () => {
       const { saveAs } = await import("@/src/lib/file-saver");
 
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = "Savola Lab System";
-      workbook.lastModifiedBy = "Savola Lab System";
+      workbook.creator = "Labrix System";
+      workbook.lastModifiedBy = "Labrix System";
       workbook.created = new Date();
       workbook.modified = new Date();
 
@@ -96,7 +96,7 @@ export const ArchivePage: React.FC = () => {
       // 1. Add Title and Metadata
       sheet.mergeCells("A1:G2");
       const titleCell = sheet.getCell("A1");
-      titleCell.value = "SAVOLA LAB SYSTEM - OFFICIAL DATA EXPORT";
+      titleCell.value = "LABRIX SYSTEM - OFFICIAL DATA EXPORT";
       titleCell.font = {
         name: "Arial",
         size: 20,
@@ -325,7 +325,7 @@ export const ArchivePage: React.FC = () => {
       // 6. Auto-fit columns
       sheet.columns.forEach((column, i) => {
         let maxLength = 0;
-        column.eachCell({ includeEmpty: true }, (cell, rowNumber) => {
+        column?.eachCell?.({ includeEmpty: true }, (cell, rowNumber) => {
           if (rowNumber > 7) {
             // Only check header and data rows
             const columnLength = cell.value ? cell.value.toString().length : 10;

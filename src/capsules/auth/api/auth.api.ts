@@ -21,7 +21,7 @@ export const AuthApi = {
     pin?: string;
     password?: string;
   }) => {
-    return api.post<{ success: boolean; user: any; token: string }>(
+    return api.post<{ success: boolean; user: User; token: string }>(
       "/auth/login",
       payload,
     );

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, memo } from "react";
 import {
   BarChart,
   Bar,
@@ -9,61 +9,65 @@ import {
   ResponsiveContainer,
   Cell,
 } from "@/src/lib/recharts";
+import { motion, AnimatePresence } from "@/src/lib/motion";
 import { Sample } from "../../../core/types";
 
 interface PriorityWidgetProps {
   samples: Sample[];
+  loading?: boolean;
 }
 
-// Semantic tokens mapped to Labrix OS palette
-const PRIORITY_MAP: Record<string, { color: string; label: string }> = {
-  NORMAL: { color: "rgba(var(--brand-sage-rgb), 0.4)", label: "LVL_01" },
+const PRIORITY_MAP: Record<string, { color: string; label: string; glow?: string }> = {
+  NORMAL: { color: "rgba(var(--brand-sage-rgb), 0.3)", label: "LVL_01" },
   HIGH: { color: "var(--brand-primary)", label: "LVL_02" },
-  STAT: { color: "#FF4D4D", label: "CRITICAL" }, // Direct highlight for emergency
+  STAT: { 
+    color: "#FF4D4D", 
+    label: "CRITICAL",
+    glow: "drop-shadow(0 0 12px rgba(255, 77, 77, 0.5))"
+  },
 };
 
-export const PriorityWidget: React.FC<PriorityWidgetProps> = ({ samples }) => {
+export const PriorityWidget: React.FC<PriorityWidgetProps> = memo(({ 
+  samples,
+  loading = false 
+}) => {
   const data = useMemo(() => {
     const counts: Record<string, number> = { NORMAL: 0, HIGH: 0, STAT: 0 };
+    
     samples.forEach((s) => {
-      const p = s.priority?.toUpperCase();
+      const p = (s.priority?.toUpperCase() || "NORMAL") as keyof typeof counts;
       if (counts[p] !== undefined) counts[p] += 1;
     });
+
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [samples]);
 
+  if (loading) return <PriorityLoadingState />;
+
   return (
-    <div className="h-[240px] w-full relative">
-      {/* Decorative Scanner Overlay */}
-      <div className="absolute inset-0 pointer-events-none border-l border-brand-primary/5 z-0" />
+    <div className="h-60 w-full relative group/priority">
+      {/* Structural Decor */}
+      <div className="absolute top-2 right-2 flex gap-1 opacity-20 group-hover/priority:opacity-50 transition-opacity">
+        <div className="w-1 h-1 bg-brand-primary" />
+        <div className="w-1 h-1 bg-brand-primary/50" />
+        <div className="w-1 h-1 bg-brand-primary/20" />
+      </div>
 
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 20, right: 10, left: -25, bottom: 0 }}
-          barSize={40}
+          margin={{ top: 30, right: 10, left: -25, bottom: 0 }}
+          barSize={44}
         >
           <CartesianGrid
-            strokeDasharray="1 6"
-            stroke="rgba(var(--brand-sage-rgb), 0.2)"
+            strokeDasharray="1 8"
+            stroke="rgba(var(--brand-sage-rgb), 0.15)"
             vertical={false}
           />
 
           <XAxis
             dataKey="name"
-            tick={({ x, y, payload }) => (
-              <g transform={`translate(${x},${y})`}>
-                <text
-                  x={0}
-                  y={0}
-                  dy={16}
-                  textAnchor="middle"
-                  className="fill-brand-deep/40 text-[8px] font-black font-mono tracking-tighter"
-                >
-                  {PRIORITY_MAP[payload.value]?.label || payload.value}
-                </text>
-              </g>
-            )}
+            tick={<CustomPriorityTick />}
             axisLine={false}
             tickLine={false}
           />
@@ -72,31 +76,31 @@ export const PriorityWidget: React.FC<PriorityWidgetProps> = ({ samples }) => {
             tick={{
               fontSize: 8,
               fontFamily: "var(--font-mono)",
-              fill: "rgba(var(--brand-sage-rgb), 0.5)",
+              fontWeight: 600,
+              fill: "rgba(var(--brand-sage-rgb), 0.4)",
             }}
             axisLine={false}
             tickLine={false}
           />
 
           <Tooltip
-            cursor={{ fill: "rgba(var(--brand-primary-rgb), 0.03)" }}
+            cursor={{ fill: "rgba(var(--brand-primary-rgb), 0.02)" }}
             content={<PriorityTooltip />}
           />
 
-          <Bar dataKey="value" animationDuration={1000}>
+          <Bar 
+            dataKey="value" 
+            animationDuration={1200}
+            radius={[4, 4, 0, 0]}
+          >
             {data.map((entry, index) => {
-              const isStat = entry.name === "STAT";
+              const config = PRIORITY_MAP[entry.name];
               return (
                 <Cell
-                  key={`cell-${index}`}
-                  fill={PRIORITY_MAP[entry.name]?.color || "#6b7280"}
-                  // STAT bars get a subtle drop-shadow "glow" in CSS
-                  style={{
-                    filter: isStat
-                      ? "drop-shadow(0 0 8px rgba(255, 77, 77, 0.4))"
-                      : "none",
-                  }}
-                  className="hover:brightness-110 transition-all cursor-help"
+                  key={`cell-${entry.name}`}
+                  fill={config?.color || "rgba(var(--brand-sage-rgb), 0.2)"}
+                  style={{ filter: config?.glow || "none" }}
+                  className="hover:brightness-125 transition-all cursor-crosshair"
                 />
               );
             })}
@@ -105,38 +109,82 @@ export const PriorityWidget: React.FC<PriorityWidgetProps> = ({ samples }) => {
       </ResponsiveContainer>
     </div>
   );
+});
+
+/* --- Sub-Components --- */
+
+const CustomPriorityTick = (props: any) => {
+  const { x, y, payload } = props;
+  const config = PRIORITY_MAP[payload.value];
+  const isCritical = payload.value === "STAT";
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        x={0}
+        y={0}
+        dy={16}
+        textAnchor="middle"
+        className={`text-[8px] font-black font-mono tracking-widest ${
+          isCritical ? "fill-[#FF4D4D]" : "fill-brand-deep/40"
+        }`}
+      >
+        {config?.label || payload.value}
+      </text>
+    </g>
+  );
 };
 
-/* --- Custom Priority Tooltip --- */
-
 const PriorityTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const name = payload[0].payload.name;
-    const isStat = name === "STAT";
+  if (!active || !payload?.length) return null;
+  
+  const { name, value } = payload[0].payload;
+  const isStat = name === "STAT";
 
-    return (
-      <div className="bg-brand-deep border border-white/10 p-3 rounded-lg shadow-xl backdrop-blur-xl">
-        <div className="flex items-center gap-2 mb-1.5">
-          <div
-            className={`w-2 h-2 rounded-full ${isStat ? "bg-[#FF4D4D] animate-pulse" : "bg-brand-primary"}`}
-          />
-          <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.2em]">
-            Priority_Status
-          </p>
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-brand-deep/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl min-w-35"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div className={`w-1.5 h-1.5 rounded-full ${isStat ? "bg-[#FF4D4D] animate-pulse" : "bg-brand-primary"}`} />
+          <p className="text-[8px] font-black text-white/40 uppercase tracking-widest">Priority_Node</p>
         </div>
-        <p
-          className={`text-xs font-mono font-bold mb-1 ${isStat ? "text-[#FF4D4D]" : "text-white"}`}
-        >
-          {name} :: {payload[0].value} UNITS
-        </p>
-        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-brand-primary/50"
-            style={{ width: `${Math.min(payload[0].value, 100)}%` }}
+        <span className="text-[8px] font-mono text-white/20">#{(value * 7).toString(16).slice(0, 3)}</span>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex justify-between items-baseline">
+          <span className={`text-xs font-bold font-mono ${isStat ? "text-[#FF4D4D]" : "text-white"}`}>
+            {name}
+          </span>
+          <span className="text-xs font-black text-white">{value} <span className="text-[8px] text-white/30">QTY</span></span>
+        </div>
+        
+        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.min((value / 50) * 100, 100)}%` }}
+            className={`h-full ${isStat ? "bg-[#FF4D4D]" : "bg-brand-primary"}`} 
           />
         </div>
       </div>
-    );
-  }
-  return null;
+    </motion.div>
+  );
 };
+
+const PriorityLoadingState = () => (
+  <div className="h-60 w-full flex items-end justify-center gap-8 pb-10">
+    {[30, 60, 45].map((h, i) => (
+      <div 
+        key={i} 
+        className="w-10 bg-brand-mist rounded-t animate-pulse" 
+        style={{ height: `${h}%`, opacity: 0.3 + i * 0.2 }} 
+      />
+    ))}
+  </div>
+);
+
+PriorityWidget.displayName = "PriorityWidget";

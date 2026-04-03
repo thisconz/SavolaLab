@@ -7,7 +7,9 @@ export enum SampleStatus {
   TESTING = "TESTING",
   VALIDATING = "VALIDATING",
   COMPLETED = "COMPLETED",
+  APPROVED = "APPROVED",
   ARCHIVED = "ARCHIVED",
+  PENDING = "PENDING",
 }
 
 export enum SamplePriority {
@@ -67,6 +69,10 @@ export interface User {
   initials?: string;
   dept?: string;
   permissions: string[];
+
+  status?: "online" | "offline" | "busy";
+
+  online?: boolean;
 }
 
 /** --- Sample & Test types --- */

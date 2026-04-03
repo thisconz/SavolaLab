@@ -38,6 +38,7 @@ export const TEST_VALIDATION_RULES: Partial<Record<TestType, ValidationRule>> =
       unit: "%",
       description: "Ratio of Pol to Brix",
       step: "0.01",
+      suggestion: "Purity = (Pol / Brix) * 100",
     },
     Ash: {
       min: 0,
@@ -51,14 +52,14 @@ export const TEST_VALIDATION_RULES: Partial<Record<TestType, ValidationRule>> =
       max: 10,
       unit: "%",
       description: "Water content",
-      step: "0.001",
+      step: "0.0001",
     },
     pH: {
       min: 0,
       max: 14,
       unit: "pH",
       description: "Acidity or alkalinity",
-      step: "0.1",
+      step: "0.01",
     },
     Invert: {
       min: 0,
@@ -74,4 +75,5 @@ export const TEST_VALIDATION_RULES: Partial<Record<TestType, ValidationRule>> =
       description: "Clarity of the solution",
       step: "1",
     },
+    
   };

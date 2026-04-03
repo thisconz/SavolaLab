@@ -1,71 +1,106 @@
-import React from "react";
+import React, { memo } from "react";
 import { LucideIcon, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "@/src/lib/motion";
+import clsx from "@/src/lib/clsx";
 
 interface LabButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "danger" | "ghost";
+  variant?: "primary" | "secondary" | "danger" | "ghost" | "laser";
   fullWidth?: boolean;
   loading?: boolean;
   icon?: LucideIcon;
+  iconPosition?: "left" | "right";
 }
 
-export const LabButton: React.FC<LabButtonProps> = ({
+export const LabButton: React.FC<LabButtonProps> = memo(({
   children,
   variant = "primary",
   fullWidth = false,
   loading = false,
   icon: Icon,
+  iconPosition = "left",
   className = "",
   disabled,
   ...props
 }) => {
-  const baseStyles =
-    "relative inline-flex items-center justify-center gap-2 px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all duration-300 outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden group select-none";
+  
+  const baseStyles = clsx(
+    "relative inline-flex items-center justify-center gap-2.5 px-8 py-4",
+    "text-[10px] font-black uppercase tracking-[0.25em] rounded-2xl",
+    "transition-all duration-300 outline-none select-none overflow-hidden group",
+    "disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale-[0.5]",
+    fullWidth ? "w-full" : "w-fit"
+  );
 
   const variants = {
-    primary:
-      "bg-brand-primary text-white hover:bg-brand-primary/90 shadow-xl shadow-brand-primary/20 focus:ring-brand-primary border-b-4 border-brand-deep/20 active:border-b-0 active:translate-y-[2px]",
-    secondary:
-      "bg-white text-brand-deep hover:bg-brand-mist/80 focus:ring-brand-mist border-b-4 border-brand-sage/20 shadow-lg shadow-brand-sage/5 active:border-b-0 active:translate-y-[2px]",
-    danger:
-      "bg-red-500 text-white hover:bg-red-600 shadow-xl shadow-red-500/20 focus:ring-red-500 border-b-4 border-red-700/30 active:border-b-0 active:translate-y-[2px]",
-    ghost:
-      "bg-transparent text-brand-sage hover:bg-brand-mist/50 hover:text-brand-deep focus:ring-brand-mist active:scale-[0.97]",
+    primary: "bg-brand-primary text-white shadow-[0_10px_20px_-10px_rgba(var(--brand-primary-rgb),0.5),inset_0_1px_0_rgba(255,255,255,0.2)] hover:bg-brand-primary/90",
+    secondary: "bg-white text-brand-deep border border-brand-sage/20 shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:bg-brand-mist/50",
+    danger: "bg-red-500 text-white shadow-[0_10px_20px_-10px_rgba(239,68,68,0.5)] hover:bg-red-600",
+    ghost: "bg-transparent text-brand-sage hover:bg-brand-mist/40 hover:text-brand-deep",
+    laser: "bg-brand-deep text-brand-primary border border-brand-primary/30 shadow-[0_0_15px_rgba(var(--brand-primary-rgb),0.2)] hover:shadow-[0_0_25px_rgba(var(--brand-primary-rgb),0.4)]",
   };
 
   return (
-    <button
-      className={`${baseStyles} ${variants[variant]} ${fullWidth ? "w-full" : ""} ${className}`}
+    <motion.button
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.97, y: 1 }}
+      className={clsx(baseStyles, variants[variant], className)}
       disabled={disabled || loading}
       {...props}
     >
-      {/* High-End Gloss Sweep Effect */}
+      {/* --- LAYER 1: GLOSS SWEEP (Surface Detail) --- */}
       {variant !== "ghost" && (
-        <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-          <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000 ease-in-out" />
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -skew-x-25 -translate-x-[250%] group-hover:translate-x-[250%] transition-transform duration-1000 ease-out" />
         </div>
       )}
 
-      {/* Inner Shadow for "Pressed" Depth */}
-      <div className="absolute inset-0 bg-black/5 opacity-0 group-active:opacity-100 transition-opacity pointer-events-none" />
+      {/* --- LAYER 2: INTERACTIVE DEPTH --- */}
+      <div className="absolute inset-0 bg-black/5 opacity-0 group-active:opacity-100 transition-opacity" />
 
-      <div className="relative z-10 flex items-center justify-center">
-        {/* Fixed-Width Icon Container to prevent layout shift */}
-        <div
-          className={`flex items-center justify-center transition-all duration-300 ${loading || Icon ? "w-5 mr-1" : "w-0"}`}
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />
-          ) : Icon ? (
-            <Icon className="w-4 h-4 transition-transform group-hover:scale-110 group-hover:-rotate-12" />
-          ) : null}
-        </div>
+      {/* --- LAYER 3: CONTENT --- */}
+      <div className={clsx(
+        "relative z-10 flex items-center justify-center gap-2",
+        iconPosition === "right" && "flex-row-reverse"
+      )}>
+        <AnimatePresence mode="wait">
+          {(loading || Icon) && (
+            <motion.div
+              initial={{ width: 0, opacity: 0, scale: 0.5 }}
+              animate={{ width: "auto", opacity: 1, scale: 1 }}
+              exit={{ width: 0, opacity: 0, scale: 0.5 }}
+              className="flex items-center justify-center"
+            >
+              {loading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin stroke-[3px]" />
+              ) : Icon ? (
+                <Icon className="w-3.5 h-3.5 transition-transform group-hover:scale-110 group-hover:-rotate-6" />
+              ) : null}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <span className="relative">
+        <span className="relative whitespace-nowrap">
           {children}
-          {/* Subtle underline hover effect */}
-          <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-current opacity-30 group-hover:w-full transition-all duration-500" />
+          {/* Kinetic Underline Accent */}
+          <motion.span 
+            className="absolute -bottom-1 left-0 h-px bg-current opacity-20"
+            initial={{ width: 0 }}
+            whileHover={{ width: "100%" }}
+            transition={{ duration: 0.4, ease: "circOut" }}
+          />
         </span>
       </div>
-    </button>
+
+      {/* --- LAYER 4: SCANLINE FX (Laser Variant Only) --- */}
+      {variant === "laser" && (
+        <div className={clsx(
+          "absolute inset-0 opacity-[0.05] pointer-events-none",
+          "bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))]",
+          "bg-size-[100%_2px,3px_100%]"
+        )} />
+      )}
+    </motion.button>
   );
-};
+});
+
+LabButton.displayName = "LabButton";

@@ -6,79 +6,106 @@ import { RightRail } from "./layout/RightRail";
 import { useAppStore } from "../orchestrator/state/app.store";
 import { useAuthStore } from "../orchestrator/state/auth.store";
 import { LoginPage } from "../capsules/auth";
+import clsx from "@/src/lib/clsx";
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = memo(
   ({ children }) => {
     const { activeTab } = useAppStore();
-    const { isAuthenticated } = useAuthStore();
+    const { isAuthenticated, currentUser } = useAuthStore();
 
-    // Prevents layout shift during auth state transitions
-    const layoutKey = useMemo(
-      () => (isAuthenticated ? "auth-terminal" : "guest-access"),
-      [isAuthenticated],
-    );
-
+    // 1. Auth Guard: Early return for guest state
     if (!isAuthenticated) return <LoginPage />;
 
     return (
-      <div className="flex h-screen w-screen bg-[#FDFDFD] instrument-grid relative overflow-hidden font-sans antialiased selection:bg-brand-primary/20">
-        {/* GOD-TIER OVERLAY: The HUD Glass */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex h-screen w-screen bg-[#FDFDFD] relative overflow-hidden font-sans antialiased selection:bg-brand-primary/20"
+      >
+        {/* --- LAYER 0: ENVIRONMENTAL FX --- */}
+        {/* The "Glass" Scanline & Noise Overlay */}
+        <div className="pointer-events-none fixed inset-0 z-50 opacity-[0.015] mix-blend-overlay bg-[url('/assets/noise.png')]" />
         <div className="scanline pointer-events-none fixed inset-0 z-50 opacity-[0.02] mix-blend-overlay" />
-        <div className="pointer-events-none fixed inset-0 z-50 bg-linear-to-tr from-brand-primary/2 via-transparent to-brand-laser/[0.02]" />
+        
+        {/* Subtle Brand Gradient Glow */}
+        <div className="pointer-events-none fixed -top-24 -left-24 w-96 h-96 bg-brand-primary/5 blur-[120px] rounded-full" />
+        <div className="pointer-events-none fixed -bottom-24 -right-24 w-96 h-96 bg-brand-laser/5 blur-[120px] rounded-full" />
 
-        {/* PILLAR 1: NAVIGATION (Fixed Width, Full Height) */}
+        {/* --- PILLAR 1: NAVIGATION --- */}
         <Sidebar activeTab={activeTab} />
 
-        {/* PILLAR 2: WORKSPACE (Flexible Core) */}
-        <div className="flex-1 flex flex-col min-w-0 relative z-10 border-r border-brand-sage/5 bg-white/20 backdrop-blur-sm">
-          {/* Docked Header: Integrated into the workspace pillar */}
+        {/* --- PILLAR 2: WORKSPACE --- */}
+        <div className="flex-1 flex flex-col min-w-0 relative z-10 bg-white/40 backdrop-blur-md">
+          {/* Integrated Workspace Header */}
           <Header />
 
-          {/* Content Projection Area */}
-          <div className="flex-1 relative overflow-hidden">
+          {/* Feature Projection Area */}
+          <div className="flex-1 relative overflow-hidden flex flex-col">
             <AnimatePresence mode="wait">
               <motion.main
                 key={activeTab}
-                // Motion profile: Stiff mechanical slide with optical blur
-                initial={{
-                  opacity: 0,
-                  x: 8,
-                  scale: 0.995,
-                  filter: "blur(8px)",
-                }}
-                animate={{ opacity: 1, x: 0, scale: 1, filter: "blur(0px)" }}
-                exit={{ opacity: 0, x: -8, scale: 1.005, filter: "blur(8px)" }}
+                initial={{ opacity: 0, y: 10, filter: "blur(10px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -10, filter: "blur(10px)" }}
                 transition={{
                   type: "spring",
-                  stiffness: 350,
-                  damping: 32,
+                  stiffness: 400,
+                  damping: 35,
                   mass: 0.5,
                 }}
-                className="h-full w-full p-8 overflow-y-auto custom-scrollbar relative"
+                className="flex-1 w-full overflow-y-auto custom-scrollbar relative p-8"
               >
-                {/* Dynamic Content Anchor */}
-                <div className="max-w-400 mx-auto h-full">{children}</div>
+                {/* Content Anchor: Uses Canonical Max-Width */}
+                <div className="max-w-7xl mx-auto min-h-full pb-20">
+                  {children}
+                </div>
 
-                {/* Internal Decoration: Layout Coordinates */}
-                <div className="absolute bottom-4 right-8 flex gap-6 opacity-20 pointer-events-none">
-                  <span className="text-[8px] font-mono font-black tracking-[0.4em] text-brand-sage uppercase">
-                    Terminal_Ready // {activeTab.toUpperCase()}
-                  </span>
+                {/* --- LAYER 3: TELEMETRY DECORATION --- */}
+                <div className="sticky bottom-0 left-0 w-full pt-10 pb-4 flex justify-between items-end pointer-events-none select-none">
+                   {/* Breadcrumb / Path Trace */}
+                   <div className="flex items-center gap-4 px-2">
+                      <div className="h-px w-8 bg-brand-sage/20" />
+                      <span className="text-[7px] font-black text-brand-sage uppercase tracking-[0.5em] opacity-40">
+                        Node_Path // 0x{activeTab.length} // {activeTab}
+                      </span>
+                   </div>
+
+                   {/* Session Status Marker */}
+                   <div className="flex flex-col items-end gap-1 px-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[7px] font-bold text-brand-primary uppercase tracking-widest">
+                          Terminal Active
+                        </span>
+                        <div className="w-1 h-1 rounded-full bg-brand-primary animate-pulse" />
+                      </div>
+                      <span className="text-[6px] font-mono text-brand-sage/40 uppercase">
+                         UID: {currentUser?.id?.substring(0, 8) || "GUEST"}
+                      </span>
+                   </div>
                 </div>
               </motion.main>
             </AnimatePresence>
           </div>
         </div>
 
-        {/* PILLAR 3: TELEMETRY (Fixed Width, Full Height) */}
+        {/* --- PILLAR 3: UTILITY RAIL --- */}
         <RightRail />
 
-        {/* Layout Grid Markers (The 'God-Tier' touch) */}
-        <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0 opacity-40">
-          <div className="absolute top-16 left-0 w-full h-px bg-brand-sage/5" />
-          <div className="absolute top-0 left-64 h-full w-px bg-brand-sage/5" />
+        {/* --- LAYER 4: ARCHITECTURAL MARKERS --- */}
+        {/* Visual indicators of the underlying grid system */}
+        <div className="fixed inset-0 pointer-events-none z-0 opacity-20">
+          {/* Vertical Separators */}
+          <div className="absolute top-0 left-68 h-full w-px bg-brand-sage/10" />
+          <div className="absolute top-0 right-72 h-full w-px bg-brand-sage/10" />
+          
+          {/* Horizontal Header Alignment */}
+          <div className="absolute top-16 left-68 right-72 h-px bg-brand-sage/10" />
+          
+          {/* Corner Accents */}
+          <div className="absolute top-4 left-72 w-2 h-2 border-t border-l border-brand-sage/30 rounded-tl-xs" />
+          <div className="absolute top-4 right-76 w-2 h-2 border-t border-r border-brand-sage/30 rounded-tr-xs" />
         </div>
-      </div>
+      </motion.div>
     );
   },
 );

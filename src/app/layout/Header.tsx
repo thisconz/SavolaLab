@@ -30,10 +30,10 @@ export const Header: React.FC = memo(() => {
     <header className="h-24 border-b border-brand-sage/15 flex items-center justify-between px-10 bg-white/70 backdrop-blur-3xl relative z-50 shrink-0">
       {/* 1. LAYER: TECHNICAL UNDERLAY */}
       <div className="absolute inset-0 bg-[url('/assets/grid-dot.svg')] opacity-[0.03] pointer-events-none" />
-      <div className="absolute bottom-[-1px] left-0 w-full h-[1px] bg-linear-to-r from-transparent via-brand-primary/30 to-transparent" />
+      <div className="absolute -bottom-px left-0 w-full h-px bg-linear-to-r from-transparent via-brand-primary/30 to-transparent" />
 
       {/* Laser Focus Glow */}
-      <div className="absolute bottom-[-1px] left-1/2 -translate-x-1/2 w-1/3 h-[2px] bg-brand-primary/40 blur-[4px]" />
+      <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-1/3 h-0.5 bg-brand-primary/40 blur-xs" />
 
       {/* LEFT: Branding & Dynamic Breadcrumbs */}
       <div className="flex items-center gap-10 relative z-10">
@@ -42,7 +42,7 @@ export const Header: React.FC = memo(() => {
         </LogoRoot>
 
         <div className="flex items-center gap-6 group">
-          <div className="h-8 w-[1px] bg-brand-sage/20 -rotate-12 group-hover:rotate-0 transition-transform duration-500" />
+          <div className="h-8 w-px bg-brand-sage/20 -rotate-12 group-hover:rotate-0 transition-transform duration-500" />
 
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5 mb-1.5">
@@ -108,7 +108,7 @@ const TelemetryModule = ({ icon: Icon, label, value, status }: any) => (
   <div className="flex items-center gap-3 py-1.5 px-3 rounded-xl hover:bg-white/50 transition-colors cursor-help group/tel">
     <div
       className={clsx(
-        "w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-500 group-hover/tel:rotate-[360deg]",
+        "w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-500 group-hover/tel:rotate-360",
         status === "success"
           ? "bg-emerald-50 text-emerald-600"
           : "bg-brand-primary/10 text-brand-primary",

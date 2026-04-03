@@ -67,8 +67,9 @@ export const useAuthFlow = ({
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!selectedUser) return;
+      if (!selectedUser || loading) return;
 
+      setLoading(true);
       try {
         const payload =
           authMode === "pin"
@@ -105,9 +106,12 @@ export const useAuthFlow = ({
         const msg = err?.message || `Invalid ${authMode.toUpperCase()}`;
         setError(msg);
         setInputValue("");
+      } finally {
+        setLoading(false);
       }
+
     },
-    [selectedUser, authMode, inputValue, login, onSuccess],
+    [selectedUser, loading, authMode, inputValue, login, onSuccess],
   );
 
   const resetState = useCallback(() => {

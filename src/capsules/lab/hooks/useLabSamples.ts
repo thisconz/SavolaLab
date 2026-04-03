@@ -12,18 +12,29 @@ export function useLabSamples() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchSamples = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await LabApi.getSamples();
+  let isSubscribed = true;
+
+  try {
+    setLoading(true);
+    const data = await LabApi.getSamples();
+    if (isSubscribed) {
       setSamples(data);
       setError(null);
-    } catch (err) {
+    }
+  } catch (err) {
+    if (isSubscribed) {
       console.error("Error fetching samples:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch samples");
-    } finally {
+    }
+  } finally {
+    if (isSubscribed) {
       setLoading(false);
     }
+  }
+
+  return () => { isSubscribed = false; };
   }, []);
+
 
   useEffect(() => {
     fetchSamples();
@@ -31,10 +42,5 @@ export function useLabSamples() {
 
   const refresh = () => fetchSamples();
 
-  return {
-    samples,
-    loading,
-    error,
-    refresh,
-  };
+  return { samples, loading, error, refresh: fetchSamples };
 }

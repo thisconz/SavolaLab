@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import {
   X,
   LogOut,
-  Shield,
-  User,
-  Activity,
   ChevronRight,
   Fingerprint,
+  ShieldCheck,
+  Globe,
+  Radio,
+  Zap
 } from "lucide-react";
 import { useAuthStore } from "../../../orchestrator/state/auth.store";
 import { useAuthFlow } from "../hooks/useAuthFlow";
@@ -19,10 +20,7 @@ interface QuickSwitchProps {
   onClose: () => void;
 }
 
-export const QuickSwitch: React.FC<QuickSwitchProps> = ({
-  isOpen,
-  onClose,
-}) => {
+export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => {
   const { currentUser, logout } = useAuthStore();
   const { users, handleUserSelect } = useAuthFlow();
   const [mounted, setMounted] = useState(false);
@@ -30,6 +28,12 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Filter out current user from the list if you want a "Switch To" focus, 
+  // or keep them to show status. Here we keep them but highlight differently.
+  const sortedUsers = useMemo(() => {
+    return [...users].sort((a, b) => (String(a.id) === String(currentUser?.id) ? -1 : 1));
+  }, [users, currentUser]);
 
   if (!mounted) return null;
 
@@ -40,113 +44,122 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-99 flex items-center justify-center p-6 bg-brand-deep/80 backdrop-blur-sm"
+          className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6 bg-brand-deep/60 backdrop-blur-md"
         >
+          {/* Backdrop Click-to-Close */}
+          <div className="absolute inset-0" onClick={onClose} />
+
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 30 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 30 }}
-            transition={{ type: "spring", damping: 20, stiffness: 200 }}
-            className="bg-white rounded-[3rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] w-full max-w-xl overflow-hidden border border-white/20 relative"
+            initial={{ opacity: 0, scale: 0.9, y: 40, rotateX: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-white rounded-[2.5rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] w-full max-w-lg overflow-hidden border border-white/20 relative preserve-3d"
           >
             {/* Structural Header */}
-            <div className="relative p-10 pb-8 overflow-hidden bg-linear-to-b from-brand-mist/20 to-transparent">
-              <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-brand-primary to-transparent opacity-50" />
-
+            <div className="relative p-8 pb-6 overflow-hidden bg-brand-mist/10">
+              <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-brand-primary to-transparent" />
+              
               <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-5">
-                  <div className="w-14 h-14 rounded-2xl bg-brand-deep flex items-center justify-center shadow-lg ring-4 ring-brand-primary/10">
-                    <Fingerprint className="w-7 h-7 text-brand-primary" />
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-brand-deep flex items-center justify-center shadow-inner group overflow-hidden relative">
+                    <Fingerprint className="w-6 h-6 text-brand-primary group-hover:scale-110 transition-transform" />
+                    <motion.div 
+                      animate={{ y: [-20, 40] }} 
+                      transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                      className="absolute top-0 left-0 w-full h-0.5 bg-brand-primary/40 blur-[2px]"
+                    />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-brand-deep uppercase tracking-[0.25em]">
-                      Labrix Auth
+                    <h2 className="text-sm font-black text-brand-deep uppercase tracking-[0.3em]">
+                      Switch Personnel
                     </h2>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <p className="text-[10px] text-brand-sage font-mono font-bold uppercase tracking-widest opacity-70">
-                        System Identity Manager
+                    <div className="flex items-center gap-2 mt-1">
+                      <Radio className="w-3 h-3 text-emerald-500 animate-pulse" />
+                      <p className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-widest opacity-80">
+                        Node: {currentUser?.dept || "GENERAL_LAB"}
                       </p>
                     </div>
                   </div>
                 </div>
+                
                 <button
                   onClick={onClose}
-                  className="w-10 h-10 flex items-center justify-center text-brand-sage hover:text-brand-deep hover:bg-brand-mist rounded-full transition-all"
+                  className="w-10 h-10 flex items-center justify-center text-brand-sage hover:text-brand-deep hover:bg-brand-mist/50 rounded-2xl transition-all active:scale-90"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            {/* Profile Grid */}
-            <div className="px-10 pb-4 max-h-[55vh] overflow-y-auto custom-scrollbar">
-              <p className="text-[9px] font-black text-brand-sage/50 uppercase tracking-[0.3em] mb-4 ml-2">
-                Authorized Profiles
-              </p>
-              <div className="grid gap-4">
-                {users.map((user, index) => {
+            {/* Profiles Container */}
+            <div className="px-8 py-2 max-h-[50vh] overflow-y-auto custom-scrollbar">
+              <div className="space-y-3 py-4">
+                {sortedUsers.map((user, index) => {
                   const isActive = String(currentUser?.id) === String(user.id);
+                  const userRole = typeof user.role === 'string' ? user.role : (user.role as any)?.name;
+
                   return (
                     <motion.button
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
                       key={user.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.03 }}
                       onClick={() => {
                         handleUserSelect(user);
                         onClose();
                       }}
                       className={clsx(
-                        "w-full flex items-center p-1 rounded-3xl border transition-all duration-500 group relative",
+                        "w-full flex items-center p-2 rounded-2xl border transition-all duration-300 group relative",
                         isActive
-                          ? "border-brand-primary/30 bg-white shadow-xl shadow-brand-primary/5"
-                          : "border-transparent bg-brand-mist/30 hover:bg-white hover:border-brand-primary/20 hover:shadow-lg",
+                          ? "border-brand-primary/20 bg-brand-primary/2 ring-1 ring-brand-primary/10 shadow-sm"
+                          : "border-brand-mist/50 bg-brand-mist/20 hover:bg-white hover:border-brand-primary/30 hover:shadow-md"
                       )}
                     >
-                      <div className="flex items-center gap-4 w-full p-3">
-                        <div
-                          className={clsx(
-                            "w-14 h-14 rounded-2xl flex items-center justify-center font-black text-lg transition-all",
-                            isActive
-                              ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
-                              : "bg-white text-brand-sage shadow-sm",
+                      <div className="flex items-center gap-4 w-full p-2">
+                        {/* Avatar Cell */}
+                        <div className="relative">
+                          <div className={clsx(
+                            "w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm transition-all",
+                            isActive ? "bg-brand-primary text-white shadow-lg" : "bg-white text-brand-sage border border-brand-mist"
+                          )}>
+                            {user.initials}
+                          </div>
+                          {isActive && (
+                            <div className="absolute -bottom-1 -right-1 p-0.5 bg-white rounded-full">
+                              <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
+                            </div>
                           )}
-                        >
-                          {user.initials}
                         </div>
 
-                        <div className="flex-1 text-left">
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-black text-brand-deep uppercase tracking-wide group-hover:text-brand-primary transition-colors">
+                        {/* Text Content */}
+                        <div className="flex-1 text-left min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className={clsx(
+                              "text-[11px] font-black uppercase tracking-wider truncate",
+                              isActive ? "text-brand-primary" : "text-brand-deep"
+                            )}>
                               {user.name}
                             </span>
-                            {isActive && (
-                              <span className="text-[8px] font-black text-brand-primary border border-brand-primary/20 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                                Current
-                              </span>
-                            )}
                           </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[9px] text-brand-sage font-bold uppercase tracking-widest">
-                              {user.role}
+                          
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] text-brand-sage font-bold uppercase tracking-tighter opacity-70">
+                              {userRole}
                             </span>
-                            <span className="w-1 h-1 rounded-full bg-brand-sage/30" />
-                            <span className="text-[9px] text-brand-primary/60 font-bold uppercase tracking-widest">
-                              {user.roleType}
+                            <span className="w-1 h-1 rounded-full bg-brand-sage/20" />
+                            <span className="text-[9px] font-mono text-brand-primary/60 font-bold uppercase">
+                              {user.status || "IDLE"}
                             </span>
                           </div>
                         </div>
 
-                        <div
-                          className={clsx(
-                            "w-10 h-10 rounded-full flex items-center justify-center transition-all",
-                            isActive
-                              ? "bg-brand-primary/10 text-brand-primary"
-                              : "opacity-0 group-hover:opacity-100 bg-brand-mist text-brand-sage",
-                          )}
-                        >
-                          <ChevronRight className="w-5 h-5" />
+                        {/* Action Hint */}
+                        <div className={clsx(
+                          "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                          isActive ? "bg-brand-primary/10 text-brand-primary" : "opacity-0 group-hover:opacity-100 bg-brand-mist text-brand-sage"
+                        )}>
+                          {isActive ? <Zap className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                         </div>
                       </div>
                     </motion.button>
@@ -155,36 +168,42 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({
               </div>
             </div>
 
-            {/* Footer / Exit Action */}
-            <div className="p-10 bg-brand-mist/20 mt-4">
+            {/* Termination Zone */}
+            <div className="p-8 pt-4">
+              <div className="h-px w-full bg-linear-to-r from-transparent via-brand-mist to-transparent mb-6" />
+              
               <button
-                onClick={() => {
-                  logout();
-                  onClose();
-                }}
-                className="w-full flex items-center justify-between p-6 rounded-3xl bg-white border border-lab-laser/10 text-lab-laser hover:bg-lab-laser hover:text-white transition-all group shadow-sm hover:shadow-xl hover:shadow-lab-laser/20"
+                onClick={() => { logout(); onClose(); }}
+                className="w-full group flex items-center justify-between p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-500 shadow-sm hover:shadow-red-200"
               >
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-lab-laser/10 rounded-xl group-hover:bg-white/20 transition-colors">
-                    <LogOut className="w-5 h-5" />
+                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/80 group-hover:bg-white/20 transition-colors shadow-sm">
+                    <LogOut className="w-4 h-4" />
                   </div>
-                  <span className="text-xs font-black uppercase tracking-[0.3em]">
-                    Terminate All Sessions
-                  </span>
+                  <div className="text-left">
+                    <span className="block text-[10px] font-black uppercase tracking-[0.2em] leading-none">
+                      Emergency Sign-Out
+                    </span>
+                    <span className="text-[8px] uppercase font-bold opacity-60 mt-1 block">
+                      Clear all local cached tokens
+                    </span>
+                  </div>
                 </div>
-                <div className="px-3 py-1 rounded-lg border border-current text-[10px] font-black opacity-50">
-                  SEC-LEVEL 4
+                <div className="hidden sm:block">
+                   <Globe className="w-4 h-4 opacity-20 group-hover:opacity-100 animate-spin-slow" />
                 </div>
               </button>
 
-              <p className="text-center mt-6 text-[9px] font-bold text-brand-sage/40 uppercase tracking-[0.5em]">
-                Labrix Security Protocol v1.0.0
-              </p>
+              <div className="mt-6 flex items-center justify-center gap-4 text-[8px] font-bold text-brand-sage/40 uppercase tracking-[0.4em]">
+                <span>Sec_Protocol: 88-Alpha</span>
+                <span className="w-1 h-1 rounded-full bg-brand-sage/20" />
+                <span>Node_Auth: Verified</span>
+              </div>
             </div>
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body,
+    document.body
   );
 };

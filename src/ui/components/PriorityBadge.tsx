@@ -1,73 +1,112 @@
-import React from "react";
-import { AlertCircle, Zap, Activity } from "lucide-react";
+import React, { memo } from "react";
+import { AlertCircle, Zap, Activity, LucideIcon } from "lucide-react";
+import clsx from "@/src/lib/clsx";
 
-interface PriorityBadgeProps {
-  priority: "NORMAL" | "HIGH" | "STAT";
-  className?: string;
+/* ============================= */
+/* Types & Config */
+/* ============================= */
+
+type PriorityLevel = "NORMAL" | "HIGH" | "STAT";
+
+interface BadgeStyle {
+  container: string;
+  iconColor: string;
+  icon: LucideIcon;
+  label: string;
+  glow: string;
 }
 
-export const PriorityBadge: React.FC<PriorityBadgeProps> = ({
+const PRIORITY_CONFIG: Record<PriorityLevel, BadgeStyle> = {
+  NORMAL: {
+    label: "Status: Nominal",
+    icon: Activity,
+    iconColor: "text-brand-sage",
+    container: "bg-brand-sage/5 text-brand-sage border-brand-sage/20",
+    glow: "group-hover:bg-brand-sage/10",
+  },
+  HIGH: {
+    label: "Priority: Elevated",
+    icon: AlertCircle,
+    iconColor: "text-orange-500",
+    container: "bg-orange-500/5 text-orange-600 border-orange-500/20 shadow-[0_4px_12px_-4px_rgba(249,115,22,0.1)]",
+    glow: "bg-orange-500/15 group-hover:blur-md",
+  },
+  STAT: {
+    label: "Urgency: STAT",
+    icon: Zap,
+    iconColor: "text-red-500",
+    container: "bg-red-600 text-white border-red-700 shadow-[0_8px_20px_-6px_rgba(220,38,38,0.4)]",
+    glow: "bg-red-500/40 blur-xl animate-pulse",
+  },
+};
+
+/* ============================= */
+/* Component */
+/* ============================= */
+
+interface PriorityBadgeProps {
+  priority: PriorityLevel;
+  className?: string;
+  showIcon?: boolean;
+}
+
+export const PriorityBadge: React.FC<PriorityBadgeProps> = memo(({
   priority,
   className = "",
+  showIcon = true,
 }) => {
-  const config = {
-    NORMAL: {
-      color: "bg-brand-sage/5 text-brand-sage border-brand-sage/20",
-      icon: Activity,
-      label: "Normal",
-      glow: "group-hover:bg-brand-sage/10",
-      animation: "",
-    },
-    HIGH: {
-      color:
-        "bg-orange-500/5 text-orange-600 border-orange-500/20 shadow-[0_0_12px_-4px_rgba(249,115,22,0.2)]",
-      icon: AlertCircle,
-      label: "High Priority",
-      glow: "bg-orange-500/10",
-      animation: "group-hover:rotate-12 transition-transform",
-    },
-    STAT: {
-      color:
-        "bg-red-500/10 text-red-600 border-red-600/30 shadow-[0_0_15px_-3px_rgba(220,38,38,0.3)]",
-      icon: Zap,
-      label: "Critical Stat",
-      glow: "bg-red-600/20 animate-pulse",
-      animation: "animate-[bounce_2s_infinite]",
-    },
-  };
-
-  const current = config[priority];
+  const current = PRIORITY_CONFIG[priority];
   const Icon = current.icon;
+  const isStat = priority === "STAT";
 
   return (
-    <span
-      className={`
-        group relative inline-flex items-center gap-2 px-3 py-1 rounded-full 
-        text-[10px] font-black uppercase tracking-[0.15em] border transition-all duration-500
-        ${current.color} ${className}
-      `}
+    <div
+      className={clsx(
+        "group relative inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-lg",
+        "text-[9px] font-black uppercase tracking-[0.25em] border transition-all duration-500",
+        "cursor-default overflow-hidden antialiased",
+        current.container,
+        className
+      )}
     >
-      {/* Internal Glow Layer */}
-      <span
-        className={`absolute inset-0 rounded-full blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${current.glow}`}
+      {/* 1. KINETIC GLOW LAYER */}
+      <div 
+        className={clsx(
+          "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none",
+          current.glow
+        )} 
       />
 
-      {/* Icon with Kinetic Energy */}
-      <div
-        className={`relative z-10 flex items-center justify-center ${current.animation}`}
-      >
-        <Icon className="w-3.5 h-3.5 stroke-[2.5px]" />
-      </div>
-
-      {/* Label with specific character tracking */}
-      <span className="relative z-10 leading-none">{current.label}</span>
-
-      {/* STAT-only scanner line effect */}
-      {priority === "STAT" && (
-        <span className="absolute inset-0 overflow-hidden rounded-full pointer-events-none">
-          <span className="absolute inset-0 w-full h-full bg-linear-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
-        </span>
+      {/* 2. ICON ENGINE */}
+      {showIcon && (
+        <div className={clsx(
+          "relative z-10 flex items-center justify-center transition-transform duration-500 shrink-0",
+          priority === "HIGH" && "group-hover:rotate-12",
+          isStat && "animate-[pulse_1.5s_ease-in-out_infinite]"
+        )}>
+          <Icon className={clsx("w-3.5 h-3.5 stroke-[3px]", !isStat && current.iconColor)} />
+        </div>
       )}
-    </span>
+
+      {/* 3. LABEL: Monospace Impact */}
+      <span className="relative z-10 leading-none drop-shadow-sm">
+        {current.label}
+      </span>
+
+      {/* 4. STAT-SPECIFIC EFFECTS (Hazard Stripes & Scanner) */}
+      {isStat && (
+        <>
+          {/* Subtle Hazard Stripe Background */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,white_10px,white_20px)]" />
+          
+          {/* High-Velocity Scanner */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-0 h-full w-12 bg-linear-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-[shimmer_1.5s_infinite]" />
+          </div>
+        </>
+      )}
+    </div>
   );
-};
+});
+
+PriorityBadge.displayName = "PriorityBadge";

@@ -1,13 +1,6 @@
-import React, { useState, memo, useMemo } from "react";
+import React, { useState, memo } from "react";
 import {
-  Plus,
-  Beaker,
-  Layers,
-  Activity,
-  Hash,
-  Settings,
-  TestTube2,
-  AlertCircle,
+  Plus, Beaker, Layers, Activity, Hash, Settings, TestTube2, AlertCircle, Clock
 } from "lucide-react";
 import { LabButton } from "../../../ui/components/LabButton";
 import { Modal } from "../../../ui/components/Modal";
@@ -22,7 +15,6 @@ interface RegisterSampleModalProps {
   onSuccess: () => void;
 }
 
-// Extract initial state for easy resets
 const INITIAL_FORM_STATE = {
   batch_id: "",
   sugar_stage: SUGAR_STAGES[0] as SugarStage,
@@ -41,10 +33,8 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-
-      // Basic Validation
       if (!formData.batch_id.trim()) {
-        setError("Batch ID is required for registration.");
+        setError("Batch_ID is mandatory for system registration.");
         return;
       }
 
@@ -59,18 +49,18 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
           status: SampleStatus.REGISTERED,
           created_at: new Date().toISOString(),
           test_count: 0,
-          // Convert empty strings to undefined for clean API payload
-          line_id: formData.line_id || undefined,
-          equipment_id: formData.equipment_id || undefined,
-          shift_id: formData.shift_id || undefined,
+          // Sanitize empty strings for API consistency
+          line_id: formData.line_id.trim() || undefined,
+          equipment_id: formData.equipment_id.trim() || undefined,
+          shift_id: formData.shift_id.trim() || undefined,
         };
 
         await LabApi.registerSample(payload);
         onSuccess();
         handleClose();
       } catch (err) {
-        setError("Failed to register sample. Verify connection and inputs.");
-        console.error("[Labrix Registration Error]:", err);
+        setError("System link failed. Verify inputs or check network status.");
+        console.error("[Labrix_Auth_Error]:", err);
       } finally {
         setLoading(false);
       }
@@ -82,182 +72,139 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
       onClose();
     };
 
-    const inputClasses =
-      "w-full bg-white/80 backdrop-blur-sm border-2 border-brand-sage/20 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-brand-deep transition-all shadow-sm";
+    const labelStyle = "flex items-center gap-2 text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] mb-2";
+    const inputStyle = "w-full bg-white/60 backdrop-blur-md border-2 border-brand-sage/10 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:border-brand-primary/50 focus:ring-4 focus:ring-brand-primary/5 text-brand-deep transition-all shadow-inner placeholder:text-brand-sage/30";
 
     return (
-      <Modal
-        isOpen={isOpen}
-        onClose={handleClose}
-        title="Register New Sample"
-        maxWidth="max-w-xl"
-      >
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <Modal isOpen={isOpen} onClose={handleClose} title="Initialize_New_Run" maxWidth="max-w-xl">
+        <form onSubmit={handleSubmit} className="space-y-8 p-1">
+          
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-600 animate-in fade-in slide-in-from-top-2">
-              <AlertCircle className="w-5 h-5" />
-              <span className="text-xs font-bold uppercase tracking-widest">
-                {error}
-              </span>
+            <div className="p-4 bg-lab-laser/5 border border-lab-laser/20 rounded-2xl flex items-center gap-3 text-lab-laser animate-in fade-in zoom-in-95">
+              <AlertCircle size={18} />
+              <span className="text-[10px] font-black uppercase tracking-widest">{error}</span>
             </div>
           )}
 
+          {/* SECTION 1: PRIMARY DATA */}
           <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest">
-                <Hash className="w-4 h-4 text-brand-primary" />
-                Batch ID
+            <div className="group">
+              <label className={labelStyle}>
+                <Hash size={14} className="text-brand-primary" /> Batch_Identifier
               </label>
               <input
                 required
                 type="text"
+                autoFocus
                 value={formData.batch_id}
-                onChange={(e) =>
-                  setFormData({ ...formData, batch_id: e.target.value })
-                }
-                placeholder="e.g. BT-8822"
-                className={inputClasses}
+                onChange={(e) => setFormData({ ...formData, batch_id: e.target.value })}
+                placeholder="Ex: BT-9000"
+                className={inputStyle}
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest">
-                <Activity className="w-4 h-4 text-brand-primary" />
-                Priority
+            <div>
+              <label className={labelStyle}>
+                <Activity size={14} className="text-brand-primary" /> Priority_Tier
               </label>
               <select
                 value={formData.priority}
-                onChange={(e) =>
-                  setFormData({ ...formData, priority: e.target.value as any })
-                }
-                className={`${inputClasses} cursor-pointer`}
+                onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                className={`${inputStyle} cursor-pointer appearance-none`}
               >
-                <option value="NORMAL">NORMAL</option>
-                <option value="HIGH">HIGH</option>
-                <option value="STAT">STAT (URGENT)</option>
+                <option value="NORMAL">Normal_Priority</option>
+                <option value="HIGH">High_Priority</option>
+                <option value="STAT">Stat_Urgent (Hot)</option>
               </select>
             </div>
           </div>
 
+          {/* SECTION 2: PROCESS CONTEXT */}
           <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest">
-                <Layers className="w-4 h-4 text-brand-primary" />
-                Source Stage
+            <div>
+              <label className={labelStyle}>
+                <Layers size={14} className="text-brand-primary" /> Source_Stage
               </label>
               <select
                 required
                 value={formData.sugar_stage}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    sugar_stage: e.target.value as SugarStage,
-                  })
-                }
-                className={`${inputClasses} cursor-pointer`}
+                onChange={(e) => setFormData({ ...formData, sugar_stage: e.target.value as SugarStage })}
+                className={`${inputStyle} cursor-pointer appearance-none`}
               >
                 {SUGAR_STAGES.map((stage) => (
-                  <option key={stage} value={stage}>
-                    {stage}
-                  </option>
+                  <option key={stage} value={stage}>{stage}</option>
                 ))}
               </select>
             </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest">
-                <TestTube2 className="w-4 h-4 text-brand-primary" />
-                Sample Type
+            <div>
+              <label className={labelStyle}>
+                <TestTube2 size={14} className="text-brand-primary" /> Material_Type
               </label>
               <input
                 type="text"
                 value={formData.sample_type}
-                onChange={(e) =>
-                  setFormData({ ...formData, sample_type: e.target.value })
-                }
-                placeholder="e.g. Raw Sugar"
-                className={inputClasses}
+                onChange={(e) => setFormData({ ...formData, sample_type: e.target.value })}
+                placeholder="Ex: Fine Granular"
+                className={inputStyle}
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest">
-                <Settings className="w-4 h-4 text-brand-primary" />
-                Line ID
-              </label>
-              <input
-                type="text"
-                value={formData.line_id}
-                onChange={(e) =>
-                  setFormData({ ...formData, line_id: e.target.value })
-                }
-                className={inputClasses}
-                placeholder="L1"
-              />
-            </div>
+          {/* SECTION 3: LOGISTICS GRID */}
+          <div className="bg-brand-mist/20 p-6 rounded-4xl border border-brand-sage/5">
+             <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className={labelStyle}><Settings size={12} /> Line</label>
+                <input
+                  type="text"
+                  value={formData.line_id}
+                  onChange={(e) => setFormData({ ...formData, line_id: e.target.value })}
+                  placeholder="L1"
+                  className={`${inputStyle} py-3 px-4 text-center`}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest">
-                <Beaker className="w-4 h-4 text-brand-primary" />
-                Equip ID
-              </label>
-              <input
-                type="text"
-                value={formData.equipment_id}
-                onChange={(e) =>
-                  setFormData({ ...formData, equipment_id: e.target.value })
-                }
-                className={inputClasses}
-                placeholder="E102"
-              />
-            </div>
+              <div>
+                <label className={labelStyle}><Beaker size={12} /> Equip</label>
+                <input
+                  type="text"
+                  value={formData.equipment_id}
+                  onChange={(e) => setFormData({ ...formData, equipment_id: e.target.value })}
+                  placeholder="E01"
+                  className={`${inputStyle} py-3 px-4 text-center`}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest">
-                <Activity className="w-4 h-4 text-brand-primary" />
-                Shift
-              </label>
-              <select
-                value={formData.shift_id}
-                onChange={(e) =>
-                  setFormData({ ...formData, shift_id: e.target.value })
-                }
-                className={`${inputClasses} cursor-pointer`}
-              >
-                <option value="">N/A</option>
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="C">C</option>
-              </select>
+              <div>
+                <label className={labelStyle}><Clock size={12} /> Shift</label>
+                <select
+                  value={formData.shift_id}
+                  onChange={(e) => setFormData({ ...formData, shift_id: e.target.value })}
+                  className={`${inputStyle} py-3 px-4 cursor-pointer text-center`}
+                >
+                  <option value="">N/A</option>
+                  <option value="A">Shift_A</option>
+                  <option value="B">Shift_B</option>
+                  <option value="C">Shift_C</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <div className="pt-8 mt-8 border-t border-brand-sage/10 flex gap-4">
-            <LabButton
-              type="button"
-              variant="secondary"
-              fullWidth
-              onClick={handleClose}
-              disabled={loading}
-            >
-              Cancel
+          {/* FOOTER ACTIONS */}
+          <div className="pt-6 border-t border-brand-sage/10 flex gap-4">
+            <LabButton type="button" variant="secondary" fullWidth onClick={handleClose} disabled={loading}>
+              Discard_Entry
             </LabButton>
-            <LabButton
-              type="submit"
-              variant="primary"
-              fullWidth
-              loading={loading}
-              icon={Plus}
-            >
-              Register Sample
+            <LabButton type="submit" variant="primary" fullWidth loading={loading} icon={Plus} className="shadow-xl shadow-brand-primary/20">
+              Initialize_Batch
             </LabButton>
           </div>
         </form>
       </Modal>
     );
-  },
+  }
 );
 
 RegisterSampleModal.displayName = "RegisterSampleModal";
