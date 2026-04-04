@@ -1,51 +1,73 @@
+# --- System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+desktop.ini
+
 # --- Dependencies
 node_modules/
+.pnpm-store/
+.yarn/
 package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# --- Build outputs
-build/
-dist/
-.vite/
-dist-ssr/
-
-# --- Environment files (explicit control)
+# --- Environment & Secrets (CRITICAL)
 .env
 .env.local
-.env.production
-.env.development
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
 !.env.example
 
-# --- Logs
+# --- Build & Output
+dist/
+dist-ssr/
+build/
+out/
+.next/
+.vite/
+.nitro/
+.cache/
+.vercel/
+
+# --- TypeScript & Debug
+*.tsbuildinfo
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+.eslintcache
 
-# --- TypeScript
-*.tsbuildinfo
-
-# --- Coverage
-coverage/
-
-# --- OS files
-.DS_Store
-
-# --- Temp files
-tmp/
-temp/
-
-# --- Database
+# --- Database & Local Storage
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+*.sqlite-journal
+postgres-data/
 
-# --- Firebase config
-src/core/config/firebase/*
+# --- Testing & Coverage
+coverage/
+.nyc_output/
+core.*
+*.lcov
 
-# --- VSCode
+# --- IDEs & Editors
 .vscode/*
-.vscode/extensions.json
-.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 
-# --- Issues
+# --- Temporary & Misc
+tmp/
+temp/
+.temp/
 *issues/

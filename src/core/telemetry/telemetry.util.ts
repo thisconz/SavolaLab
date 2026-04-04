@@ -16,11 +16,11 @@ export interface TelemetryEvent {
 }
 
 class TelemetryService {
-  logInfo(arg0: string, arg1: { url: string; remainingRetries: number; }) {
-    throw new Error("Method not implemented.");
+  logInfo(event: string, payload?: Record<string, any>) {
+    this.info(event, payload);
   }
-  logError(arg0: string, arg1: { url: string; timeout: number; }) {
-    throw new Error("Method not implemented.");
+  logError(event: string, payload?: Record<string, any>) {
+    this.error(event, payload);
   }
   private static instance: TelemetryService;
   private eventBuffer: TelemetryEvent[] = [];
@@ -55,7 +55,7 @@ class TelemetryService {
     event: string,
     level: LogLevel = LogLevel.INFO,
     payload?: Record<string, any>,
-    module: string = "CORE"
+    module: string = "CORE",
   ) {
     const telemetryEvent: TelemetryEvent = {
       event,
@@ -73,15 +73,18 @@ class TelemetryService {
 
     // 2. Buffer for production (prevents API spam)
     this.eventBuffer.push(telemetryEvent);
-    
-    if (this.eventBuffer.length >= this.BUFFER_LIMIT || level >= LogLevel.ERROR) {
+
+    if (
+      this.eventBuffer.length >= this.BUFFER_LIMIT ||
+      level >= LogLevel.ERROR
+    ) {
       this.flush();
     }
   }
 
   private flush() {
     if (this.eventBuffer.length === 0) return;
-    
+
     // In production: send to Sentry, Datadog, or internal API
     // const payload = [...this.eventBuffer];
     this.eventBuffer = [];
@@ -90,10 +93,11 @@ class TelemetryService {
   private printToConsole(e: TelemetryEvent) {
     const styles = {
       [LogLevel.DEBUG]: "color: #71717a", // Zinc
-      [LogLevel.INFO]: "color: #b1be9b",  // Brand Primary
-      [LogLevel.WARN]: "color: #f97316",  // Orange
+      [LogLevel.INFO]: "color: #b1be9b", // Brand Primary
+      [LogLevel.WARN]: "color: #f97316", // Orange
       [LogLevel.ERROR]: "color: #ef4444", // Red
-      [LogLevel.CRITICAL]: "background: #ef4444; color: white; padding: 2px 4px; border-radius: 2px;",
+      [LogLevel.CRITICAL]:
+        "background: #ef4444; color: white; padding: 2px 4px; border-radius: 2px;",
     };
 
     const levelLabel = LogLevel[e.level];
@@ -102,16 +106,21 @@ class TelemetryService {
       styles[e.level],
       "font-weight: bold; color: #09090b",
       "color: inherit",
-      e.payload || ""
+      e.payload || "",
     );
   }
 
   /* Helper Methods */
-  public debug = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.DEBUG, data, mod);
-  public info = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.INFO, data, mod);
-  public warn = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.WARN, data, mod);
-  public error = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.ERROR, data, mod);
-  public critical = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.CRITICAL, data, mod);
+  public debug = (msg: string, data?: any, mod?: string) =>
+    this.log(msg, LogLevel.DEBUG, data, mod);
+  public info = (msg: string, data?: any, mod?: string) =>
+    this.log(msg, LogLevel.INFO, data, mod);
+  public warn = (msg: string, data?: any, mod?: string) =>
+    this.log(msg, LogLevel.WARN, data, mod);
+  public error = (msg: string, data?: any, mod?: string) =>
+    this.log(msg, LogLevel.ERROR, data, mod);
+  public critical = (msg: string, data?: any, mod?: string) =>
+    this.log(msg, LogLevel.CRITICAL, data, mod);
 }
 
 export const Telemetry = TelemetryService.getInstance();
