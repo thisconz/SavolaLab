@@ -234,7 +234,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
             const rawValue = parseFloat(values[test.id]);
             let savedTestId = test.id;
 
-            const payload = {
+            const payload: Partial<TestResult> = {
               sample_id: sample.id,
               test_type: test.test_type,
               raw_value: rawValue,
@@ -242,10 +242,10 @@ export const LabBench: React.FC<LabBenchProps> = memo(
               unit:
                 TEST_VALIDATION_RULES[test.test_type as TestType]?.unit ||
                 "N/A",
-              status: "VALIDATING",
-              notes: notes[test.id] || null,
+              status: "VALIDATING" as any,
+              notes: notes[test.id] || undefined,
               params:
-                test.test_type === "Colour" ? colourParams[test.id] : null,
+                test.test_type === "Colour" ? colourParams[test.id] : undefined,
             };
 
             if (test.id < 0) {
@@ -572,7 +572,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                           axisLine={false}
                                         />
                                         <Tooltip
-                                          content={({ active, payload }) => {
+                                          content={({ active, payload }: any) => {
                                             if (
                                               active &&
                                               payload &&

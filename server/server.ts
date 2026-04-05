@@ -8,6 +8,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { readFile } from "fs/promises";
 import { initDatabase } from "./core/database";
+import { z } from "zod";
 
 // ── Route imports ────────────────────────────────────────────
 import { authRoutes } from "./modules/auth";

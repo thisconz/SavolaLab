@@ -258,7 +258,11 @@ const MetricCard = ({ label, value, trend, icon: Icon, variant }: any) => {
 
       {/* Hover Progress Indicator */}
       <div className={clsx(
-        "absolute left-0 bottom-0 h-1 w-full scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left",
+        "absolute right-0 top-0 w-48 h-48 bg-linear-to-br to-transparent rounded-full blur-3xl -mr-20 -mt-20 transition-transform duration-700 group-hover:scale-150",
+        theme.bg
+      )} />
+      <div className={clsx(
+        "absolute left-0 bottom-0 h-1 w-full bg-linear-to-r to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500",
         theme.accent
       )} />
     </motion.div>

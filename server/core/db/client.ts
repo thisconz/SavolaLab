@@ -5,18 +5,25 @@ const { Pool } = pg;
 // ----------------------
 // Initialize DB connection
 // ----------------------
-const connectionString = process.env.DATABASE_URL;
+let connectionString = (process.env.DATABASE_URL || "").trim();
 
-if (!connectionString) {
-  console.warn("⚠️ DATABASE_URL not set, falling back to localhost default");
+if (!connectionString || connectionString.includes("REDACTED")) {
+  console.warn("⚠️ DATABASE_URL not set or invalid, falling back to localhost default");
+  connectionString = "postgresql://postgres:12345@localhost:5432/postgres";
+}
+
+try {
+  new URL(connectionString);
+} catch (e) {
+  console.error("❌ CRITICAL: The DATABASE_URL is not a valid format:", connectionString);
+  process.exit(1);
 }
 
 export const pool = new Pool({
-  connectionString:
-    connectionString || "postgresql://postgres:12345@localhost:5432/postgres",
+  connectionString,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000,
 });
 
 // ----------------------
@@ -53,7 +60,12 @@ export const db: DatabaseClient = {
   },
 
   async execute(sql: string, params: any[] = []): Promise<void> {
-    await pool.query(sql, params);
+    try {
+      await pool.query(sql, params);
+    } catch (error) {
+      console.error("Database Execution Error:", { sql, params, error });
+      throw error;
+    }
   },
 
   async transaction<T>(
@@ -61,34 +73,24 @@ export const db: DatabaseClient = {
   ): Promise<T> {
     const client = await pool.connect();
 
-    const wrappedClient: TransactionClient = {
-      async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-        const { rows } = await client.query(sql, params);
-        return rows;
-      },
-      async queryOne<T = any>(
-        sql: string,
-        params: any[] = [],
-      ): Promise<T | null> {
-        const { rows } = await client.query(sql, params);
-        return rows[0] || null;
-      },
-      async execute(sql: string, params: any[] = []): Promise<void> {
-        await client.query(sql, params);
-      },
-    };
-
     try {
       await client.query("BEGIN");
+      
+      const wrappedClient: TransactionClient = {
+        query: (sql, params = []) => client.query(sql, params).then(r => r.rows),
+        queryOne: (sql, params = []) => client.query(sql, params).then(r => r.rows[0] || null),
+        execute: async (sql, params = []) => { await client.query(sql, params); },
+      };
+
       const result = await fn(wrappedClient);
       await client.query("COMMIT");
       return result;
     } catch (err) {
-      await client.query("ROLLBACK");
+      // Only rollback if the connection is still alive
+      try { await client.query("ROLLBACK"); } catch (rollbackErr) { /* ignore rollback errors */ }
       throw err;
     } finally {
-      client.release();
-    }
+      client.release();}
   },
 };
 
