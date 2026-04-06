@@ -1,5 +1,5 @@
 {
-  "name": "Labrix",
+  "name": "Zenthar",
   "description": "Enterprise-grade Quality Control Laboratory platform for industrial sugar manufacturing.",
   "requestFramePermissions": ["geolocation", "notifications"]
 }

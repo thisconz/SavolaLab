@@ -68,7 +68,7 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
         handleClose();
       } catch (err) {
         setError("System link failed. Verify inputs or check network status.");
-        console.error("[Labrix_Auth_Error]:", err);
+        console.error("[Zenthar_Auth_Error]:", err);
       } finally {
         setLoading(false);
       }

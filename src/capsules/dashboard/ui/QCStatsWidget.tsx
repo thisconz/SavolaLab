@@ -15,7 +15,7 @@ interface QCStatsWidgetProps {
   loading?: boolean;
 }
 
-// Optimized Labrix Palette
+// Optimized Zenthar Palette
 const STATUS_COLORS: Record<string, string> = {
   COMPLETED: "var(--brand-primary)",
   IN_PROGRESS: "rgba(var(--brand-primary-rgb), 0.5)",

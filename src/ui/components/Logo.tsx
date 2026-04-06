@@ -163,7 +163,7 @@ interface LogoTextProps {
 
 export const LogoText: React.FC<LogoTextProps> = memo(
   ({
-    title = "Labrix",
+    title = "Zenthar",
     subtitle = "Quality Control Platform v1.0.0",
     className,
   }) => {
@@ -216,7 +216,7 @@ export const LogoText: React.FC<LogoTextProps> = memo(
 /* ============================= */
 
 function splitTitle(title: string): [string, string] {
-  const index = title.toLowerCase().lastIndexOf("ix");
+  const index = title.toLowerCase().lastIndexOf("thar");
   if (index === -1) return [title, ""];
   return [title.slice(0, index), title.slice(index)];
 }

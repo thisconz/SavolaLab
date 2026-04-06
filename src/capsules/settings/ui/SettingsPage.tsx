@@ -134,7 +134,7 @@ export const SettingsPage: React.FC = () => {
                 Control Center
               </h1>
               <p className="text-[10px] text-brand-sage font-bold uppercase opacity-50">
-                Labrix Registry
+                Zenthar Registry
               </p>
             </div>
           </div>

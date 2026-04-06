@@ -1,74 +1,102 @@
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Brand Palette - Labrix */
-  --color-brand-primary: #b1be9b;
-  --color-brand-deep: #5e6353;
-  --color-brand-sage: #818982;
-  --color-brand-mist: #eaf0e3;
-  --color-brand-white: #ffffff;
+  /* =========================
+     ZENTHAR CORE PALETTE
+     ========================= */
 
-  /* UI Surfaces */
-  --color-lab-obsidian: #ffffff;
-  --color-lab-graphite: #ffffff; /* App Background */
-  --color-lab-steel: #eaf0e3; /* Primary Surface Panels (Light Mist) */
-  --color-lab-charcoal: #5e6353; /* Primary Text (Deep Olive Gray) */
+  /* Primary Identity */
+  --color-brand-primary: #2ce6d1;   /* Electric cyan (system energy) */
+  --color-brand-deep: #0f1720;      /* Deep control background */
+  --color-brand-accent: #3b82f6;    /* Secondary signal blue */
 
-  /* Legacy Mappings */
-  --color-savola-dark: #5e6353;
-  --color-savola-green: #b1be9b;
-  --color-savola-blue: #818982;
-  --color-savola-yellow: #c7b67b; /* Warning blend */
+  /* Neutral System */
+  --color-zenthar-void: #0a0f14;    /* Absolute background */
+  --color-zenthar-carbon: #0f1720;  /* Main app background */
+  --color-zenthar-graphite: #1a232c; /* Panels */
+  --color-zenthar-steel: #2a3542;   /* Elevated surfaces */
+  --color-zenthar-border: #334155;  /* Subtle borders */
 
-  /* Semantic Colors */
-  --color-lab-phosphor: #b1be9b; /* Success */
-  --color-lab-sodium: #c7b67b; /* Warning */
-  --color-lab-laser: #e11d48; /* Critical */
-  --color-lab-ion: #818982; /* Info */
+  /* Text */
+  --color-zenthar-text-primary: #e6edf3;
+  --color-zenthar-text-secondary: #94a3b8;
+  --color-zenthar-text-muted: #64748b;
+
+  /* =========================
+     SEMANTIC (CRITICAL)
+     ========================= */
+
+  --color-zenthar-success: #22c55e;  /* Pass */
+  --color-zenthar-warning: #f59e0b;  /* Attention */
+  --color-zenthar-critical: #ef4444; /* Fail */
+  --color-zenthar-info: #38bdf8;     /* Info */
+
+  /* =========================
+     LEGACY MAPPING (SAFE MIGRATION)
+     ========================= */
+
+  --color-lab-obsidian: var(--color-zenthar-void);
+  --color-lab-graphite: var(--color-zenthar-carbon);
+  --color-lab-steel: var(--color-zenthar-graphite);
+  --color-lab-charcoal: var(--color-zenthar-text-primary);
+
+  --color-lab-phosphor: var(--color-zenthar-success);
+  --color-lab-sodium: var(--color-zenthar-warning);
+  --color-lab-laser: var(--color-zenthar-critical);
+  --color-lab-ion: var(--color-zenthar-info);
 }
 
 @layer base {
   body {
-    @apply bg-white text-brand-deep font-sans antialiased overflow-hidden;
+    @apply bg-[var(--color-zenthar-carbon)] text-[var(--color-zenthar-text-primary)] font-sans antialiased overflow-hidden;
   }
 }
 
 @layer components {
   .glass-panel {
-    @apply bg-white border border-brand-sage/20 rounded-lg shadow-sm;
+    @apply bg-[var(--color-zenthar-graphite)] border border-[var(--color-zenthar-border)] rounded-lg;
+    backdrop-filter: blur(6px);
   }
 
   .industrial-surface {
-    @apply bg-white border border-brand-sage/20 rounded-md shadow-sm;
+    @apply bg-[var(--color-zenthar-steel)] border border-[var(--color-zenthar-border)] rounded-md;
   }
 
   .brand-gradient {
-    background: linear-gradient(135deg, #b1be9b 0%, #818982 100%);
+    background: linear-gradient(
+      135deg,
+      #2ce6d1 0%,
+      #3b82f6 100%
+    );
   }
 
   .instrument-grid {
     background-image: radial-gradient(
       circle at 1px 1px,
-      rgba(129, 137, 130, 0.05) 1px,
+      rgba(148, 163, 184, 0.08) 1px,
       transparent 0
     );
     background-size: 32px 32px;
   }
 
   .data-row {
-    @apply flex items-center p-4 border-b border-brand-sage/10 transition-all duration-200 cursor-pointer hover:bg-brand-mist/20;
+    @apply flex items-center p-4 border-b border-[var(--color-zenthar-border)] transition-all duration-200 cursor-pointer;
+  }
+
+  .data-row:hover {
+    background: rgba(44, 230, 209, 0.06);
   }
 
   .col-header {
-    @apply text-[10px] font-mono text-brand-sage uppercase tracking-[0.2em] mb-2 border-b border-brand-sage/10 pb-2;
+    @apply text-[10px] font-mono text-[var(--color-zenthar-text-muted)] uppercase tracking-[0.2em] mb-2 border-b border-[var(--color-zenthar-border)] pb-2;
   }
 
   .data-value {
-    @apply font-mono text-[11px] tracking-tight text-brand-deep;
+    @apply font-mono text-[11px] tracking-tight text-[var(--color-zenthar-text-primary)];
   }
 
   .status-pill {
@@ -81,14 +109,14 @@
     z-index: 10;
     background: linear-gradient(
       0deg,
-      rgba(177, 190, 155, 0) 0%,
-      rgba(177, 190, 155, 0.05) 50%,
-      rgba(177, 190, 155, 0) 100%
+      rgba(44, 230, 209, 0) 0%,
+      rgba(44, 230, 209, 0.08) 50%,
+      rgba(44, 230, 209, 0) 100%
     );
-    opacity: 0.5;
+    opacity: 0.4;
     position: absolute;
     bottom: 100%;
-    animation: scanline 8s linear infinite;
+    animation: scanline 6s linear infinite;
   }
 }
 
@@ -101,16 +129,21 @@
   }
 }
 
-/* Custom Scrollbar */
+/* Scrollbar (matches system tone) */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-lab-steel rounded-full hover:bg-lab-ion/50 transition-colors;
+  background: #334155;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }

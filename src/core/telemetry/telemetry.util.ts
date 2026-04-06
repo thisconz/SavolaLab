@@ -66,7 +66,7 @@ class TelemetryService {
       metadata: { ...this.globalMetadata },
     };
 
-    // 1. Development Output (Formatted for the Labrix Console)
+    // 1. Development Output (Formatted for the Zenthar Console)
     if (process.env.NODE_ENV === "development") {
       this.printToConsole(telemetryEvent);
     }

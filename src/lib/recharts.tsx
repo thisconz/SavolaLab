@@ -31,7 +31,7 @@ export const PieChart: React.FC<any> = ({ children }) => (
   </div>
 );
 
-// Visual Mocks - Matches Labrix proportions
+// Visual Mocks - Matches Zenthar proportions
 export const Bar: React.FC<any> = ({ dataKey }) => (
   <div className="bg-brand-primary/40 w-full rounded-t-sm transition-all hover:bg-brand-primary" style={{ height: '60%' }} />
 );

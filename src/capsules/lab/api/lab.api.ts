@@ -8,7 +8,7 @@ import {
 import type { TestResult } from "../../../core/types";
 
 /**
- * LabApi handles all laboratory management interactions for Labrix.
+ * LabApi handles all laboratory management interactions for Zenthar.
  * Centralizing these calls ensures consistent error handling and type safety.
  */
 export const LabApi = {

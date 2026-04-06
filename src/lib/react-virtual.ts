@@ -1,5 +1,5 @@
 /**
- * LABRIX VIRTUALIZATION ENGINE (MOCK)
+ * ZENTHAR VIRTUALIZATION ENGINE (MOCK)
  * Simulates @tanstack/react-virtual for lightweight dashboard performance.
  */
 

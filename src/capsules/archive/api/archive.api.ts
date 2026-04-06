@@ -1,7 +1,7 @@
 import { api } from "../../../core/http/client";
 
 /**
- * Registry sections available in the Labrix Archive.
+ * Registry sections available in the Zenthar Archive.
  */
 export type ArchiveSection = 
   | "samples" 

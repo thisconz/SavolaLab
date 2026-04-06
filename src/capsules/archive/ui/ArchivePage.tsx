@@ -84,8 +84,8 @@ export const ArchivePage: React.FC = () => {
       const { saveAs } = await import("@/src/lib/file-saver");
 
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = "Labrix System";
-      workbook.lastModifiedBy = "Labrix System";
+      workbook.creator = "Zenthar System";
+      workbook.lastModifiedBy = "Zenthar System";
       workbook.created = new Date();
       workbook.modified = new Date();
 
@@ -97,7 +97,7 @@ export const ArchivePage: React.FC = () => {
       // 1. Add Title and Metadata
       sheet.mergeCells("A1:G2");
       const titleCell = sheet.getCell("A1");
-      titleCell.value = "LABRIX SYSTEM - OFFICIAL DATA EXPORT";
+      titleCell.value = "ZENTHAR SYSTEM - OFFICIAL DATA EXPORT";
       titleCell.font = {
         name: "Arial",
         size: 20,

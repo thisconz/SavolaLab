@@ -23,7 +23,7 @@ export const Header: React.FC = memo(() => {
   // Derive logical path from activeTab
   const path = useMemo(() => {
     const node = activeTab?.toUpperCase() || "SYSTEM_ROOT";
-    return ["LABRIX_OS", node];
+    return ["ZENTHAR_OS", node];
   }, [activeTab]);
 
   return (

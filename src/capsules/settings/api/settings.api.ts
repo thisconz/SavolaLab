@@ -1,7 +1,7 @@
 import { api } from "../../../core/http/client";
 
 /**
- * Valid registry tables within the Labrix system.
+ * Valid registry tables within the Zenthar system.
  */
 export type RegistryTable = 
   | "sample_types" 
