@@ -1,5 +1,6 @@
 import { createNotification } from "../../core/db/events";
 import { db } from "../../core/database";
+import { StatRepository } from "./repository";
 
 export interface StatRequestInput {
   department: string;
@@ -10,19 +11,7 @@ export interface StatRequestInput {
 export const StatService = {
   // --- Get all stat requests ---
   getStats: async () => {
-    return await db.query(
-      `
-      SELECT * 
-      FROM stat_requests 
-      ORDER BY 
-        CASE urgency
-          WHEN 'CRITICAL' THEN 1
-          WHEN 'HIGH' THEN 2
-          ELSE 3
-        END ASC,
-        created_at DESC
-    `,
-    );
+    return await StatRepository.findAll();
   },
 
   // --- Create a new stat request with audit logging ---
@@ -33,20 +22,11 @@ export const StatService = {
   ) => {
     const { department, reason, urgency } = data;
 
-    if (!department || !reason) {
-      throw new Error("Department and reason are required");
-    }
-
-    const rows = await db.query(
-      `
-      INSERT INTO stat_requests (department, reason, urgency, status)
-      VALUES ($1, $2, $3, 'OPEN')
-      RETURNING id
-    `,
-      [department, reason || "", urgency || "NORMAL"],
-    );
-
-    const statId = rows[0].id;
+    const statId = await StatRepository.create({
+      department,
+      reason,
+      urgency,
+    });
 
     // --- Audit logging ---
     if (employeeNumber) {
@@ -76,14 +56,7 @@ export const StatService = {
     const statId = Number(id);
     if (isNaN(statId)) throw new Error("Invalid stat ID");
 
-    await db.execute(
-      `
-      UPDATE stat_requests 
-      SET status = $1 
-      WHERE id = $2
-    `,
-      [status, statId],
-    );
+    await StatRepository.updateStatus(statId, status);
 
     // --- Audit logging ---
     if (employeeNumber) {

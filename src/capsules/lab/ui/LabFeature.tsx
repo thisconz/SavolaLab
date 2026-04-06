@@ -51,54 +51,49 @@ export const LabFeature: React.FC = memo(() => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-brand-mist/5 p-4 gap-4">
-      {/* 1. OPERATOR HEADER */}
-      <header className="flex items-center justify-between px-2">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-brand-primary text-white rounded-xl shadow-lg shadow-brand-primary/20">
-            <LayoutDashboard size={20} />
-          </div>
+    <div className="h-full flex flex-col gap-6 overflow-hidden bg-brand-mist/10 p-2 rounded-3xl">
+      {/* 1. HEADER SECTION */}
+        <div className="flex items-center justify-between px-4 shrink-0">
           <div>
-            <h1 className="text-lg font-bold text-brand-deep tracking-tight leading-none">
-              Labrix Operator
-            </h1>
-            <p className="text-[10px] text-brand-sage font-black uppercase tracking-[0.2em] mt-1">
-              Facility Hub // SEC_01
+            <h2 className="text-xl font-bold text-brand-deep flex items-center gap-2">
+              <LayoutDashboard className="w-5 h-5 text-brand-primary" />
+              Facility Hub
+            </h2>
+            <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
+              Monitor and manage lab operations in real-time
             </p>
           </div>
-        </div>
-
-        <div className="flex gap-4">
-          <div className="flex items-center gap-6 bg-white/60 backdrop-blur-md border border-brand-sage/10 px-5 py-2 rounded-2xl shadow-sm">
-            <StatItem
-              icon={Activity}
-              label="Active"
-              value={activeCount}
-              color="text-emerald-500"
-            />
-            <div className="w-px h-4 bg-brand-sage/20" />
-            <StatItem
-              icon={FlaskConical}
-              label="Queue"
-              value={samples?.length || 0}
-              color="text-brand-primary"
-            />
+          <div className="flex gap-4">
+            <div className="flex items-center gap-6 bg-white/60 backdrop-blur-md border border-brand-sage/10 px-5 py-2 rounded-2xl shadow-sm">
+              <StatItem
+                icon={Activity}
+                label="Active"
+                value={activeCount}
+                color="text-emerald-500"
+              />
+              <div className="w-px h-4 bg-brand-sage/20" />
+              <StatItem
+                icon={FlaskConical}
+                label="Queue"
+                value={samples?.length || 0}
+                color="text-brand-primary"
+              />
+            </div>
+            <LabButton
+              variant="primary"
+              icon={Plus}
+              onClick={() => setIsRegisterModalOpen(true)}
+            >
+              Register Sample
+            </LabButton>
           </div>
-          <LabButton
-            variant="primary"
-            icon={Plus}
-            onClick={() => setIsRegisterModalOpen(true)}
-          >
-            Register Sample
-          </LabButton>
         </div>
-      </header>
 
       {/* 2. CORE WORKSPACE GRID */}
       <div className="flex-1 overflow-hidden grid grid-cols-12 gap-6">
         
         {/* LEFT COLUMN: PROCESSING QUEUE */}
-        <div className="col-span-12 lg:col-span-4 xl:col-span-3 flex flex-col gap-4 overflow-hidden h-full">
+        <div className="col-span-12 lg:col-span-4 xl:col-span-4 flex flex-col gap-4 overflow-hidden h-full">
           <LabPanel
             title="Processing Queue"
             icon={ClipboardList}
@@ -116,7 +111,7 @@ export const LabFeature: React.FC = memo(() => {
         </div>
 
         {/* RIGHT COLUMN: DYNAMIC WORKSPACE */}
-        <div className="col-span-12 lg:col-span-8 xl:col-span-9 flex flex-col overflow-hidden h-full">
+        <div className="col-span-12 lg:col-span-8 xl:col-span-8 flex flex-col overflow-hidden h-full">
           <AnimatePresence mode="wait">
             {!selectedSample ? (
               <EmptyWorkspace key="empty" />

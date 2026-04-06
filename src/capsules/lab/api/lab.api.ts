@@ -1,5 +1,11 @@
 import { api } from "../../../core/http/client";
-import type { Sample, TestResult } from "../../../core/types";
+import { 
+  Sample, 
+  GetSamplesResponseSchema,
+  CreateSampleRequest,
+  UpdateSampleRequest
+} from "../model/sample.model";
+import type { TestResult } from "../../../core/types";
 
 /**
  * LabApi handles all laboratory management interactions for Labrix.
@@ -9,26 +15,24 @@ export const LabApi = {
   // --- Sample Management ---
 
   getSamples: async (): Promise<Sample[]> => {
-    const res = await api.get<{ success: boolean; data: Sample[] }>(
-      `/samples?t=${Date.now()}`,
-    );
-    // Explicitly returning the data array to maintain the Promise<Sample[]> contract
-    return res.data || [];
+    const res = await api.get<any>(`/samples?t=${Date.now()}`);
+    const validated = GetSamplesResponseSchema.parse(res);
+    return validated.data || [];
   },
 
-  registerSample: async (sample: Partial<Sample>): Promise<Sample> => {
-    // Ensuring the POST request returns the newly created Sample object
-    return api.post<Sample>("/samples", sample);
+  registerSample: async (sample: CreateSampleRequest): Promise<{ id: number }> => {
+    return api.post<{ id: number }>("/samples", sample);
   },
 
   updateSample: async (
     sampleId: number,
-    data: Partial<Sample>,
-  ): Promise<Sample> => {
-    return api.put<Sample>(`/samples/${sampleId}`, data);
+    data: UpdateSampleRequest,
+  ): Promise<void> => {
+    return api.put(`/samples/${sampleId}`, data);
   },
 
   // --- Test & Results Management ---
+  // ... rest of the methods
 
   getTests: async (): Promise<TestResult[]> => {
     const res = await api.get<{ success: boolean; data: TestResult[] }>(
@@ -45,7 +49,7 @@ export const LabApi = {
   },
 
   /**
-   * Fetches historical data for comparison. 
+   * Fetches historical data for comparison.
    * Useful for tracking stability or quality control trends.
    */
   getPreviousResults: async (
@@ -63,7 +67,10 @@ export const LabApi = {
     return api.post<{ id: number }>("/tests", data);
   },
 
-  updateTest: async (testId: number, data: Partial<TestResult>): Promise<void> => {
+  updateTest: async (
+    testId: number,
+    data: Partial<TestResult>,
+  ): Promise<void> => {
     return api.put(`/tests/${testId}`, data);
   },
 

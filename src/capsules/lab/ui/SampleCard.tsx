@@ -52,7 +52,9 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
           {/* TOP ROW: ID & PRIORITY */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-black tracking-widest tabular-nums font-mono ${active ? "text-brand-deep" : "text-brand-sage"}`}>
+              <span
+                className={`text-[10px] font-black tracking-widest tabular-nums font-mono ${active ? "text-brand-deep" : "text-brand-sage"}`}
+              >
                 #{sample.batch_id}
               </span>
               {isStat && (
@@ -62,7 +64,7 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
                 </div>
               )}
             </div>
-            <PriorityBadge priority={sample.priority} />
+            <PriorityBadge priority={sample.priority as any} />
           </div>
 
           {/* MAIN ROW: TYPE & ICON */}
@@ -86,25 +88,32 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
             </div>
 
             <div className="flex-1 min-w-0">
-              <h4 className={`text-xs font-black uppercase tracking-tight truncate ${active ? "text-brand-deep" : "text-brand-deep/70"}`}>
+              <h4
+                className={`text-xs font-black uppercase tracking-tight truncate ${active ? "text-brand-deep" : "text-brand-deep/70"}`}
+              >
                 {sample.sample_type}
               </h4>
               <div className="flex items-center gap-2 mt-1 text-[10px] text-brand-sage/80 font-bold uppercase tracking-wider">
                 <Tag size={10} className="text-brand-primary/40" />
                 <span className="truncate">
-                  {sample.sugar_stage ?? sample.source_stage ?? "Standard_Unit"}
+                  {sample.sugar_stage ?? (sample as any).source_stage ?? "Standard_Unit"}
                 </span>
               </div>
             </div>
           </div>
 
           {/* FOOTER ROW: METRICS & STATUS */}
-          <div className={`flex items-center justify-between pt-3 border-t mt-1 ${active ? "border-brand-primary/10" : "border-brand-sage/5"}`}>
+          <div
+            className={`flex items-center justify-between pt-3 border-t mt-1 ${active ? "border-brand-primary/10" : "border-brand-sage/5"}`}
+          >
             <div className="flex items-center gap-3 text-brand-sage/60">
               <div className="flex items-center gap-1">
                 <Clock size={11} />
                 <span className="text-[9px] font-black tabular-nums">
-                  {new Date(sample.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(sample.created_at).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </span>
               </div>
               <div className="flex items-center gap-1">
@@ -116,7 +125,7 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
             </div>
 
             <div className="flex items-center gap-2">
-              <StatusIndicator status={sample.status} />
+              <StatusIndicator status={sample.status as any} />
               <ChevronRight
                 size={14}
                 className={`transition-all duration-300 ${active ? "translate-x-0 text-brand-primary" : "-translate-x-2 opacity-0"}`}
@@ -138,7 +147,7 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
         </AnimatePresence>
       </motion.button>
     );
-  }
+  },
 );
 
 /**

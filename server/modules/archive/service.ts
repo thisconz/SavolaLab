@@ -1,4 +1,5 @@
 import { db } from "../../core/database";
+import { logger } from "../../core/logger";
 
 /**
  * Shared types
@@ -60,7 +61,7 @@ export function buildQuery(config: QueryConfig, filters: Record<string, any>) {
         params.push(param);
       } catch (err: any) {
         // Log the internal error for the devs, but throw a clean message for the UI
-        console.error(`[Archive Query Error] Filter '${key}' failed:`, err);
+        logger.error({ err, key }, `[Archive Query Error] Filter '${key}' failed`);
         throw new Error(
           `Invalid search criteria for '${key}'. Please check your input.`,
         );

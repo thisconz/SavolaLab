@@ -2,25 +2,32 @@ import { Hono } from "hono";
 import { NotificationService } from "./service";
 import { authenticateToken } from "../../core/middleware";
 import type { Variables } from "../../core/types";
+import { logger } from "../../core/logger";
+import { GetNotificationsResponseSchema } from "../../../src/shared/schemas/notification.schema";
 
 const app = new Hono<{ Variables: Variables }>();
 
+function toMsg(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return "An unexpected error occurred.";
+}
+
 app.get("/", authenticateToken, async (c) => {
+  const requestId = c.get("requestId");
   try {
     const user = c.get("user");
     const notifications = await NotificationService.getNotifications(
       user.employee_number,
     );
-    return c.json({ success: true, data: notifications });
-  } catch (err: any) {
-    return c.json(
-      { success: false, error: err.message || "Internal Server Error" },
-      500,
-    );
+    return c.json(GetNotificationsResponseSchema.parse({ success: true, data: notifications }));
+  } catch (err: unknown) {
+    logger.error({ err, requestId }, "Failed to fetch notifications");
+    return c.json({ success: false, error: toMsg(err) }, 500);
   }
 });
 
 app.post("/:id/read", authenticateToken, async (c) => {
+  const requestId = c.get("requestId");
   try {
     const id = c.req.param("id");
     const user = c.get("user");
@@ -34,36 +41,32 @@ app.post("/:id/read", authenticateToken, async (c) => {
       return c.json({ error: "Notification not found or already read" }, 404);
 
     return c.json({ success: true });
-  } catch (err: any) {
-    return c.json(
-      { success: false, error: err.message || "Internal Server Error" },
-      500,
-    );
+  } catch (err: unknown) {
+    logger.error({ err, requestId }, "Failed to mark notification as read");
+    return c.json({ success: false, error: toMsg(err) }, 500);
   }
 });
 
 app.post("/read-all", authenticateToken, async (c) => {
+  const requestId = c.get("requestId");
   try {
     const user = c.get("user");
     await NotificationService.markAllAsRead(user.employee_number);
     return c.json({ success: true });
-  } catch (err: any) {
-    return c.json(
-      { success: false, error: err.message || "Internal Server Error" },
-      500,
-    );
+  } catch (err: unknown) {
+    logger.error({ err, requestId }, "Failed to mark all notifications as read");
+    return c.json({ success: false, error: toMsg(err) }, 500);
   }
 });
 
 app.get("/overdue", authenticateToken, async (c) => {
+  const requestId = c.get("requestId");
   try {
     const count = await NotificationService.checkOverdueTests();
     return c.json({ success: true, count });
-  } catch (err: any) {
-    return c.json(
-      { success: false, error: err.message || "Internal Server Error" },
-      500,
-    );
+  } catch (err: unknown) {
+    logger.error({ err, requestId }, "Failed to check overdue tests");
+    return c.json({ success: false, error: toMsg(err) }, 500);
   }
 });
 

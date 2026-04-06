@@ -1,51 +1,23 @@
-import { db, createNotification } from "../../core/database";
-
-export type Notification = {
-  id: number;
-  employee_number: string;
-  type: string;
-  message: string;
-  created_at: string;
-  is_read: number;
-};
+import { db } from "../../core/database";
+import { logger } from "../../core/logger";
+import { NotificationRepository } from "./repository";
+import { Notification } from "../../../src/shared/schemas/notification.schema";
 
 export const NotificationService = {
   getNotifications: async (employeeNumber: string): Promise<Notification[]> => {
-    return await db.query(
-      `SELECT * FROM notifications 
-       WHERE employee_number = $1 
-       ORDER BY created_at DESC 
-       LIMIT 50`,
-      [employeeNumber],
-    );
+    return await NotificationRepository.findByEmployeeNumber(employeeNumber);
   },
 
   markAsRead: async (id: string, employeeNumber: string) => {
-    await db.execute(
-      `UPDATE notifications 
-       SET is_read = 1 
-       WHERE id = $1 AND employee_number = $2`,
-      [id, employeeNumber],
-    );
-    return true;
+    return await NotificationRepository.markAsRead(id, employeeNumber);
   },
 
   markAllAsRead: async (employeeNumber: string) => {
-    await db.execute(
-      `UPDATE notifications SET is_read = 1 WHERE employee_number = $1`,
-      [employeeNumber],
-    );
-    return true;
+    return await NotificationRepository.markAllAsRead(employeeNumber);
   },
 
   checkOverdueTests: async () => {
-    const overdueTests = (await db.query(
-      `SELECT t.*, s.batch_id, s.technician_id 
-       FROM tests t 
-       JOIN samples s ON t.sample_id = s.id 
-       WHERE t.status = 'PENDING' 
-         AND s.created_at < NOW() - interval '4 hours'`,
-    )) as any[];
+    const overdueTests = await NotificationRepository.findOverdueTests();
 
     if (overdueTests.length === 0) return 0;
 
@@ -65,9 +37,7 @@ export const NotificationService = {
       }
     });
 
-    console.log(
-      `📢 ${overdueTests.length} overdue test notifications generated.`,
-    );
+    logger.info({ count: overdueTests.length }, "📢 Overdue test notifications generated.");
     return overdueTests.length;
   },
 };

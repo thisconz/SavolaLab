@@ -1,4 +1,5 @@
 import { db } from "../../core/database";
+import { logger } from "../../core/logger";
 
 export type AuditLog = {
   id: number;
@@ -74,12 +75,12 @@ export const AuditService = {
         [employeeNumber, safeAction, safeDetails, ip || "127.0.0.1"],
       );
     } catch (err) {
-      console.error("❌ Failed to write audit log", {
+      logger.error({
         employeeNumber,
         action,
         ip,
-        error: err,
-      });
+        err,
+      }, "❌ Failed to write audit log");
     }
   },
 };

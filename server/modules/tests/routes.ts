@@ -2,84 +2,98 @@ import { Hono } from "hono";
 import { TestService } from "./service";
 import { authenticateToken } from "../../core/middleware";
 import type { Variables } from "../../core/types";
+import { logger } from "../../core/logger";
+import {
+  CreateTestRequestSchema,
+  UpdateTestRequestSchema,
+  ReviewTestRequestSchema,
+} from "../../../src/shared/schemas/test.schema";
 
 const app = new Hono<{ Variables: Variables }>();
 
 // GET /tests - fetch all test results
 app.get("/", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const tests = await TestService.getTests();
     return c.json({ success: true, data: tests });
   } catch (err: any) {
-    console.error("Error fetching tests:", err);
+    logger.error({ reqId, err }, "Error fetching tests");
     return c.json({ success: false, error: err.message }, 500);
   }
 });
 
 // POST /tests - create a new test result
 app.post("/", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const body = await c.req.json();
-    const sampleId = Number(body.sample_id);
+    const parsedBody = CreateTestRequestSchema.parse(body);
     const user = c.get("user");
     const performerId = user.employee_number;
     const ip = c.req.header("x-forwarded-for") || "127.0.0.1";
 
-    if (!sampleId) throw new Error("sample_id is required");
-
     const id = await TestService.createTestResult(
-      sampleId,
-      body,
+      parsedBody.sample_id,
+      parsedBody,
       performerId,
       ip,
     );
     return c.json({ success: true, id }, 201);
   } catch (err: any) {
+    logger.error({ reqId, err }, "Error creating test");
     return c.json({ success: false, error: err.message }, 400);
   }
 });
 
 // PUT /tests/:id - update a test
 app.put("/:id", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const testId = c.req.param("id");
     const body = await c.req.json();
+    const parsedBody = UpdateTestRequestSchema.parse(body);
     const user = c.get("user");
     const performerId = user.employee_number;
     const ip = c.req.header("x-forwarded-for") || "127.0.0.1";
 
-    await TestService.updateTest(testId, body, performerId, ip);
+    await TestService.updateTest(testId as string, parsedBody, performerId, ip);
     return c.json({ success: true });
   } catch (err: any) {
-    return c.json({ success: false, error: err.message }, 404);
+    logger.error({ reqId, err }, "Error updating test");
+    return c.json({ success: false, error: err.message }, 400);
   }
 });
 
 // POST /tests/:id/review - review a test
 app.post("/:id/review", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const testId = c.req.param("id");
     const body = await c.req.json();
+    const parsedBody = ReviewTestRequestSchema.parse(body);
     const user = c.get("user");
     const performerId = user.employee_number;
     const role = user.role;
 
-    await TestService.reviewTest(testId, body, performerId, role);
+    await TestService.reviewTest(testId as string, parsedBody, performerId, role);
     return c.json({ success: true });
   } catch (err: any) {
-    return c.json({ success: false, error: err.message }, 403);
+    logger.error({ reqId, err }, "Error reviewing test");
+    return c.json({ success: false, error: err.message }, 400);
   }
 });
 
 // DELETE /tests/:id - block deletion, log attempt
 app.delete("/:id", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const testId = c.req.param("id");
     const user = c.get("user");
     const performerId = user.employee_number;
     const ip = c.req.header("x-forwarded-for") || "127.0.0.1";
 
-    await TestService.logDeletionAttempt(testId, performerId, ip);
+    await TestService.logDeletionAttempt(testId as string, performerId, ip);
 
     return c.json(
       {
@@ -90,6 +104,7 @@ app.delete("/:id", authenticateToken, async (c) => {
       403,
     );
   } catch (err: any) {
+    logger.error({ reqId, err }, "Error logging deletion attempt");
     return c.json({ success: false, error: err.message }, 500);
   }
 });

@@ -1,8 +1,10 @@
 import { Hono } from "hono";
 import { OperationalService } from "./service";
 import { authenticateToken } from "../../core/middleware";
+import { logger } from "../../core/logger";
+import type { Variables } from "../../core/types";
 
-const app = new Hono();
+const app = new Hono<{ Variables: Variables }>();
 
 // Helper for consistent responses
 function sendResponse(c: any, data: any, message = "OK") {
@@ -11,11 +13,12 @@ function sendResponse(c: any, data: any, message = "OK") {
 
 // --- Production Lines ---
 app.get("/production-lines", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const lines = await OperationalService.getProductionLines();
     return sendResponse(c, lines, "Production lines retrieved");
   } catch (err) {
-    console.error("Error fetching production lines:", err);
+    logger.error({ reqId, err }, "Error fetching production lines");
     return c.json(
       { success: false, error: "Failed to fetch production lines" },
       500,
@@ -25,6 +28,7 @@ app.get("/production-lines", authenticateToken, async (c) => {
 
 // --- Equipment by Production Line ---
 app.get("/equipment", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const line_id = c.req.query("line_id");
     if (!line_id)
@@ -45,18 +49,19 @@ app.get("/equipment", authenticateToken, async (c) => {
       `Equipment for line ${line_id} retrieved`,
     );
   } catch (err) {
-    console.error("Error fetching equipment:", err);
+    logger.error({ reqId, err }, "Error fetching equipment");
     return c.json({ success: false, error: "Failed to fetch equipment" }, 500);
   }
 });
 
 // --- Instruments ---
 app.get("/instruments", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const instruments = await OperationalService.getInstruments();
     return sendResponse(c, instruments, "Instruments retrieved");
   } catch (err) {
-    console.error("Error fetching instruments:", err);
+    logger.error({ reqId, err }, "Error fetching instruments");
     return c.json(
       { success: false, error: "Failed to fetch instruments" },
       500,
@@ -66,22 +71,24 @@ app.get("/instruments", authenticateToken, async (c) => {
 
 // --- Inventory ---
 app.get("/inventory", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const inventory = await OperationalService.getInventory();
     return sendResponse(c, inventory, "Inventory retrieved");
   } catch (err) {
-    console.error("Error fetching inventory:", err);
+    logger.error({ reqId, err }, "Error fetching inventory");
     return c.json({ success: false, error: "Failed to fetch inventory" }, 500);
   }
 });
 
 // --- Certificates ---
 app.get("/certificates", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const certificates = await OperationalService.getCertificates();
     return sendResponse(c, certificates, "Certificates retrieved");
   } catch (err) {
-    console.error("Error fetching certificates:", err);
+    logger.error({ reqId, err }, "Error fetching certificates");
     return c.json(
       { success: false, error: "Failed to fetch certificates" },
       500,
@@ -91,11 +98,12 @@ app.get("/certificates", authenticateToken, async (c) => {
 
 // --- Plant Intelligence ---
 app.get("/plant-intel", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const data = await OperationalService.getPlantIntel();
     return sendResponse(c, data, "Plant intelligence retrieved");
   } catch (err) {
-    console.error("Error fetching plant intel:", err);
+    logger.error({ reqId, err }, "Error fetching plant intel");
     return c.json(
       { success: false, error: "Failed to fetch plant intel" },
       500,

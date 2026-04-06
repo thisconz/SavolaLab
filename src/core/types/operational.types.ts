@@ -1,42 +1,14 @@
-export interface ProductionLine {
-  id: number;
-  name: string;
-  plant_id: string;
-}
+import { z } from "zod";
+import { 
+  ProductionLineSchema, 
+  EquipmentSchema, 
+  InstrumentSchema, 
+  InventoryItemSchema, 
+  CertificateSchema 
+} from "../../shared/schemas/operational.schema";
 
-export interface Equipment {
-  id: number;
-  name: string;
-  line_id: number;
-  type: string;
-  status: "OPERATIONAL" | "MAINTENANCE" | "DOWNTIME";
-}
-
-export interface Instrument {
-  id: number;
-  name: string;
-  model: string;
-  serial_number: string;
-  status: "ACTIVE" | "CALIBRATION_DUE" | "INACTIVE";
-  last_calibration: string;
-  next_calibration: string;
-}
-
-export interface InventoryItem {
-  id: number;
-  name: string;
-  type: string;
-  quantity: number;
-  unit: string;
-  expiry_date: string;
-  min_stock: number;
-}
-
-export interface Certificate {
-  id: number;
-  batch_id: string;
-  status: "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "RELEASED";
-  version: number;
-  created_at: string;
-  approved_by?: string;
-}
+export type ProductionLine = z.infer<typeof ProductionLineSchema>;
+export type Equipment = z.infer<typeof EquipmentSchema>;
+export type Instrument = z.infer<typeof InstrumentSchema>;
+export type InventoryItem = z.infer<typeof InventoryItemSchema>;
+export type Certificate = z.infer<typeof CertificateSchema>;

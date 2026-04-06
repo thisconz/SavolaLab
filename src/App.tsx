@@ -1,13 +1,15 @@
 import React from "react";
+import { Toaster } from "sonner";
 import { AppShell } from "./app/AppShell";
 import { FeatureRouter } from "./app/router/router";
 
-function App() {
+export default function App() {
   return (
-    <AppShell>
-      <FeatureRouter />
-    </AppShell>
+    <>
+      <Toaster position="top-right" richColors />
+      <AppShell>
+        <FeatureRouter />
+      </AppShell>
+    </>
   );
 }
-
-export default App;

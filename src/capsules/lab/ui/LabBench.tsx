@@ -34,6 +34,7 @@ import { SampleStatus, SamplePriority } from "../../../core/types";
 import { LabPanel } from "../../../ui/components/LabPanel";
 import { LabApi } from "../api/lab.api";
 import { WorkflowApi } from "../../workflows/api/workflow.api";
+import { useLabBench } from "../hooks/useLabBench";
 import { TEST_VALIDATION_RULES } from "../constants/validation.constants";
 import { calculateICUMSA } from "../../../core/utils/calculations.util";
 import { motion, AnimatePresence } from "@/src/lib/motion";
@@ -58,252 +59,28 @@ interface LabBenchProps {
  */
 export const LabBench: React.FC<LabBenchProps> = memo(
   ({ sample, onComplete }) => {
-    const [tests, setTests] = useState<TestResult[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [values, setValues] = useState<Record<number, string>>({});
-    const [notes, setNotes] = useState<Record<number, string>>({});
-    const [errors, setErrors] = useState<Record<number, string>>({});
-    const [suggestions, setSuggestions] = useState<Record<number, string>>({});
-    const [colourParams, setColourParams] = useState<
-      Record<number, { absorbance: string; brix: string; cellLength: string }>
-    >({});
-    const [previousResults, setPreviousResults] = useState<
-      Record<string, any[]>
-    >({});
+    const {
+      tests,
+      loading,
+      values,
+      notes,
+      errors,
+      suggestions,
+      colourParams,
+      previousResults,
+      isSaving,
+      handleValueChange,
+      handleNoteChange,
+      handleColourParamChange,
+      handleSave,
+    } = useLabBench(sample, onComplete);
+
     const [expandedNotes, setExpandedNotes] = useState<Record<number, boolean>>(
       {},
     );
     const [expandedHistory, setExpandedHistory] = useState<
       Record<number, boolean>
     >({});
-
-    const [isSaving, setIsSaving] = useState(false);
-
-    useEffect(() => {
-      const loadTests = async () => {
-        try {
-          const data = await LabApi.getSampleTests(sample.id);
-          setTests(data);
-          const initialValues: Record<number, string> = {};
-          const initialNotes: Record<number, string> = {};
-          const initialColourParams: Record<
-            number,
-            { absorbance: string; brix: string; cellLength: string }
-          > = {};
-
-          const historyPromises: Promise<void>[] = [];
-
-          data.forEach((t) => {
-            initialValues[t.id] = t.raw_value?.toString() || "";
-            initialNotes[t.id] = t.notes || "";
-
-            if (t.test_type === "Colour") {
-              let p = { absorbance: "", brix: "50", cellLength: "1" };
-              if (t.params) {
-                try {
-                  const parsed =
-                    typeof t.params === "string"
-                      ? JSON.parse(t.params)
-                      : t.params;
-                  p = { ...p, ...parsed };
-                } catch (e) {
-                  console.warn(
-                    `Failed to parse colour params for test ${t.id}:`,
-                    e,
-                  );
-                }
-              }
-              initialColourParams[t.id] = p;
-            }
-
-            // Fetch history for each test type
-            if (!previousResults[t.test_type]) {
-              historyPromises.push(
-                LabApi.getPreviousResults(
-                  sample.source_stage,
-                  t.test_type,
-                  3,
-                ).then((results) => {
-                  setPreviousResults((prev) => ({
-                    ...prev,
-                    [t.test_type]: results,
-                  }));
-                }),
-              );
-            }
-          });
-
-          setValues(initialValues);
-          setNotes(initialNotes);
-          setColourParams(initialColourParams);
-          await Promise.all(historyPromises);
-        } catch (err) {
-          console.error("Failed to load tests", err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadTests();
-    }, [sample.id, sample.source_stage]);
-
-    const validate = (testId: number, value: string, testType: string) => {
-      if (!value) return null;
-
-      const rule = TEST_VALIDATION_RULES[testType as TestType];
-      if (!rule) return null;
-
-      const numValue = parseFloat(value);
-      if (isNaN(numValue))
-        return {
-          message: "Invalid numeric format",
-          suggestion: "Please enter a valid number (e.g. 12.5)",
-        };
-
-      if (numValue < rule.min)
-        return {
-          message: `Value (${numValue} ${rule.unit}) is below minimum threshold`,
-          suggestion: `Input must be at least ${rule.min} ${rule.unit}. Check sample dilution or instrument zeroing.`,
-        };
-
-      if (numValue > rule.max)
-        return {
-          message: `Value (${numValue} ${rule.unit}) exceeds maximum limit`,
-          suggestion: `Input must be no more than ${rule.max} ${rule.unit}. Verify calibration or check for contamination.`,
-        };
-
-      return null;
-    };
-
-    const handleInputChange = (
-      testId: number,
-      value: string,
-      testType: string,
-    ) => {
-      setValues((prev) => ({ ...prev, [testId]: value }));
-      const error = validate(testId, value, testType);
-      setErrors((prev) => ({ ...prev, [testId]: error ? error.message : "" }));
-      setSuggestions((prev) => ({
-        ...prev,
-        [testId]: error ? error.suggestion : "",
-      }));
-    };
-
-    const handleNoteChange = (testId: number, value: string) => {
-      setNotes((prev) => ({ ...prev, [testId]: value }));
-    };
-
-    const handleColourParamChange = (
-      testId: number,
-      param: "absorbance" | "brix" | "cellLength",
-      val: string,
-    ) => {
-      setColourParams((prev) => {
-        const current = prev[testId] || {
-          absorbance: "",
-          brix: "50",
-          cellLength: "1",
-        };
-        const updated = { ...current, [param]: val };
-
-        const abs = parseFloat(updated.absorbance);
-        const bx = parseFloat(updated.brix);
-        const cl = parseFloat(updated.cellLength);
-
-        if (!isNaN(abs) && !isNaN(bx) && !isNaN(cl) && cl > 0) {
-          const icumsa = calculateICUMSA(abs, bx, cl);
-          handleInputChange(testId, Math.round(icumsa).toString(), "Colour");
-        } else {
-          handleInputChange(testId, "", "Colour");
-        }
-
-        return { ...prev, [testId]: updated };
-      });
-    };
-
-    const handleComplete = async () => {
-      setIsSaving(true);
-      try {
-        const executions = await WorkflowApi.getWorkflowExecutions(sample.id);
-        const activeExec = executions.find((e) => e.status === "IN_PROGRESS");
-
-        // PASS 1: Parallel Data Persistence (Fast)
-        // We save/create all the test records first.
-        // We do NOT touch workflows here to avoid race conditions.
-        const savedTests = await Promise.all(
-          tests.map(async (test) => {
-            const rawValue = parseFloat(values[test.id]);
-            let savedTestId = test.id;
-
-            const payload: Partial<TestResult> = {
-              sample_id: sample.id,
-              test_type: test.test_type,
-              raw_value: rawValue,
-              calculated_value: rawValue,
-              unit:
-                TEST_VALIDATION_RULES[test.test_type as TestType]?.unit ||
-                "N/A",
-              status: "VALIDATING" as any,
-              notes: notes[test.id] || undefined,
-              params:
-                test.test_type === "Colour" ? colourParams[test.id] : undefined,
-            };
-
-            if (test.id < 0) {
-              const res = await LabApi.createTest(payload);
-              savedTestId = res.id;
-            } else {
-              await LabApi.updateTest(test.id, payload);
-            }
-
-            return { id: savedTestId, type: test.test_type, value: rawValue };
-          }),
-        );
-
-        // PASS 2: Sequential Workflow Completion (Safe)
-        // Now that data is saved, we iterate through the results one by one.
-        if (activeExec?.step_executions) {
-          // Keep a local tracking copy of step statuses to avoid "double-completing"
-          const localSteps = [...activeExec.step_executions];
-
-          for (const result of savedTests) {
-            const stepIndex = localSteps.findIndex(
-              (se) =>
-                se.test_type === result.type &&
-                (se.status === "IN_PROGRESS" || se.status === "PENDING"),
-            );
-
-            if (stepIndex !== -1) {
-              const step = localSteps[stepIndex];
-
-              await WorkflowApi.completeStep(activeExec.id, step.step_id, {
-                status: "COMPLETED",
-                test_id: result.id,
-                result_value: result.value,
-              });
-
-              // CRITICAL: Update local state so the next iteration doesn't find this step again
-              localSteps[stepIndex] = {
-                ...step,
-                status: WorkflowStepExecutionStatus.COMPLETED,
-              };
-            }
-          }
-        }
-
-        // Final Sample Update
-        await LabApi.updateSample(sample.id, {
-          status: SampleStatus.VALIDATING,
-          priority: SamplePriority.NORMAL,
-        });
-
-        onComplete();
-      } catch (err) {
-        console.error("Failed to save test results", err);
-        // Suggestion: Add a toast notification here for better UX
-      } finally {
-        setIsSaving(false);
-      }
-    };
 
     const hasErrors = Object.values(errors).some((e) => e !== "");
     const allFilled =
@@ -755,7 +532,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                             step={rule?.step || "any"}
                             value={values[test.id] || ""}
                             onChange={(e) =>
-                              handleInputChange(
+                              handleValueChange(
                                 test.id,
                                 e.target.value,
                                 test.test_type,
@@ -771,7 +548,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                           {history[0] && (
                             <button
                               onClick={() =>
-                                handleInputChange(
+                                handleValueChange(
                                   test.id,
                                   history[0].raw_value.toString(),
                                   test.test_type,
@@ -843,7 +620,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
           {/* Footer Actions */}
           <div className="pt-5 border-t border-brand-sage/10 mt-auto">
             <button
-              onClick={handleComplete}
+              onClick={handleSave}
               disabled={hasErrors || !allFilled || isSaving}
               className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 shadow-xl ${
                 hasErrors || !allFilled || isSaving

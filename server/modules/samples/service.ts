@@ -1,15 +1,17 @@
 import { createNotification } from "../../core/db/events";
 import { db } from "../../core/database";
+import { SampleRepository } from "./repository";
+import { AuditService } from "../audit/service";
 
 export type SampleData = {
   batch_id?: string;
   source_stage?: string;
   sample_type?: string;
-  priority?: "NORMAL" | "HIGH" | "STAT";
+  priority?: string;
   line_id?: string;
   equipment_id?: string;
   shift_id?: string;
-  status?: "REGISTERED" | "TESTING" | "VALIDATING" | "COMPLETED" | "ARCHIVED";
+  status?: string;
 };
 
 export type TestResultSummary = {
@@ -28,22 +30,7 @@ export type SampleTest = {
 export const SampleService = {
   // --- Get all samples with test counts ---
   getSamples: async (): Promise<any[]> => {
-    return await db.query(
-      `
-      SELECT s.*, COUNT(t.id) as test_count 
-      FROM samples s 
-      LEFT JOIN tests t ON s.id = t.sample_id 
-      GROUP BY s.id 
-      ORDER BY 
-        CASE s.priority 
-          WHEN 'STAT' THEN 1 
-          WHEN 'HIGH' THEN 2 
-          WHEN 'NORMAL' THEN 3 
-          ELSE 4 
-        END ASC, 
-        s.created_at DESC
-    `,
-    );
+    return await SampleRepository.findAll();
   },
 
   // --- Create a new sample ---
@@ -51,25 +38,7 @@ export const SampleService = {
     data: SampleData,
     technicianId: string,
   ): Promise<number> => {
-    const rows = await db.query(
-      `
-      INSERT INTO samples (batch_id, source_stage, sample_type, priority, technician_id, line_id, equipment_id, shift_id) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING id
-    `,
-      [
-        data.batch_id || null,
-        data.source_stage || null,
-        data.sample_type || null,
-        data.priority || "NORMAL",
-        technicianId,
-        data.line_id || null,
-        data.equipment_id || null,
-        data.shift_id || null,
-      ],
-    );
-
-    return rows[0].id;
+    return await SampleRepository.create({ ...data, technician_id: technicianId });
   },
 
   // --- Update an existing sample ---
@@ -82,26 +51,10 @@ export const SampleService = {
     const sampleId = Number(id);
     if (isNaN(sampleId)) throw new Error("Invalid sample ID");
 
-    const oldSample = await db.queryOne("SELECT * FROM samples WHERE id = $1", [
-      sampleId,
-    ]);
+    const oldSample = await SampleRepository.findById(sampleId);
     if (!oldSample) throw new Error("Sample not found");
 
-    await db.execute(
-      `
-      UPDATE samples 
-      SET batch_id = $1, source_stage = $2, sample_type = $3, priority = $4, status = $5 
-      WHERE id = $6
-    `,
-      [
-        data.batch_id || oldSample.batch_id,
-        data.source_stage || oldSample.source_stage,
-        data.sample_type || oldSample.sample_type,
-        data.priority || oldSample.priority,
-        data.status || oldSample.status,
-        sampleId,
-      ],
-    );
+    await SampleRepository.update(sampleId, data);
 
     // --- Audit log changes ---
     const changes: string[] = [];
@@ -126,13 +79,7 @@ export const SampleService = {
 
     if (changes.length > 0) {
       const details = `Updated sample #${sampleId}. Changes: ${changes.join(", ")}`;
-      await db.execute(
-        `
-        INSERT INTO audit_logs (employee_number, action, details, ip_address)
-        VALUES ($1, 'SAMPLE_UPDATED', $2, $3)
-      `,
-        [employeeNumber, details, ip],
-      );
+      await AuditService.createLog(employeeNumber, "SAMPLE_UPDATED", details, ip);
     }
 
     return true;
@@ -144,17 +91,7 @@ export const SampleService = {
     testType: string,
     limit: number = 5,
   ): Promise<TestResultSummary[]> => {
-    return await db.query(
-      `
-      SELECT t.raw_value, t.performed_at, s.batch_id
-      FROM tests t
-      JOIN samples s ON t.sample_id = s.id
-      WHERE s.source_stage = $1 AND t.test_type = $2 AND t.status = 'COMPLETED'
-      ORDER BY t.performed_at DESC
-      LIMIT $3
-    `,
-      [stage, testType, limit],
-    );
+    return await SampleRepository.findPreviousResults(stage, testType, limit);
   },
 
   // --- Get all tests for a sample, or default template ---
@@ -162,16 +99,10 @@ export const SampleService = {
     const sampleId = Number(id);
     if (isNaN(sampleId)) throw new Error("Invalid sample ID");
 
-    const tests: SampleTest[] = await db.query(
-      "SELECT * FROM tests WHERE sample_id = $1",
-      [sampleId],
-    );
+    const tests = await SampleRepository.findTestsBySampleId(sampleId);
 
     if (tests.length === 0) {
-      const sample = await db.queryOne(
-        "SELECT source_stage, batch_id FROM samples WHERE id = $1",
-        [sampleId],
-      );
+      const sample = await SampleRepository.findById(sampleId);
       if (!sample) return [];
 
       const DEFAULT_TESTS: Record<string, string[]> = {

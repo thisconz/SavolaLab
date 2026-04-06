@@ -2,6 +2,7 @@ import { db } from "./db/client";
 import { runMigrations } from "./db/runner";
 import { seedDatabase } from "./db/seeds";
 import { initSecurityTriggers } from "./db/security";
+import { logger } from "./logger";
 
 let initialized = false;
 let initializing = false;
@@ -9,7 +10,7 @@ let initializing = false;
 type InitStage = "instrumentation" | "migrations" | "security" | "seeding";
 
 function logError(stage: InitStage, error: unknown) {
-  console.error(`❌ DB INIT FAILED [${stage}]`, error);
+  logger.error({ error }, `❌ DB INIT FAILED [${stage}]`);
 }
 
 /**
@@ -28,7 +29,7 @@ export async function initDatabase(): Promise<void> {
     /** 1️⃣ Observability instrumentation */
     try {
       // instrumentDb(); // Removed for now as it was better-sqlite3 specific
-      console.log("🔍 DB instrumentation applied");
+      logger.info("🔍 DB instrumentation applied");
     } catch (err) {
       logError("instrumentation", err);
       throw err;
@@ -37,7 +38,7 @@ export async function initDatabase(): Promise<void> {
     /** 2️⃣ Migrations */
     try {
       await runMigrations();
-      console.log("🛠 DB migrations completed");
+      logger.info("🛠 DB migrations completed");
     } catch (err) {
       logError("migrations", err);
       throw err;
@@ -46,7 +47,7 @@ export async function initDatabase(): Promise<void> {
     /** 3️⃣ Security triggers */
     try {
       await initSecurityTriggers();
-      console.log("🔒 Security triggers initialized");
+      logger.info("🔒 Security triggers initialized");
     } catch (err) {
       logError("security", err);
       throw err;
@@ -55,18 +56,18 @@ export async function initDatabase(): Promise<void> {
     /** 4️⃣ Seed database (transaction-safe) */
     try {
       await seedDatabase();
-      console.log("🌱 Initial seed applied");
+      logger.info("🌱 Initial seed applied");
     } catch (err) {
       logError("seeding", err);
       throw err;
     }
 
     initialized = true;
-    console.log("✅ Database fully initialized");
+    logger.info("✅ Database fully initialized");
   } catch (err) {
     // Reset state for retry
     initialized = false;
-    console.error("❌ DATABASE INITIALIZATION FAILED", err);
+    logger.error({ err }, "❌ DATABASE INITIALIZATION FAILED");
     throw err;
   } finally {
     initializing = false;

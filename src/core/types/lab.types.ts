@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export const SUGAR_STAGES = [
   "Raw Handling",
   "Refining",
@@ -35,7 +37,8 @@ export const SUGAR_STAGES = [
   "Mud",
 ] as const;
 
-export type SugarStage = (typeof SUGAR_STAGES)[number];
+export const SugarStageSchema = z.enum(SUGAR_STAGES);
+export type SugarStage = z.infer<typeof SugarStageSchema>;
 
 export const TEST_TYPES = [
   "pH",
@@ -59,4 +62,5 @@ export const TEST_TYPES = [
   "Invert",
 ] as const;
 
-export type TestType = (typeof TEST_TYPES)[number];
+export const TestTypeSchema = z.enum(TEST_TYPES);
+export type TestType = z.infer<typeof TestTypeSchema>;

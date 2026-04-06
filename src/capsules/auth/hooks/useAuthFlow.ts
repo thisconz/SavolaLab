@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { useAuthStore } from "../../../orchestrator/state/auth.store";
 import { AuthApi } from "../api/auth.api";
 import { User } from "../../../core/types";
@@ -27,13 +28,17 @@ export const useAuthFlow = ({
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
 
+  console.log("[DEBUG] useAuthFlow render, isOpen:", isOpen, "users count:", users.length);
+
   const fetchUsers = useCallback(async () => {
     setLoading(true);
+    console.log("[DEBUG] fetchUsers called");
     try {
       const data = await AuthApi.getUsers();
+      console.log("[DEBUG] fetchUsers success:", data);
       setUsers(data || []);
     } catch (err) {
-      console.error("Failed to fetch users", err);
+      console.error("[DEBUG] fetchUsers error:", err);
       setUsers([]);
     } finally {
       setLoading(false);
@@ -88,15 +93,17 @@ export const useAuthFlow = ({
               role: response.user.role as any,
               dept: response.user.dept,
               initials: getInitials(response.user.name),
-              permissions: [
-                "view_results",
-                "input_data",
-                "edit_formulas",
-                "change_specs",
-              ],
+              permissions: {
+                view_results: 1,
+                input_data: 1,
+                edit_formulas: 1,
+                change_specs: 1,
+              },
             },
             response.token,
           );
+
+          toast.success(`Welcome back, ${response.user.name}`);
 
           setSelectedUser(null);
           setInputValue("");
@@ -106,10 +113,10 @@ export const useAuthFlow = ({
         const msg = err?.message || `Invalid ${authMode.toUpperCase()}`;
         setError(msg);
         setInputValue("");
+        toast.error(msg);
       } finally {
         setLoading(false);
       }
-
     },
     [selectedUser, loading, authMode, inputValue, login, onSuccess],
   );

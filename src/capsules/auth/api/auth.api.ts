@@ -3,15 +3,17 @@ import { User } from "../../../core/types";
 
 export const AuthApi = {
   getUsers: async () => {
+    console.log("[DEBUG] AuthApi.getUsers calling /v1/directory/users");
     const response = await api.get<{ success: boolean; data: User[] }>(
-      "/auth/users",
+      "/v1/directory/users",
     );
+    console.log("[DEBUG] AuthApi.getUsers response:", response);
     return response.data || [];
   },
 
   getMe: async () => {
     const response = await api.get<{ success: boolean; data: User }>(
-      "/auth/me",
+      "/v1/directory/me",
     );
     return response.data;
   },
@@ -22,7 +24,7 @@ export const AuthApi = {
     password?: string;
   }) => {
     return api.post<{ success: boolean; user: User; token: string }>(
-      "/auth/login",
+      "/v1/directory/login",
       payload,
     );
   },
@@ -33,13 +35,13 @@ export const AuthApi = {
     dob: string;
   }) => {
     return api.post<{ success: boolean; name: string; dept: string }>(
-      "/auth/verify-employee",
+      "/v1/directory/verify-employee",
       payload,
     );
   },
 
   confirmOtp: async (employeeNumber: string, otp: string) => {
-    return api.post<{ success: boolean }>("/auth/confirm-otp", {
+    return api.post<{ success: boolean }>("/v1/directory/confirm-otp", {
       employee_number: employeeNumber,
       code: otp,
     });
@@ -50,6 +52,6 @@ export const AuthApi = {
     pin: string;
     password?: string;
   }) => {
-    return api.post<{ success: boolean }>("/auth/setup-credentials", payload);
+    return api.post<{ success: boolean }>("/v1/directory/setup-credentials", payload);
   },
 };

@@ -4,8 +4,8 @@ const bcrypt = {
 };
 const jwt = {
   verify: (token: string, secret: string) => ({
-    employee_number: "ADMIN",
-    role: "ADMIN",
+    employee_number: "1001",
+    role: "admin",
     permissions: {
       view_results: 1,
       input_data: 1,
@@ -16,6 +16,7 @@ const jwt = {
   sign: (payload: any, secret: string, options: any) => "mock-token",
 };
 import { db, generateOtp, storeOtp, verifyOtp } from "../../core/database";
+import { AuditService } from "../audit/service";
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -47,6 +48,7 @@ export type UserPayload = {
 export const AuthService = {
   // --- Get all active users with permissions ---
   getUsers: async (): Promise<UserPayload[]> => {
+    console.log("[DEBUG] AuthService.getUsers called");
     try {
       const rows = await db.query(
         `
@@ -65,6 +67,7 @@ export const AuthService = {
         WHERE u.status = 'ACTIVE'
       `,
       );
+      console.log("[DEBUG] AuthService.getUsers query success, rows:", rows.length);
       return rows.map((user: any) => ({
         id: user.employee_number,
         employee_number: user.employee_number,
@@ -80,12 +83,12 @@ export const AuthService = {
         initials: AuthService.getInitials(user.name),
       }));
     } catch (error) {
-      console.warn("Database query failed, returning mock users");
+      console.warn("[DEBUG] AuthService.getUsers query failed, returning mock users. Error:", error);
       return [
         {
           id: "1001",
-          employee_number: "ADMIN",
-          name: "Administrator",
+          employee_number: "1001",
+          name: "Admin User",
           role: "ADMIN",
           dept: "IT",
           permissions: {
@@ -100,7 +103,7 @@ export const AuthService = {
           id: "1002",
           employee_number: "1002",
           name: "Lab Tech",
-          role: "technician",
+          role: "CHEMIST",
           dept: "Lab",
           permissions: {
             view_results: 1,
@@ -157,7 +160,7 @@ export const AuthService = {
         id: employeeNumber,
         employee_number: employeeNumber,
         name: employeeNumber === "1001" ? "Admin User" : "Lab Tech",
-        role: employeeNumber === "1001" ? "admin" : "technician",
+        role: employeeNumber === "1001" ? "ADMIN" : "CHEMIST",
         dept: employeeNumber === "1001" ? "IT" : "Lab",
         permissions: {
           view_results: 1,
@@ -188,10 +191,7 @@ export const AuthService = {
     );
 
     if (!employee) {
-      await db.execute(
-        `INSERT INTO audit_logs (employee_number, action, details) VALUES ($1, 'VERIFICATION_FAILED', 'Invalid credentials provided')`,
-        [employeeNumber],
-      );
+      await AuditService.createLog(employeeNumber, "VERIFICATION_FAILED", "Invalid credentials provided", "127.0.0.1");
       return null;
     }
 
@@ -208,10 +208,7 @@ export const AuthService = {
     await storeOtp(employeeNumber, otp, 5); // 5 minutes
     console.log(`[OTP for ${employeeNumber}]: ${otp}`);
 
-    await db.execute(
-      `INSERT INTO audit_logs (employee_number, action, details) VALUES ($1, 'OTP_SENT', 'OTP generated and sent for verification')`,
-      [employeeNumber],
-    );
+    await AuditService.createLog(employeeNumber, "OTP_SENT", "OTP generated and sent for verification", "127.0.0.1");
 
     return { employee_number: employeeNumber };
   },
@@ -222,12 +219,11 @@ export const AuthService = {
     code: string,
   ): Promise<boolean> => {
     const valid = await verifyOtp(employeeNumber, code);
-    await db.execute(
-      `INSERT INTO audit_logs (employee_number, action, details) VALUES ($1, 'OTP_CONFIRMATION', $2)`,
-      [
-        employeeNumber,
-        valid ? "OTP confirmed successfully" : "OTP failed/expired",
-      ],
+    await AuditService.createLog(
+      employeeNumber,
+      "OTP_CONFIRMATION",
+      valid ? "OTP confirmed successfully" : "OTP failed/expired",
+      "127.0.0.1"
     );
     return valid;
   },
@@ -254,10 +250,7 @@ export const AuthService = {
       [employeeNumber, password_hash, pin_hash],
     );
 
-    await db.execute(
-      `INSERT INTO audit_logs (employee_number, action, details) VALUES ($1, 'ACCOUNT_ACTIVATED', 'User completed credential setup')`,
-      [employeeNumber],
-    );
+    await AuditService.createLog(employeeNumber, "ACCOUNT_ACTIVATED", "User completed credential setup", "127.0.0.1");
 
     return true;
   },
@@ -315,10 +308,11 @@ export const AuthService = {
           "UPDATE users SET failed_attempts=$1 WHERE employee_number=$2",
           [attempts, employeeNumber],
         );
-        await db.execute(
-          `INSERT INTO audit_logs (employee_number, action, details)
-          VALUES ($1, 'LOGIN_FAILED', 'Incorrect password or PIN')`,
-          [employeeNumber],
+        await AuditService.createLog(
+          employeeNumber,
+          "LOGIN_FAILED",
+          "Incorrect password or PIN",
+          "127.0.0.1"
         );
         return null;
       }
@@ -345,10 +339,7 @@ export const AuthService = {
 
       const token = jwt.sign(payload, getJwtSecret(), { expiresIn: "8h" });
 
-      await db.execute(
-        `INSERT INTO audit_logs (employee_number, action, details) VALUES ($1, 'LOGIN_SUCCESS', 'User logged in successfully')`,
-        [employeeNumber],
-      );
+      await AuditService.createLog(employeeNumber, "LOGIN_SUCCESS", "User logged in successfully", "127.0.0.1");
 
       return { token, user: payload };
     } catch (error) {
@@ -357,7 +348,7 @@ export const AuthService = {
         id: employeeNumber,
         employee_number: employeeNumber,
         name: employeeNumber === "1001" ? "Admin User" : "Lab Tech",
-        role: employeeNumber === "1001" ? "admin" : "technician",
+        role: employeeNumber === "1001" ? "ADMIN" : "CHEMIST",
         dept: employeeNumber === "1001" ? "IT" : "Lab",
         permissions: {
           view_results: 1,

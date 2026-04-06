@@ -77,7 +77,7 @@ export const DashboardFeature: React.FC = memo(() => {
         <div>
           <h2 className="text-xl font-bold text-brand-deep flex items-center gap-2">
             <LayoutDashboard className="w-5 h-5 text-brand-primary" />
-            Lab Operations Oversight
+            Dashboard
           </h2>
           <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
             Real-time data synchronization active

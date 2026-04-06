@@ -27,6 +27,7 @@ export type User = {
 
 export type Variables = {
   user: User;
+  requestId: string;
 };
 
 // ─────────────────────────────────────────────

@@ -19,6 +19,7 @@ import {
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import { ArchiveApi } from "../api/archive.api";
 import { Modal } from "../../../ui/components/Modal";
+import { toast } from "sonner";
 
 type ArchiveSection =
   | "samples"
@@ -346,21 +347,29 @@ export const ArchivePage: React.FC = () => {
         blob,
         `savola-archive-${activeSection}-${new Date().toISOString().split("T")[0]}.xlsx`,
       );
+      toast.success("Excel file exported successfully");
     } catch (error) {
       console.error("Error generating Excel file:", error);
+      toast.error("Failed to export Excel file");
     }
   };
 
   const handleDownloadRecord = (item: any) => {
-    const jsonString = JSON.stringify(item, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `record-${item.id || "export"}.json`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const jsonString = JSON.stringify(item, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `record-${item.id || "export"}.json`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Record downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading record:", error);
+      toast.error("Failed to download record");
+    }
   };
 
   return (

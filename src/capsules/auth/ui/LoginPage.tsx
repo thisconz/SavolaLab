@@ -108,7 +108,7 @@ export const LoginPage: React.FC = () => {
                   <div className="flex justify-between items-end mb-2">
                     <div>
                        <h2 className="text-[11px] font-black text-brand-deep uppercase tracking-widest">Select Personnel</h2>
-                       <p className="text-[9px] text-brand-sage font-mono uppercase mt-1">Active Sync: {users.length} Nodes</p>
+                       <p className="text-[9px] text-brand-sage font-mono uppercase mt-1">Active Sync: {users.length} Users</p>
                     </div>
                     <button onClick={fetchUsers} className="p-2 hover:bg-brand-mist/50 rounded-lg transition-colors group">
                        <RefreshCw className={`w-3.5 h-3.5 text-brand-sage group-hover:text-brand-primary ${loading && 'animate-spin'}`} />

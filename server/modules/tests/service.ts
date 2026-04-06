@@ -1,4 +1,5 @@
 import { db } from "../../core/database";
+import { TestRepository } from "./repository";
 
 /**
  * Update workflow step when a test result is entered.
@@ -75,8 +76,7 @@ const updateWorkflowStep = async (
 
 export const TestService = {
   // Fetch all test results
-  getTests: async () =>
-    await db.query("SELECT * FROM tests ORDER BY performed_at DESC"),
+  getTests: async () => await TestRepository.findAll(),
 
   // Create a test result with validation, workflow update, and audit logging
   createTestResult: async (
@@ -99,26 +99,6 @@ export const TestService = {
       params,
     } = data;
 
-    // Validate required fields
-    if (!test_type || typeof test_type !== "string")
-      throw new Error("test_type is required and must be a string");
-    if (raw_value === undefined || typeof raw_value !== "number")
-      throw new Error("raw_value is required and must be a number");
-    if (calculated_value === undefined || typeof calculated_value !== "number")
-      throw new Error("calculated_value is required and must be a number");
-    if (!unit || typeof unit !== "string")
-      throw new Error("unit is required and must be a string");
-    if (!status || typeof status !== "string")
-      throw new Error("status is required and must be a string");
-
-    // Ensure optional fields exist in payload
-    ["reviewer_id", "review_at", "review_comment", "notes", "params"].forEach(
-      (field) => {
-        if (!(field in data))
-          throw new Error(`${field} must be provided in payload`);
-      },
-    );
-
     const timestamp = performed_at || new Date().toISOString();
     const paramsStr = params
       ? typeof params === "string"
@@ -135,32 +115,21 @@ export const TestService = {
         const sample = sampleResult[0];
         if (!sample) throw new Error(`Sample ${sampleId} not found`);
 
-        const info = await client.query(
-          `
-          INSERT INTO tests (
-            sample_id, test_type, raw_value, calculated_value, unit, status, 
-            performed_at, performer_id, reviewer_id, review_at, review_comment, notes, params
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-          RETURNING id
-        `,
-          [
-            sampleId,
-            test_type,
-            raw_value,
-            calculated_value,
-            unit,
-            status,
-            timestamp,
-            performerId,
-            reviewer_id || null,
-            review_at || null,
-            review_comment || null,
-            notes || null,
-            paramsStr,
-          ],
-        );
-
-        const testId = info[0].id;
+        const testId = await TestRepository.create(client, {
+          sample_id: sampleId,
+          test_type,
+          raw_value,
+          calculated_value,
+          unit,
+          status: status || "PENDING",
+          performed_at: timestamp,
+          performer_id: performerId,
+          reviewer_id: reviewer_id || null,
+          review_at: review_at || null,
+          review_comment: review_comment || null,
+          notes: notes || null,
+          params: paramsStr,
+        });
 
         await updateWorkflowStep(sampleId, test_type, testId, raw_value);
 
@@ -224,32 +193,20 @@ export const TestService = {
     const { raw_value, calculated_value, status, notes, params } = data;
 
     return await db.transaction(async (client) => {
-      const testResult = await client.query(
-        "SELECT * FROM tests WHERE id = $1",
-        [id],
-      );
-      const test = testResult[0];
+      const test = await TestRepository.findById(id);
       if (!test) throw new Error("Test not found");
 
-      await client.query(
-        `
-        UPDATE tests
-        SET raw_value = $1, calculated_value = $2, status = $3, notes = $4, params = $5, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $6
-      `,
-        [
-          raw_value ?? test.raw_value,
-          calculated_value ?? test.calculated_value,
-          status || test.status,
-          notes ?? test.notes,
-          params !== undefined
-            ? typeof params === "string"
-              ? params
-              : JSON.stringify(params)
-            : test.params,
-          id,
-        ],
-      );
+      await TestRepository.update(client, id, {
+        raw_value: raw_value ?? test.raw_value,
+        calculated_value: calculated_value ?? test.calculated_value,
+        status: status || test.status,
+        notes: notes ?? test.notes,
+        params: params !== undefined
+          ? typeof params === "string"
+            ? params
+            : JSON.stringify(params)
+          : test.params,
+      });
 
       if (raw_value !== undefined) {
         await updateWorkflowStep(
@@ -309,14 +266,12 @@ export const TestService = {
       throw new Error("Only Shift Chemists or Managers can review tests");
     }
 
-    await db.execute(
-      `
-      UPDATE tests
-      SET status = $1, reviewer_id = $2, review_at = $3, review_comment = $4
-      WHERE id = $5
-    `,
-      [status, reviewerId, review_at, comment ?? null, id],
-    );
+    await TestRepository.review(id, {
+      status,
+      reviewer_id: reviewerId,
+      review_at,
+      review_comment: comment ?? null,
+    });
 
     return true;
   },

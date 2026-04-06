@@ -1,28 +1,30 @@
 import { Hono } from "hono";
 import { TelemetryService, TelemetryFilter } from "./service";
 import { authenticateToken } from "../../core/middleware";
+import { logger } from "../../core/logger";
+import type { Variables } from "../../core/types";
+import { TelemetryFilterSchema } from "../../../src/shared/schemas/telemetry.schema";
 
-const app = new Hono();
+const app = new Hono<{ Variables: Variables }>();
 
 /**
  * GET /telemetry?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
  * Optional query parameters to filter telemetry stats by date range.
  */
 app.get("/", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
-    const filter: TelemetryFilter = {
-      startDate: c.req.query("startDate")
-        ? String(c.req.query("startDate"))
-        : undefined,
-      endDate: c.req.query("endDate")
-        ? String(c.req.query("endDate"))
-        : undefined,
+    const query = {
+      startDate: c.req.query("startDate") || undefined,
+      endDate: c.req.query("endDate") || undefined,
     };
+    
+    const filter = TelemetryFilterSchema.parse(query);
 
     const telemetry = await TelemetryService.getTelemetry(filter);
     return c.json({ success: true, data: telemetry });
   } catch (err: any) {
-    console.error("Telemetry fetch error:", err);
+    logger.error({ reqId, err }, "Telemetry fetch error");
     return c.json(
       {
         success: false,

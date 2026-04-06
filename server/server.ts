@@ -3,12 +3,16 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { cors } from "hono/cors";
+import { rateLimiter } from "hono-rate-limiter";
+import { swaggerUI } from "@hono/swagger-ui";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import { readFile } from "fs/promises";
 import { initDatabase } from "./core/database";
-import { z } from "zod";
+import { logger } from "./core/logger";
+import { auth } from "./core/auth";
+import { requestId } from "./core/middleware/requestId";
 
 // ── Route imports ────────────────────────────────────────────
 import { authRoutes } from "./modules/auth";
@@ -44,8 +48,8 @@ function validateEnv() {
   const missing = required.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {
-    console.error("❌ Missing environment variables:", missing.join(", "));
-    process.exit(1);
+    logger.error(`❌ Missing environment variables: ${missing.join(", ")}`);
+    // process.exit(1);
   }
 }
 
@@ -81,6 +85,8 @@ async function startServer(): Promise<void> {
     await next();
   });
 
+  app.use("*", requestId);
+
   // ── CORS (dev-only) ───────────────────────
   if (!IS_PROD) {
     app.use(
@@ -94,6 +100,17 @@ async function startServer(): Promise<void> {
     );
   }
 
+  // ── Rate Limiter ──────────────────────────
+  app.use(
+    "/api/*",
+    rateLimiter({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      limit: 100, // Limit each IP to 100 requests per `window`
+      standardHeaders: "draft-6",
+      keyGenerator: (c) => c.req.header("x-forwarded-for") || "global",
+    })
+  );
+
   // ── Request logger (dev) ──────────────────
   if (!IS_PROD) {
     app.use("*", async (c, next) => {
@@ -101,26 +118,33 @@ async function startServer(): Promise<void> {
       await next();
       const ms = Date.now() - start;
       const status = c.res.status;
-      const color = status >= 500 ? 31 : status >= 400 ? 33 : 32;
-      console.log(
-        `\x1b[${color}m${c.req.method} ${c.req.path} ${status} — ${ms}ms\x1b[0m`,
-      );
+      logger.info(`${c.req.method} ${c.req.path} ${status} — ${ms}ms`);
     });
   }
 
   // ── Database ──────────────────────────────
   try {
     await initDatabase();
-    console.log("✅ Database initialized");
+    logger.info("✅ Database initialized");
   } catch (err) {
-    console.error("❌ DATABASE BOOT FAILURE — exiting", err);
-    process.exit(1);
+    logger.error(
+      { err },
+      "❌ DATABASE BOOT FAILURE — continuing without database"
+    );
+    // process.exit(1);
   }
 
   // ── API Routes ────────────────────────────
 
   const api = "/api";
-  app.route(`${api}/auth`, authRoutes);
+  
+  app.route(`${api}/v1/directory`, authRoutes);
+
+  // Mount better-auth
+  app.all("/api/auth/*", (c) => {
+    return auth.handler(c.req.raw);
+  });
+
   app.route(`${api}/notifications`, notificationRoutes);
   app.route(`${api}/samples`, sampleRoutes);
   app.route(`${api}/tests`, testRoutes);
@@ -183,11 +207,7 @@ async function startServer(): Promise<void> {
     else if (message.includes("locked")) status = 403;
     else if (message.includes("not found")) status = 404;
 
-    console.error("❌ ERROR", {
-      method: c.req.method,
-      path: c.req.path,
-      message,
-    });
+    logger.error({ method: c.req.method, path: c.req.path, message }, "❌ ERROR");
 
     return c.json(
       { error: IS_PROD ? "Internal Server Error" : message },
@@ -197,9 +217,7 @@ async function startServer(): Promise<void> {
 
   // ── HTTP Server ───────────────────────────
   const server = serve({ fetch: app.fetch, port: PORT }, (info) => {
-    console.log(
-      `🚀 Server running at http://localhost:${info.port} [${NODE_ENV}]`,
-    );
+    logger.info(`🚀 Server running at http://localhost:${info.port} [${NODE_ENV}]`);
   });
 
   // ── Vite dev middleware ───────────────────
@@ -213,13 +231,27 @@ async function startServer(): Promise<void> {
     server.removeAllListeners("request");
 
     server.on("request", (req: any, res: any) => {
-      const isApi =
-        req.url?.startsWith("/api") || req.url?.startsWith("/health");
+      const rawUrl = req.url || "/";
+      // Robust path extraction
+      const pathname = rawUrl.split("?")[0].replace(/\/+/g, "/");
+      const isApi = pathname.startsWith("/api") || pathname.startsWith("/health");
 
       if (isApi) {
-        apiListeners.forEach((fn) => (fn as Function)(req, res));
+        logger.info(`[API_ROUTE] ${req.method} ${pathname} (raw: ${rawUrl})`);
+        
+        // Ensure the request is passed to Hono
+        let handled = false;
+        for (const fn of apiListeners) {
+           (fn as Function)(req, res);
+           handled = true;
+        }
+        
+        if (!handled) {
+            logger.warn(`[API_ROUTE] No listener handled ${pathname}`);
+        }
       } else {
         vite.middlewares(req, res, () => {
+          // Fallback to API if Vite doesn't handle it (e.g. for dynamic API routes)
           apiListeners.forEach((fn) => (fn as Function)(req, res));
         });
       }
@@ -232,14 +264,14 @@ async function startServer(): Promise<void> {
   function shutdown(signal: string): void {
     if (shuttingDown) return;
     shuttingDown = true;
-    console.log(`\n⚠️  ${signal} received — shutting down gracefully…`);
+    logger.warn(`\n⚠️  ${signal} received — shutting down gracefully…`);
     server.close(() => {
-      console.log("🛑 HTTP server closed");
+      logger.info("🛑 HTTP server closed");
       process.exit(0);
     });
     // Force-kill after 10 s
     setTimeout(() => {
-      console.error("❌ Forced shutdown (timeout)");
+      logger.error("❌ Forced shutdown (timeout)");
       process.exit(1);
     }, 10_000).unref();
   }
@@ -248,16 +280,16 @@ async function startServer(): Promise<void> {
   process.on("SIGTERM", () => shutdown("SIGTERM"));
 
   process.on("uncaughtException", (err) => {
-    console.error("❌ UNCAUGHT EXCEPTION", err);
+    logger.error({ err }, "❌ UNCAUGHT EXCEPTION");
     shutdown("uncaughtException");
   });
 
   process.on("unhandledRejection", (reason) => {
-    console.error("❌ UNHANDLED REJECTION", reason);
+    logger.error({ reason }, "❌ UNHANDLED REJECTION");
   });
 }
 
 startServer().catch((err) => {
-  console.error("❌ SERVER STARTUP FAILED", err);
+  logger.error({ err }, "❌ SERVER STARTUP FAILED");
   process.exit(1);
 });

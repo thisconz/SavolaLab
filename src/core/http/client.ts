@@ -10,12 +10,11 @@ export interface ApiError extends Error {
 export interface RequestConfig extends RequestInit {
   timeout?: number;
   retries?: number;
-  params?: Record<string, string | number | boolean>;
 }
 
 export class ApiClient {
   private static instance: ApiClient;
-  private readonly baseUrl: string = "/api";
+  private baseUrl: string = "/api";
 
   private constructor() {}
 
@@ -28,65 +27,61 @@ export class ApiClient {
 
   private async request<T>(
     path: string,
-    config: RequestConfig = {}
+    config: RequestConfig = {},
   ): Promise<T> {
-    const { timeout = 10000, retries = 3, params, ...init } = config;
-    
-    // 1. Build URL with Query Parameters
-    const urlObj = new URL(path, window.location.origin + this.baseUrl);
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => 
-        urlObj.searchParams.append(key, String(value))
-      );
-    }
-
+    const { timeout = 10000, retries = 3, ...init } = config;
+    const url = `${this.baseUrl}${path}`;
     const method = (init.method ?? "GET").toUpperCase();
+
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const id = setTimeout(() => controller.abort(), timeout);
 
     try {
-      // 2. Automatically Inject Auth Token
-      const token = useAuthStore.getState().token;
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(init.headers as Record<string, string>),
       };
 
-      const response = await fetch(urlObj.toString(), {
+      const response = await fetch(url, {
         ...init,
-        headers,
-        signal: controller.signal,
         credentials: "include",
+        signal: controller.signal,
+        headers,
       });
 
-      clearTimeout(timeoutId);
+      clearTimeout(id);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        let errorData;
+        try {
+          const text = await response.text();
+          console.error(`[DEBUG] API Error Response Text for ${url}:`, text);
+          errorData = JSON.parse(text);
+        } catch (e) {
+          errorData = {};
+        }
         throw this.handleError(response, errorData);
       }
 
-      // Handle empty responses (204 No Content)
-      if (response.status === 204) return {} as T;
-
-      return await response.json();
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        console.error(`[DEBUG] API Success Response Parse Error for ${url}. Raw text:`, text);
+        throw e;
+      }
     } catch (error: any) {
-      clearTimeout(timeoutId);
+      clearTimeout(id);
 
-      // 3. Robust Retry Logic & Timeout Handling
       if (error.name === "AbortError") {
-        Telemetry.logError("API_TIMEOUT", { url: urlObj.pathname, timeout });
+        Telemetry.logError("API_TIMEOUT", { url, timeout });
         throw new Error("Request timed out");
       }
 
-      const isIdempotent = ["GET", "HEAD", "OPTIONS", "PUT", "DELETE"].includes(method);
-      if (retries > 0 && isIdempotent) {
+      if (retries > 0 && method === "GET") {
         const delay = Math.min(1000 * (4 - retries), 3000);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        
-        Telemetry.logInfo("API_RETRY", { url: urlObj.pathname, remainingRetries: retries - 1 });
-        
+        await new Promise((r) => setTimeout(r, delay));
+        Telemetry.logInfo("API_RETRY", { url, remainingRetries: retries - 1 });
         return this.request<T>(path, { ...config, retries: retries - 1 });
       }
 
@@ -95,10 +90,9 @@ export class ApiClient {
   }
 
   private handleError(response: Response, data: any): ApiError {
-    const message = data.message || data.error || response.statusText || "Unknown API Error";
+    const message = data.error || response.statusText || "Unknown API Error";
     const error = new Error(message) as ApiError;
-    
-    error.code = data.code || `HTTP_${response.status}`;
+    error.code = data.code || "UNKNOWN_ERROR";
     error.status = response.status;
     error.details = data.details;
 
@@ -115,32 +109,23 @@ export class ApiClient {
     return error;
   }
 
-  // Helper Methods
   public get<T>(path: string, config?: RequestConfig): Promise<T> {
     return this.request<T>(path, { ...config, method: "GET" });
   }
 
-  public post<T>(path: string, body?: any, config?: RequestConfig): Promise<T> {
+  public post<T>(path: string, body: any, config?: RequestConfig): Promise<T> {
     return this.request<T>(path, {
       ...config,
       method: "POST",
-      body: body ? JSON.stringify(body) : undefined,
+      body: JSON.stringify(body),
     });
   }
 
-  public put<T>(path: string, body?: any, config?: RequestConfig): Promise<T> {
+  public put<T>(path: string, body: any, config?: RequestConfig): Promise<T> {
     return this.request<T>(path, {
       ...config,
       method: "PUT",
-      body: body ? JSON.stringify(body) : undefined,
-    });
-  }
-
-  public patch<T>(path: string, body?: any, config?: RequestConfig): Promise<T> {
-    return this.request<T>(path, {
-      ...config,
-      method: "PATCH",
-      body: body ? JSON.stringify(body) : undefined,
+      body: JSON.stringify(body),
     });
   }
 

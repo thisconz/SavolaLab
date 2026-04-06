@@ -1,32 +1,11 @@
 import { Hono } from "hono";
 import { AuditFilters, AuditService } from "./service";
 import { authenticateToken, requireRoles } from "../../core/middleware";
+import { logger } from "../../core/logger";
 import type { Variables } from "../../core/types";
+import { CreateAuditLogRequestSchema } from "../../../src/shared/schemas/audit.schema";
 
 const app = new Hono<{ Variables: Variables }>();
-
-/**
- * Input validation (minimal but critical)
- */
-function validateCreateLog(body: any) {
-  if (!body || typeof body !== "object") {
-    throw new Error("Invalid request body");
-  }
-
-  const { action, details } = body;
-
-  if (!action || typeof action !== "string") {
-    throw new Error("Invalid action");
-  }
-
-  return {
-    action: action.trim().slice(0, 100), // prevent abuse
-    details:
-      typeof details === "string"
-        ? details.slice(0, 1000)
-        : JSON.stringify(details ?? {}),
-  };
-}
 
 /**
  * Extract safe IP (proxy-aware)
@@ -49,22 +28,29 @@ app.get(
   authenticateToken,
   requireRoles("ADMIN", "HEAD_MANAGER", "ASSISTING_MANAGER"),
   async (c) => {
-    const filters: AuditFilters = {
-      employee_number: c.req.query("employee_number"),
-      action: c.req.query("action"),
-      start_date: c.req.query("start_date"),
-      end_date: c.req.query("end_date"),
-      limit: Number(c.req.query("limit") || 50),
-      offset: Number(c.req.query("offset") || 0),
-    };
+    const reqId = c.get("requestId");
+    try {
+      const filters: AuditFilters = {
+        employee_number: c.req.query("employee_number"),
+        action: c.req.query("action"),
+        start_date: c.req.query("start_date"),
+        end_date: c.req.query("end_date"),
+        limit: Number(c.req.query("limit") || 50),
+        offset: Number(c.req.query("offset") || 0),
+      };
 
-    const logs = await AuditService.getLogs(filters);
-    return c.json({ success: true, data: logs });
+      const logs = await AuditService.getLogs(filters);
+      return c.json({ success: true, data: logs });
+    } catch (err: any) {
+      logger.error({ reqId, err }, "Failed to fetch audit logs");
+      return c.json({ success: false, error: "Internal Server Error" }, 500);
+    }
   },
 );
 
 // CREATE log (non-blocking safe)
 app.post("/", authenticateToken, async (c) => {
+  const reqId = c.get("requestId");
   try {
     const user = c.get("user");
     if (!user) {
@@ -72,26 +58,25 @@ app.post("/", authenticateToken, async (c) => {
     }
 
     const body = await c.req.json();
-    const { action, details } = validateCreateLog(body);
+    const parsedBody = CreateAuditLogRequestSchema.parse(body);
+    const detailsStr = typeof parsedBody.details === "string" ? parsedBody.details : JSON.stringify(parsedBody.details ?? {});
 
     // Fire-and-forget pattern (audit should not block request)
     try {
       await AuditService.createLog(
         user.employee_number,
-        action,
-        details,
+        parsedBody.action,
+        detailsStr,
         getClientIp(c),
       );
     } catch (err) {
       // Never break user flow because of audit failure
-      console.error("❌ AUDIT WRITE FAILED", {
-        error: err,
-      });
+      logger.error({ reqId, err }, "❌ AUDIT WRITE FAILED");
     }
 
     return c.json({ success: true });
   } catch (err: any) {
-    console.error("Failed to create audit log:", err);
+    logger.error({ reqId, err }, "Failed to create audit log");
     return c.json(
       { success: false, error: err.message || "Failed to create audit log" },
       400,

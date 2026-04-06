@@ -1,16 +1,35 @@
 import React, { useState, useEffect } from "react";
 import {
-  Beaker, BookOpen, Wrench, Users, Factory, Bell, 
-  Settings as SettingsIcon, Plus, Save, Edit2, 
-  ChevronRight, Database, ShieldCheck, Search
+  Beaker,
+  BookOpen,
+  Wrench,
+  Users,
+  Factory,
+  Bell,
+  Settings as SettingsIcon,
+  Plus,
+  Save,
+  Edit2,
+  ChevronRight,
+  Database,
+  ShieldCheck,
+  Search,
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import { SettingsApi } from "../api/settings.api";
 import { Modal } from "../../../ui/components/Modal";
+import { toast } from "sonner";
 
 type SettingModule =
-  | "lab_config" | "test_library" | "instruments" | "clients" 
-  | "users" | "plant" | "notifications" | "inventory" | "preferences";
+  | "lab_config"
+  | "test_library"
+  | "instruments"
+  | "clients"
+  | "users"
+  | "plant"
+  | "notifications"
+  | "inventory"
+  | "preferences";
 
 export const SettingsPage: React.FC = () => {
   const [activeModule, setActiveModule] = useState<SettingModule>("lab_config");
@@ -21,15 +40,50 @@ export const SettingsPage: React.FC = () => {
   const [newItem, setNewItem] = useState<any>({});
 
   const modules = [
-    { id: "lab_config", label: "Laboratory", icon: Beaker, table: "sample_types" },
-    { id: "test_library", label: "Methods", icon: BookOpen, table: "test_methods" },
-    { id: "instruments", label: "Instruments", icon: Wrench, table: "instruments" },
-    { id: "clients", label: "Certificates", icon: ShieldCheck, table: "clients" },
+    {
+      id: "lab_config",
+      label: "Laboratory",
+      icon: Beaker,
+      table: "sample_types",
+    },
+    {
+      id: "test_library",
+      label: "Methods",
+      icon: BookOpen,
+      table: "test_methods",
+    },
+    {
+      id: "instruments",
+      label: "Instruments",
+      icon: Wrench,
+      table: "instruments",
+    },
+    {
+      id: "clients",
+      label: "Certificates",
+      icon: ShieldCheck,
+      table: "clients",
+    },
     { id: "users", label: "Permissions", icon: Users, table: "employees" },
-    { id: "plant", label: "Production", icon: Factory, table: "production_lines" },
-    { id: "notifications", label: "Alert Rules", icon: Bell, table: "notification_rules" },
+    {
+      id: "plant",
+      label: "Production",
+      icon: Factory,
+      table: "production_lines",
+    },
+    {
+      id: "notifications",
+      label: "Alert Rules",
+      icon: Bell,
+      table: "notification_rules",
+    },
     { id: "inventory", label: "Inventory", icon: Database, table: "inventory" },
-    { id: "preferences", label: "Preferences", icon: SettingsIcon, table: "system_preferences" },
+    {
+      id: "preferences",
+      label: "Preferences",
+      icon: SettingsIcon,
+      table: "system_preferences",
+    },
   ];
 
   const currentModule = modules.find((m) => m.id === activeModule);
@@ -42,12 +96,29 @@ export const SettingsPage: React.FC = () => {
       setData(result);
     } catch (err) {
       console.error("Fetch failed", err);
+      toast.error("Failed to fetch settings data");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchData(); }, [activeModule]);
+  const handleSave = async () => {
+    if (!currentModule || !editingItem) return;
+    try {
+      const id = editingItem.id || editingItem.employee_number || editingItem.key;
+      await SettingsApi.updateSetting(currentModule.table as any, id, editingItem);
+      toast.success("Setting updated successfully");
+      setEditingItem(null);
+      fetchData();
+    } catch (err) {
+      console.error("Save failed", err);
+      toast.error("Failed to save setting");
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [activeModule]);
 
   return (
     <div className="h-full flex gap-6 p-4 bg-[#F8F9FA]">
@@ -59,8 +130,12 @@ export const SettingsPage: React.FC = () => {
               <SettingsIcon className="w-5 h-5 text-brand-primary" />
             </div>
             <div>
-              <h1 className="text-sm font-black text-brand-deep uppercase tracking-tighter">Control Center</h1>
-              <p className="text-[10px] text-brand-sage font-bold uppercase opacity-50">Labrix Registry</p>
+              <h1 className="text-sm font-black text-brand-deep uppercase tracking-tighter">
+                Control Center
+              </h1>
+              <p className="text-[10px] text-brand-sage font-bold uppercase opacity-50">
+                Labrix Registry
+              </p>
             </div>
           </div>
 
@@ -75,9 +150,18 @@ export const SettingsPage: React.FC = () => {
                     : "text-brand-sage hover:bg-brand-mist/50 hover:text-brand-deep"
                 }`}
               >
-                <m.icon className={`w-4 h-4 ${activeModule === m.id ? "text-brand-primary" : "opacity-70"}`} />
-                <span className="text-xs font-bold tracking-tight flex-1 text-left">{m.label}</span>
-                {activeModule === m.id && <motion.div layoutId="dot" className="w-1.5 h-1.5 rounded-full bg-brand-primary" />}
+                <m.icon
+                  className={`w-4 h-4 ${activeModule === m.id ? "text-brand-primary" : "opacity-70"}`}
+                />
+                <span className="text-xs font-bold tracking-tight flex-1 text-left">
+                  {m.label}
+                </span>
+                {activeModule === m.id && (
+                  <motion.div
+                    layoutId="dot"
+                    className="w-1.5 h-1.5 rounded-full bg-brand-primary"
+                  />
+                )}
               </button>
             ))}
           </nav>
@@ -93,7 +177,9 @@ export const SettingsPage: React.FC = () => {
               {currentModule && <currentModule.icon className="w-7 h-7" />}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-brand-deep tracking-tight">{currentModule?.label} Registry</h2>
+              <h2 className="text-2xl font-bold text-brand-deep tracking-tight">
+                {currentModule?.label} Registry
+              </h2>
               <div className="flex items-center gap-2 text-[10px] font-bold text-brand-sage uppercase tracking-widest mt-1">
                 <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
                 Live Database Connection
@@ -117,7 +203,9 @@ export const SettingsPage: React.FC = () => {
           {loading ? (
             <div className="h-full flex flex-col items-center justify-center animate-pulse">
               <div className="w-12 h-12 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin mb-4" />
-              <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">Syncing Laboratory Data...</p>
+              <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">
+                Syncing Laboratory Data...
+              </p>
             </div>
           ) : (
             <div className="max-w-6xl mx-auto space-y-3">
@@ -131,40 +219,59 @@ export const SettingsPage: React.FC = () => {
                 >
                   {/* Index / Status */}
                   <div className="w-10 h-10 rounded-xl bg-brand-mist/50 flex items-center justify-center text-[10px] font-black text-brand-sage group-hover:bg-brand-primary/10 group-hover:text-brand-primary transition-colors">
-                    {(idx + 1).toString().padStart(2, '0')}
+                    {(idx + 1).toString().padStart(2, "0")}
                   </div>
 
                   {/* Main Identity */}
                   <div className="flex-2">
                     <h4 className="text-sm font-black text-brand-deep uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate">
-                      {item.name || item.key || item.employee_number || "Unnamed Entry"}
+                      {item.name ||
+                        item.key ||
+                        item.employee_number ||
+                        "Unnamed Entry"}
                     </h4>
-                    <p className="text-[9px] font-mono text-brand-sage mt-0.5">UID: {item.id || "TEMP_HASH"}</p>
+                    <p className="text-[9px] font-mono text-brand-sage mt-0.5">
+                      UID: {item.id || "TEMP_HASH"}
+                    </p>
                   </div>
 
                   {/* Dynamic Meta Columns */}
                   <div className="flex-3 grid grid-cols-3 gap-4 border-l border-brand-sage/5 pl-6">
                     <div className="flex flex-col">
-                      <span className="text-[8px] font-black text-brand-sage uppercase tracking-widest">Descriptor</span>
-                      <span className="text-[11px] font-bold text-brand-deep truncate">{item.type || item.role || "Standard"}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[8px] font-black text-brand-sage uppercase tracking-widest">Metric / Status</span>
-                      <span className="text-[11px] font-bold text-brand-deep">
-                        {item.quantity ? `${item.quantity} ${item.unit}` : "Active"}
+                      <span className="text-[8px] font-black text-brand-sage uppercase tracking-widest">
+                        Descriptor
+                      </span>
+                      <span className="text-[11px] font-bold text-brand-deep truncate">
+                        {item.type || item.role || "Standard"}
                       </span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[8px] font-black text-brand-sage uppercase tracking-widest">Last Modified</span>
-                      <span className="text-[11px] font-bold text-brand-deep">{item.updated_at ? new Date(item.updated_at).toLocaleDateString() : "Today"}</span>
+                      <span className="text-[8px] font-black text-brand-sage uppercase tracking-widest">
+                        Metric / Status
+                      </span>
+                      <span className="text-[11px] font-bold text-brand-deep">
+                        {item.quantity
+                          ? `${item.quantity} ${item.unit}`
+                          : "Active"}
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[8px] font-black text-brand-sage uppercase tracking-widest">
+                        Last Modified
+                      </span>
+                      <span className="text-[11px] font-bold text-brand-deep">
+                        {item.updated_at
+                          ? new Date(item.updated_at).toLocaleDateString()
+                          : "Today"}
+                      </span>
                     </div>
                   </div>
 
                   {/* Actions */}
                   <div className="flex justify-end gap-2 pr-2">
-                    <button 
-                       onClick={() => setEditingItem(item)}
-                       className="p-2.5 rounded-xl bg-brand-mist/30 text-brand-sage hover:bg-brand-primary hover:text-white transition-all shadow-sm active:scale-95"
+                    <button
+                      onClick={() => setEditingItem(item)}
+                      className="p-2.5 rounded-xl bg-brand-mist/30 text-brand-sage hover:bg-brand-primary hover:text-white transition-all shadow-sm active:scale-95"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
@@ -174,14 +281,47 @@ export const SettingsPage: React.FC = () => {
 
               {data.length === 0 && (
                 <div className="py-20 flex flex-col items-center border-2 border-dashed border-brand-sage/10 rounded-4xl bg-brand-mist/10">
-                   <Database className="w-12 h-12 text-brand-sage/20 mb-4" />
-                   <h3 className="text-xs font-black text-brand-sage uppercase tracking-widest">No entries found for this module</h3>
+                  <Database className="w-12 h-12 text-brand-sage/20 mb-4" />
+                  <h3 className="text-xs font-black text-brand-sage uppercase tracking-widest">
+                    No entries found for this module
+                  </h3>
                 </div>
               )}
             </div>
           )}
         </div>
       </main>
+
+      <Modal
+        isOpen={!!editingItem}
+        onClose={() => setEditingItem(null)}
+        title={`Edit ${currentModule?.label} Entry`}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-brand-sage">
+            Editing entry: {editingItem?.name || editingItem?.key || editingItem?.employee_number || "Unknown"}
+          </p>
+          <div className="bg-brand-mist/20 p-4 rounded-xl border border-brand-sage/10">
+            <pre className="text-[10px] font-mono text-brand-deep overflow-auto max-h-48">
+              {JSON.stringify(editingItem, null, 2)}
+            </pre>
+          </div>
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              onClick={() => setEditingItem(null)}
+              className="px-4 py-2 text-sm font-bold text-brand-sage hover:text-brand-deep transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-6 py-2 bg-brand-primary text-white text-sm font-bold rounded-xl hover:bg-brand-deep transition-colors shadow-lg shadow-brand-primary/20"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

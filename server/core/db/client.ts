@@ -1,29 +1,23 @@
 import pg from "pg";
+import { logger } from "../logger";
 
 const { Pool } = pg;
 
 // ----------------------
 // Initialize DB connection
 // ----------------------
-let connectionString = (process.env.DATABASE_URL || "").trim();
+let connectionString = process.env.DATABASE_URL;
 
 if (!connectionString || connectionString.includes("REDACTED")) {
-  console.warn("⚠️ DATABASE_URL not set or invalid, falling back to localhost default");
+  logger.warn("⚠️ DATABASE_URL not set or invalid, falling back to localhost default");
   connectionString = "postgresql://postgres:12345@localhost:5432/postgres";
-}
-
-try {
-  new URL(connectionString);
-} catch (e) {
-  console.error("❌ CRITICAL: The DATABASE_URL is not a valid format:", connectionString);
-  process.exit(1);
 }
 
 export const pool = new Pool({
   connectionString,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 2000,
 });
 
 // ----------------------
@@ -49,7 +43,7 @@ export const db: DatabaseClient = {
     const { rows } = await pool.query(sql, params);
     const duration = performance.now() - start;
     if (duration > 50) {
-      console.warn("🐢 Slow query:", sql.trim(), `${duration.toFixed(2)}ms`);
+      logger.warn(`🐢 Slow query: ${sql.trim()} (${duration.toFixed(2)}ms)`);
     }
     return rows;
   },
@@ -60,12 +54,7 @@ export const db: DatabaseClient = {
   },
 
   async execute(sql: string, params: any[] = []): Promise<void> {
-    try {
-      await pool.query(sql, params);
-    } catch (error) {
-      console.error("Database Execution Error:", { sql, params, error });
-      throw error;
-    }
+    await pool.query(sql, params);
   },
 
   async transaction<T>(
@@ -73,25 +62,35 @@ export const db: DatabaseClient = {
   ): Promise<T> {
     const client = await pool.connect();
 
+    const wrappedClient: TransactionClient = {
+      async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+        const { rows } = await client.query(sql, params);
+        return rows;
+      },
+      async queryOne<T = any>(
+        sql: string,
+        params: any[] = [],
+      ): Promise<T | null> {
+        const { rows } = await client.query(sql, params);
+        return rows[0] || null;
+      },
+      async execute(sql: string, params: any[] = []): Promise<void> {
+        await client.query(sql, params);
+      },
+    };
+
     try {
       await client.query("BEGIN");
-      
-      const wrappedClient: TransactionClient = {
-        query: (sql, params = []) => client.query(sql, params).then(r => r.rows),
-        queryOne: (sql, params = []) => client.query(sql, params).then(r => r.rows[0] || null),
-        execute: async (sql, params = []) => { await client.query(sql, params); },
-      };
-
       const result = await fn(wrappedClient);
       await client.query("COMMIT");
       return result;
     } catch (err) {
-      // Only rollback if the connection is still alive
-      try { await client.query("ROLLBACK"); } catch (rollbackErr) { /* ignore rollback errors */ }
+      await client.query("ROLLBACK");
       throw err;
     } finally {
-      client.release();}
+      client.release();
+    }
   },
 };
 
-console.log(`🗄 PostgreSQL pool initialized`);
+logger.info(`🗄 PostgreSQL pool initialized`);
