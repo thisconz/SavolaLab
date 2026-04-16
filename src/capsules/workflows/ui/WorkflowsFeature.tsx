@@ -39,12 +39,12 @@ const getCycleTime = (start?: string, end?: string) => {
 
 // --- Sub-Components ---
 
-const StatusBadge = ({ status }: { status: string }) => {
+  const StatusBadge = ({ status }: { status: string }) => {
   const styles: Record<string, string> = {
-    COMPLETED: "bg-emerald-50 border-emerald-200 text-emerald-700",
-    FAILED: "bg-rose-50 border-rose-200 text-rose-700",
-    IN_PROGRESS: "bg-brand-mist border-brand-primary/20 text-brand-primary",
-    DEFAULT: "bg-brand-mist border-brand-sage/20 text-brand-sage",
+    COMPLETED: "bg-emerald-500/10 border-emerald-500/20 text-emerald-500",
+    FAILED: "bg-rose-500/10 border-rose-500/20 text-rose-500",
+    IN_PROGRESS: "bg-brand-primary/10 border-brand-primary/20 text-brand-primary",
+    DEFAULT: "bg-(--color-zenthar-void) border-brand-sage/20 text-brand-sage",
   };
   return (
     <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest border ${styles[status] || styles.DEFAULT}`}>
@@ -113,20 +113,20 @@ export const WorkflowsFeature: React.FC = memo(() => {
   const getStatusIcon = useCallback((status: string) => {
     switch (status) {
       case "COMPLETED": return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
-      case "FAILED": return <XCircle className="w-4 h-4 text-lab-laser" />;
+      case "FAILED": return <XCircle className="w-4 h-4 text-red-500" />;
       case "IN_PROGRESS": return <Play className="w-4 h-4 text-brand-primary animate-pulse" />;
       default: return <Clock className="w-4 h-4 text-brand-sage" />;
     }
   }, []);
 
   return (
-    <div className="grid grid-cols-12 gap-6 h-full overflow-hidden bg-brand-mist/5 p-4">
+    <div className="grid grid-cols-12 gap-6 h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-4">
       
       {/* Sidebar: Sample Selection */}
       <aside className="col-span-4 flex flex-col gap-6 overflow-hidden">
         <LabPanel title="Sample Queue" icon={History} loading={loading}>
-          <div className="flex flex-col h-full bg-white/50">
-            <div className="p-4 border-b border-brand-sage/10 bg-white">
+          <div className="flex flex-col h-full bg-(--color-zenthar-carbon)/50">
+            <div className="p-4 border-b border-brand-sage/10 bg-(--color-zenthar-carbon)">
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage group-focus-within:text-brand-primary transition-colors" />
                 <input
@@ -134,7 +134,7 @@ export const WorkflowsFeature: React.FC = memo(() => {
                   placeholder="FILTER BATCH ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-brand-mist/20 border border-brand-sage/20 rounded-xl pl-9 pr-3 py-2.5 text-[10px] font-mono focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
+                  className="w-full bg-(--color-zenthar-void) border border-brand-sage/20 rounded-xl pl-9 pr-3 py-2.5 text-[10px] font-mono text-white focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
                 />
               </div>
             </div>
@@ -147,12 +147,12 @@ export const WorkflowsFeature: React.FC = memo(() => {
                   className={`w-full text-left p-4 rounded-2xl transition-all border group relative overflow-hidden ${
                     selectedSample?.id === sample.id
                       ? "bg-brand-primary border-brand-primary text-white shadow-lg shadow-brand-primary/20"
-                      : "bg-white border-brand-sage/10 hover:border-brand-primary/30 text-brand-deep"
+                      : "bg-(--color-zenthar-void) border-brand-sage/10 hover:border-brand-primary/30 text-white"
                   }`}
                 >
                   <div className="flex justify-between items-start mb-1">
                     <span className="text-xs font-black font-mono tracking-wider">{sample.batch_id}</span>
-                    <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${selectedSample?.id === sample.id ? "bg-white/20" : "bg-brand-mist"}`}>
+                    <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${selectedSample?.id === sample.id ? "bg-white/20" : "bg-(--color-zenthar-carbon)"}`}>
                       {sample.priority}
                     </span>
                   </div>
@@ -174,26 +174,26 @@ export const WorkflowsFeature: React.FC = memo(() => {
         >
           {!selectedSample ? (
             <div className="h-full flex flex-col items-center justify-center text-brand-sage animate-in fade-in duration-500">
-              <div className="p-8 bg-brand-mist rounded-full mb-4 border border-brand-sage/10">
+              <div className="p-8 bg-(--color-zenthar-void) rounded-full mb-4 border border-brand-sage/10">
                 <ListChecks className="w-12 h-12 opacity-20 text-brand-primary" />
               </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-deep/40">Select source sample to initialize</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Select source sample to initialize</p>
             </div>
           ) : (
-            <div className="flex flex-col h-full bg-white">
+            <div className="flex flex-col h-full bg-(--color-zenthar-carbon)">
               {/* Header Filters */}
-              <div className="p-4 border-b border-brand-sage/10 flex items-center justify-between bg-brand-mist/5">
+              <div className="p-4 border-b border-brand-sage/10 flex items-center justify-between bg-(--color-zenthar-graphite)/30">
                 <div className="flex items-center gap-4">
-                  <span className="text-[10px] font-black text-brand-deep uppercase tracking-widest flex items-center gap-2">
+                  <span className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
                     <Filter className="w-3 h-3" /> Status Logic:
                   </span>
-                  <div className="flex gap-1 bg-brand-mist/30 p-1 rounded-lg">
+                  <div className="flex gap-1 bg-(--color-zenthar-void) p-1 rounded-lg">
                     {["ALL", "IN_PROGRESS", "COMPLETED", "FAILED"].map((status) => (
                       <button
                         key={status}
                         onClick={() => setStatusFilter(status)}
                         className={`px-3 py-1 rounded-md text-[9px] font-black transition-all ${
-                          statusFilter === status ? "bg-brand-deep text-white shadow-sm" : "text-brand-sage hover:text-brand-deep"
+                          statusFilter === status ? "bg-brand-primary text-white shadow-sm" : "text-brand-sage hover:text-white"
                         }`}
                       >
                         {status}
@@ -216,15 +216,15 @@ export const WorkflowsFeature: React.FC = memo(() => {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ delay: idx * 0.04 }}
-                      className="group bg-white border border-brand-sage/15 rounded-3xl p-6 hover:shadow-2xl hover:shadow-brand-primary/5 transition-all relative overflow-hidden"
+                      className="group bg-(--color-zenthar-void) border border-brand-sage/15 rounded-3xl p-6 hover:shadow-2xl hover:shadow-brand-primary/5 transition-all relative overflow-hidden"
                     >
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-4">
-                          <div className={`p-3 rounded-2xl ${execution.status === 'FAILED' ? 'bg-rose-50' : 'bg-brand-mist'}`}>
+                          <div className={`p-3 rounded-2xl ${execution.status === 'FAILED' ? 'bg-rose-500/10' : 'bg-(--color-zenthar-carbon)'}`}>
                             {getStatusIcon(execution.status)}
                           </div>
                           <div>
-                            <h4 className="text-sm font-black text-brand-deep uppercase tracking-tighter italic">
+                            <h4 className="text-sm font-black text-white uppercase tracking-tighter italic">
                               {execution.workflow_name}
                             </h4>
                             <div className="flex items-center gap-3 mt-1">
@@ -235,17 +235,17 @@ export const WorkflowsFeature: React.FC = memo(() => {
                         </div>
                         <div className="text-right">
                           <p className="text-[8px] font-black text-brand-sage uppercase tracking-widest opacity-60">Cycle Efficiency</p>
-                          <p className="text-xs font-mono font-bold text-brand-deep">{getCycleTime(execution.started_at, execution.completed_at)}</p>
+                          <p className="text-xs font-mono font-bold text-white">{getCycleTime(execution.started_at, execution.completed_at)}</p>
                         </div>
                       </div>
 
                       {/* Step Visualizer */}
                       <div className="grid grid-cols-1 gap-2">
                         {execution.step_executions?.map((step) => (
-                          <div key={step.id} className="flex items-center justify-between p-3 rounded-xl bg-brand-mist/10 hover:bg-brand-mist/20 transition-colors group/step">
+                          <div key={step.id} className="flex items-center justify-between p-3 rounded-xl bg-(--color-zenthar-carbon)/50 hover:bg-(--color-zenthar-carbon) transition-colors group/step">
                             <div className="flex items-center gap-3">
                               <div className={`w-1.5 h-1.5 rounded-full ${step.status === 'COMPLETED' ? 'bg-emerald-500' : step.status === 'FAILED' ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]' : 'bg-brand-primary animate-pulse'}`} />
-                              <span className="text-[10px] font-bold text-brand-deep uppercase group-hover/step:translate-x-1 transition-transform">
+                              <span className="text-[10px] font-bold text-white uppercase group-hover/step:translate-x-1 transition-transform">
                                 {step.test_type}
                               </span>
                             </div>

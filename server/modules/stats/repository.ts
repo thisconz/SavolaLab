@@ -2,19 +2,24 @@ import { db } from "../../core/database";
 
 export const StatRepository = {
   findAll: async () => {
-    return await db.query(
-      `
-      SELECT * 
-      FROM stat_requests 
-      ORDER BY 
-        CASE urgency
-          WHEN 'CRITICAL' THEN 1
-          WHEN 'HIGH' THEN 2
-          ELSE 3
-        END ASC,
-        created_at DESC
-    `,
-    );
+    try {
+      return await db.query(
+        `
+        SELECT * 
+        FROM stat_requests 
+        ORDER BY 
+          CASE urgency
+            WHEN 'CRITICAL' THEN 1
+            WHEN 'HIGH' THEN 2
+            ELSE 3
+          END ASC,
+          created_at DESC
+      `,
+      );
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   create: async (data: any) => {

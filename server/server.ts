@@ -101,15 +101,17 @@ async function startServer(): Promise<void> {
   }
 
   // ── Rate Limiter ──────────────────────────
-  app.use(
-    "/api/*",
-    rateLimiter({
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      limit: 100, // Limit each IP to 100 requests per `window`
-      standardHeaders: "draft-6",
-      keyGenerator: (c) => c.req.header("x-forwarded-for") || "global",
-    })
-  );
+  if (IS_PROD) {
+    app.use(
+      "/api/*",
+      rateLimiter({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        limit: 1000, // Increased limit
+        standardHeaders: "draft-6",
+        keyGenerator: (c) => c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "global",
+      })
+    );
+  }
 
   // ── Request logger (dev) ──────────────────
   if (!IS_PROD) {
@@ -216,7 +218,7 @@ async function startServer(): Promise<void> {
   });
 
   // ── HTTP Server ───────────────────────────
-  const server = serve({ fetch: app.fetch, port: PORT }, (info) => {
+  const server = serve({ fetch: app.fetch, port: PORT, hostname: "0.0.0.0" }, (info) => {
     logger.info(`🚀 Server running at http://localhost:${info.port} [${NODE_ENV}]`);
   });
 

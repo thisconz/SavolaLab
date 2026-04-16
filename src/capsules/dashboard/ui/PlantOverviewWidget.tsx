@@ -113,7 +113,7 @@ const CustomXAxisTick = (props: any) => {
       x={x}
       y={y}
       textAnchor="middle"
-      className="fill-brand-deep/40 text-[8px] font-black font-mono uppercase tracking-tighter"
+      className="fill-white/40 text-[8px] font-black font-mono uppercase tracking-tighter"
     >
       {payload.value.length > 10 ? `${payload.value.substring(0, 8)}..` : payload.value}
     </text>
@@ -128,7 +128,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     <motion.div 
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-brand-deep/95 backdrop-blur-md border border-brand-primary/20 p-3 rounded-xl shadow-2xl"
+      className="bg-(--color-zenthar-void)/95 backdrop-blur-md border border-brand-primary/20 p-3 rounded-xl shadow-2xl"
     >
       <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/5">
         <div className="w-1 h-1 rounded-full bg-brand-primary animate-ping" />
@@ -155,7 +155,7 @@ const PlantLoadingState = () => (
     {[...Array(6)].map((_, i) => (
       <div 
         key={i} 
-        className="w-8 bg-brand-mist rounded-t-lg animate-pulse" 
+        className="w-8 bg-(--color-zenthar-graphite) rounded-t-lg animate-pulse" 
         style={{ height: `${20 + i * 12}%`, opacity: 1 - i * 0.1 }}
       />
     ))}
@@ -163,8 +163,8 @@ const PlantLoadingState = () => (
 );
 
 const PlantEmptyState = () => (
-  <div className="h-60 w-full flex flex-col items-center justify-center bg-brand-mist/5 rounded-2xl border border-dashed border-brand-sage/20">
-    <div className="p-3 bg-white rounded-full shadow-sm mb-2 opacity-50">
+  <div className="h-60 w-full flex flex-col items-center justify-center bg-(--color-zenthar-graphite)/50 rounded-2xl border border-dashed border-brand-sage/20">
+    <div className="p-3 bg-(--color-zenthar-graphite) rounded-full shadow-sm mb-2 opacity-50">
       <BarChart className="w-5 h-5 text-brand-sage" />
     </div>
     <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest text-center">

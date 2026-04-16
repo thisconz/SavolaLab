@@ -22,7 +22,7 @@ interface RegistrationFlowProps {
 
 type Step = "verify" | "otp" | "credentials";
 
-const LAB_INPUT_CLASSES = "w-full bg-brand-mist/10 border-2 border-brand-sage/5 rounded-[1.25rem] p-5 font-mono text-sm font-bold transition-all duration-300 focus:outline-none focus:border-brand-primary/40 focus:bg-white focus:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] placeholder:text-brand-sage/30 text-brand-deep";
+const LAB_INPUT_CLASSES = "w-full bg-(--color-zenthar-graphite)/30 border-2 border-brand-sage/10 rounded-[1.25rem] p-5 font-mono text-sm font-bold transition-all duration-300 focus:outline-none focus:border-brand-primary/40 focus:bg-(--color-zenthar-graphite) focus:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.2)] placeholder:text-brand-sage/30 text-white";
 
 // 2. HELPER COMPONENTS (Define outside so they have access to global constants)
 const Field = ({ label, icon, ...props }: any) => (
@@ -59,7 +59,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pin, setPin] = useState("");
 
-  const LAB_INPUT_CLASSES = "w-full bg-brand-mist/10 border-2 border-brand-sage/5 rounded-[1.25rem] p-5 font-mono text-sm font-bold transition-all duration-300 focus:outline-none focus:border-brand-primary/40 focus:bg-white focus:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)] placeholder:text-brand-sage/30 text-brand-deep";
+  const LAB_INPUT_CLASSES = "w-full bg-(--color-zenthar-graphite)/30 border-2 border-brand-sage/10 rounded-[1.25rem] p-5 font-mono text-sm font-bold transition-all duration-300 focus:outline-none focus:border-brand-primary/40 focus:bg-(--color-zenthar-graphite) focus:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.2)] placeholder:text-brand-sage/30 text-white";
 
   const steps = useMemo(() => [
     { id: "verify", label: "Identity", icon: UserPlus, desc: "Personnel Validation" },
@@ -124,15 +124,15 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             initial={{ scale: 0.5, rotate: -45 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            className="w-24 h-24 bg-emerald-500 rounded-4xl flex items-center justify-center shadow-[0_20px_50px_rgba(16,185,129,0.3)] border-4 border-white"
+            className="w-24 h-24 bg-emerald-500 rounded-4xl flex items-center justify-center shadow-[0_20px_50px_rgba(16,185,129,0.3)] border-4 border-(--color-zenthar-carbon)"
           >
             <CheckCircle2 className="w-12 h-12 text-white" />
           </motion.div>
           <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.1, 0.3] }} transition={{ repeat: Infinity, duration: 3 }} className="absolute inset-0 bg-emerald-500 blur-3xl -z-10" />
         </div>
-        <h2 className="text-xl font-black text-brand-deep uppercase tracking-[0.4em] mb-3">Sync Complete</h2>
+        <h2 className="text-xl font-black text-white uppercase tracking-[0.4em] mb-3">Sync Complete</h2>
         <p className="text-[10px] text-brand-sage font-mono uppercase tracking-widest leading-relaxed opacity-70">Handshake verified. Redirecting to secure terminal...</p>
-        <div className="mt-12 w-48 h-1 bg-brand-mist rounded-full overflow-hidden">
+        <div className="mt-12 w-48 h-1 bg-(--color-zenthar-graphite) rounded-full overflow-hidden">
           <motion.div initial={{ x: "-100%" }} animate={{ x: "0%" }} transition={{ duration: 2, ease: "easeInOut" }} className="h-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)]" />
         </div>
       </motion.div>
@@ -152,7 +152,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
           <div className="flex gap-2">
             {steps.map((_, idx) => (
               <div key={idx} className="relative">
-                <div className={`h-1.5 rounded-full transition-all duration-700 ${idx <= currentStepIndex ? "w-10 bg-brand-primary" : "w-4 bg-brand-mist"}`} />
+                <div className={`h-1.5 rounded-full transition-all duration-700 ${idx <= currentStepIndex ? "w-10 bg-brand-primary" : "w-4 bg-(--color-zenthar-graphite)"}`} />
                 {idx === currentStepIndex && (
                   <motion.div layoutId="glow" className="absolute inset-0 bg-brand-primary blur-[6px] opacity-40" />
                 )}
@@ -161,12 +161,12 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-5 p-4 bg-brand-mist/20 rounded-2xl border border-brand-sage/5 relative overflow-hidden group">
-          <div className="w-12 h-12 rounded-xl bg-brand-deep flex items-center justify-center text-brand-primary shadow-lg transition-transform group-hover:scale-105">
+        <div className="flex items-center gap-5 p-4 bg-(--color-zenthar-graphite)/30 rounded-2xl border border-brand-sage/10 relative overflow-hidden group">
+          <div className="w-12 h-12 rounded-xl bg-(--color-zenthar-void) flex items-center justify-center text-brand-primary shadow-lg transition-transform group-hover:scale-105">
             {React.createElement(steps[currentStepIndex].icon, { className: "w-6 h-6" })}
           </div>
           <div>
-            <h2 className="text-[11px] font-black text-brand-deep uppercase tracking-[0.3em]">{steps[currentStepIndex].label} Layer</h2>
+            <h2 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">{steps[currentStepIndex].label} Layer</h2>
             <p className="text-[9px] text-brand-sage font-mono uppercase tracking-widest opacity-60 mt-1">{steps[currentStepIndex].desc}</p>
           </div>
           <Cpu className="absolute right-4 opacity-[0.05] w-12 h-12 rotate-12" />
@@ -196,10 +196,10 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
 
             {step === "otp" && (
               <div className="space-y-6">
-                <div className="p-6 bg-brand-deep rounded-4xl border border-white/10 text-center relative overflow-hidden shadow-2xl">
+                <div className="p-6 bg-(--color-zenthar-void) rounded-4xl border border-brand-sage/10 text-center relative overflow-hidden shadow-2xl">
                    <div className="relative z-10">
                     <KeyRound className="w-6 h-6 text-brand-primary mx-auto mb-3 animate-pulse" />
-                    <p className="text-[9px] text-brand-mist font-mono uppercase tracking-widest leading-relaxed px-4 opacity-80">
+                    <p className="text-[9px] text-brand-sage font-mono uppercase tracking-widest leading-relaxed px-4 opacity-80">
                       Transmission successful. Enter the 6-digit decryption token.
                     </p>
                    </div>
@@ -212,7 +212,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                     maxLength={6}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    className="w-full bg-brand-mist/30 border-2 border-brand-sage/10 rounded-2xl py-6 text-center text-4xl tracking-[0.5em] font-mono font-black text-brand-deep focus:border-brand-primary focus:bg-white transition-all shadow-inner"
+                    className="w-full bg-(--color-zenthar-graphite)/30 border-2 border-brand-sage/10 rounded-2xl py-6 text-center text-4xl tracking-[0.5em] font-mono font-black text-white focus:border-brand-primary focus:bg-(--color-zenthar-graphite) transition-all shadow-inner"
                     placeholder="•••••••"
                   />
                 </div>
@@ -235,7 +235,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                     required
                     value={pin}
                     onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                    className="w-full bg-brand-deep text-brand-primary border-2 border-white/5 rounded-2xl py-5 text-center text-3xl tracking-[0.8em] font-mono font-black focus:border-brand-primary transition-all shadow-2xl"
+                    className="w-full bg-(--color-zenthar-void) text-brand-primary border-2 border-brand-sage/10 rounded-2xl py-5 text-center text-3xl tracking-[0.8em] font-mono font-black focus:border-brand-primary transition-all shadow-2xl"
                     placeholder="••••"
                   />
                 </div>
@@ -245,7 +245,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
             {error && (
               <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
                 <ShieldAlert className="w-4 h-4 text-red-500" />
-                <p className="text-[9px] text-red-600 font-black uppercase tracking-widest">{error}</p>
+                <p className="text-[9px] text-red-500 font-black uppercase tracking-widest">{error}</p>
               </motion.div>
             )}
 
@@ -253,7 +253,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
               type="submit"
               disabled={loading}
               className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] transition-all duration-500 flex items-center justify-center gap-3 ${
-                loading ? "bg-brand-sage/20 text-brand-sage" : "bg-brand-deep text-white hover:bg-brand-primary shadow-2xl shadow-brand-deep/20 active:scale-95"
+                loading ? "bg-(--color-zenthar-graphite) text-brand-sage" : "bg-brand-primary text-(--color-zenthar-void) hover:bg-brand-primary/90 shadow-2xl shadow-brand-primary/20 active:scale-95"
               }`}
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>

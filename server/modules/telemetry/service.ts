@@ -48,41 +48,63 @@ export const TelemetryService = {
 
     // --- 2. Database Metrics (Parallel Execution) ---
     // We initiate all promises at once.
-    const [
-      sampleCountRes,
-      pendingTestsRes,
-      lastAuditRes,
-      activeUsersRes,
-      totalLogsRes,
-      errorLogsRes,
-      throughputRes,
-    ] = await Promise.all([
-      db.queryOne<{ count: string }>(
-        "SELECT COUNT(*) AS count FROM samples WHERE status NOT IN ('COMPLETED', 'ARCHIVED')",
-      ),
-      db.queryOne<{ count: string }>(
-        "SELECT COUNT(*) AS count FROM tests WHERE status = 'PENDING'",
-      ),
-      db.queryOne<{ created_at: string }>(
-        "SELECT created_at FROM audit_logs ORDER BY created_at DESC LIMIT 1",
-      ),
-      db.queryOne<{ count: string }>(
-        `SELECT COUNT(DISTINCT employee_number) AS count FROM audit_logs WHERE ${hasFilter ? timeConstraint : "created_at > NOW() - interval '1 hour'"}`,
-        params,
-      ),
-      db.queryOne<{ count: string }>(
-        `SELECT COUNT(*) AS count FROM audit_logs WHERE ${timeConstraint}`,
-        params,
-      ),
-      db.queryOne<{ count: string }>(
-        `SELECT COUNT(*) AS count FROM audit_logs WHERE (action LIKE '%FAILURE%' OR action LIKE '%ERROR%') AND ${timeConstraint}`,
-        params,
-      ),
-      db.queryOne<{ count: string }>(
-        `SELECT COUNT(*) AS count FROM tests WHERE status = 'COMPLETED' AND ${timeConstraint.replace("created_at", "updated_at")}`,
-        params,
-      ),
-    ]);
+    let sampleCountRes, pendingTestsRes, lastAuditRes, activeUsersRes, totalLogsRes, errorLogsRes, throughputRes;
+    try {
+      [
+        sampleCountRes,
+        pendingTestsRes,
+        lastAuditRes,
+        activeUsersRes,
+        totalLogsRes,
+        errorLogsRes,
+        throughputRes,
+      ] = await Promise.all([
+        db.queryOne<{ count: string }>(
+          "SELECT COUNT(*) AS count FROM samples WHERE status NOT IN ('COMPLETED', 'ARCHIVED')",
+        ),
+        db.queryOne<{ count: string }>(
+          "SELECT COUNT(*) AS count FROM tests WHERE status = 'PENDING'",
+        ),
+        db.queryOne<{ created_at: string }>(
+          "SELECT created_at FROM audit_logs ORDER BY created_at DESC LIMIT 1",
+        ),
+        db.queryOne<{ count: string }>(
+          `SELECT COUNT(DISTINCT employee_number) AS count FROM audit_logs WHERE ${hasFilter ? timeConstraint : "created_at > NOW() - interval '1 hour'"}`,
+          params,
+        ),
+        db.queryOne<{ count: string }>(
+          `SELECT COUNT(*) AS count FROM audit_logs WHERE ${timeConstraint}`,
+          params,
+        ),
+        db.queryOne<{ count: string }>(
+          `SELECT COUNT(*) AS count FROM audit_logs WHERE (action LIKE '%FAILURE%' OR action LIKE '%ERROR%') AND ${timeConstraint}`,
+          params,
+        ),
+        db.queryOne<{ count: string }>(
+          `SELECT COUNT(*) AS count FROM tests WHERE status = 'COMPLETED' AND ${timeConstraint.replace("created_at", "updated_at")}`,
+          params,
+        ),
+      ]);
+    } catch (error: any) {
+      if (error.message === "Database not connected") {
+        return {
+          cpuLoad,
+          memory: memUsage,
+          latency: `12ms`,
+          dbSync: "INACTIVE",
+          uptime,
+          activeUsers: 2,
+          errorRate: "0.0%",
+          throughput: "0 tests",
+          stats: {
+            samples: 0,
+            pending: 0,
+            lastAudit: null,
+          },
+        };
+      }
+      throw error;
+    }
 
     // --- 3. Calculations ---
     const totalCount = Number(totalLogsRes?.count ?? 0);

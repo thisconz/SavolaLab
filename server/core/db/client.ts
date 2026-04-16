@@ -7,17 +7,22 @@ const { Pool } = pg;
 // Initialize DB connection
 // ----------------------
 let connectionString = process.env.DATABASE_URL;
+let dbConnected = true;
 
 if (!connectionString || connectionString.includes("REDACTED")) {
-  logger.warn("⚠️ DATABASE_URL not set or invalid, falling back to localhost default");
-  connectionString = "postgresql://postgres:12345@localhost:5432/postgres";
+  logger.warn("⚠️ DATABASE_URL not set or invalid, running in mock mode");
+  dbConnected = false;
 }
 
 export const pool = new Pool({
-  connectionString,
+  connectionString: connectionString || "postgresql://mock:mock@localhost:5432/mock",
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+});
+
+pool.on('error', (err) => {
+  dbConnected = false;
 });
 
 // ----------------------
@@ -39,13 +44,19 @@ export interface DatabaseClient {
 
 export const db: DatabaseClient = {
   async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-    const start = performance.now();
-    const { rows } = await pool.query(sql, params);
-    const duration = performance.now() - start;
-    if (duration > 50) {
-      logger.warn(`🐢 Slow query: ${sql.trim()} (${duration.toFixed(2)}ms)`);
+    if (!dbConnected) throw new Error("Database not connected");
+    try {
+      const start = performance.now();
+      const { rows } = await pool.query(sql, params);
+      const duration = performance.now() - start;
+      if (duration > 50) {
+        logger.warn(`🐢 Slow query: ${sql.trim()} (${duration.toFixed(2)}ms)`);
+      }
+      return rows;
+    } catch (err: any) {
+      if (err.code === 'ECONNREFUSED') dbConnected = false;
+      throw err;
     }
-    return rows;
   },
 
   async queryOne<T = any>(sql: string, params: any[] = []): Promise<T | null> {
@@ -54,13 +65,26 @@ export const db: DatabaseClient = {
   },
 
   async execute(sql: string, params: any[] = []): Promise<void> {
-    await pool.query(sql, params);
+    if (!dbConnected) throw new Error("Database not connected");
+    try {
+      await pool.query(sql, params);
+    } catch (err: any) {
+      if (err.code === 'ECONNREFUSED') dbConnected = false;
+      throw err;
+    }
   },
 
   async transaction<T>(
     fn: (client: TransactionClient) => Promise<T>,
   ): Promise<T> {
-    const client = await pool.connect();
+    if (!dbConnected) throw new Error("Database not connected");
+    let client;
+    try {
+      client = await pool.connect();
+    } catch (err: any) {
+      if (err.code === 'ECONNREFUSED') dbConnected = false;
+      throw err;
+    }
 
     const wrappedClient: TransactionClient = {
       async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {

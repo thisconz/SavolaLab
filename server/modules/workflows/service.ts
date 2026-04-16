@@ -9,18 +9,23 @@ export type WorkflowStepInput = {
 
 export const WorkflowService = {
   getWorkflows: async () => {
-    const workflows = (await db.query(
-      "SELECT * FROM workflows WHERE is_active = 1",
-    )) as any[];
-    const result = [];
-    for (const wf of workflows) {
-      const steps = await db.query(
-        "SELECT * FROM workflow_steps WHERE workflow_id = $1 ORDER BY sequence_order ASC",
-        [wf.id],
-      );
-      result.push({ ...wf, steps });
+    try {
+      const workflows = (await db.query(
+        "SELECT * FROM workflows WHERE is_active = 1",
+      )) as any[];
+      const result = [];
+      for (const wf of workflows) {
+        const steps = await db.query(
+          "SELECT * FROM workflow_steps WHERE workflow_id = $1 ORDER BY sequence_order ASC",
+          [wf.id],
+        );
+        result.push({ ...wf, steps });
+      }
+      return result;
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
     }
-    return result;
   },
 
   createWorkflow: async (data: {
@@ -149,31 +154,36 @@ export const WorkflowService = {
   },
 
   getExecutionsBySample: async (sampleId: string | number) => {
-    const executions = (await db.query(
-      `
-      SELECT we.*, w.name as workflow_name 
-      FROM workflow_executions we
-      JOIN workflows w ON we.workflow_id = w.id
-      WHERE we.sample_id = $1
-      ORDER BY we.started_at DESC
-    `,
-      [sampleId],
-    )) as any[];
-
-    const result = [];
-    for (const exec of executions) {
-      const steps = await db.query(
+    try {
+      const executions = (await db.query(
         `
-        SELECT wse.*, ws.test_type, ws.sequence_order
-        FROM workflow_step_executions wse
-        JOIN workflow_steps ws ON wse.step_id = ws.id
-        WHERE wse.execution_id = $1
-        ORDER BY ws.sequence_order ASC
+        SELECT we.*, w.name as workflow_name 
+        FROM workflow_executions we
+        JOIN workflows w ON we.workflow_id = w.id
+        WHERE we.sample_id = $1
+        ORDER BY we.started_at DESC
       `,
-        [exec.id],
-      );
-      result.push({ ...exec, step_executions: steps });
+        [sampleId],
+      )) as any[];
+
+      const result = [];
+      for (const exec of executions) {
+        const steps = await db.query(
+          `
+          SELECT wse.*, ws.test_type, ws.sequence_order
+          FROM workflow_step_executions wse
+          JOIN workflow_steps ws ON wse.step_id = ws.id
+          WHERE wse.execution_id = $1
+          ORDER BY ws.sequence_order ASC
+        `,
+          [exec.id],
+        );
+        result.push({ ...exec, step_executions: steps });
+      }
+      return result;
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
     }
-    return result;
   },
 };

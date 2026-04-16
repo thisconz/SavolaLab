@@ -62,7 +62,7 @@ export const QCStatsWidget: React.FC<QCStatsWidgetProps> = memo(({
         >
           Volume_Aggregate
         </motion.span>
-        <span className="text-3xl font-mono font-black text-brand-deep tracking-tighter leading-none">
+        <span className="text-3xl font-mono font-black text-white tracking-tighter leading-none">
           {totalSamples}
         </span>
         <div className="w-8 h-0.5 bg-brand-primary/20 mt-2 rounded-full overflow-hidden">
@@ -129,7 +129,7 @@ const CustomPieTooltip = ({ active, payload }: any) => {
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-brand-deep/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl"
+      className="bg-(--color-zenthar-void)/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl"
     >
       <div className="flex items-center gap-3 mb-2 border-b border-white/5 pb-2">
         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
@@ -147,12 +147,12 @@ const CustomPieTooltip = ({ active, payload }: any) => {
 
 const QCStatsLoading = () => (
   <div className="h-60 w-full flex items-center justify-center">
-    <div className="w-32 h-32 rounded-full border-4 border-brand-mist border-t-brand-primary animate-spin" />
+    <div className="w-32 h-32 rounded-full border-4 border-(--color-zenthar-graphite) border-t-brand-primary animate-spin" />
   </div>
 );
 
 const QCStatsEmpty = () => (
-  <div className="h-60 w-full flex flex-col items-center justify-center border border-dashed border-brand-sage/20 rounded-2xl bg-brand-mist/5">
+  <div className="h-60 w-full flex flex-col items-center justify-center border border-dashed border-brand-sage/20 rounded-2xl bg-(--color-zenthar-graphite)/50">
     <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest">Data Stream Empty</p>
   </div>
 );

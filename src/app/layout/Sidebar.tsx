@@ -41,8 +41,8 @@ const NavItem = ({ icon: Icon, label, active, onClick, variant = "default" }: Na
       "w-full flex items-center gap-4 px-5 rounded-2xl transition-all duration-300 group relative overflow-hidden",
       variant === "mini" ? "py-2" : "py-3",
       active
-        ? "bg-brand-primary/10 text-brand-deep shadow-inner"
-        : "text-brand-sage hover:bg-brand-mist/60 hover:text-brand-deep",
+        ? "bg-brand-primary/10 text-white shadow-inner"
+        : "text-brand-sage hover:bg-brand-mist/60 hover:text-white",
     )}
   >
     {/* Active Indicator: Laser Line */}
@@ -144,10 +144,10 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
   }, [currentUser, NAV_CONFIG]);
 
   return (
-    <nav className="w-68 h-full flex flex-col border-r border-brand-sage/15 bg-white/70 backdrop-blur-3xl z-50 relative">
+    <nav className="w-68 h-full flex flex-col border-r border-brand-sage/15 bg-(--color-zenthar-carbon)/80 backdrop-blur-3xl z-50 relative">
       {/* Brand Identity with Scan-line Effect */}
       <div className="p-8 pb-10 relative group/logo">
-        <LogoRoot size="lg" variant="dark">
+        <LogoRoot size="lg" variant="light">
           <LogoIcon animated />
         </LogoRoot>
         <div className="absolute bottom-0 left-8 right-8 h-px bg-linear-to-r from-transparent via-brand-sage/20 to-transparent scale-x-0 group-hover/logo:scale-x-100 transition-transform duration-700" />
@@ -179,7 +179,7 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
       {/* Footer: Multi-Layer Utility Pod */}
       <div className="p-4 mt-auto space-y-3">
         {/* System Quick Links */}
-        <div className="bg-brand-mist/30 rounded-3xl p-1.5 border border-brand-sage/10 backdrop-blur-sm">
+        <div className="bg-(--color-zenthar-graphite)/50 rounded-3xl p-1.5 border border-brand-sage/10 backdrop-blur-sm">
           <div className="flex flex-col gap-0.5">
             <NavItem
               variant="mini"
@@ -199,19 +199,19 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
         </div>
 
         {/* User Anchor Pod - High-Density UI */}
-        <div className="bg-brand-deep rounded-3xl p-2 border border-white/5 shadow-2xl relative overflow-hidden group/pod">
+        <div className="bg-(--color-zenthar-void) rounded-3xl p-2 border border-white/5 shadow-2xl relative overflow-hidden group/pod">
           {/* Animated Background Mesh */}
           <div className="absolute inset-0 bg-[url('/assets/grid-mesh.svg')] opacity-5 pointer-events-none" />
           
           <div className="relative z-10 flex items-center gap-3">
             <button
               onClick={() => setIsSwitchOpen(true)}
-              className="relative w-11 h-11 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center transition-all hover:bg-white hover:scale-105 active:scale-95 group/btn overflow-hidden"
+              className="relative w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all hover:bg-white/10 hover:scale-105 active:scale-95 group/btn overflow-hidden"
             >
-              <span className="text-[11px] font-black text-white group-hover/btn:text-brand-deep transition-colors">
+              <span className="text-[11px] font-black text-white transition-colors">
                 {currentUser?.initials || "??"}
               </span>
-              <div className="absolute inset-0 bg-brand-primary text-brand-deep flex items-center justify-center translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300">
+              <div className="absolute inset-0 bg-brand-primary text-(--color-zenthar-void) flex items-center justify-center translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300">
                 <RefreshCw className="w-4 h-4 animate-spin-slow" />
               </div>
             </button>

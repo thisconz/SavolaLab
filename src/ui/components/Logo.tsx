@@ -164,7 +164,7 @@ interface LogoTextProps {
 export const LogoText: React.FC<LogoTextProps> = memo(
   ({
     title = "Zenthar",
-    subtitle = "Quality Control Platform v1.0.0",
+    subtitle = "Quality Control Platform v1.0",
     className,
   }) => {
     const { size, variant } = useLogo();

@@ -28,15 +28,15 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
     return (
       <motion.button
         layout
-        whileHover={{ x: 6, backgroundColor: "rgba(255, 255, 255, 1)" }}
+        whileHover={{ x: 6, backgroundColor: "var(--color-zenthar-graphite)" }}
         whileTap={{ scale: 0.98 }}
         onClick={onClick}
         className={`
           relative w-full text-left rounded-[1.25rem] transition-all duration-300 group overflow-hidden outline-none border
           ${
             active
-              ? "bg-white border-brand-primary/40 shadow-xl shadow-brand-primary/10 ring-1 ring-brand-primary/5"
-              : "bg-white/40 border-brand-sage/10 hover:border-brand-primary/20 shadow-sm"
+              ? "bg-(--color-zenthar-graphite) border-brand-primary/40 shadow-xl shadow-brand-primary/10 ring-1 ring-brand-primary/5"
+              : "bg-(--color-zenthar-carbon)/80 border-brand-sage/10 hover:border-brand-primary/20 shadow-sm"
           }
         `}
       >
@@ -53,7 +53,7 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span
-                className={`text-[10px] font-black tracking-widest tabular-nums font-mono ${active ? "text-brand-deep" : "text-brand-sage"}`}
+                className={`text-[10px] font-black tracking-widest tabular-nums font-mono ${active ? "text-white" : "text-brand-sage"}`}
               >
                 #{sample.batch_id}
               </span>
@@ -77,7 +77,7 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
                   ? isStat
                     ? "bg-lab-laser text-white shadow-lg shadow-lab-laser/30"
                     : "bg-brand-primary text-white shadow-lg shadow-brand-primary/30"
-                  : "bg-brand-mist/80 text-brand-sage border border-brand-sage/5"
+                  : "bg-(--color-zenthar-void) text-brand-sage border border-brand-sage/5"
               }
             `}
             >
@@ -89,7 +89,7 @@ export const SampleCard: React.FC<SampleCardProps> = memo(
 
             <div className="flex-1 min-w-0">
               <h4
-                className={`text-xs font-black uppercase tracking-tight truncate ${active ? "text-brand-deep" : "text-brand-deep/70"}`}
+                className={`text-xs font-black uppercase tracking-tight truncate ${active ? "text-white" : "text-white/70"}`}
               >
                 {sample.sample_type}
               </h4>
@@ -164,10 +164,10 @@ const StatusIndicator = ({ status }: { status: SampleStatus }) => {
       flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border
       ${
         isDone
-          ? "bg-emerald-50 border-emerald-200/50 text-emerald-600"
+          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
           : isTesting
             ? "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
-            : "bg-brand-mist border-brand-sage/10 text-brand-sage/70"
+            : "bg-(--color-zenthar-void) border-brand-sage/10 text-brand-sage/70"
       }
     `}
     >

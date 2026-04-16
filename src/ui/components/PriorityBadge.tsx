@@ -14,29 +14,31 @@ interface BadgeStyle {
   icon: LucideIcon;
   label: string;
   glow: string;
+  pulse?: boolean;
 }
 
 const PRIORITY_CONFIG: Record<PriorityLevel, BadgeStyle> = {
   NORMAL: {
     label: "Status: Nominal",
     icon: Activity,
-    iconColor: "text-brand-sage",
-    container: "bg-brand-sage/5 text-brand-sage border-brand-sage/20",
-    glow: "group-hover:bg-brand-sage/10",
+    iconColor: "text-(--color-zenthar-sage)",
+    container: "bg-(--color-zenthar-sage)/5] text-(--color-zenthar-sage) border-(--color-zenthar-sage)/20",
+    glow: "group-hover:bg-(--color-zenthar-sage)/10",
   },
   HIGH: {
     label: "Priority: Elevated",
     icon: AlertCircle,
-    iconColor: "text-orange-500",
-    container: "bg-orange-500/5 text-orange-600 border-orange-500/20 shadow-[0_4px_12px_-4px_rgba(249,115,22,0.1)]",
-    glow: "bg-orange-500/15 group-hover:blur-md",
+    iconColor: "text-(--color-zenthar-warning)]",
+    container: "bg-(--color-zenthar-warning)/5] text-(--color-zenthar-warning) border-(--color-zenthar-warning)/20 shadow-[0_4px_12px_-4px_rgba(249,115,22,0.1)]",
+    glow: "bg-(--color-zenthar-warning)/15] group-hover:blur-md",
   },
   STAT: {
     label: "Urgency: STAT",
     icon: Zap,
-    iconColor: "text-red-500",
-    container: "bg-red-600 text-white border-red-700 shadow-[0_8px_20px_-6px_rgba(220,38,38,0.4)]",
-    glow: "bg-red-500/40 blur-xl animate-pulse",
+    iconColor: "text-(--color-zenthar-critical)",
+    container: "bg-(--color-zenthar-critical)/90 text-white border-(--color-zenthar-critical)/80 shadow-[0_8px_20px_-6px_rgba(220,38,38,0.4)]",
+    glow: "bg-(--color-zenthar-critical)/40 blur-xl animate-pulse",
+    pulse: true,
   },
 };
 
@@ -62,43 +64,43 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = memo(({
   return (
     <div
       className={clsx(
-        "group relative inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-lg",
+        "group relative inline-flex items-center gap-2.5 px-4 py-1.5 rounded-xl",
         "text-[9px] font-black uppercase tracking-[0.25em] border transition-all duration-500",
-        "cursor-default overflow-hidden antialiased",
+        "cursor-default overflow-hidden antialiased select-none",
         current.container,
         className
       )}
     >
-      {/* 1. KINETIC GLOW LAYER */}
-      <div 
+      {/* 1️⃣ Kinetic Glow Layer */}
+      <div
         className={clsx(
           "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none",
           current.glow
-        )} 
+        )}
       />
 
-      {/* 2. ICON ENGINE */}
+      {/* 2️⃣ Icon Engine */}
       {showIcon && (
         <div className={clsx(
           "relative z-10 flex items-center justify-center transition-transform duration-500 shrink-0",
           priority === "HIGH" && "group-hover:rotate-12",
           isStat && "animate-[pulse_1.5s_ease-in-out_infinite]"
         )}>
-          <Icon className={clsx("w-3.5 h-3.5 stroke-[3px]", !isStat && current.iconColor)} />
+          <Icon className={clsx("w-4 h-4 stroke-[3px]", !isStat && current.iconColor)} />
         </div>
       )}
 
-      {/* 3. LABEL: Monospace Impact */}
+      {/* 3️⃣ Label: Industrial Monospace */}
       <span className="relative z-10 leading-none drop-shadow-sm">
         {current.label}
       </span>
 
-      {/* 4. STAT-SPECIFIC EFFECTS (Hazard Stripes & Scanner) */}
+      {/* 4️⃣ STAT Effects */}
       {isStat && (
         <>
-          {/* Subtle Hazard Stripe Background */}
+          {/* Hazard Stripes */}
           <div className="absolute inset-0 opacity-10 pointer-events-none bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,white_10px,white_20px)]" />
-          
+
           {/* High-Velocity Scanner */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="absolute top-0 h-full w-12 bg-linear-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-[shimmer_1.5s_infinite]" />

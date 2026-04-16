@@ -116,8 +116,8 @@ app.post("/login", async (c) => {
 
     setCookie(c, "token", result.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
       maxAge: 8 * 60 * 60, // 8 hours in seconds for Hono
       path: "/",
     });
@@ -149,8 +149,8 @@ app.post("/logout", async (c) => {
   try {
     deleteCookie(c, "token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true,
+      sameSite: "none",
       path: "/",
     });
     return c.json({ success: true });

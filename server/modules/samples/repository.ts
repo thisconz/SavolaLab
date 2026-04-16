@@ -4,22 +4,27 @@ import { Sample } from "../../../src/shared/schemas/sample.schema";
 
 export const SampleRepository = {
   async findAll(): Promise<any[]> {
-    return await db.query(
-      `
-      SELECT s.*, COUNT(t.id) as test_count 
-      FROM samples s 
-      LEFT JOIN tests t ON s.id = t.sample_id 
-      GROUP BY s.id 
-      ORDER BY 
-        CASE s.priority 
-          WHEN 'STAT' THEN 1 
-          WHEN 'HIGH' THEN 2 
-          WHEN 'NORMAL' THEN 3 
-          ELSE 4 
-        END ASC, 
-        s.created_at DESC
-    `,
-    );
+    try {
+      return await db.query(
+        `
+        SELECT s.*, COUNT(t.id) as test_count 
+        FROM samples s 
+        LEFT JOIN tests t ON s.id = t.sample_id 
+        GROUP BY s.id 
+        ORDER BY 
+          CASE s.priority 
+            WHEN 'STAT' THEN 1 
+            WHEN 'HIGH' THEN 2 
+            WHEN 'NORMAL' THEN 3 
+            ELSE 4 
+          END ASC, 
+          s.created_at DESC
+      `,
+      );
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   async findById(id: number): Promise<any | null> {

@@ -51,11 +51,11 @@ export const LabFeature: React.FC = memo(() => {
   }, []);
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-hidden bg-brand-mist/10 p-2 rounded-3xl">
+    <div className="h-full flex flex-col gap-6 overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
       {/* 1. HEADER SECTION */}
         <div className="flex items-center justify-between px-4 shrink-0">
           <div>
-            <h2 className="text-xl font-bold text-brand-deep flex items-center gap-2">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <LayoutDashboard className="w-5 h-5 text-brand-primary" />
               Facility Hub
             </h2>
@@ -64,12 +64,12 @@ export const LabFeature: React.FC = memo(() => {
             </p>
           </div>
           <div className="flex gap-4">
-            <div className="flex items-center gap-6 bg-white/60 backdrop-blur-md border border-brand-sage/10 px-5 py-2 rounded-2xl shadow-sm">
+            <div className="flex items-center gap-6 bg-(--color-zenthar-graphite)/60 backdrop-blur-md border border-brand-sage/10 px-5 py-2 rounded-2xl shadow-sm">
               <StatItem
                 icon={Activity}
                 label="Active"
                 value={activeCount}
-                color="text-emerald-500"
+                color="text-emerald-400"
               />
               <div className="w-px h-4 bg-brand-sage/20" />
               <StatItem
@@ -175,7 +175,7 @@ const StatItem = ({ icon: Icon, label, value, color }: any) => (
       <span className="text-[8px] font-black uppercase text-brand-sage/60 tracking-widest leading-none">
         {label}
       </span>
-      <span className="text-sm font-black text-brand-deep leading-tight mt-0.5">
+      <span className="text-sm font-black text-white leading-tight mt-0.5">
         {value.toString().padStart(2, '0')}
       </span>
     </div>
@@ -186,16 +186,16 @@ const EmptyWorkspace = () => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className="h-full flex flex-col items-center justify-center gap-6 bg-white/30 backdrop-blur-sm rounded-[2.5rem] border-2 border-dashed border-brand-sage/10"
+    className="h-full flex flex-col items-center justify-center gap-6 bg-(--color-zenthar-graphite)/30 backdrop-blur-sm rounded-[2.5rem] border-2 border-dashed border-brand-sage/10"
   >
     <div className="relative">
       <div className="absolute inset-0 bg-brand-primary/5 rounded-full blur-3xl animate-pulse" />
-      <div className="relative p-12 bg-white rounded-full border border-brand-sage/5 shadow-sm">
+      <div className="relative p-12 bg-(--color-zenthar-carbon) rounded-full border border-brand-sage/5 shadow-sm">
         <Microscope size={56} className="text-brand-primary/20" />
       </div>
     </div>
     <div className="text-center max-w-sm">
-      <h2 className="text-xl font-bold text-brand-deep">Workspace Idle</h2>
+      <h2 className="text-xl font-bold text-white">Workspace Idle</h2>
       <p className="text-brand-sage text-sm mt-2 leading-relaxed">
         Terminal ready for input. Select a sample from the processing queue to initiate analysis or testing procedures.
       </p>

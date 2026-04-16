@@ -20,22 +20,22 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = memo(
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex h-screen w-screen bg-[#FDFDFD] relative overflow-hidden font-sans antialiased selection:bg-brand-primary/20"
+        className="flex h-screen w-screen bg-(--color-zenthar-void) relative overflow-hidden font-sans antialiased selection:bg-brand-primary/20"
       >
         {/* --- LAYER 0: ENVIRONMENTAL FX --- */}
         {/* The "Glass" Scanline & Noise Overlay */}
-        <div className="pointer-events-none fixed inset-0 z-50 opacity-[0.015] mix-blend-overlay bg-[url('/assets/noise.png')]" />
+        <div className="pointer-events-none fixed inset-0 z-50 opacity-[0.03] mix-blend-overlay bg-[url('/assets/noise.png')]" />
         <div className="scanline pointer-events-none fixed inset-0 z-50 opacity-[0.02] mix-blend-overlay" />
         
         {/* Subtle Brand Gradient Glow */}
-        <div className="pointer-events-none fixed -top-24 -left-24 w-96 h-96 bg-brand-primary/5 blur-[120px] rounded-full" />
-        <div className="pointer-events-none fixed -bottom-24 -right-24 w-96 h-96 bg-brand-laser/5 blur-[120px] rounded-full" />
+        <div className="pointer-events-none fixed -top-24 -left-24 w-96 h-96 bg-brand-primary/10 blur-[120px] rounded-full" />
+        <div className="pointer-events-none fixed -bottom-24 -right-24 w-96 h-96 bg-brand-accent/10 blur-[120px] rounded-full" />
 
         {/* --- PILLAR 1: NAVIGATION --- */}
         <Sidebar activeTab={activeTab} />
 
         {/* --- PILLAR 2: WORKSPACE --- */}
-        <div className="flex-1 flex flex-col min-w-0 relative z-10 bg-white/40 backdrop-blur-md">
+        <div className="flex-1 flex flex-col min-w-0 relative z-10 bg-(--color-zenthar-carbon)/60 backdrop-blur-md">
           {/* Integrated Workspace Header */}
           <Header />
 

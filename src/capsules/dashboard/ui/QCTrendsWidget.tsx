@@ -143,7 +143,7 @@ const CustomTrendTick = (props: any) => {
       x={x}
       y={y + 16}
       textAnchor="middle"
-      className="fill-brand-deep/40 text-[8px] font-black font-mono uppercase tracking-tighter"
+      className="fill-white/40 text-[8px] font-black font-mono uppercase tracking-tighter"
     >
       {payload.value}
     </text>
@@ -172,7 +172,7 @@ const TrendTooltip = ({ active, payload }: any) => {
     <motion.div 
       initial={{ opacity: 0, x: 10 }}
       animate={{ opacity: 1, x: 0 }}
-      className="bg-brand-deep/95 backdrop-blur-xl border border-brand-primary/30 p-3 rounded-xl shadow-2xl min-w-30"
+      className="bg-(--color-zenthar-void)/95 backdrop-blur-xl border border-brand-primary/30 p-3 rounded-xl shadow-2xl min-w-30"
     >
       <div className="flex items-center justify-between gap-4 mb-2 border-b border-white/5 pb-2">
         <p className="text-[8px] font-black text-brand-primary uppercase tracking-widest">
@@ -193,7 +193,7 @@ const TrendTooltip = ({ active, payload }: any) => {
 };
 
 const TrendLoadingState = () => (
-  <div className="h-60 w-full bg-brand-mist/5 animate-pulse rounded-2xl flex items-center justify-center">
+  <div className="h-60 w-full bg-(--color-zenthar-graphite)/50 animate-pulse rounded-2xl flex items-center justify-center">
     <div className="w-1/2 h-1 bg-brand-primary/10 rounded-full overflow-hidden">
       <motion.div 
         animate={{ x: ["-100%", "100%"] }} 

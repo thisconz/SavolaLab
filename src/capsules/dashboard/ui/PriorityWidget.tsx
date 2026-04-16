@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "@/src/lib/recharts";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion } from "@/src/lib/motion";
 import { Sample } from "../../../core/types";
 
 interface PriorityWidgetProps {
@@ -126,7 +126,7 @@ const CustomPriorityTick = (props: any) => {
         dy={16}
         textAnchor="middle"
         className={`text-[8px] font-black font-mono tracking-widest ${
-          isCritical ? "fill-[#FF4D4D]" : "fill-brand-deep/40"
+          isCritical ? "fill-[#FF4D4D]" : "fill-white/40"
         }`}
       >
         {config?.label || payload.value}
@@ -145,7 +145,7 @@ const PriorityTooltip = ({ active, payload }: any) => {
     <motion.div 
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-brand-deep/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl min-w-35"
+      className="bg-(--color-zenthar-void)/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl min-w-35"
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ const PriorityLoadingState = () => (
     {[30, 60, 45].map((h, i) => (
       <div 
         key={i} 
-        className="w-10 bg-brand-mist rounded-t animate-pulse" 
+        className="w-10 bg-(--color-zenthar-graphite) rounded-t animate-pulse" 
         style={{ height: `${h}%`, opacity: 0.3 + i * 0.2 }} 
       />
     ))}

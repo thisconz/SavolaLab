@@ -83,7 +83,7 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
     const labelStyle =
       "flex items-center gap-2 text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] mb-2";
     const inputStyle =
-      "w-full bg-white/60 backdrop-blur-md border-2 border-brand-sage/10 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:border-brand-primary/50 focus:ring-4 focus:ring-brand-primary/5 text-brand-deep transition-all shadow-inner placeholder:text-brand-sage/30";
+      "w-full bg-(--color-zenthar-carbon)/60 backdrop-blur-md border-2 border-brand-sage/10 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:border-brand-primary/50 focus:ring-4 focus:ring-brand-primary/5 text-white transition-all shadow-inner placeholder:text-brand-sage/30";
 
     return (
       <Modal
@@ -134,9 +134,9 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
                 }
                 className={`${inputStyle} cursor-pointer appearance-none`}
               >
-                <option value="NORMAL">Normal_Priority</option>
-                <option value="HIGH">High_Priority</option>
-                <option value="STAT">Stat_Urgent (Hot)</option>
+                <option value="NORMAL" className="bg-(--color-zenthar-carbon)">Normal_Priority</option>
+                <option value="HIGH" className="bg-(--color-zenthar-carbon)">High_Priority</option>
+                <option value="STAT" className="bg-(--color-zenthar-carbon)">Stat_Urgent (Hot)</option>
               </select>
             </div>
           </div>
@@ -159,7 +159,7 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
                 className={`${inputStyle} cursor-pointer appearance-none`}
               >
                 {SUGAR_STAGES.map((stage) => (
-                  <option key={stage} value={stage}>
+                  <option key={stage} value={stage} className="bg-(--color-zenthar-carbon)">
                     {stage}
                   </option>
                 ))}
@@ -184,7 +184,7 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
           </div>
 
           {/* SECTION 3: LOGISTICS GRID */}
-          <div className="bg-brand-mist/20 p-6 rounded-4xl border border-brand-sage/5">
+          <div className="bg-(--color-zenthar-carbon)/20 p-6 rounded-4xl border border-brand-sage/5">
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className={labelStyle}>
@@ -227,10 +227,10 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
                   }
                   className={`${inputStyle} py-3 px-4 cursor-pointer text-center`}
                 >
-                  <option value="">N/A</option>
-                  <option value="A">Shift_A</option>
-                  <option value="B">Shift_B</option>
-                  <option value="C">Shift_C</option>
+                  <option value="" className="bg-(--color-zenthar-carbon)">N/A</option>
+                  <option value="A" className="bg-(--color-zenthar-carbon)">Shift_A</option>
+                  <option value="B" className="bg-(--color-zenthar-carbon)">Shift_B</option>
+                  <option value="C" className="bg-(--color-zenthar-carbon)">Shift_C</option>
                 </select>
               </div>
             </div>

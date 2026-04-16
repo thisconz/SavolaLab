@@ -110,7 +110,12 @@ export const ArchiveService = {
       filters,
     );
 
-    return await db.query(sql, params);
+    try {
+      return await db.query(sql, params);
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   async searchTests(filters: any) {
@@ -138,7 +143,12 @@ export const ArchiveService = {
       filters,
     );
 
-    return await db.query(sql, params);
+    try {
+      return await db.query(sql, params);
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   async searchCertificates(filters: any) {
@@ -162,7 +172,12 @@ export const ArchiveService = {
       filters,
     );
 
-    return await db.query(sql, params);
+    try {
+      return await db.query(sql, params);
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   async searchInstruments(filters: any) {

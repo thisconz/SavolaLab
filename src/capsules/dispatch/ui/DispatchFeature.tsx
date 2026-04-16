@@ -50,10 +50,10 @@ export const DispatchFeature: React.FC = memo(() => {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-brand-mist/20 p-2 rounded-3xl">
+    <div className="flex flex-col h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-8 pb-8">
         <div className="grid grid-cols-4 gap-8 shrink-0">
-          <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
+          <div className="bg-(--color-zenthar-carbon) p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
             <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-brand-primary/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">
@@ -63,16 +63,16 @@ export const DispatchFeature: React.FC = memo(() => {
                 <Package className="w-5 h-5 text-brand-primary" />
               </div>
             </div>
-            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">
+            <p className="text-4xl font-black text-white tracking-tighter relative z-10">
               {dispatchData.metrics.pending}
             </p>
             <div className="flex items-center gap-2 text-xs font-bold text-brand-sage relative z-10">
-              <span className="bg-brand-mist px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider">
+              <span className="bg-(--color-zenthar-void) px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider">
                 Awaiting QC Release
               </span>
             </div>
           </div>
-          <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
+          <div className="bg-(--color-zenthar-carbon) p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
             <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">
@@ -82,7 +82,7 @@ export const DispatchFeature: React.FC = memo(() => {
                 <Truck className="w-5 h-5 text-emerald-500" />
               </div>
             </div>
-            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">
+            <p className="text-4xl font-black text-white tracking-tighter relative z-10">
               {dispatchData.metrics.inTransit}
             </p>
             <div className="flex items-center gap-2 text-xs font-bold text-emerald-500 relative z-10">
@@ -91,7 +91,7 @@ export const DispatchFeature: React.FC = memo(() => {
               </span>
             </div>
           </div>
-          <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
+          <div className="bg-(--color-zenthar-carbon) p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
             <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-amber-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">
@@ -101,7 +101,7 @@ export const DispatchFeature: React.FC = memo(() => {
                 <Clock className="w-5 h-5 text-amber-500" />
               </div>
             </div>
-            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">
+            <p className="text-4xl font-black text-white tracking-tighter relative z-10">
               {dispatchData.metrics.delayed}
             </p>
             <div className="flex items-center gap-2 text-xs font-bold text-amber-500 relative z-10">
@@ -110,7 +110,7 @@ export const DispatchFeature: React.FC = memo(() => {
               </span>
             </div>
           </div>
-          <div className="bg-white p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
+          <div className="bg-(--color-zenthar-carbon) p-8 rounded-3xl border border-brand-sage/10 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
             <div className="absolute right-0 top-0 w-32 h-32 bg-linear-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
             <div className="flex items-center justify-between relative z-10">
               <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">
@@ -120,7 +120,7 @@ export const DispatchFeature: React.FC = memo(() => {
                 <AlertCircle className="w-5 h-5 text-emerald-500" />
               </div>
             </div>
-            <p className="text-4xl font-black text-brand-deep tracking-tighter relative z-10">
+            <p className="text-4xl font-black text-white tracking-tighter relative z-10">
               {dispatchData.metrics.critical}
             </p>
             <div className="flex items-center gap-2 text-xs font-bold text-emerald-500 relative z-10">
@@ -136,13 +136,13 @@ export const DispatchFeature: React.FC = memo(() => {
             <LabPanel title="Active Shipments" icon={Truck}>
               <div className="flex flex-col gap-4 p-4">
                 {dispatchData.activeShipments.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-brand-sage gap-6 bg-white/50 rounded-3xl border border-brand-sage/10 relative overflow-hidden group py-12">
+                  <div className="h-full flex flex-col items-center justify-center text-brand-sage gap-6 bg-(--color-zenthar-carbon)/50 rounded-3xl border border-brand-sage/10 relative overflow-hidden group py-12">
                     <div className="absolute inset-0 bg-brand-primary/5 rounded-full blur-3xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                    <div className="p-6 bg-brand-mist rounded-full border border-brand-sage/20 relative z-10">
+                    <div className="p-6 bg-(--color-zenthar-void) rounded-full border border-brand-sage/20 relative z-10">
                       <Truck className="w-16 h-16 opacity-40 text-brand-primary group-hover:opacity-80 transition-opacity duration-300" />
                     </div>
                     <div className="text-center relative z-10">
-                      <p className="text-sm font-black text-brand-deep uppercase tracking-[0.2em]">
+                      <p className="text-sm font-black text-white uppercase tracking-[0.2em]">
                         No Active Shipments
                       </p>
                       <p className="text-xs text-brand-sage mt-2 font-medium">
@@ -174,7 +174,7 @@ export const DispatchFeature: React.FC = memo(() => {
                           ? "bg-brand-primary/5"
                           : isDelayed
                             ? "bg-amber-500/5"
-                            : "bg-brand-mist";
+                            : "bg-(--color-zenthar-void)";
                       const border = isTransit
                         ? "border-emerald-500/20"
                         : isLoading
@@ -189,11 +189,11 @@ export const DispatchFeature: React.FC = memo(() => {
                           className={`flex items-center justify-between p-5 rounded-2xl border ${bg} ${border} hover:shadow-md transition-all duration-300 group`}
                         >
                           <div className="flex items-center gap-5">
-                            <div className="p-2.5 bg-white rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300">
+                            <div className="p-2.5 bg-(--color-zenthar-carbon) rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300 border border-brand-sage/10">
                               {icon}
                             </div>
                             <div>
-                              <h4 className="text-sm font-black text-brand-deep uppercase tracking-wider">
+                              <h4 className="text-sm font-black text-white uppercase tracking-wider">
                                 {shipment.id} - {shipment.client}
                               </h4>
                               <div className="flex items-center gap-2 mt-1">
@@ -206,7 +206,7 @@ export const DispatchFeature: React.FC = memo(() => {
                           </div>
                           <div className="flex items-center gap-12 pr-4">
                             <div className="text-right">
-                              <p className="text-lg font-black text-brand-deep tracking-tight">
+                              <p className="text-lg font-black text-white tracking-tight">
                                 {shipment.status}
                               </p>
                               <p className="text-[9px] text-brand-sage font-bold uppercase tracking-[0.2em]">
@@ -215,7 +215,7 @@ export const DispatchFeature: React.FC = memo(() => {
                             </div>
                             <div className="w-px h-8 bg-brand-sage/20" />
                             <div className="text-right">
-                              <p className="text-lg font-black text-brand-deep tracking-tight">
+                              <p className="text-lg font-black text-white tracking-tight">
                                 {shipment.eta}
                               </p>
                               <p className="text-[9px] text-brand-sage font-bold uppercase tracking-[0.2em]">
@@ -235,13 +235,13 @@ export const DispatchFeature: React.FC = memo(() => {
             <LabPanel title="QC Release Queue" icon={CheckCircle2}>
               <div className="flex flex-col gap-4 p-4">
                 {dispatchData.qcQueue.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-brand-sage gap-6 bg-white/50 rounded-3xl border border-brand-sage/10 relative overflow-hidden group py-12">
+                  <div className="h-full flex flex-col items-center justify-center text-brand-sage gap-6 bg-(--color-zenthar-carbon)/50 rounded-3xl border border-brand-sage/10 relative overflow-hidden group py-12">
                     <div className="absolute inset-0 bg-brand-primary/5 rounded-full blur-3xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                    <div className="p-6 bg-brand-mist rounded-full border border-brand-sage/20 relative z-10">
+                    <div className="p-6 bg-(--color-zenthar-void) rounded-full border border-brand-sage/20 relative z-10">
                       <CheckCircle2 className="w-16 h-16 opacity-40 text-brand-primary group-hover:opacity-80 transition-opacity duration-300" />
                     </div>
                     <div className="text-center relative z-10">
-                      <p className="text-sm font-black text-brand-deep uppercase tracking-[0.2em]">
+                      <p className="text-sm font-black text-white uppercase tracking-[0.2em]">
                         Queue Empty
                       </p>
                       <p className="text-xs text-brand-sage mt-2 font-medium">
@@ -257,17 +257,17 @@ export const DispatchFeature: React.FC = memo(() => {
                     return (
                       <div
                         key={i}
-                        className="p-5 bg-white border border-brand-sage/20 rounded-2xl hover:border-brand-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer group"
+                        className="p-5 bg-(--color-zenthar-carbon) border border-brand-sage/20 rounded-2xl hover:border-brand-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer group"
                       >
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-sm font-black text-brand-deep uppercase tracking-wider">
+                          <h4 className="text-sm font-black text-white uppercase tracking-wider">
                             {item.batch}
                           </h4>
                           <span
                             className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.2em] border ${
                               isReleased
-                                ? "text-emerald-600 bg-emerald-500/10 border-emerald-500/20"
-                                : "text-amber-600 bg-amber-500/10 border-amber-500/20"
+                                ? "text-emerald-400 bg-emerald-900/30 border-emerald-500/20"
+                                : "text-amber-400 bg-amber-900/30 border-amber-500/20"
                             }`}
                           >
                             {item.status}
@@ -276,7 +276,7 @@ export const DispatchFeature: React.FC = memo(() => {
                         <p className="text-xs text-brand-sage font-medium mb-4">
                           Client: {item.client}
                         </p>
-                        <div className="w-full bg-brand-mist rounded-full h-2 overflow-hidden">
+                        <div className="w-full bg-(--color-zenthar-void) rounded-full h-2 overflow-hidden">
                           <div
                             className={`h-2 rounded-full transition-all duration-1000 ease-out ${isReleased ? "bg-emerald-500" : "bg-amber-500"}`}
                             style={{ width: `${item.progress}%` }}

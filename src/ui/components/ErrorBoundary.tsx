@@ -1,15 +1,22 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
-import { AlertCircle, RefreshCw, Terminal, ShieldAlert } from "lucide-react";
-import { motion } from "@/src/lib/motion"; // Assuming you're using Framer Motion
+import { 
+  ShieldAlert, 
+  RefreshCw, 
+  Terminal, 
+  Cpu, 
+  History, 
+  AlertCircle 
+} from "lucide-react";
+import { motion, AnimatePresence } from "../../lib/motion";
 import clsx from "@/src/lib/clsx";
+
+/* --- Configuration --- */
+const MAX_AUTO_RECOVERY_ATTEMPTS = 2;
 
 interface Props {
   children: ReactNode;
-  /** Unique name for the module/feature being wrapped */
   name?: string;
-  /** Optional custom fallback UI */
   fallback?: ReactNode;
-  /** External logging hook (e.g., Sentry, Datadog) */
   onError?: (error: Error, errorInfo: ErrorInfo, faultId: string) => void;
 }
 
@@ -17,98 +24,141 @@ interface State {
   hasError: boolean;
   error: Error | null;
   faultId: string | null;
+  recoveryAttempts: number;
+  timestamp: string | null;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
+  // Correct TypeScript declaration for static property
   public static displayName = "ResilientErrorBoundary";
-  
+
   public state: State = {
     hasError: false,
     error: null,
     faultId: null,
+    recoveryAttempts: 0,
+    timestamp: null
   };
 
   public static getDerivedStateFromError(error: Error): Partial<State> {
-    // Generate a unique ID for this specific incident
     const faultId = `FLT-${Math.random().toString(36).toUpperCase().substring(2, 7)}`;
-    return { hasError: true, error, faultId };
+    return { 
+      hasError: true, 
+      error, 
+      faultId,
+      timestamp: new Date().toLocaleTimeString()
+    };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const { name, onError } = this.props;
     const faultId = this.state.faultId || "UNKNOWN";
 
-    // 1. Technical Console Output
-    console.group(`%c 🚨 SYSTEM_FAULT [${faultId}] `, "background: #ef4444; color: white; font-weight: bold;");
-    console.error(`Origin: ${name || "Anonymous_Component"}`);
-    console.error("Error:", error);
-    console.groupEnd();
+    // Telemetry execution
+    if (onError) onError(error, errorInfo, faultId);
 
-    // 2. Fire Telemetry Hook
-    if (onError) {
-      onError(error, errorInfo, faultId);
-    }
+    // Automatic Logging
+    console.group(`%c ⚡ ZENTHAR_KERNEL_PANIC [${faultId}] `, "background: #111; color: #ff4444; font-weight: bold; padding: 4px;");
+    console.error(`Component Path: ${name || "Anonymous_Node"}`);
+    console.error(`Stack:`, errorInfo.componentStack);
+    console.groupEnd();
   }
 
-  private handleReset = () => {
-    this.setState({ hasError: false, error: null, faultId: null });
+  private handleManualReset = () => {
+    this.setState((prev) => ({ 
+      hasError: false, 
+      error: null, 
+      faultId: null,
+      recoveryAttempts: prev.recoveryAttempts + 1 
+    }));
   };
 
   public render() {
-    const { hasError, error, faultId } = this.state;
+    const { hasError, error, faultId, timestamp, recoveryAttempts } = this.state;
     const { children, fallback, name } = this.props;
 
     if (hasError) {
       if (fallback) return fallback;
 
+      const isCritical = recoveryAttempts >= MAX_AUTO_RECOVERY_ATTEMPTS;
+
       return (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full flex items-center justify-center p-6 min-h-64"
-        >
-          <div className="max-w-md w-full bg-white rounded-3xl border border-lab-laser/10 shadow-xl overflow-hidden relative group">
-            {/* Aesthetic Detail: Industrial Stripe */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-lab-laser/40 via-lab-laser to-lab-laser/40" />
-            
-            <div className="p-8 flex flex-col items-center text-center">
-              <div className="w-14 h-14 bg-lab-laser/5 rounded-2xl flex items-center justify-center mb-6 border border-lab-laser/10 rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                <ShieldAlert className="w-7 h-7 text-lab-laser" />
+        <div className="w-full flex items-center justify-center p-8 min-h-100">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-lg bg-[#070708] rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden"
+          >
+            {/* 1. LAYER: DYNAMIC BACKGROUND */}
+            <div className="absolute inset-0 bg-[url('/assets/grid-dot.svg')] opacity-[0.03] pointer-events-none" />
+            <div className={clsx(
+                "absolute top-0 left-0 w-full h-1 transition-colors duration-1000",
+                isCritical ? "bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]" : "bg-brand-primary"
+            )} />
+
+            <div className="p-10">
+              {/* Header: Status Indicator */}
+              <div className="flex justify-between items-start mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/3 border border-white/5 flex items-center justify-center">
+                    <ShieldAlert className={clsx("w-6 h-6", isCritical ? "text-red-500" : "text-brand-primary")} />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">
+                      Fault_Isolated
+                    </h3>
+                    <p className="text-[10px] text-brand-sage opacity-40 uppercase tracking-widest font-bold">
+                      {name || "System_Root"} // Node_01
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                    <span className="text-[9px] font-mono text-white/20 uppercase font-black tracking-widest">
+                        {timestamp}
+                    </span>
+                </div>
               </div>
 
-              <h3 className="text-[11px] font-black text-brand-deep uppercase tracking-[0.3em] mb-2">
-                Module Suspended // {name || "Kernel"}
-              </h3>
-              
-              <div className="flex items-center gap-2 mb-6 bg-brand-mist/50 px-3 py-1 rounded-full border border-brand-sage/10">
-                <Terminal className="w-3 h-3 text-brand-sage" />
-                <span className="text-[9px] font-mono font-bold text-brand-sage uppercase">
-                  ID: {faultId}
-                </span>
+              {/* Body: Diagnostic Data */}
+              <div className="space-y-4 mb-10">
+                <div className="bg-white/2 rounded-2xl p-4 border border-white/5">
+                  <div className="flex items-center gap-2 mb-2 opacity-40">
+                    <Terminal size={10} className="text-brand-primary" />
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white">Exception_Log</span>
+                  </div>
+                  <p className="text-[11px] font-mono text-red-400/80 leading-relaxed wrap-break-word">
+                    {error?.message || "Internal_Kernel_Halt"}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <DiagnosticBadge icon={Cpu} label="Fault_ID" value={faultId || "---"} />
+                    <DiagnosticBadge icon={History} label="Cycles" value={`${recoveryAttempts} Retries`} />
+                </div>
               </div>
 
-              <p className="text-[11px] text-brand-sage mb-8 font-medium leading-relaxed opacity-80 italic">
-                "{error?.message || "Internal core exception detected."}"
-              </p>
-
-              <div className="w-full h-px bg-brand-sage/5 mb-8" />
-
+              {/* Action: Re-initialization */}
               <button
-                onClick={this.handleReset}
-                className="group/btn relative inline-flex items-center gap-3 px-6 py-3 bg-brand-deep text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all hover:bg-lab-laser hover:shadow-lg active:scale-95 overflow-hidden"
+                onClick={this.handleManualReset}
+                className={clsx(
+                    "group relative w-full flex items-center justify-center gap-3 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all overflow-hidden",
+                    isCritical 
+                      ? "bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20" 
+                      : "bg-white text-black hover:scale-[1.02] active:scale-95"
+                )}
               >
-                <RefreshCw className="w-4 h-4 group-hover/btn:rotate-180 transition-transform duration-500" />
-                <span>Re-Initialize Module</span>
+                <RefreshCw className={clsx("w-4 h-4", !isCritical && "group-hover:rotate-180 transition-transform duration-700")} />
+                <span>{isCritical ? "Force Hard Reset" : "Re-Initialize Module"}</span>
               </button>
+              
+              {isCritical && (
+                  <p className="mt-4 text-center text-[8px] text-red-500/50 uppercase font-black tracking-widest animate-pulse">
+                      Critical loop detected. Manual intervention required.
+                  </p>
+              )}
             </div>
-
-            {/* Subliminal OS-level decoration */}
-            <div className="absolute bottom-2 right-4 flex gap-1 opacity-20 pointer-events-none">
-              <div className="w-1 h-1 rounded-full bg-brand-sage" />
-              <div className="w-1 h-1 rounded-full bg-brand-sage" />
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       );
     }
 
@@ -116,4 +166,14 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-ErrorBoundary.displayName = "ResilientErrorBoundary";
+/* --- Helper Sub-components --- */
+
+const DiagnosticBadge = ({ icon: Icon, label, value }: { icon: any, label: string, value: string }) => (
+    <div className="flex items-center gap-3 px-4 py-3 bg-white/2 rounded-xl border border-white/3">
+        <Icon size={12} className="text-brand-sage opacity-30" />
+        <div className="flex flex-col">
+            <span className="text-[7px] font-black text-brand-sage/40 uppercase tracking-widest leading-none mb-1">{label}</span>
+            <span className="text-[9px] font-mono text-white/70 font-bold leading-none">{value}</span>
+        </div>
+    </div>
+);

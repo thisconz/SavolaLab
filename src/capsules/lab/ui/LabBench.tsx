@@ -102,8 +102,8 @@ export const LabBench: React.FC<LabBenchProps> = memo(
       const hasValue = !isNaN(num);
 
       return (
-        <div className="mt-5 pt-5 border-t border-brand-sage/10">
-          <div className="flex justify-between text-[10px] font-black text-brand-sage uppercase tracking-widest mb-3">
+        <div className="mt-5 pt-5 border-t border-(--color-zenthar-border)/20">
+          <div className="flex justify-between text-[10px] font-black text-zenthar-text-muted uppercase tracking-widest mb-3">
             <span className="flex flex-col items-start gap-1">
               <span className="opacity-50">MIN</span>
               <span>{rule.min}</span>
@@ -117,7 +117,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
               <span>{rule.max}</span>
             </span>
           </div>
-          <div className="relative h-3 w-full bg-brand-mist/50 rounded-full overflow-hidden border border-brand-sage/10 shadow-inner">
+          <div className="relative h-3 w-full bg-(--color-zenthar-void) rounded-full overflow-hidden border border-(--color-zenthar-border)/30 shadow-inner">
             {/* Target Zone */}
             <div className="absolute left-1/4 right-1/4 h-full bg-brand-primary/10" />
 
@@ -127,7 +127,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                 initial={{ width: 0 }}
                 animate={{ width: `${percentage}%` }}
                 transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                className={`absolute left-0 top-0 h-full ${isWarning ? "bg-lab-laser" : "bg-brand-primary"}`}
+                className={`absolute left-0 top-0 h-full ${isWarning ? "bg-(--color-zenthar-critical)" : "bg-brand-primary"}`}
               />
             )}
           </div>
@@ -140,7 +140,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
               className="relative w-full h-0"
             >
               <div
-                className={`absolute top-0 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-[3px] border-white shadow-md ${isWarning ? "bg-lab-laser" : "bg-brand-primary"}`}
+                className={`absolute top-0 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-[3px] border-(--color-zenthar-carbon) shadow-md ${isWarning ? "bg-(--color-zenthar-critical)" : "bg-brand-primary"}`}
               />
             </motion.div>
           )}
@@ -159,18 +159,18 @@ export const LabBench: React.FC<LabBenchProps> = memo(
           <div className="flex items-center gap-4 p-6 bg-linear-to-r from-brand-primary/10 via-brand-primary/5 to-transparent rounded-3xl border border-brand-primary/20 relative overflow-hidden shadow-sm">
             <div className="absolute top-0 right-0 w-48 h-48 bg-brand-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
-            <div className="p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md shadow-brand-primary/10 border border-brand-primary/20 relative z-10">
+            <div className="p-4 bg-(--color-zenthar-void)/80 backdrop-blur-sm rounded-2xl shadow-md shadow-brand-primary/10 border border-brand-primary/20 relative z-10">
               <Activity className="w-6 h-6 text-brand-primary animate-pulse" />
             </div>
             <div className="relative z-10">
-              <h4 className="text-xl font-black text-brand-deep uppercase tracking-0.1em mb-1.5">
+              <h4 className="text-xl font-black text-(--color-zenthar-text-primary) uppercase tracking-0.1em mb-1.5">
                 Analysis in Progress
               </h4>
-              <div className="flex items-center gap-3 text-[11px] font-mono text-brand-sage uppercase tracking-widest">
-                <span className="font-bold text-brand-primary bg-white/80 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border border-brand-primary/10">
+              <div className="flex items-center gap-3 text-[11px] font-mono text-zenthar-text-muted uppercase tracking-widest">
+                <span className="font-bold text-brand-primary bg-(--color-zenthar-void)/80 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border border-brand-primary/10">
                   {sample.batch_id}
                 </span>
-                <span className="bg-white/80 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border border-brand-sage/10">
+                <span className="bg-(--color-zenthar-void)/80 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border border-(--color-zenthar-border)/20">
                   {sample.source_stage}
                 </span>
               </div>
@@ -195,8 +195,8 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                       isFilled && !error
                         ? "bg-linear-to-br from-brand-primary/5 to-transparent border-brand-primary/20 shadow-md shadow-brand-primary/5"
                         : error
-                          ? "bg-lab-laser/5 border-lab-laser/20 shadow-md shadow-lab-laser/5"
-                          : "bg-white/50 backdrop-blur-sm border-brand-sage/10 hover:border-brand-primary/30 hover:shadow-lg hover:-translate-y-0.5"
+                          ? "bg-(--color-zenthar-critical)/5 border-(--color-zenthar-critical)/20 shadow-md shadow-(--color-zenthar-critical)/5"
+                          : "bg-(--color-zenthar-void)/50 backdrop-blur-sm border-(--color-zenthar-border)/20 hover:border-brand-primary/30 hover:shadow-lg hover:-translate-y-0.5"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-5">
@@ -206,21 +206,21 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                             isFilled && !error
                               ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/30"
                               : error
-                                ? "bg-lab-laser text-white shadow-lg shadow-lab-laser/30"
-                                : "bg-brand-mist text-brand-primary group-hover:bg-brand-primary/10"
+                                ? "bg-(--color-zenthar-critical) text-white shadow-lg shadow-(--color-zenthar-critical)/30"
+                                : "bg-(--color-zenthar-carbon) text-brand-primary group-hover:bg-brand-primary/10"
                           }`}
                         >
                           <TestTube2 className="w-6 h-6" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-base font-black text-brand-deep uppercase tracking-0.1em">
+                            <span className="text-base font-black text-(--color-zenthar-text-primary) uppercase tracking-0.1em">
                               {test.test_type}
                             </span>
                             {rule && (
                               <div className="group/info relative">
-                                <Info className="w-4 h-4 text-brand-sage cursor-help hover:text-brand-primary transition-colors" />
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-4 py-3 bg-brand-deep text-white text-[11px] rounded-xl opacity-0 group-hover/info:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none shadow-2xl">
+                                <Info className="w-4 h-4 text-zenthar-text-muted cursor-help hover:text-brand-primary transition-colors" />
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-4 py-3 bg-(--color-zenthar-carbon) text-white text-[11px] rounded-xl opacity-0 group-hover/info:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none shadow-2xl">
                                   <p className="font-bold mb-1">
                                     {rule.description}
                                   </p>
@@ -231,7 +231,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                               </div>
                             )}
                           </div>
-                          <p className="text-xs text-brand-sage font-mono uppercase tracking-widest mt-1">
+                          <p className="text-xs text-zenthar-text-muted font-mono uppercase tracking-widest mt-1">
                             {rule?.unit || "-"}
                           </p>
                         </div>
@@ -242,14 +242,14 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                           <div
                             className={`px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm ${
                               error
-                                ? "bg-lab-laser/10 text-lab-laser border-lab-laser/20"
+                                ? "bg-(--color-zenthar-critical)/10 text-(--color-zenthar-critical) border-(--color-zenthar-critical)/20"
                                 : "bg-brand-primary/10 text-brand-primary border-brand-primary/20"
                             }`}
                           >
                             {error ? "Out of Range" : "Valid"}
                           </div>
                         )}
-                        <div className="flex gap-2 bg-brand-mist/50 p-1.5 rounded-2xl border border-brand-sage/10">
+                        <div className="flex gap-2 bg-(--color-zenthar-void)/50 p-1.5 rounded-2xl border border-(--color-zenthar-border)/20">
                           <button
                             onClick={() =>
                               setExpandedHistory((prev) => ({
@@ -257,7 +257,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                 [test.id]: !prev[test.id],
                               }))
                             }
-                            className={`p-2.5 rounded-xl transition-all ${expandedHistory[test.id] ? "bg-white text-brand-primary shadow-sm" : "text-brand-sage hover:text-brand-deep hover:bg-white/50"}`}
+                            className={`p-2.5 rounded-xl transition-all ${expandedHistory[test.id] ? "bg-(--color-zenthar-carbon) text-brand-primary shadow-sm" : "text-zenthar-text-muted hover:text-white hover:bg-(--color-zenthar-carbon)/50"}`}
                             title="View History"
                           >
                             <History className="w-4 h-4" />
@@ -269,7 +269,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                 [test.id]: !prev[test.id],
                               }))
                             }
-                            className={`p-2.5 rounded-xl transition-all ${expandedNotes[test.id] ? "bg-white text-brand-primary shadow-sm" : "text-brand-sage hover:text-brand-deep hover:bg-white/50"}`}
+                            className={`p-2.5 rounded-xl transition-all ${expandedNotes[test.id] ? "bg-(--color-zenthar-carbon) text-brand-primary shadow-sm" : "text-zenthar-text-muted hover:text-white hover:bg-(--color-zenthar-carbon)/50"}`}
                             title="Add Notes"
                           >
                             <MessageSquare className="w-4 h-4" />
@@ -287,8 +287,8 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                           exit={{ height: 0, opacity: 0 }}
                           className="overflow-hidden"
                         >
-                          <div className="mb-5 p-5 bg-white/80 backdrop-blur-sm rounded-2xl border border-brand-sage/10 shadow-sm">
-                            <div className="text-[10px] font-black text-brand-sage uppercase tracking-widest mb-4 flex items-center gap-2">
+                          <div className="mb-5 p-5 bg-(--color-zenthar-void)/80 backdrop-blur-sm rounded-2xl border border-(--color-zenthar-border)/20 shadow-sm">
+                            <div className="text-[10px] font-black text-zenthar-text-muted uppercase tracking-widest mb-4 flex items-center gap-2">
                               <History className="w-4 h-4" /> Previous Results (
                               {sample.source_stage})
                             </div>
@@ -319,19 +319,19 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                           >
                                             <stop
                                               offset="5%"
-                                              stopColor="#b1be9b"
+                                              stopColor="var(--color-brand-primary)"
                                               stopOpacity={0.3}
                                             />
                                             <stop
                                               offset="95%"
-                                              stopColor="#b1be9b"
+                                              stopColor="var(--color-brand-primary)"
                                               stopOpacity={0}
                                             />
                                           </linearGradient>
                                         </defs>
                                         <CartesianGrid
                                           strokeDasharray="3 3"
-                                          stroke="#e5e7eb"
+                                          stroke="rgba(148, 163, 184, 0.1)"
                                           vertical={false}
                                         />
                                         <XAxis dataKey="batch_id" hide />
@@ -342,7 +342,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                           ]}
                                           tick={{
                                             fontSize: 10,
-                                            fill: "#8a9a73",
+                                            fill: "var(--color-zenthar-text-muted)",
                                             fontFamily: "monospace",
                                           }}
                                           tickLine={false}
@@ -356,7 +356,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                               payload.length
                                             ) {
                                               return (
-                                                <div className="bg-brand-deep text-white p-3 rounded-xl text-[11px] font-mono shadow-xl border border-white/10">
+                                                <div className="bg-(--color-zenthar-carbon) text-white p-3 rounded-xl text-[11px] font-mono shadow-xl border border-white/10">
                                                   <p className="font-bold mb-1 opacity-70">
                                                     {
                                                       payload[0].payload
@@ -376,14 +376,14 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                         <Area
                                           type="monotone"
                                           dataKey="raw_value"
-                                          stroke="#b1be9b"
+                                          stroke="var(--color-brand-primary)"
                                           strokeWidth={3}
                                           fillOpacity={1}
                                           fill={`url(#colorValue-${test.id})`}
                                           activeDot={{
                                             r: 6,
                                             strokeWidth: 0,
-                                            fill: "#8a9a73",
+                                            fill: "var(--color-brand-primary)",
                                           }}
                                         />
                                       </AreaChart>
@@ -393,16 +393,16 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                     {history.map((h, i) => (
                                       <div
                                         key={i}
-                                        className="flex items-center justify-between text-[11px] font-mono p-3 rounded-xl hover:bg-brand-mist/50 transition-colors border border-transparent hover:border-brand-sage/10"
+                                        className="flex items-center justify-between text-[11px] font-mono p-3 rounded-xl hover:bg-(--color-zenthar-carbon)/50 transition-colors border border-transparent hover:border-(--color-zenthar-border)/20"
                                       >
-                                        <span className="text-brand-sage font-bold">
+                                        <span className="text-zenthar-text-muted font-bold">
                                           {h.batch_id}
                                         </span>
                                         <div className="flex items-center gap-4">
-                                          <span className="font-black text-brand-deep">
+                                          <span className="font-black text-white">
                                             {h.raw_value} {rule?.unit}
                                           </span>
-                                          <span className="text-[9px] opacity-50 bg-white px-2 py-1 rounded-md">
+                                          <span className="text-[9px] opacity-50 bg-(--color-zenthar-carbon) px-2 py-1 rounded-md">
                                             {new Date(
                                               h.performed_at,
                                             ).toLocaleDateString()}
@@ -413,7 +413,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                   </div>
                                 </>
                               ) : (
-                                <p className="text-[11px] text-brand-sage italic text-center py-6 bg-brand-mist/30 rounded-xl">
+                                <p className="text-[11px] text-zenthar-text-muted italic text-center py-6 bg-(--color-zenthar-carbon)/30 rounded-xl">
                                   No previous data found
                                 </p>
                               )}
@@ -427,7 +427,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                       <div className="space-y-5">
                         <div className="grid grid-cols-3 gap-5">
                           <div className="space-y-2">
-                            <label className="text-[10px] font-black text-brand-sage uppercase tracking-widest flex justify-between items-center">
+                            <label className="text-[10px] font-black text-zenthar-text-muted uppercase tracking-widest flex justify-between items-center">
                               <span>Absorbance</span>
                               {history[0] && (
                                 <button
@@ -466,11 +466,11 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                 )
                               }
                               placeholder="0.000"
-                              className="w-full bg-brand-mist/30 border-2 border-brand-sage/20 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-brand-deep transition-all shadow-inner"
+                              className="w-full bg-(--color-zenthar-void) border-2 border-(--color-zenthar-border)/20 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-white transition-all shadow-inner"
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-brand-sage uppercase tracking-widest">
+                            <label className="block text-[10px] font-black text-zenthar-text-muted uppercase tracking-widest">
                               Brix (%)
                             </label>
                             <input
@@ -484,11 +484,11 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                   e.target.value,
                                 )
                               }
-                              className="w-full bg-brand-mist/30 border-2 border-brand-sage/20 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-brand-deep transition-all shadow-inner"
+                              className="w-full bg-(--color-zenthar-void) border-2 border-(--color-zenthar-border)/20 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-white transition-all shadow-inner"
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="block text-[10px] font-black text-brand-sage uppercase tracking-widest">
+                            <label className="block text-[10px] font-black text-zenthar-text-muted uppercase tracking-widest">
                               Cell (cm)
                             </label>
                             <input
@@ -502,18 +502,18 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                   e.target.value,
                                 )
                               }
-                              className="w-full bg-brand-mist/30 border-2 border-brand-sage/20 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-brand-deep transition-all shadow-inner"
+                              className="w-full bg-(--color-zenthar-void) border-2 border-(--color-zenthar-border)/20 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-white transition-all shadow-inner"
                             />
                           </div>
                         </div>
-                        <div className="flex items-center justify-between bg-brand-deep px-5 py-4 rounded-2xl shadow-xl relative overflow-hidden">
+                        <div className="flex items-center justify-between bg-(--color-zenthar-carbon) px-5 py-4 rounded-2xl shadow-xl relative overflow-hidden">
                           <div className="absolute inset-0 bg-linear-to-r from-brand-primary/20 to-transparent opacity-50" />
-                          <span className="text-[11px] font-black text-brand-mist uppercase tracking-widest flex items-center gap-2 relative z-10">
+                          <span className="text-[11px] font-black text-zenthar-text-secondary uppercase tracking-widest flex items-center gap-2 relative z-10">
                             <Target className="w-5 h-5 text-brand-primary" />{" "}
                             Calculated Colour
                           </span>
                           <span
-                            className={`text-xl font-mono font-black relative z-10 ${error ? "text-lab-laser" : "text-brand-primary"}`}
+                            className={`text-xl font-mono font-black relative z-10 ${error ? "text-(--color-zenthar-critical)" : "text-brand-primary"}`}
                           >
                             {values[test.id] ? `${values[test.id]} IU` : "---"}
                           </span>
@@ -522,7 +522,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                     ) : (
                       <div className="relative">
                         <div className="flex justify-between mb-3">
-                          <label className="text-[11px] font-black text-brand-sage uppercase tracking-widest">
+                          <label className="text-[11px] font-black text-zenthar-text-muted uppercase tracking-widest">
                             Result Value
                           </label>
                         </div>
@@ -539,10 +539,10 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                               )
                             }
                             placeholder={`Enter ${test.test_type} value`}
-                            className={`w-full bg-brand-mist/30 border-2 rounded-2xl px-5 py-4 text-xl font-mono focus:outline-none focus:ring-4 transition-all shadow-inner ${
+                            className={`w-full bg-(--color-zenthar-void) border-2 rounded-2xl px-5 py-4 text-xl font-mono focus:outline-none focus:ring-4 transition-all shadow-inner ${
                               error
-                                ? "border-lab-laser/50 focus:ring-lab-laser/10 text-lab-laser"
-                                : "border-brand-sage/20 focus:border-brand-primary focus:ring-brand-primary/10 text-brand-deep"
+                                ? "border-(--color-zenthar-critical)/50 focus:ring-(--color-zenthar-critical)/10 text-(--color-zenthar-critical)"
+                                : "border-(--color-zenthar-border)/20 focus:border-brand-primary focus:ring-brand-primary/10 text-white"
                             }`}
                           />
                           {history[0] && (
@@ -554,7 +554,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                   test.test_type,
                                 )
                               }
-                              className="absolute right-4 top-1/2 -translate-y-1/2 px-4 py-2 bg-white border border-brand-sage/20 rounded-xl text-brand-sage hover:bg-brand-primary hover:text-white hover:border-brand-primary opacity-0 group-hover/input:opacity-100 transition-all text-[10px] font-black uppercase tracking-widest shadow-sm"
+                              className="absolute right-4 top-1/2 -translate-y-1/2 px-4 py-2 bg-(--color-zenthar-carbon) border border-(--color-zenthar-border)/20 rounded-xl text-zenthar-text-muted hover:bg-brand-primary hover:text-white hover:border-brand-primary opacity-0 group-hover/input:opacity-100 transition-all text-[10px] font-black uppercase tracking-widest shadow-sm"
                             >
                               Copy Prev
                             </button>
@@ -581,7 +581,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                 handleNoteChange(test.id, e.target.value)
                               }
                               placeholder="Add analytical notes or observations..."
-                              className="w-full bg-white/80 backdrop-blur-sm border-2 border-brand-sage/10 rounded-2xl p-4 text-sm font-mono focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-brand-deep min-h-24 resize-none shadow-sm transition-all"
+                              className="w-full bg-(--color-zenthar-void) border-2 border-(--color-zenthar-border)/10 rounded-2xl p-4 text-sm font-mono focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-white min-h-24 resize-none shadow-sm transition-all"
                             />
                           </div>
                         </motion.div>
@@ -595,16 +595,16 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
-                          className="mt-4 p-4 bg-lab-laser/5 rounded-2xl border border-lab-laser/20 space-y-2"
+                          className="mt-4 p-4 bg-(--color-zenthar-critical)/5 rounded-2xl border border-(--color-zenthar-critical)/20 space-y-2"
                         >
-                          <div className="flex items-center gap-2 text-lab-laser">
+                          <div className="flex items-center gap-2 text-(--color-zenthar-critical)">
                             <AlertTriangle className="w-5 h-5" />
                             <span className="text-[11px] font-black uppercase tracking-widest">
                               {error}
                             </span>
                           </div>
                           {suggestions[test.id] && (
-                            <p className="text-[11px] text-brand-sage italic pl-7 leading-relaxed">
+                            <p className="text-[11px] text-zenthar-text-muted italic pl-7 leading-relaxed">
                               {suggestions[test.id]}
                             </p>
                           )}
@@ -618,14 +618,14 @@ export const LabBench: React.FC<LabBenchProps> = memo(
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-5 border-t border-brand-sage/10 mt-auto">
+          <div className="pt-5 border-t border-(--color-zenthar-border)/20 mt-auto">
             <button
               onClick={handleSave}
               disabled={hasErrors || !allFilled || isSaving}
               className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 shadow-xl ${
                 hasErrors || !allFilled || isSaving
-                  ? "bg-brand-mist text-brand-sage cursor-not-allowed border border-brand-sage/20 shadow-none"
-                  : "bg-brand-deep text-white shadow-brand-deep/30 hover:bg-brand-deep/90 active:scale-[0.98]"
+                  ? "bg-(--color-zenthar-carbon) text-zenthar-text-muted cursor-not-allowed border border-(--color-zenthar-border)/20 shadow-none"
+                  : "bg-brand-primary text-white shadow-brand-primary/30 hover:bg-brand-primary/90 active:scale-[0.98]"
               }`}
             >
               {isSaving ? (
@@ -637,7 +637,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                 </>
               )}
             </button>
-            <p className="text-[10px] text-brand-sage font-mono text-center mt-4 uppercase tracking-widest opacity-70">
+            <p className="text-[10px] text-zenthar-text-muted font-mono text-center mt-4 uppercase tracking-widest opacity-70">
               All results will be sent for validation and audit logging
             </p>
           </div>

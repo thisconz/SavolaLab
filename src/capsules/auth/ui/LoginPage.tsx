@@ -57,7 +57,7 @@ export const LoginPage: React.FC = () => {
   }, [selectedUser]);
 
   return (
-    <div className={`min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden font-sans transition-colors duration-700 ${error ? 'bg-red-950/20' : 'bg-brand-deep'}`}>
+    <div className={`min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden font-sans transition-colors duration-700 ${error ? 'bg-red-950/20' : 'bg-(--color-zenthar-void)'}`}>
       
       {/* Background FX Layers */}
       <div className="scanline opacity-[0.07] pointer-events-none" />
@@ -84,9 +84,9 @@ export const LoginPage: React.FC = () => {
           </div>
         </header>
 
-        <main className="bg-white/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.4)] overflow-hidden border border-white/20 relative">
+        <main className="bg-(--color-zenthar-carbon)/95 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.8)] overflow-hidden border border-brand-sage/10 relative">
           {/* Top Interface Bar */}
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-brand-mist/10 overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-(--color-zenthar-graphite)/30 overflow-hidden">
             <motion.div 
               animate={loading ? { x: ["-100%", "100%"] } : { x: "-100%" }}
               transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
@@ -107,10 +107,10 @@ export const LoginPage: React.FC = () => {
                 <motion.div key="user-list" variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
                   <div className="flex justify-between items-end mb-2">
                     <div>
-                       <h2 className="text-[11px] font-black text-brand-deep uppercase tracking-widest">Select Personnel</h2>
+                       <h2 className="text-[11px] font-black text-white uppercase tracking-widest">Select Personnel</h2>
                        <p className="text-[9px] text-brand-sage font-mono uppercase mt-1">Active Sync: {users.length} Users</p>
                     </div>
-                    <button onClick={fetchUsers} className="p-2 hover:bg-brand-mist/50 rounded-lg transition-colors group">
+                    <button onClick={fetchUsers} className="p-2 hover:bg-(--color-zenthar-graphite) rounded-lg transition-colors group">
                        <RefreshCw className={`w-3.5 h-3.5 text-brand-sage group-hover:text-brand-primary ${loading && 'animate-spin'}`} />
                     </button>
                   </div>
@@ -131,17 +131,17 @@ export const LoginPage: React.FC = () => {
                           variants={itemVariants}
                           whileHover={{ x: 4 }}
                           onClick={() => handleUserSelect(user)}
-                          className="w-full flex items-center justify-between p-4 rounded-2xl border border-brand-sage/10 bg-brand-mist/5 hover:border-brand-primary/40 hover:bg-white hover:shadow-xl hover:shadow-brand-primary/5 transition-all group"
+                          className="w-full flex items-center justify-between p-4 rounded-2xl border border-brand-sage/10 bg-(--color-zenthar-graphite)/30 hover:border-brand-primary/40 hover:bg-(--color-zenthar-graphite) hover:shadow-xl hover:shadow-brand-primary/5 transition-all group"
                         >
                           <div className="flex items-center gap-4">
                             <div className="relative">
-                              <div className="w-12 h-12 rounded-xl bg-brand-deep text-white flex items-center justify-center font-black text-xs group-hover:bg-brand-primary transition-colors">
+                              <div className="w-12 h-12 rounded-xl bg-(--color-zenthar-void) text-white flex items-center justify-center font-black text-xs group-hover:bg-brand-primary transition-colors">
                                 {user.initials}
                               </div>
-                              {user.status === "online" && <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />}
+                              {user.status === "online" && <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 border-2 border-(--color-zenthar-carbon) rounded-full" />}
                             </div>
                             <div>
-                              <div className="text-[11px] font-black text-brand-deep uppercase tracking-wider group-hover:text-brand-primary transition-colors">
+                              <div className="text-[11px] font-black text-white uppercase tracking-wider group-hover:text-brand-primary transition-colors">
                                 {user.name}
                               </div>
                               <div className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-tight opacity-70">
@@ -166,7 +166,7 @@ export const LoginPage: React.FC = () => {
               ) : (
                 <motion.div key="auth-input" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                   {/* Selected User Identity Card */}
-                  <div className="p-5 bg-brand-deep rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden">
+                  <div className="p-5 bg-(--color-zenthar-void) rounded-2xl border border-brand-sage/10 shadow-2xl relative overflow-hidden">
                     <div className="flex items-center gap-4 relative z-10">
                       <div className="w-14 h-14 rounded-xl bg-brand-primary text-white flex items-center justify-center font-black text-sm shadow-lg shadow-brand-primary/20">
                         {selectedUser.initials}
@@ -178,7 +178,7 @@ export const LoginPage: React.FC = () => {
                       </div>
                       <button
                         onClick={() => { setSelectedUser(null); setError(""); }}
-                        className="p-2 text-brand-sage hover:text-white transition-colors bg-white/5 rounded-lg"
+                        className="p-2 text-brand-sage hover:text-white transition-colors bg-(--color-zenthar-graphite) rounded-lg"
                         title="Cancel"
                       >
                         <RefreshCw className="w-4 h-4" />
@@ -188,14 +188,14 @@ export const LoginPage: React.FC = () => {
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="flex p-1.5 bg-brand-mist/40 rounded-2xl border border-brand-sage/5">
+                    <div className="flex p-1.5 bg-(--color-zenthar-graphite)/50 rounded-2xl border border-brand-sage/5">
                       {(["pin", "password"] as const).map((mode) => (
                         <button
                           key={mode}
                           type="button"
                           onClick={() => { setAuthMode(mode); setInputValue(""); setError(""); }}
                           className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                            authMode === mode ? "bg-white text-brand-primary shadow-lg" : "text-brand-sage hover:text-brand-deep"
+                            authMode === mode ? "bg-(--color-zenthar-carbon)] text-brand-primary shadow-lg border border-brand-sage/10" : "text-brand-sage hover:text-white"
                           }`}
                         >
                           {mode === "pin" ? <Key className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
@@ -213,15 +213,15 @@ export const LoginPage: React.FC = () => {
                           maxLength={authMode === "pin" ? 4 : undefined}
                           value={inputValue}
                           onChange={(e) => { setInputValue(e.target.value); if(error) setError(""); }}
-                          className={`w-full bg-brand-mist/30 border-2 rounded-2xl py-6 px-6 text-center text-3xl font-mono tracking-[0.6em] focus:outline-none transition-all ${
-                            error ? "border-red-500/50 bg-red-50/5 text-red-600 ring-4 ring-red-500/5" : "border-transparent focus:border-brand-primary focus:bg-white focus:ring-4 focus:ring-brand-primary/10 text-brand-deep"
+                          className={`w-full bg-(--color-zenthar-graphite)/30 border-2 rounded-2xl py-6 px-6 text-center text-3xl font-mono tracking-[0.6em] focus:outline-none transition-all ${
+                            error ? "border-red-500/50 bg-red-500/5 text-red-500 ring-4 ring-red-500/10" : "border-brand-sage/10 focus:border-brand-primary focus:bg-(--color-zenthar-graphite) focus:ring-4 focus:ring-brand-primary/10 text-white"
                           }`}
                           placeholder={authMode === "pin" ? "••••" : "•••••••"}
                         />
                       </div>
 
                       {error && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="flex items-center justify-center gap-2 text-red-600 bg-red-50/80 backdrop-blur-sm py-3 px-4 rounded-xl border border-red-100 shadow-sm">
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="flex items-center justify-center gap-2 text-red-500 bg-red-500/10 backdrop-blur-sm py-3 px-4 rounded-xl border border-red-500/20 shadow-sm">
                           <AlertTriangle className="w-3.5 h-3.5" />
                           <span className="text-[10px] font-black uppercase tracking-widest">{error}</span>
                         </motion.div>
@@ -233,8 +233,8 @@ export const LoginPage: React.FC = () => {
                       disabled={!inputValue || loading}
                       className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] transition-all duration-500 flex items-center justify-center gap-3 relative overflow-hidden group ${
                         !inputValue || loading
-                          ? "bg-brand-sage/10 text-brand-sage"
-                          : "bg-brand-deep text-white hover:bg-brand-primary shadow-2xl shadow-brand-deep/20 hover:-translate-y-0.5 active:scale-95"
+                          ? "bg-(--color-zenthar-graphite) text-brand-sage"
+                          : "bg-brand-primary text-(--color-zenthar-void) hover:bg-brand-primary/90 shadow-2xl shadow-brand-primary/20 hover:-translate-y-0.5 active:scale-95"
                       }`}
                     >
                       {loading ? (
@@ -253,13 +253,13 @@ export const LoginPage: React.FC = () => {
             </AnimatePresence>
           </div>
 
-          <footer className="px-10 py-5 bg-brand-mist/20 border-t border-brand-sage/5 flex items-center justify-between">
+          <footer className="px-10 py-5 bg-(--color-zenthar-graphite)/30 border-t border-brand-sage/5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse" />
               <span className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-[0.2em]">Network_Stable</span>
             </div>
             <div className="h-4 w-px bg-brand-sage/20" />
-            <p className="text-[9px] text-brand-sage/60 font-mono font-bold uppercase tracking-widest">Zenthar_OS v1.0.0</p>
+            <p className="text-[9px] text-brand-sage/60 font-mono font-bold uppercase tracking-widest">Zenthar_OS v1.0</p>
           </footer>
         </main>
       </motion.div>

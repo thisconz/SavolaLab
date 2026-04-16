@@ -51,7 +51,7 @@ const CpkMetric = ({
           {value.toFixed(2)}
         </p>
       </div>
-      <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] group-hover:text-brand-deep transition-colors">
+      <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] group-hover:text-white transition-colors">
         {label}
       </p>
       <div className="flex items-center justify-center gap-1 mt-2">
@@ -80,14 +80,14 @@ const EmptyState = ({
   <div className="flex flex-col items-center justify-center h-full text-center p-8">
     <div className="relative mb-6">
       <div className="absolute inset-0 bg-brand-primary/10 blur-2xl rounded-full animate-pulse" />
-      <div className="relative p-5 bg-white border border-brand-sage/10 rounded-3xl shadow-sm">
+      <div className="relative p-5 bg-(--color-zenthar-void) border border-brand-sage/10 rounded-3xl shadow-sm">
         <Icon className="w-10 h-10 text-brand-sage/40" />
       </div>
     </div>
-    <h4 className="text-sm font-black uppercase tracking-widest text-brand-deep mb-2">
+    <h4 className="text-sm font-black uppercase tracking-widest text-white mb-2">
       {title}
     </h4>
-    <p className="text-xs text-brand-sage/70 max-w-[200px] leading-relaxed italic">
+    <p className="text-xs text-brand-sage/70 max-w-50 leading-relaxed italic">
       {description}
     </p>
   </div>
@@ -133,13 +133,13 @@ export const AnalyticsFeature: React.FC = memo(() => {
         fill: "#94a3b8",
         fontFamily: "inherit",
       },
-      grid: { stroke: "#f1f5f9", strokeDasharray: "4 4" },
+      grid: { stroke: "rgba(148, 163, 184, 0.1)", strokeDasharray: "4 4" },
       tooltip: {
         contentStyle: {
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          backgroundColor: "var(--color-zenthar-carbon)",
           borderRadius: "20px",
-          border: "1px solid #f1f5f9",
-          boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)",
+          border: "1px solid rgba(148, 163, 184, 0.2)",
+          boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.5)",
           backdropFilter: "blur(10px)",
           padding: "12px 16px",
         },
@@ -148,7 +148,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
           fontWeight: 900,
           textTransform: "uppercase",
           letterSpacing: "0.15em",
-          color: "#64748b",
+          color: "#94a3b8",
           marginBottom: "8px",
         },
       },
@@ -157,7 +157,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
   );
 
   return (
-    <div className="h-full bg-brand-mist/10 p-4 rounded-[2.5rem] overflow-hidden flex flex-col">
+    <div className="h-full bg-(--color-zenthar-graphite)/30 p-4 rounded-[2.5rem] overflow-hidden flex flex-col">
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
         {/* Main Quality SPC Chart */}
         <div className="grid grid-cols-12 gap-6">
@@ -170,7 +170,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
                 /* trigger fetch */
               }}
             >
-              <div className="h-[450px] w-full pt-6">
+              <div className="h-112.5 w-full pt-6 bg-(--color-zenthar-void)/50 rounded-3xl p-4">
                 {qualityData.length === 0 ? (
                   <EmptyState
                     icon={Activity}
@@ -286,7 +286,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
               icon={BarChart3}
               loading={loading}
             >
-              <div className="h-80 w-full pt-6">
+              <div className="h-80 w-full pt-6 bg-(--color-zenthar-void)/50 rounded-3xl p-4">
                 {volumeData.length === 0 ? (
                   <EmptyState
                     icon={BarChart3}
@@ -315,7 +315,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
                       />
                       <Tooltip
                         {...chartTheme.tooltip}
-                        cursor={{ fill: "#f8fafc", radius: 12 }}
+                        cursor={{ fill: "rgba(148, 163, 184, 0.05)", radius: 12 }}
                       />
                       <Bar
                         dataKey="volume"
@@ -326,7 +326,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
                       />
                       <Bar
                         dataKey="target"
-                        fill="#e2e8f0"
+                        fill="rgba(148, 163, 184, 0.1)"
                         radius={[10, 10, 0, 0]}
                         name="Threshold"
                         maxBarSize={32}
@@ -344,7 +344,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
               icon={Activity}
               loading={loading}
             >
-              <div className="h-80 flex flex-col items-center justify-between py-6">
+              <div className="h-80 flex flex-col items-center justify-between py-6 bg-(--color-zenthar-void)/50 rounded-3xl">
                 <div className="flex items-center justify-around w-full px-4">
                   <CpkMetric label="Brix Cpk" value={capability.brixCpk} />
                   <div className="w-px h-16 bg-brand-sage/10" />
@@ -352,19 +352,19 @@ export const AnalyticsFeature: React.FC = memo(() => {
                 </div>
 
                 {/* Tactical Alert Box */}
-                <div className="w-[90%] mx-auto p-4 bg-white border border-brand-sage/10 rounded-3xl shadow-xs relative overflow-hidden group/alert transition-all hover:border-amber-200">
+                <div className="w-[90%] mx-auto p-4 bg-(--color-zenthar-carbon) border border-brand-sage/10 rounded-3xl shadow-xs relative overflow-hidden group/alert transition-all hover:border-amber-200">
                   <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 opacity-40" />
                   <div className="flex gap-4 items-start relative z-10">
-                    <div className="p-2 bg-amber-50 rounded-xl">
-                      <Info className="w-4 h-4 text-amber-600" />
+                    <div className="p-2 bg-amber-500/10 rounded-xl">
+                      <Info className="w-4 h-4 text-amber-500" />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-brand-deep">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white">
                         System Recommendation
                       </p>
                       <p className="text-xs text-brand-sage/80 leading-relaxed font-medium">
                         Process drift detected in{" "}
-                        <span className="text-amber-600 font-bold">
+                        <span className="text-amber-500 font-bold">
                           Color Index
                         </span>
                         . Optimization required in the clarification circuit.

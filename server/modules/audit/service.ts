@@ -51,7 +51,12 @@ export const AuditService = {
     sql += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
     params.push(limit, offset);
 
-    return (await db.query(sql, params)) as AuditLog[];
+    try {
+      return (await db.query(sql, params)) as AuditLog[];
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   // Create a new audit log

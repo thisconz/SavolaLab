@@ -37,8 +37,10 @@ export const useAuthFlow = ({
       const data = await AuthApi.getUsers();
       console.log("[DEBUG] fetchUsers success:", data);
       setUsers(data || []);
-    } catch (err) {
-      console.error("[DEBUG] fetchUsers error:", err);
+    } catch (err: any) {
+      if (err?.status !== 401) {
+        console.warn("[DEBUG] fetchUsers error:", err);
+      }
       setUsers([]);
     } finally {
       setLoading(false);

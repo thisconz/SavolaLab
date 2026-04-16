@@ -18,13 +18,18 @@ export const OperationalService = {
     if (pagination?.limit) params.push(pagination.limit);
     if (pagination?.offset) params.push(pagination.offset);
 
-    const result = await db.query(replacePlaceholders(sql), params);
-    await createAuditLog(
-      "SYSTEM",
-      "FETCH_PRODUCTION_LINES",
-      `Fetched ${result.length} production lines`,
-    );
-    return result;
+    try {
+      const result = await db.query(replacePlaceholders(sql), params);
+      await createAuditLog(
+        "SYSTEM",
+        "FETCH_PRODUCTION_LINES",
+        `Fetched ${result.length} production lines`,
+      );
+      return result;
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   getEquipment: async ({
@@ -43,13 +48,18 @@ export const OperationalService = {
     sql += " ORDER BY name ASC LIMIT ? OFFSET ?";
     params.push(limit, offset);
 
-    const result = await db.query(replacePlaceholders(sql), params);
-    await createAuditLog(
-      "SYSTEM",
-      "FETCH_EQUIPMENT",
-      `Fetched ${result.length} equipment items${lineId ? ` for line ${lineId}` : ""}`,
-    );
-    return result;
+    try {
+      const result = await db.query(replacePlaceholders(sql), params);
+      await createAuditLog(
+        "SYSTEM",
+        "FETCH_EQUIPMENT",
+        `Fetched ${result.length} equipment items${lineId ? ` for line ${lineId}` : ""}`,
+      );
+      return result;
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   getInstruments: async (pagination?: Pagination) => {
@@ -60,13 +70,18 @@ export const OperationalService = {
     if (pagination?.limit) params.push(pagination.limit);
     if (pagination?.offset) params.push(pagination.offset);
 
-    const result = await db.query(replacePlaceholders(sql), params);
-    await createAuditLog(
-      "SYSTEM",
-      "FETCH_INSTRUMENTS",
-      `Fetched ${result.length} instruments`,
-    );
-    return result;
+    try {
+      const result = await db.query(replacePlaceholders(sql), params);
+      await createAuditLog(
+        "SYSTEM",
+        "FETCH_INSTRUMENTS",
+        `Fetched ${result.length} instruments`,
+      );
+      return result;
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   getInventory: async (pagination?: Pagination) => {
@@ -77,13 +92,18 @@ export const OperationalService = {
     if (pagination?.limit) params.push(pagination.limit);
     if (pagination?.offset) params.push(pagination.offset);
 
-    const result = await db.query(replacePlaceholders(sql), params);
-    await createAuditLog(
-      "SYSTEM",
-      "FETCH_INVENTORY",
-      `Fetched ${result.length} inventory items`,
-    );
-    return result;
+    try {
+      const result = await db.query(replacePlaceholders(sql), params);
+      await createAuditLog(
+        "SYSTEM",
+        "FETCH_INVENTORY",
+        `Fetched ${result.length} inventory items`,
+      );
+      return result;
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   getCertificates: async (filters?: { status?: string } & Pagination) => {
@@ -101,13 +121,18 @@ export const OperationalService = {
     if (filters?.limit) params.push(filters.limit);
     if (filters?.offset) params.push(filters.offset);
 
-    const result = await db.query(replacePlaceholders(sql), params);
-    await createAuditLog(
-      "SYSTEM",
-      "FETCH_CERTIFICATES",
-      `Fetched ${result.length} certificates`,
-    );
-    return result;
+    try {
+      const result = await db.query(replacePlaceholders(sql), params);
+      await createAuditLog(
+        "SYSTEM",
+        "FETCH_CERTIFICATES",
+        `Fetched ${result.length} certificates`,
+      );
+      return result;
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   getPlantIntel: async () => {
@@ -116,20 +141,29 @@ export const OperationalService = {
     const yieldVal = 92.5;
     const energy = 42.1;
 
-    // Active Alarms from audit logs
-    const alarmsResult = await db.query(`
-      SELECT COUNT(*) as count FROM audit_logs 
-      WHERE action LIKE '%ERROR%' OR action LIKE '%FAILURE%'
-      AND created_at >= NOW() - INTERVAL '24 HOURS'
-    `);
-    const activeAlarms = Number(alarmsResult[0]?.count) || 0;
+    let activeAlarms = 0;
+    let linesResult: any[] = [];
 
-    // Line Status
-    const linesResult = await db.query(
-      "SELECT * FROM production_lines ORDER BY name ASC",
-    );
+    try {
+      // Active Alarms from audit logs
+      const alarmsResult = await db.query(`
+        SELECT COUNT(*) as count FROM audit_logs 
+        WHERE action LIKE '%ERROR%' OR action LIKE '%FAILURE%'
+        AND created_at >= NOW() - INTERVAL '24 HOURS'
+      `);
+      activeAlarms = Number(alarmsResult[0]?.count) || 0;
 
-    let lines = [];
+      // Line Status
+      linesResult = await db.query(
+        "SELECT * FROM production_lines ORDER BY name ASC",
+      );
+    } catch (error: any) {
+      if (error.message !== "Database not connected") {
+        throw error;
+      }
+    }
+
+    let lines: { name: any; status: string; uptime: string; oee: string; }[] = [];
     if (linesResult.length > 0) {
       // Generate realistic status based on line name
       lines = linesResult.map((line: any) => {

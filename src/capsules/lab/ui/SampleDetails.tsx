@@ -19,7 +19,7 @@ import {
   Fingerprint,
   Zap,
 } from "lucide-react";
-import type { Sample, TestResult } from "../../../core/types";
+import type { Sample } from "../../../core/types";
 import { SampleStatus, TestStatus } from "../../../core/types";
 import { LabPanel } from "../../../ui/components/LabPanel";
 import { LabButton } from "../../../ui/components/LabButton";
@@ -55,7 +55,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
         actions={
           <button
             onClick={onBack}
-            className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase text-brand-sage hover:text-brand-primary bg-brand-mist/40 rounded-lg border border-brand-sage/10 transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase text-brand-sage hover:text-white bg-(--color-zenthar-carbon)/40 rounded-lg border border-brand-sage/10 transition-all"
           >
             <ArrowLeft size={14} /> Back_To_Queue
           </button>
@@ -66,8 +66,8 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
           <header
             className={`p-6 rounded-4xl border transition-all duration-500 shadow-xl ${
               isStat
-                ? "bg-white border-lab-laser/30"
-                : "bg-white border-brand-sage/10"
+                ? "bg-(--color-zenthar-carbon) border-lab-laser/30"
+                : "bg-(--color-zenthar-carbon) border-brand-sage/10"
             }`}
           >
             <div className="flex items-start justify-between">
@@ -83,7 +83,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                 </div>
                 <div>
                   <div className="flex items-center gap-3">
-                    <h2 className="text-3xl font-black text-brand-deep tracking-[ -0.05em] font-mono">
+                    <h2 className="text-3xl font-black text-white tracking-[ -0.05em] font-mono">
                       {sample.batch_id}
                     </h2>
                     {isStat && (
@@ -113,8 +113,8 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                 <div
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wider ${
                     isCompleted
-                      ? "bg-emerald-50 border-emerald-100 text-emerald-600"
-                      : "bg-brand-primary/5 border-brand-primary/20 text-brand-primary"
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                      : "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
                   }`}
                 >
                   {sample.status === SampleStatus.VALIDATING && (
@@ -131,7 +131,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
             <section>
               <div className="flex items-center gap-2 mb-4 px-1">
                 <Settings size={14} className="text-brand-primary" />
-                <h3 className="text-[10px] font-black text-brand-deep uppercase tracking-[0.2em]">
+                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
                   Sample_Parameters
                 </h3>
               </div>
@@ -153,12 +153,12 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                           setEditedSample((p) => ({ ...p, batch_id: v }))
                         }
                       />
-                      <div className="p-4 bg-brand-mist/20 border border-brand-primary/20 rounded-2xl">
+                      <div className="p-4 bg-(--color-zenthar-carbon)/50 border border-brand-primary/20 rounded-2xl">
                         <label className="text-[9px] font-black text-brand-primary uppercase mb-2 block tracking-widest">
                           Urgency_Tier
                         </label>
                         <select
-                          className="w-full bg-transparent text-xs font-bold text-brand-deep outline-none cursor-pointer"
+                          className="w-full bg-transparent text-xs font-bold text-white outline-none cursor-pointer"
                           value={editedSample.priority}
                           onChange={(e) =>
                             setEditedSample((p) => ({
@@ -167,9 +167,9 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                             }))
                           }
                         >
-                          <option value="NORMAL">Normal_Priority</option>
-                          <option value="HIGH">High_Priority</option>
-                          <option value="STAT">Stat_Urgent</option>
+                          <option value="NORMAL" className="bg-(--color-zenthar-carbon)">Normal_Priority</option>
+                          <option value="HIGH" className="bg-(--color-zenthar-carbon)">High_Priority</option>
+                          <option value="STAT" className="bg-(--color-zenthar-carbon)">Stat_Urgent</option>
                         </select>
                       </div>
                     </motion.div>
@@ -215,8 +215,8 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                   className="space-y-3"
                 >
                   <div className="flex items-center gap-2 px-1">
-                    <TrendingUp size={14} className="text-emerald-500" />
-                    <h3 className="text-[10px] font-black text-brand-deep uppercase tracking-[0.2em]">
+                    <TrendingUp size={14} className="text-emerald-400" />
+                    <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
                       Instrument_Readout
                     </h3>
                   </div>
@@ -224,11 +224,11 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                     {testResults.map((result) => (
                       <div
                         key={result.id}
-                        className="flex items-center justify-between p-4 bg-white border border-brand-sage/10 rounded-2xl hover:border-brand-primary/40 transition-all shadow-sm"
+                        className="flex items-center justify-between p-4 bg-(--color-zenthar-carbon) border border-brand-sage/10 rounded-2xl hover:border-brand-primary/40 transition-all shadow-sm"
                       >
                         <div className="flex items-center gap-4">
                           <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center ${result.status === TestStatus.COMPLETED ? "bg-emerald-500/10 text-emerald-500" : "bg-brand-primary/10 text-brand-primary"}`}
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center ${result.status === TestStatus.COMPLETED ? "bg-emerald-500/10 text-emerald-400" : "bg-brand-primary/10 text-brand-primary"}`}
                           >
                             {result.status === TestStatus.COMPLETED ? (
                               <CheckCircle2 size={18} />
@@ -237,7 +237,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                             )}
                           </div>
                           <div>
-                            <div className="text-[11px] font-black text-brand-deep uppercase tracking-tight">
+                            <div className="text-[11px] font-black text-white uppercase tracking-tight">
                               {result.test_type}
                             </div>
                             <div className="text-[8px] font-bold text-brand-sage tracking-[0.2em] uppercase">
@@ -246,7 +246,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="text-xl font-mono font-black text-brand-deep">
+                          <span className="text-xl font-mono font-black text-white">
                             {result.calculated_value || "---"}
                           </span>
                           <span className="text-[9px] font-bold text-brand-sage/60 ml-1 uppercase">
@@ -324,8 +324,8 @@ const DetailTile = ({
   <div
     className={`p-4 rounded-2xl border transition-all ${className} ${
       highlight
-        ? "bg-brand-primary/5 border-brand-primary/20"
-        : "bg-white border-brand-sage/5"
+        ? "bg-brand-primary/10 border-brand-primary/20"
+        : "bg-(--color-zenthar-carbon) border-brand-sage/10"
     }`}
   >
     <div
@@ -333,19 +333,19 @@ const DetailTile = ({
     >
       <Icon size={10} /> {label}
     </div>
-    <div className="text-xs font-black text-brand-deep uppercase truncate font-mono">
+    <div className="text-xs font-black text-white uppercase truncate font-mono">
       {value || "N/A"}
     </div>
   </div>
 );
 
 const EditField = ({ icon: Icon, label, value, onChange }: any) => (
-  <div className="p-4 bg-white border-2 border-brand-primary/10 rounded-2xl focus-within:border-brand-primary transition-all shadow-inner">
+  <div className="p-4 bg-(--color-zenthar-carbon) border-2 border-brand-primary/10 rounded-2xl focus-within:border-brand-primary transition-all shadow-inner">
     <label className="flex items-center gap-1.5 text-[9px] font-black text-brand-primary uppercase mb-1 tracking-widest">
       <Icon size={10} /> {label}
     </label>
     <input
-      className="w-full bg-transparent text-xs font-bold text-brand-deep outline-none"
+      className="w-full bg-transparent text-xs font-bold text-white outline-none"
       value={value || ""}
       onChange={(e) => onChange(e.target.value)}
       autoFocus

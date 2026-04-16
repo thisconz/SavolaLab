@@ -69,7 +69,8 @@ const updateWorkflowStep = async (
         [activeExecution.id],
       );
     }
-  } catch (err) {
+  } catch (err: any) {
+    if (err.message === "Database not connected") return;
     console.error("Workflow step update error:", err);
   }
 };

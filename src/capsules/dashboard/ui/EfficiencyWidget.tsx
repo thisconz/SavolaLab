@@ -11,7 +11,6 @@ import {
 } from "@/src/lib/recharts";
 import { motion } from "@/src/lib/motion";
 import { Sample } from "../../../core/types";
-import clsx from "@/src/lib/clsx";
 
 interface EfficiencyWidgetProps {
   samples: Sample[];
@@ -131,7 +130,7 @@ const CustomYAxisTick = (props: any) => {
         y={0}
         dy={4}
         textAnchor="end"
-        className="fill-brand-deep/60 text-[9px] font-black font-mono tracking-tighter uppercase"
+        className="fill-white/60 text-[9px] font-black font-mono tracking-tighter uppercase"
       >
         {payload.value}
       </text>
@@ -147,7 +146,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-brand-deep/95 backdrop-blur-md border border-brand-primary/20 p-3 rounded-xl shadow-2xl"
+      className="bg-(--color-zenthar-void)/95 backdrop-blur-md border border-brand-primary/20 p-3 rounded-xl shadow-2xl"
     >
       <div className="flex items-center justify-between gap-4 mb-2">
         <span className="text-[8px] font-black text-brand-primary uppercase tracking-widest">
@@ -179,7 +178,7 @@ const EfficiencyLoading = () => (
     {[...Array(5)].map((_, i) => (
       <div key={i} className="flex items-center gap-4">
         <div className="w-16 h-2 bg-brand-sage/10 rounded animate-pulse" />
-        <div className="flex-1 h-3 bg-brand-mist rounded animate-pulse" style={{ width: `${100 - i * 15}%` }} />
+        <div className="flex-1 h-3 bg-(--color-zenthar-graphite) rounded animate-pulse" style={{ width: `${100 - i * 15}%` }} />
       </div>
     ))}
   </div>

@@ -15,7 +15,7 @@ import {
   ListChecks,
   RefreshCw,
 } from "lucide-react";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion } from "@/src/lib/motion";
 import { LabPanel } from "../../../ui/components/LabPanel";
 import { NotificationApi } from "../../notifications";
 import { LabApi } from "../../lab";
@@ -71,11 +71,11 @@ export const DashboardFeature: React.FC = memo(() => {
   const trends = useMemo(() => calculateDashboardTrends(data.samples, data.tests), [data]);
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-hidden bg-brand-mist/10 p-2 rounded-3xl">
+    <div className="h-full flex flex-col gap-6 overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
       {/* 1. HEADER SECTION */}
       <div className="flex items-center justify-between px-4 shrink-0">
         <div>
-          <h2 className="text-xl font-bold text-brand-deep flex items-center gap-2">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <LayoutDashboard className="w-5 h-5 text-brand-primary" />
             Dashboard
           </h2>
@@ -85,7 +85,7 @@ export const DashboardFeature: React.FC = memo(() => {
         </div>
         <button 
           onClick={() => fetchData(true)}
-          className="p-2 rounded-xl border border-brand-sage/20 bg-white hover:bg-brand-mist transition-colors group"
+          className="p-2 rounded-xl border border-brand-sage/20 bg-(--color-zenthar-graphite) hover:bg-(--color-zenthar-graphite)/80 transition-colors group"
         >
           <RefreshCw className={clsx("w-4 h-4 text-brand-sage group-hover:text-brand-primary", isRefreshing && "animate-spin")} />
         </button>
@@ -210,7 +210,7 @@ const MetricCard = ({ label, value, trend, icon: Icon, variant }: any) => {
   return (
     <motion.div 
       whileHover={{ y: -4, scale: 1.02 }}
-      className="bg-white border border-brand-sage/10 rounded-2xl p-6 shadow-sm relative group overflow-hidden transition-all duration-300"
+      className="bg-(--color-zenthar-carbon) border border-brand-sage/10 rounded-2xl p-6 shadow-sm relative group overflow-hidden transition-all duration-300"
     >
       {/* Decorative Background Gradient Blur */}
       <div className={clsx(
@@ -234,15 +234,15 @@ const MetricCard = ({ label, value, trend, icon: Icon, variant }: any) => {
         <div className={clsx(
           "text-[9px] font-bold px-2 py-0.5 rounded-md border backdrop-blur-xs",
           isPositive 
-            ? "text-emerald-600 bg-emerald-50/50 border-emerald-100" 
-            : "text-brand-sage bg-brand-mist/50 border-brand-sage/10"
+            ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30" 
+            : "text-brand-sage bg-(--color-zenthar-graphite)/50 border-brand-sage/20"
         )}>
           {trend}
         </div>
       </div>
 
       <div className="flex items-end justify-between relative z-10">
-        <div className="text-5xl font-light text-brand-deep tracking-tighter leading-none">
+        <div className="text-5xl font-light text-white tracking-tighter leading-none">
           {value}
         </div>
         
@@ -273,23 +273,23 @@ const AlertItem = ({ alert }: { alert: Notification }) => {
   const isCritical = alert.type.includes("FAILURE") || alert.type.includes("CRITICAL");
 
   return (
-    <div className="flex gap-4 p-4 rounded-xl border border-brand-sage/5 hover:border-brand-primary/20 hover:bg-white hover:shadow-sm transition-all group relative overflow-hidden">
+    <div className="flex gap-4 p-4 rounded-xl border border-brand-sage/5 hover:border-brand-primary/20 hover:bg-(--color-zenthar-graphite)/50 hover:shadow-sm transition-all group relative overflow-hidden">
       {/* Side accent strip */}
       <div className={clsx(
         "absolute left-0 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity",
-        isCritical ? "bg-red-500" : "bg-brand-primary"
+        isCritical ? "bg-lab-laser" : "bg-brand-primary"
       )} />
       
       <div className={clsx(
         "mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
-        isCritical ? "bg-red-50 text-red-500" : "bg-brand-mist text-brand-primary"
+        isCritical ? "bg-lab-laser/10 text-lab-laser" : "bg-(--color-zenthar-graphite) text-brand-primary"
       )}>
         {isCritical ? <XCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex justify-between items-start mb-1">
-          <p className="text-[11px] font-bold text-brand-deep leading-tight group-hover:text-brand-primary transition-colors truncate pr-2">
+          <p className="text-[11px] font-bold text-white leading-tight group-hover:text-brand-primary transition-colors truncate pr-2">
             {alert.message}
           </p>
           <span className="text-[8px] font-mono text-brand-sage/60 shrink-0">
@@ -313,10 +313,10 @@ const LoadingState = () => (
 
 const EmptyAlertsState = () => (
   <div className="m-auto text-center py-10">
-    <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-100">
+    <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
       <CheckCircle2 className="w-6 h-6" />
     </div>
-    <p className="text-[10px] font-black text-brand-deep uppercase tracking-widest">All Systems Nominal</p>
+    <p className="text-[10px] font-black text-white uppercase tracking-widest">All Systems Nominal</p>
     <p className="text-[9px] text-brand-sage mt-1">No pending alerts requiring action.</p>
   </div>
 );

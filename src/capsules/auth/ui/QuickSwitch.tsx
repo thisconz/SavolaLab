@@ -54,15 +54,15 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
             animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="bg-white rounded-[2.5rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] w-full max-w-lg overflow-hidden border border-white/20 relative preserve-3d"
+            className="bg-(--color-zenthar-carbon) rounded-[2.5rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] w-full max-w-lg overflow-hidden border border-brand-sage/10 relative preserve-3d"
           >
             {/* Structural Header */}
-            <div className="relative p-8 pb-6 overflow-hidden bg-brand-mist/10">
+            <div className="relative p-8 pb-6 overflow-hidden bg-(--color-zenthar-graphite)/30">
               <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-brand-primary to-transparent" />
               
               <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-brand-deep flex items-center justify-center shadow-inner group overflow-hidden relative">
+                  <div className="w-12 h-12 rounded-xl bg-(--color-zenthar-void) flex items-center justify-center shadow-inner group overflow-hidden relative">
                     <Fingerprint className="w-6 h-6 text-brand-primary group-hover:scale-110 transition-transform" />
                     <motion.div 
                       animate={{ y: [-20, 40] }} 
@@ -71,11 +71,11 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                     />
                   </div>
                   <div>
-                    <h2 className="text-sm font-black text-brand-deep uppercase tracking-[0.3em]">
+                    <h2 className="text-sm font-black text-white uppercase tracking-[0.3em]">
                       Switch Personnel
                     </h2>
                     <div className="flex items-center gap-2 mt-1">
-                      <Radio className="w-3 h-3 text-emerald-500 animate-pulse" />
+                      <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
                       <p className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-widest opacity-80">
                         Node: {currentUser?.dept || "GENERAL_LAB"}
                       </p>
@@ -85,7 +85,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                 
                 <button
                   onClick={onClose}
-                  className="w-10 h-10 flex items-center justify-center text-brand-sage hover:text-brand-deep hover:bg-brand-mist/50 rounded-2xl transition-all active:scale-90"
+                  className="w-10 h-10 flex items-center justify-center text-brand-sage hover:text-white hover:bg-(--color-zenthar-graphite) rounded-2xl transition-all active:scale-90"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -112,8 +112,8 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                       className={clsx(
                         "w-full flex items-center p-2 rounded-2xl border transition-all duration-300 group relative",
                         isActive
-                          ? "border-brand-primary/20 bg-brand-primary/2 ring-1 ring-brand-primary/10 shadow-sm"
-                          : "border-brand-mist/50 bg-brand-mist/20 hover:bg-white hover:border-brand-primary/30 hover:shadow-md"
+                          ? "border-brand-primary/40 bg-brand-primary/10 ring-1 ring-brand-primary/20 shadow-sm"
+                          : "border-brand-sage/10 bg-(--color-zenthar-graphite)/30 hover:bg-(--color-zenthar-graphite) hover:border-brand-primary/30 hover:shadow-md"
                       )}
                     >
                       <div className="flex items-center gap-4 w-full p-2">
@@ -121,12 +121,12 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                         <div className="relative">
                           <div className={clsx(
                             "w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm transition-all",
-                            isActive ? "bg-brand-primary text-white shadow-lg" : "bg-white text-brand-sage border border-brand-mist"
+                            isActive ? "bg-brand-primary text-white shadow-lg" : "bg-(--color-zenthar-void) text-brand-sage border border-brand-sage/10"
                           )}>
                             {user.initials}
                           </div>
                           {isActive && (
-                            <div className="absolute -bottom-1 -right-1 p-0.5 bg-white rounded-full">
+                            <div className="absolute -bottom-1 -right-1 p-0.5 bg-(--color-zenthar-carbon) rounded-full">
                               <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
                             </div>
                           )}
@@ -137,7 +137,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className={clsx(
                               "text-[11px] font-black uppercase tracking-wider truncate",
-                              isActive ? "text-brand-primary" : "text-brand-deep"
+                              isActive ? "text-brand-primary" : "text-white"
                             )}>
                               {user.name}
                             </span>
@@ -157,7 +157,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                         {/* Action Hint */}
                         <div className={clsx(
                           "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-                          isActive ? "bg-brand-primary/10 text-brand-primary" : "opacity-0 group-hover:opacity-100 bg-brand-mist text-brand-sage"
+                          isActive ? "bg-brand-primary/10 text-brand-primary" : "opacity-0 group-hover:opacity-100 bg-(--color-zenthar-void) text-brand-sage"
                         )}>
                           {isActive ? <Zap className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                         </div>
@@ -170,14 +170,14 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
 
             {/* Termination Zone */}
             <div className="p-8 pt-4">
-              <div className="h-px w-full bg-linear-to-r from-transparent via-brand-mist to-transparent mb-6" />
+              <div className="h-px w-full bg-linear-to-r from-transparent via-brand-sage/10 to-transparent mb-6" />
               
               <button
                 onClick={() => { logout(); onClose(); }}
-                className="w-full group flex items-center justify-between p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-500 shadow-sm hover:shadow-red-200"
+                className="w-full group flex items-center justify-between p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-600 hover:text-white transition-all duration-500 shadow-sm hover:shadow-red-500/20"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/80 group-hover:bg-white/20 transition-colors shadow-sm">
+                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-(--color-zenthar-void) group-hover:bg-white/20 transition-colors shadow-sm">
                     <LogOut className="w-4 h-4" />
                   </div>
                   <div className="text-left">

@@ -2,7 +2,12 @@ import { db } from "../../core/database";
 
 export const TestRepository = {
   findAll: async () => {
-    return await db.query("SELECT * FROM tests ORDER BY performed_at DESC");
+    try {
+      return await db.query("SELECT * FROM tests ORDER BY performed_at DESC");
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   findById: async (id: string | number) => {

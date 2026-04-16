@@ -55,7 +55,9 @@ export class ApiClient {
         let errorData;
         try {
           const text = await response.text();
-          console.error(`[DEBUG] API Error Response Text for ${url}:`, text);
+          if (response.status !== 401) {
+            console.error(`[DEBUG] API Error Response Text for ${url}:`, text);
+          }
           errorData = JSON.parse(text);
         } catch (e) {
           errorData = {};

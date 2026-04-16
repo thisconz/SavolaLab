@@ -55,17 +55,17 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
     const activeFilterCount = (priorityFilter !== "ALL" ? 1 : 0) + (statusFilter !== "ALL" ? 1 : 0);
 
     return (
-      <div className="flex flex-col h-full w-full bg-white/80 backdrop-blur-xl border border-brand-sage/10 rounded-4xl overflow-hidden shadow-inner">
+      <div className="flex flex-col h-full w-full bg-(--color-zenthar-graphite)/80 backdrop-blur-xl border border-brand-sage/10 rounded-4xl overflow-hidden shadow-inner">
         
         {/* HEADER: OPERATIONAL FILTERS */}
         <header className="flex-none p-5 pb-3 border-b border-brand-sage/5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-1 h-3 bg-brand-primary rounded-full" />
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-brand-deep">
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white">
                 Live_Queue
               </span>
-              <span className="px-2 py-0.5 bg-brand-deep text-white rounded text-[9px] font-mono font-bold">
+              <span className="px-2 py-0.5 bg-(--color-zenthar-void) text-white rounded text-[9px] font-mono font-bold">
                 {filteredSamples.length.toString().padStart(3, '0')}
               </span>
             </div>
@@ -73,7 +73,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
             {activeFilterCount > 0 && (
               <button
                 onClick={() => { setSearchQuery(""); setPriorityFilter("ALL"); setStatusFilter("ALL"); }}
-                className="flex items-center gap-1.5 text-brand-primary hover:text-brand-deep transition-colors text-[9px] font-black uppercase tracking-tighter"
+                className="flex items-center gap-1.5 text-brand-primary hover:text-white transition-colors text-[9px] font-black uppercase tracking-tighter"
               >
                 <RotateCcw className="w-3 h-3" />
                 Reset_Filters
@@ -88,7 +88,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
               placeholder="Filter by Batch, Stage, or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-brand-mist/30 border border-brand-sage/5 rounded-xl pl-9 pr-4 py-2.5 text-xs font-mono focus:outline-none focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all placeholder:text-brand-sage/30"
+              className="w-full bg-(--color-zenthar-carbon)/30 border border-brand-sage/5 rounded-xl pl-9 pr-4 py-2.5 text-xs font-mono focus:outline-none focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all placeholder:text-brand-sage/30 text-white"
             />
           </div>
 
@@ -111,7 +111,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-brand-mist/50 border border-brand-sage/10 text-brand-sage text-[9px] font-black uppercase tracking-widest pl-3 pr-8 py-1.5 rounded-lg appearance-none cursor-pointer focus:outline-none focus:border-brand-primary/40"
+                className="bg-(--color-zenthar-carbon)/50 border border-brand-sage/10 text-brand-sage text-[9px] font-black uppercase tracking-widest pl-3 pr-8 py-1.5 rounded-lg appearance-none cursor-pointer focus:outline-none focus:border-brand-primary/40"
               >
                 <option value="ALL">Status_All</option>
                 {Object.values(SampleStatus).map((s) => (
@@ -130,7 +130,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
         >
           {filteredSamples.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center py-20 animate-in fade-in zoom-in duration-500">
-              <div className="p-5 bg-brand-mist/20 rounded-full mb-4">
+              <div className="p-5 bg-(--color-zenthar-carbon)/20 rounded-full mb-4">
                 <Beaker className="w-8 h-8 text-brand-sage/20" />
               </div>
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-sage/40">

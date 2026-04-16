@@ -24,7 +24,14 @@ function assertAllowedTable(table: string): void {
 export const SettingsService = {
   // --- Get system preferences with defaults & validation ---
   getPreferences: async (): Promise<Record<string, string>> => {
-    const rows = (await db.query(`SELECT * FROM system_preferences`)) as any[];
+    let rows: any[] = [];
+    try {
+      rows = (await db.query(`SELECT * FROM system_preferences`)) as any[];
+    } catch (error: any) {
+      if (error.message !== "Database not connected") {
+        throw error;
+      }
+    }
     const prefs: Record<string, string> = {};
     rows.forEach((row) => {
       prefs[row.key] = row.value;
@@ -42,7 +49,12 @@ export const SettingsService = {
     if (!ALLOWED_TABLES.has(table)) {
       throw new Error(`Unauthorized access attempt to table: ${table}`);
     }
-    return await db.query(`SELECT * FROM ${table} ORDER BY id DESC`);
+    try {
+      return await db.query(`SELECT * FROM ${table} ORDER BY id DESC`);
+    } catch (error: any) {
+      if (error.message === "Database not connected") return [];
+      throw error;
+    }
   },
 
   // --- Create a new record ---

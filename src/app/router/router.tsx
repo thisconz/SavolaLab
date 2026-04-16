@@ -5,7 +5,6 @@ import { useAppStore, AppTab } from "../../orchestrator/state/app.store";
 import { useAuthStore } from "../../orchestrator/state/auth.store";
 import { isTabAllowed } from "../../core/rbac";
 import { ErrorBoundary as GlobalErrorBoundary } from "../../ui/components/ErrorBoundary";
-import clsx from "@/src/lib/clsx";
 
 /**
  * Registry of Feature Modules
@@ -59,7 +58,7 @@ export const FeatureRouter: React.FC = () => {
 
   return (
     <GlobalErrorBoundary key={activeTab}>
-      <div className="h-full w-full relative overflow-hidden bg-brand-mist/5">
+      <div className="h-full w-full relative overflow-hidden bg-(--color-zenthar-graphite)/30">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -82,8 +81,8 @@ export const FeatureRouter: React.FC = () => {
 /* --- Enhanced Sub-Components --- */
 
 const AccessDeniedView: React.FC<{ tab: string }> = ({ tab }) => (
-  <div className="h-full w-full flex items-center justify-center p-8 bg-linear-to-br from-white to-brand-mist/20">
-    <div className="max-w-md w-full bg-white rounded-4xl p-12 shadow-2xl border border-lab-laser/10 flex flex-col items-center text-center relative overflow-hidden">
+  <div className="h-full w-full flex items-center justify-center p-8 bg-linear-to-br from-(--color-zenthar-carbon) to-(--color-zenthar-void)">
+    <div className="max-w-md w-full bg-(--color-zenthar-carbon) rounded-4xl p-12 shadow-2xl border border-lab-laser/10 flex flex-col items-center text-center relative overflow-hidden">
       {/* Decorative Red Scanline */}
       <div className="absolute top-0 left-0 w-full h-1 bg-lab-laser animate-pulse opacity-50" />
       
@@ -94,7 +93,7 @@ const AccessDeniedView: React.FC<{ tab: string }> = ({ tab }) => (
         </div>
       </div>
 
-      <h2 className="text-2xl font-black text-brand-deep uppercase tracking-[0.2em] mb-3">
+      <h2 className="text-2xl font-black text-white uppercase tracking-[0.2em] mb-3">
         Terminal Locked
       </h2>
       
@@ -125,16 +124,16 @@ const FeatureLoader = () => (
         transition={{ duration: 2, repeat: Infinity }}
         className="absolute w-16 h-16 border border-brand-primary/30 rounded-full"
       />
-      <div className="w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center border border-brand-sage/10 relative z-10">
+      <div className="w-12 h-12 bg-(--color-zenthar-void) rounded-2xl shadow-xl flex items-center justify-center border border-brand-sage/10 relative z-10">
         <Loader2 className="w-6 h-6 text-brand-primary animate-spin" />
       </div>
     </div>
     
     <div className="flex flex-col items-center">
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-deep animate-pulse">
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white animate-pulse">
         Initializing Module
       </p>
-      <div className="mt-2 h-0.5 w-32 bg-brand-mist/50 rounded-full overflow-hidden">
+      <div className="mt-2 h-0.5 w-32 bg-(--color-zenthar-graphite) rounded-full overflow-hidden">
         <motion.div 
           initial={{ x: "-100%" }}
           animate={{ x: "100%" }}

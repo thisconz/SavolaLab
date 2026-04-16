@@ -2,15 +2,22 @@ import { db } from "../../core/database";
 
 export const AnalyticsService = {
   getQualityData: async () => {
-    // Fetch real data from tests table
-    const tests = await db.query(`
-      SELECT test_type, calculated_value, updated_at 
-      FROM tests 
-      WHERE test_type IN ('Brix', 'Purity', 'Color')
-      AND status = 'COMPLETED'
-      AND updated_at >= NOW() - INTERVAL '24 HOURS'
-      ORDER BY updated_at ASC
-    `);
+    let tests: any[] = [];
+    try {
+      // Fetch real data from tests table
+      tests = await db.query(`
+        SELECT test_type, calculated_value, updated_at 
+        FROM tests 
+        WHERE test_type IN ('Brix', 'Purity', 'Color')
+        AND status = 'COMPLETED'
+        AND updated_at >= NOW() - INTERVAL '24 HOURS'
+        ORDER BY updated_at ASC
+      `);
+    } catch (error: any) {
+      if (error.message !== "Database not connected") {
+        throw error;
+      }
+    }
 
     if (tests.length === 0) {
       return [];
@@ -45,14 +52,21 @@ export const AnalyticsService = {
   },
 
   getVolumeData: async () => {
-    // Fetch real volume data from samples
-    const samples = await db.query(`
-      SELECT DATE(created_at) as date, COUNT(*) as volume
-      FROM samples
-      WHERE created_at >= NOW() - INTERVAL '7 DAYS'
-      GROUP BY DATE(created_at)
-      ORDER BY date ASC
-    `);
+    let samples: any[] = [];
+    try {
+      // Fetch real volume data from samples
+      samples = await db.query(`
+        SELECT DATE(created_at) as date, COUNT(*) as volume
+        FROM samples
+        WHERE created_at >= NOW() - INTERVAL '7 DAYS'
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+      `);
+    } catch (error: any) {
+      if (error.message !== "Database not connected") {
+        throw error;
+      }
+    }
 
     if (samples.length === 0) {
       return [];
@@ -70,14 +84,21 @@ export const AnalyticsService = {
   },
 
   getProcessCapability: async () => {
-    // Calculate real Cpk from tests
-    const tests = await db.query(`
-      SELECT test_type, AVG(calculated_value) as mean, STDDEV(calculated_value) as stddev
-      FROM tests
-      WHERE test_type IN ('Brix', 'Purity', 'Color')
-      AND status = 'COMPLETED'
-      GROUP BY test_type
-    `);
+    let tests: any[] = [];
+    try {
+      // Calculate real Cpk from tests
+      tests = await db.query(`
+        SELECT test_type, AVG(calculated_value) as mean, STDDEV(calculated_value) as stddev
+        FROM tests
+        WHERE test_type IN ('Brix', 'Purity', 'Color')
+        AND status = 'COMPLETED'
+        GROUP BY test_type
+      `);
+    } catch (error: any) {
+      if (error.message !== "Database not connected") {
+        throw error;
+      }
+    }
 
     const cpk = {
       brixCpk: 1.42,
