@@ -34,7 +34,7 @@ export const LabFeature: React.FC = memo(() => {
 
   const activeCount = useMemo(
     () =>
-      samples?.filter((s) => s.status === ("in_progress" as SampleStatus))
+      samples?.filter((s) => s.status === ("TESTING" as SampleStatus))
         .length || 0,
     [samples],
   );
@@ -114,7 +114,7 @@ export const LabFeature: React.FC = memo(() => {
         <div className="col-span-12 lg:col-span-8 xl:col-span-8 flex flex-col overflow-hidden h-full">
           <AnimatePresence mode="wait">
             {!selectedSample ? (
-              <EmptyWorkspace key="empty" />
+              <EmptyWorkspace key="empty" samples={samples ?? []} />
             ) : viewMode === "details" ? (
               <WorkspaceTransition key="details">
                 <ErrorBoundary name="Sample Details">
@@ -182,23 +182,36 @@ const StatItem = ({ icon: Icon, label, value, color }: any) => (
   </div>
 );
 
-const EmptyWorkspace = () => (
+import { PriorityWidget } from "../../dashboard/ui/PriorityWidget";
+import { QCStatsWidget } from "../../dashboard/ui/QCStatsWidget";
+
+const EmptyWorkspace = ({ samples }: { samples: Sample[] }) => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className="h-full flex flex-col items-center justify-center gap-6 bg-(--color-zenthar-graphite)/30 backdrop-blur-sm rounded-[2.5rem] border-2 border-dashed border-brand-sage/10"
+    className="h-full flex flex-col gap-6"
   >
-    <div className="relative">
-      <div className="absolute inset-0 bg-brand-primary/5 rounded-full blur-3xl animate-pulse" />
-      <div className="relative p-12 bg-(--color-zenthar-carbon) rounded-full border border-brand-sage/5 shadow-sm">
-        <Microscope size={56} className="text-brand-primary/20" />
-      </div>
+    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <LabPanel title="Quality Distribution" icon={Activity}>
+        <QCStatsWidget samples={samples} />
+      </LabPanel>
+      <LabPanel title="Urgency Heatmap" icon={Activity}>
+        <PriorityWidget samples={samples} />
+      </LabPanel>
     </div>
-    <div className="text-center max-w-sm">
-      <h2 className="text-xl font-bold text-white">Workspace Idle</h2>
-      <p className="text-brand-sage text-sm mt-2 leading-relaxed">
-        Terminal ready for input. Select a sample from the processing queue to initiate analysis or testing procedures.
-      </p>
+    <div className="flex flex-col items-center justify-center p-10 bg-(--color-zenthar-graphite)/30 backdrop-blur-sm rounded-[2.5rem] border-2 border-dashed border-brand-sage/10">
+      <div className="relative">
+        <div className="absolute inset-0 bg-brand-primary/5 rounded-full blur-3xl animate-pulse" />
+        <div className="relative p-8 bg-(--color-zenthar-carbon) rounded-full border border-brand-sage/5 shadow-sm">
+          <Microscope size={40} className="text-brand-primary/20" />
+        </div>
+      </div>
+      <div className="text-center max-w-sm mt-6">
+        <h2 className="text-xl font-bold text-white">Workspace Idle</h2>
+        <p className="text-brand-sage text-sm mt-2 leading-relaxed">
+          Terminal ready for input. Select a sample from the processing queue to initiate analysis or testing procedures.
+        </p>
+      </div>
     </div>
   </motion.div>
 );

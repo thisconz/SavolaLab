@@ -11,33 +11,30 @@ export function useLabSamples() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSamples = useCallback(async () => {
-  let isSubscribed = true;
-
-  try {
-    setLoading(true);
-    const data = await LabApi.getSamples();
-    if (isSubscribed) {
-      setSamples(data);
-      setError(null);
+  const fetchSamples = useCallback(async (signal?: AbortSignal) => {
+    try {
+      setLoading(true);
+      const data = await LabApi.getSamples();
+      if (!signal?.aborted) {
+        setSamples(data);
+        setError(null);
+      }
+    } catch (err: any) {
+      if (!signal?.aborted) {
+        console.error("Error fetching samples:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch samples");
+      }
+    } finally {
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
-  } catch (err) {
-    if (isSubscribed) {
-      console.error("Error fetching samples:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch samples");
-    }
-  } finally {
-    if (isSubscribed) {
-      setLoading(false);
-    }
-  }
-
-  return () => { isSubscribed = false; };
   }, []);
 
-
   useEffect(() => {
-    fetchSamples();
+    const controller = new AbortController();
+    fetchSamples(controller.signal);
+    return () => controller.abort();
   }, [fetchSamples]);
 
   const refresh = () => fetchSamples();

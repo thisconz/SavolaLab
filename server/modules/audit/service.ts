@@ -79,7 +79,8 @@ export const AuditService = {
         `INSERT INTO audit_logs (employee_number, action, details, ip_address) VALUES ($1, $2, $3, $4)`,
         [employeeNumber, safeAction, safeDetails, ip || "127.0.0.1"],
       );
-    } catch (err) {
+    } catch (err: any) {
+      if (err.message === "Database not connected") return;
       logger.error({
         employeeNumber,
         action,

@@ -1,18 +1,17 @@
 import React, { memo, useMemo, type FC } from "react";
-import { Activity, ChevronRight, Cpu, LucideIcon } from "lucide-react";
+import { Activity, ChevronRight, Cpu, LucideIcon, Home, Zap, ShieldCheck } from "lucide-react";
 import { useAppStore } from "../../orchestrator/state/app.store";
 import { NotificationCenter } from "../../capsules/notifications";
 import { LogoRoot, LogoText } from "../../ui/components/Logo";
+import { motion } from "@/src/lib/motion";
 import clsx from "@/src/lib/clsx";
 
-/**
- * Interface for Telemetry data to eliminate 'any'
- */
 interface TelemetryProps {
   icon: LucideIcon;
   label: string;
   value: string;
   status: "success" | "info" | "warning";
+  percent?: number;
 }
 
 export const Header: FC = memo(() => {
@@ -20,60 +19,71 @@ export const Header: FC = memo(() => {
 
   const path = useMemo(() => {
     const node = activeTab?.toUpperCase() || "SYSTEM_ROOT";
-    return ["ZENTHAR_OS", node];
+    return ["ZENTHAR", node];
   }, [activeTab]);
 
   return (
-    <header className="sticky top-0 h-24 w-full border-b border-brand-sage/15 flex items-center justify-between px-10 bg-(--color-zenthar-carbon)/80 backdrop-blur-3xl z-50 shrink-0 overflow-hidden">
-      {/* 1. LAYER: TECHNICAL UNDERLAY & EFFECTS */}
-      <div className="absolute inset-0 bg-[url('/assets/grid-dot.svg')] opacity-[0.03] pointer-events-none" />
+    <header className="sticky top-0 h-24 w-full border-b border-white/[0.04] flex items-center justify-between px-10 bg-[#080809]/90 backdrop-blur-2xl z-50 shrink-0 overflow-hidden">
+      {/* 1. LAYER: ATMOSPHERICS */}
+      <div className="absolute inset-0 bg-[url('/assets/grid-dot.svg')] opacity-[0.02] pointer-events-none" />
       
-      {/* Scanline Effect (Subtle OS Aesthetic) */}
-      <div className="absolute inset-0 bg-linear-to-b from-white/2 to-transparent pointer-events-none h-1/2" />
-      
-      {/* Bottom Border Glows */}
-      <div className="absolute -bottom-px left-0 w-full h-px bg-linear-to-r from-transparent via-brand-primary/30 to-transparent" />
-      <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-brand-primary/20 blur-md transition-all duration-1000" />
+      {/* Dynamic Scanline HUD */}
+      <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-brand-primary/20 to-transparent animate-pulse" />
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-20"
+        style={{
+          background: `linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.03) 50%, transparent 100%)`,
+          backgroundSize: '200% 100%',
+        }}
+      />
 
-      {/* LEFT: Branding & Dynamic Breadcrumbs */}
-      <div className="flex items-center gap-10 relative z-10 min-w-0">
-        <div className="hover:scale-105 transition-transform duration-300">
+      {/* LEFT: Branding & Navigation Matrix */}
+      <div className="flex items-center gap-12 relative z-10 min-w-0">
+        <motion.div 
+          whileHover={{ scale: 1.02, filter: "brightness(1.2)" }}
+          className="cursor-pointer"
+        >
           <LogoRoot size="md" variant="light">
-            <LogoText />
+            <LogoText className="tracking-[0.5em]" />
           </LogoRoot>
-        </div>
+        </motion.div>
 
-        <div className="flex items-center gap-6 group">
-          {/* Kinetic Separator */}
-          <div className="h-10 w-0.5 bg-linear-to-b from-transparent via-brand-sage/20 to-transparent -rotate-12 group-hover:rotate-0 group-hover:scale-y-110 transition-all duration-500 ease-out" />
+        <div className="flex items-center gap-8 group">
+          {/* Vertical Angled Separator */}
+          <div className="h-12 w-[1px] bg-white/10 rotate-[20deg] group-hover:rotate-0 transition-transform duration-500" />
 
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-primary"></span>
-              </span>
-              <span className="text-[9px] font-black text-brand-sage uppercase tracking-[0.4em] opacity-50 selection:bg-brand-primary">
-                Network_Node_Active
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/5 border border-emerald-500/20">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                <span className="text-[7px] font-black text-emerald-400 uppercase tracking-widest">Live_Signal</span>
+              </div>
+              <div className="h-px w-8 bg-white/5" />
+              <span className="text-[8px] font-mono font-bold text-zinc-600 uppercase tracking-[0.3em]">
+                Node: 0x-ALPHA
               </span>
             </div>
 
-            <nav className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
+            <nav className="flex items-center gap-3">
+              <Home className="w-3 h-3 text-zinc-500 hover:text-brand-primary transition-colors cursor-pointer" />
               {path.map((segment, i) => (
                 <React.Fragment key={`${segment}-${i}`}>
-                  {i > 0 && (
-                    <ChevronRight className="w-3.5 h-3.5 text-brand-sage/20 shrink-0" strokeWidth={3} />
-                  )}
-                  <span
+                  <ChevronRight className="w-3 h-3 text-zinc-800" strokeWidth={4} />
+                  <motion.span
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{ opacity: 1, x: 0 }}
                     className={clsx(
-                      "text-[12px] font-black tracking-[0.18em] transition-all duration-300 cursor-default",
+                      "text-[13px] font-black tracking-[0.2em] uppercase transition-all duration-500 cursor-default",
                       i === path.length - 1
-                        ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"
-                        : "text-brand-sage/40 hover:text-brand-sage/80",
+                        ? "text-white drop-shadow-[0_0_12px_rgba(var(--brand-primary-rgb),0.4)]"
+                        : "text-zinc-600 hover:text-zinc-400"
                     )}
                   >
                     {segment}
-                  </span>
+                  </motion.span>
                 </React.Fragment>
               ))}
             </nav>
@@ -81,25 +91,36 @@ export const Header: FC = memo(() => {
         </div>
       </div>
 
-      {/* RIGHT: Intelligence & Action Cluster */}
-      <div className="flex items-center gap-8 relative z-10">
-        <div className="hidden xl:flex items-center gap-2 pr-8 border-r border-brand-sage/10">
+      {/* RIGHT: System Intelligence */}
+      <div className="flex items-center gap-6 relative z-10">
+        <div className="hidden lg:flex items-center gap-4 px-6 py-2 rounded-2xl bg-white/[0.02] border border-white/[0.05] shadow-inner">
           <TelemetryModule
             icon={Activity}
-            label="System_Load"
+            label="Load"
             value="Optimal"
             status="success"
+            percent={12}
           />
+          <div className="w-px h-8 bg-white/[0.03]" />
           <TelemetryModule
-            icon={Cpu}
-            label="Processing"
-            value="3.2ms"
+            icon={Zap}
+            label="Latency"
+            value="12ms"
             status="info"
+            percent={85}
+          />
+          <div className="w-px h-8 bg-white/[0.03]" />
+          <TelemetryModule
+            icon={ShieldCheck}
+            label="Security"
+            value="Encrypted"
+            status="success"
           />
         </div>
 
-        <div className="flex items-center gap-5">
-          <div className="p-1 rounded-full hover:bg-white/5 transition-colors cursor-pointer">
+        <div className="relative group">
+          <div className="absolute inset-0 bg-brand-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative p-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-brand-primary/40 transition-all cursor-pointer">
              <NotificationCenter />
           </div>
         </div>
@@ -108,26 +129,44 @@ export const Header: FC = memo(() => {
   );
 });
 
-/* --- Refined Sub-Components --- */
-
-const TelemetryModule: FC<TelemetryProps> = ({ icon: Icon, label, value, status }) => (
-  <div className="flex items-center gap-3 py-2 px-4 rounded-xl border border-transparent hover:border-brand-sage/10 hover:bg-white/2 transition-all duration-300 cursor-help group/tel">
-    <div
-      className={clsx(
-        "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-700 group-hover/tel:rotate-360 shadow-inner",
-        status === "success"
-          ? "bg-emerald-500/10 text-emerald-400/80 group-hover/tel:text-emerald-300"
-          : "bg-brand-primary/10 text-brand-primary/80 group-hover/tel:text-brand-primary",
-      )}
-    >
-      <Icon className="w-4 h-4" strokeWidth={2} />
+const TelemetryModule: FC<TelemetryProps> = ({ icon: Icon, label, value, status, percent = 100 }) => (
+  <div className="flex items-center gap-4 py-1 px-2 group/tel cursor-help">
+    <div className="relative w-9 h-9 flex items-center justify-center">
+      {/* SVG Orbital Ring */}
+      <svg className="absolute inset-0 w-full h-full -rotate-90">
+        <circle
+          cx="18"
+          cy="18"
+          r="16"
+          className="fill-none stroke-white/[0.05]"
+          strokeWidth="2"
+        />
+        <motion.circle
+          cx="18"
+          cy="18"
+          r="16"
+          className={clsx(
+            "fill-none transition-colors duration-500",
+            status === "success" ? "stroke-emerald-500/40" : "stroke-brand-primary/40"
+          )}
+          strokeWidth="2"
+          strokeDasharray="100"
+          initial={{ strokeDashoffset: 100 }}
+          animate={{ strokeDashoffset: 100 - percent }}
+          strokeLinecap="round"
+        />
+      </svg>
+      <Icon className={clsx(
+        "w-3.5 h-3.5 transition-all group-hover/tel:scale-110",
+        status === "success" ? "text-emerald-400" : "text-brand-primary"
+      )} />
     </div>
     
     <div className="flex flex-col">
-      <span className="text-[8px] font-bold text-brand-sage/40 uppercase tracking-[0.2em] leading-none mb-1.5 transition-colors group-hover/tel:text-brand-sage/70">
+      <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">
         {label}
       </span>
-      <span className="text-[11px] font-mono font-black text-white/90 uppercase leading-none tabular-nums tracking-wider">
+      <span className="text-[10px] font-mono font-bold text-white tracking-tight">
         {value}
       </span>
     </div>

@@ -1,20 +1,8 @@
 ﻿import React, { memo, useMemo, useState } from "react";
 import {
-  LayoutDashboard,
-  Microscope,
-  Zap,
-  Truck,
-  BarChart3,
-  ListChecks,
-  Factory,
-  Database,
-  ShieldAlert,
-  Settings,
-  ChevronRight,
-  Archive,
-  LogOut,
-  RefreshCw,
-  Cpu,
+  LayoutDashboard, Microscope, Zap, Truck, BarChart3, ListChecks,
+  Factory, Database, ShieldAlert, Settings, ChevronRight,
+  Archive, LogOut, RefreshCw, Cpu, Fingerprint
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import { LogoRoot, LogoIcon } from "../../ui/components/Logo";
@@ -24,144 +12,119 @@ import { QuickSwitch } from "../../capsules/auth";
 import { isTabAllowed } from "../../core/rbac";
 import clsx from "@/src/lib/clsx";
 
-/* --- Refined NavItem with Motion --- */
+/* --- Refined NavItem --- */
 
-interface NavItemProps {
-  icon: any;
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  variant?: "default" | "mini";
-}
-
-const NavItem = ({ icon: Icon, label, active, onClick, variant = "default" }: NavItemProps) => (
+const NavItem = ({ icon: Icon, label, active, onClick, variant = "default" }: any) => (
   <button
     onClick={onClick}
     className={clsx(
-      "w-full flex items-center gap-4 px-5 rounded-2xl transition-all duration-300 group relative overflow-hidden",
-      variant === "mini" ? "py-2" : "py-3",
-      active
-        ? "bg-brand-primary/10 text-white shadow-inner"
-        : "text-brand-sage hover:bg-brand-mist/60 hover:text-white",
+      "w-full flex items-center gap-4 px-5 rounded-xl transition-all duration-500 group relative overflow-hidden",
+      variant === "mini" ? "py-2.5" : "py-3.5",
+      active ? "text-white" : "text-zinc-500 hover:text-zinc-200"
     )}
   >
-    {/* Active Indicator: Laser Line */}
+    {/* Background Glow Depth */}
     <AnimatePresence>
       {active && (
         <motion.div
-          layoutId="laser-indicator"
-          className="absolute left-0 top-3 bottom-3 w-0.5 bg-brand-primary rounded-r-full shadow-[0_0_8px_rgba(var(--brand-primary-rgb),0.8)]"
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
+          layoutId="nav-glow"
+          className="absolute inset-0 bg-linear-to-r from-brand-primary/10 via-brand-primary/5 to-transparent z-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         />
       )}
     </AnimatePresence>
 
-    {/* Icon Container with Glow */}
-    <div
-      className={clsx(
-        "relative z-10 transition-all duration-500 flex items-center justify-center",
-        active
-          ? "scale-110 text-brand-primary drop-shadow-[0_0_3px_rgba(var(--brand-primary-rgb),0.4)]"
-          : "group-hover:scale-110 group-hover:text-brand-primary/70",
+    {/* Active Laser Line */}
+    <AnimatePresence>
+      {active && (
+        <motion.div
+          layoutId="laser-indicator"
+          className="absolute left-0 top-2 bottom-2 w-1 bg-brand-primary rounded-r-full shadow-[0_0_12px_rgba(var(--brand-primary-rgb),0.6)] z-20"
+        />
       )}
-    >
-      <Icon className={variant === "mini" ? "w-3.5 h-3.5" : "w-4.5 h-4.5"} />
+    </AnimatePresence>
+
+    <div className={clsx(
+      "relative z-10 transition-transform duration-500",
+      active ? "scale-110 text-brand-primary" : "group-hover:scale-110 group-hover:text-zinc-300"
+    )}>
+      <Icon size={variant === "mini" ? 14 : 18} strokeWidth={active ? 2.5 : 2} />
     </div>
 
-    <span
-      className={clsx(
-        "font-black uppercase tracking-widest flex-1 text-left z-10 transition-all duration-300 truncate",
-        variant === "mini" ? "text-[8px]" : "text-[10px]",
-        active ? "translate-x-1" : "group-hover:translate-x-0.5",
-      )}
-    >
+    <span className={clsx(
+      "font-black uppercase tracking-[0.2em] flex-1 text-left z-10 transition-all duration-300 truncate",
+      variant === "mini" ? "text-[8px]" : "text-[10px]",
+      active ? "translate-x-1 opacity-100" : "opacity-70 group-hover:opacity-100"
+    )}>
       {label}
     </span>
 
     {active && variant === "default" && (
-      <motion.div
-        initial={{ opacity: 0, x: -5 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <ChevronRight className="w-3 h-3 text-brand-primary/40" />
+      <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="z-10">
+        <div className="w-1 h-1 rounded-full bg-brand-primary animate-pulse" />
       </motion.div>
     )}
   </button>
 );
-
-/* --- Main Sidebar --- */
 
 export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => {
   const { setActiveTab } = useAppStore();
   const { currentUser, logout } = useAuthStore();
   const [isSwitchOpen, setIsSwitchOpen] = useState(false);
 
-  const NAV_CONFIG = useMemo(
-    () => [
-      {
-        section: "Overview",
-        items: [{ icon: LayoutDashboard, tab: "dashboard", label: "Dashboard" }],
-      },
-      {
-        section: "Operations",
-        items: [
-          { icon: Microscope, tab: "lab", label: "Lab Bench" },
-          { icon: Zap, tab: "stat", label: "STAT Requests" },
-          { icon: Truck, tab: "dispatch", label: "Dispatch" },
-          { icon: ListChecks, tab: "workflows", label: "Workflows" },
-        ],
-      },
-      {
-        section: "Intelligence",
-        items: [
-          { icon: BarChart3, tab: "analytics", label: "Analytics" },
-          { icon: Factory, tab: "intelligence", label: "Plant Intel" },
-        ],
-      },
-      {
-        section: "System",
-        items: [
-          { icon: Database, tab: "assets", label: "Assets" },
-          { icon: ShieldAlert, tab: "audit", label: "Audit Log" },
-        ],
-      },
-    ],
-    [],
-  );
+  const NAV_CONFIG = useMemo(() => [
+    { section: "Overview", code: "HUD", items: [{ icon: LayoutDashboard, tab: "dashboard", label: "Dashboard" }] },
+    { section: "Operations", code: "OPS", items: [
+      { icon: Microscope, tab: "lab", label: "Lab Bench" },
+      { icon: Zap, tab: "stat", label: "STAT Requests" },
+      { icon: Truck, tab: "dispatch", label: "Dispatch" },
+      { icon: ListChecks, tab: "workflows", label: "Workflows" },
+    ]},
+    { section: "Intelligence", code: "IQ", items: [
+      { icon: BarChart3, tab: "analytics", label: "Analytics" },
+      { icon: Factory, tab: "intelligence", label: "Plant Intel" },
+    ]},
+    { section: "Security", code: "SEC", items: [
+      { icon: Database, tab: "assets", label: "Assets" },
+      { icon: ShieldAlert, tab: "audit", label: "Audit Log" },
+    ]},
+  ], []);
 
   const filteredNav = useMemo(() => {
-    return NAV_CONFIG.map((section) => ({
+    return NAV_CONFIG.map(section => ({
       ...section,
-      items: section.items.filter((item) =>
-        currentUser
-          ? isTabAllowed(currentUser.role, item.tab as AppTab)
-          : item.tab === "dashboard",
-      ),
-    })).filter((section) => section.items.length > 0);
+      items: section.items.filter(item => 
+        currentUser ? isTabAllowed(currentUser.role, item.tab as AppTab) : item.tab === "dashboard"
+      )
+    })).filter(section => section.items.length > 0);
   }, [currentUser, NAV_CONFIG]);
 
   return (
-    <nav className="w-68 h-full flex flex-col border-r border-brand-sage/15 bg-(--color-zenthar-carbon)/80 backdrop-blur-3xl z-50 relative">
-      {/* Brand Identity with Scan-line Effect */}
-      <div className="p-8 pb-10 relative group/logo">
+    <nav className="w-72 h-full flex flex-col border-r border-white/[0.04] bg-[#080809]/90 backdrop-blur-3xl z-50 relative">
+      {/* Brand Identity */}
+      <div className="p-10 relative">
         <LogoRoot size="lg" variant="light">
           <LogoIcon animated />
         </LogoRoot>
-        <div className="absolute bottom-0 left-8 right-8 h-px bg-linear-to-r from-transparent via-brand-sage/20 to-transparent scale-x-0 group-hover/logo:scale-x-100 transition-transform duration-700" />
+        <div className="mt-4 flex items-center gap-2 overflow-hidden">
+          <div className="h-px flex-1 bg-linear-to-r from-brand-primary/40 to-transparent" />
+          <span className="text-[7px] font-mono text-zinc-600 tracking-[0.5em] uppercase">V2.0.9_SYS</span>
+        </div>
       </div>
 
-      {/* Structured Navigation Scroll Area */}
-      <div className="flex-1 px-4 overflow-y-auto custom-scrollbar space-y-8 pb-10">
-        {filteredNav.map((section) => (
-          <div key={section.section} className="relative">
-            <h4 className="px-5 text-[8px] font-black text-brand-sage/50 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-1 h-1 rounded-full bg-brand-primary/30" />
-              {section.section}
-            </h4>
-            <div className="flex flex-col gap-1.5">
+      {/* Navigation Area */}
+      <div className="flex-1 px-4 overflow-y-auto no-scrollbar space-y-10 pb-10">
+        {filteredNav.map((section, idx) => (
+          <div key={section.section} className="space-y-2">
+            <header className="px-5 flex items-center justify-between opacity-40">
+              <span className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.4em]">
+                {section.section}
+              </span>
+              <span className="text-[7px] font-mono text-brand-primary">[{section.code}-0{idx + 1}]</span>
+            </header>
+            <div className="flex flex-col gap-1">
               {section.items.map((item) => (
                 <NavItem
                   key={item.tab}
@@ -176,64 +139,62 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
         ))}
       </div>
 
-      {/* Footer: Multi-Layer Utility Pod */}
-      <div className="p-4 mt-auto space-y-3">
-        {/* System Quick Links */}
-        <div className="bg-(--color-zenthar-graphite)/50 rounded-3xl p-1.5 border border-brand-sage/10 backdrop-blur-sm">
-          <div className="flex flex-col gap-0.5">
-            <NavItem
-              variant="mini"
-              icon={Archive}
-              label="Archives"
-              active={activeTab === "archive"}
-              onClick={() => setActiveTab("archive")}
-            />
-            <NavItem
-              variant="mini"
-              icon={Settings}
-              label="Settings"
-              active={activeTab === "settings"}
-              onClick={() => setActiveTab("settings")}
-            />
-          </div>
+      {/* Footer Utility Pod */}
+      <div className="p-6 mt-auto bg-linear-to-t from-black to-transparent space-y-4">
+        <div className="grid grid-cols-2 gap-2">
+           <button 
+            onClick={() => setActiveTab("settings")}
+            className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-brand-primary/10 transition-colors group"
+           >
+             <Settings size={14} className="text-zinc-500 group-hover:text-brand-primary transition-colors mb-1" />
+             <span className="text-[7px] font-black text-zinc-500 group-hover:text-white uppercase tracking-widest">Config</span>
+           </button>
+           <button 
+            onClick={() => setActiveTab("archive")}
+            className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-brand-primary/10 transition-colors group"
+           >
+             <Archive size={14} className="text-zinc-500 group-hover:text-brand-primary transition-colors mb-1" />
+             <span className="text-[7px] font-black text-zinc-500 group-hover:text-white uppercase tracking-widest">Vault</span>
+           </button>
         </div>
 
-        {/* User Anchor Pod - High-Density UI */}
-        <div className="bg-(--color-zenthar-void) rounded-3xl p-2 border border-white/5 shadow-2xl relative overflow-hidden group/pod">
-          {/* Animated Background Mesh */}
-          <div className="absolute inset-0 bg-[url('/assets/grid-mesh.svg')] opacity-5 pointer-events-none" />
-          
-          <div className="relative z-10 flex items-center gap-3">
+        {/* User Identity Module */}
+        <div className="relative p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] overflow-hidden group/user">
+          {/* Integrity Bar */}
+          <div className="absolute top-0 left-0 h-[1px] w-full bg-white/5">
+            <motion.div 
+              animate={{ x: ["-100%", "100%"] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              className="h-full w-1/3 bg-brand-primary/40 shadow-[0_0_8px_brand-primary]"
+            />
+          </div>
+
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setIsSwitchOpen(true)}
-              className="relative w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all hover:bg-white/10 hover:scale-105 active:scale-95 group/btn overflow-hidden"
+              className="relative w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center group/avatar overflow-hidden shrink-0"
             >
-              <span className="text-[11px] font-black text-white transition-colors">
-                {currentUser?.initials || "??"}
-              </span>
-              <div className="absolute inset-0 bg-brand-primary text-(--color-zenthar-void) flex items-center justify-center translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300">
-                <RefreshCw className="w-4 h-4 animate-spin-slow" />
+              <Fingerprint size={18} className="text-brand-primary group-hover/avatar:opacity-0 transition-opacity" />
+              <div className="absolute inset-0 flex items-center justify-center bg-brand-primary translate-y-full group-hover/avatar:translate-y-0 transition-transform">
+                <RefreshCw size={14} className="text-black animate-spin-slow" />
               </div>
             </button>
 
             <div className="flex-1 min-w-0">
-              <p className="text-[9px] font-black text-white truncate uppercase tracking-tighter">
-                {currentUser?.name || "Unauthenticated"}
+              <p className="text-[10px] font-black text-white truncate uppercase tracking-widest leading-none mb-1.5">
+                {currentUser?.name || "GUEST_USER"}
               </p>
-              <div className="flex items-center gap-1.5">
-                <Cpu className="w-2 h-2 text-brand-primary animate-pulse" />
-                <p className="text-[7px] font-bold text-brand-primary uppercase tracking-widest opacity-80">
-                  {currentUser?.role || "GUEST_ACCESS"}
-                </p>
+              <div className="flex items-center gap-1.5 opacity-60">
+                <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                <p className="text-[7px] font-mono text-emerald-500 uppercase">Secure_Session</p>
               </div>
             </div>
 
             <button
               onClick={logout}
-              className="p-2.5 text-white/40 hover:text-lab-laser hover:bg-white/5 rounded-xl transition-all"
-              title="Terminate Session"
+              className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut size={14} />
             </button>
           </div>
         </div>

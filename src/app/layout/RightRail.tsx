@@ -1,14 +1,15 @@
 import React, { memo, useState, useEffect, useCallback, useRef, type FC } from "react";
 import {
   ShieldCheck,
-  Terminal,
-  Fingerprint,
-  RefreshCw,
   Radio,
   Zap,
   Activity,
   Lock,
   LucideIcon,
+  Fingerprint,
+  RefreshCw,
+  Cpu,
+  Database
 } from "lucide-react";
 import { LabPanel } from "../../ui/components/LabPanel";
 import { api } from "../../core/http/client";
@@ -17,7 +18,6 @@ import { motion, AnimatePresence } from "@/src/lib/motion";
 import clsx from "@/src/lib/clsx";
 
 /* --- Types --- */
-
 interface TelemetryData {
   cpuLoad: string;
   memory: string;
@@ -29,13 +29,10 @@ interface TelemetryData {
   };
 }
 
-/* --- Main Component --- */
-
 export const RightRail: FC = memo(() => {
   const { notifications, unreadCount } = useNotifications();
   const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const fetchTelemetry = useCallback(async (signal?: AbortSignal) => {
     setIsSyncing(true);
@@ -43,7 +40,7 @@ export const RightRail: FC = memo(() => {
       const res = await api.get<TelemetryData>("/telemetry", { signal });
       const data = (res as any)?.data ?? res;
       
-      // Artificial jitter for "live" feel
+      // Simulated data jitter for authenticity
       const jitter = (val: string) => (parseFloat(val) + (Math.random() * 0.4 - 0.2)).toFixed(2);
       
       setTelemetry({
@@ -52,10 +49,9 @@ export const RightRail: FC = memo(() => {
         latency: `${Math.floor(parseInt(data.latency) + (Math.random() * 3))}ms`
       });
     } catch (err: any) {
-      if (err.name !== 'AbortError') console.error("Telemetry Link Dropped", err);
+      if (err.name !== 'AbortError') console.error("Link Failure", err);
     } finally {
-      // Smooth out the syncing indicator flicker
-      setTimeout(() => setIsSyncing(false), 600);
+      setTimeout(() => setIsSyncing(false), 800);
     }
   }, []);
 
@@ -70,104 +66,118 @@ export const RightRail: FC = memo(() => {
   }, [fetchTelemetry]);
 
   return (
-    <aside className="w-85 h-full flex flex-col border-l border-brand-sage/10 bg-(--color-zenthar-carbon)/90 backdrop-blur-2xl relative ml-auto z-40 overflow-hidden">
-      {/* 1. FX LAYERS */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,var(--color-brand-primary)_0%,transparent_30%)] opacity-[0.03] pointer-events-none" />
-      <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-brand-primary/20 to-transparent" />
-
-      <div className="flex flex-col h-full p-5 gap-5 overflow-y-auto no-scrollbar">
+    <aside className="w-80 h-full flex flex-col border-l border-white/[0.04] bg-[#0a0a0b]/80 backdrop-blur-3xl relative ml-auto z-40 overflow-hidden">
+      {/* HUD ACCENTS */}
+      <div className="absolute inset-0 bg-[url('/assets/grid-dot.svg')] opacity-[0.02] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 blur-[80px] pointer-events-none rounded-full" />
+      
+      <div className="flex flex-col h-full p-6 gap-8 overflow-y-auto no-scrollbar relative z-10">
         
-        {/* INTERCEPTS SECTION */}
-        <LabPanel
-          title="Live Intercepts"
-          subtitle="Real-time Node Monitoring"
-          icon={Radio}
-          className="flex-1 bg-transparent border-none"
-          actions={
+        {/* SECTION 1: INTERCEPTS FEED */}
+        <div className="flex flex-col gap-4 flex-1 min-h-0">
+          <header className="flex items-center justify-between px-1">
             <div className="flex items-center gap-3">
-              <AnimatePresence>
-                {isSyncing && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-ping"
-                  />
-                )}
-              </AnimatePresence>
-              {unreadCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-xs bg-brand-primary/10 border border-brand-primary/20 text-[9px] font-black text-brand-primary tabular-nums">
-                  {unreadCount}
-                </span>
-              )}
+              <Radio size={14} className={clsx("text-brand-primary", isSyncing && "animate-pulse")} />
+              <div className="flex flex-col">
+                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Live_Intercepts</h3>
+                <span className="text-[7px] font-mono text-zinc-500 uppercase tracking-widest">Buffer_Active</span>
+              </div>
             </div>
-          }
-        >
-          <div ref={scrollRef} className="flex flex-col gap-2 mt-4 overflow-x-hidden">
+            {unreadCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-brand-primary text-[8px] font-black text-black animate-pulse">
+                {unreadCount}_NEW
+              </span>
+            )}
+          </header>
+
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
             <AnimatePresence mode="popLayout" initial={false}>
               {notifications.length === 0 ? (
                 <EmptyState />
               ) : (
-                notifications.slice(0, 10).map((notif: any) => (
+                notifications.slice(0, 8).map((notif: any) => (
                   <NotificationItem key={notif.id} {...notif} />
                 ))
               )}
             </AnimatePresence>
           </div>
-        </LabPanel>
+        </div>
 
-        {/* TACTICAL STATUS SECTION */}
-        <LabPanel
-          title="Tactical Status"
-          subtitle="System Core 01"
-          icon={Activity}
-          className="shrink-0 bg-white/2 border border-brand-sage/10 rounded-2xl p-4"
-        >
+        {/* SECTION 2: TACTICAL DIAGNOSTICS */}
+        <div className="flex flex-col gap-6 pt-6 border-t border-white/[0.03]">
+          <div className="flex items-center gap-3 px-1">
+            <Activity size={14} className="text-zinc-500" />
+            <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Core_Diagnostics</h3>
+          </div>
+
           {telemetry ? (
-            <div className="space-y-6 pt-2">
-              <div className="space-y-3">
-                <SegmentedMetric label="CPU_LOAD" value={telemetry.cpuLoad} progress={parseInt(telemetry.cpuLoad)} />
-                <SegmentedMetric label="MEM_USED" value={telemetry.memory.split(" / ")[0]} progress={62} />
-                <SegmentedMetric label="IO_DELAY" value={telemetry.latency} progress={15} color="bg-emerald-400" />
+            <div className="space-y-6">
+              {/* METRIC STACK */}
+              <div className="space-y-4">
+                <SegmentedMetric 
+                  icon={Cpu}
+                  label="Compute_Load" 
+                  value={telemetry.cpuLoad} 
+                  progress={parseInt(telemetry.cpuLoad)} 
+                />
+                <SegmentedMetric 
+                  icon={Database}
+                  label="Memory_Buffer" 
+                  value={telemetry.memory.split(" / ")[0]} 
+                  progress={68} 
+                />
+                <SegmentedMetric 
+                  icon={Zap}
+                  label="I/O_Response" 
+                  value={telemetry.latency} 
+                  progress={15} 
+                  color="bg-emerald-500" 
+                />
               </div>
 
-              {/* Main Data Card */}
-              <div className="relative group/card overflow-hidden rounded-xl border border-white/5 bg-black/20 p-4">
-                <div className="absolute top-0 left-0 w-full h-0.5 bg-brand-primary/40 group-hover:top-full transition-all duration-2000 ease-linear pointer-events-none" />
+              {/* THROUGHPUT CARD */}
+              <div className="relative group overflow-hidden rounded-2xl border border-white/[0.04] bg-white/[0.02] p-5">
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-brand-primary/20 blur-[1px] group-hover:top-full transition-all duration-[3000ms] ease-linear" />
                 
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className="text-[7px] font-black text-brand-primary uppercase tracking-[.3em]">Stream_Throughput</p>
-                    <h4 className="text-2xl font-mono font-black text-white tabular-nums tracking-tighter">
+                <div className="flex justify-between items-start mb-5">
+                  <div className="space-y-1">
+                    <p className="text-[7px] font-black text-brand-primary uppercase tracking-[.4em]">Throughput_Vol</p>
+                    <motion.h4 
+                      key={telemetry.stats.samples}
+                      initial={{ opacity: 0.5 }}
+                      animate={{ opacity: 1 }}
+                      className="text-2xl font-mono font-black text-white tabular-nums tracking-tighter"
+                    >
                       {telemetry.stats.samples.toLocaleString()}
-                    </h4>
+                    </motion.h4>
                   </div>
-                  <Fingerprint size={16} className="text-brand-sage/20 group-hover:text-brand-primary/40 transition-colors" />
+                  <Fingerprint size={18} className="text-white/10 group-hover:text-brand-primary/40 transition-colors" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-white/5 font-mono">
-                  <div>
-                    <p className="text-[6px] text-brand-sage/40 uppercase mb-0.5">Queue</p>
-                    <p className="text-[10px] text-brand-primary">{telemetry.stats.pending} REQ</p>
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/[0.03] font-mono">
+                  <div className="space-y-1">
+                    <p className="text-[6px] text-zinc-600 uppercase font-black">Pending_Tx</p>
+                    <p className="text-[11px] text-brand-primary">{telemetry.stats.pending} REQ</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[6px] text-brand-sage/40 uppercase mb-0.5">Integrity</p>
-                    <p className="text-[10px] text-emerald-400">SECURE</p>
+                  <div className="text-right space-y-1">
+                    <p className="text-[6px] text-zinc-600 uppercase font-black">Link_State</p>
+                    <p className="text-[11px] text-emerald-500 font-black">STABLE</p>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <StatusBadge icon={Lock} label="Link" value="AES_256" />
+              {/* LOWER BADGES */}
+              <div className="grid grid-cols-2 gap-3">
+                <StatusBadge icon={Lock} label="Cipher" value="AES_256" />
                 <StatusBadge icon={RefreshCw} label="Uptime" value={telemetry.uptime.split(' ')[0]} />
               </div>
             </div>
           ) : (
-            <div className="h-40 flex items-center justify-center font-mono text-[9px] text-brand-sage animate-pulse">
-              SYNCING_SYSTEM_DATA...
+            <div className="h-48 flex items-center justify-center border border-dashed border-white/5 rounded-2xl">
+              <span className="text-[8px] font-mono text-zinc-600 animate-pulse uppercase tracking-widest">Initializing_Uplink...</span>
             </div>
           )}
-        </LabPanel>
+        </div>
       </div>
     </aside>
   );
@@ -180,38 +190,49 @@ const NotificationItem = memo(({ type, message }: any) => {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, x: 20 }}
+      initial={{ opacity: 0, x: 10 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      exit={{ opacity: 0, scale: 0.9 }}
       className={clsx(
-        "p-3 rounded-lg border transition-all group cursor-default",
-        isErr ? "bg-red-500/5 border-red-500/20 hover:border-red-500/40" : "bg-white/5 border-white/5 hover:border-brand-primary/30"
+        "p-4 rounded-xl border mb-3 transition-all cursor-default group",
+        isErr 
+          ? "bg-red-500/[0.03] border-red-500/10 hover:border-red-500/30" 
+          : "bg-white/[0.02] border-white/5 hover:border-white/20"
       )}
     >
-      <div className="flex justify-between items-center mb-1.5">
-        <span className={clsx("text-[8px] font-black uppercase tracking-tighter", isErr ? "text-red-400" : "text-brand-primary")}>
-          {type}
-        </span>
-        <span className="text-[7px] font-mono text-brand-sage/30">ID_{Math.random().toString(36).slice(2,5).toUpperCase()}</span>
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+           <div className={clsx("w-1 h-1 rounded-full", isErr ? "bg-red-500" : "bg-brand-primary")} />
+           <span className={clsx("text-[9px] font-black uppercase tracking-widest", isErr ? "text-red-400" : "text-brand-primary")}>
+            {type}
+          </span>
+        </div>
+        <span className="text-[7px] font-mono text-zinc-700">TX_{Math.random().toString(36).slice(2,5).toUpperCase()}</span>
       </div>
-      <p className="text-[10px] text-white/60 group-hover:text-white leading-relaxed">{message}</p>
+      <p className="text-[10px] text-zinc-400 group-hover:text-zinc-200 leading-relaxed font-medium transition-colors">
+        {message}
+      </p>
     </motion.div>
   );
 });
 
-const SegmentedMetric = memo(({ label, value, progress, color = "bg-brand-primary" }: any) => (
+const SegmentedMetric = memo(({ label, value, progress, icon: Icon, color = "bg-brand-primary" }: any) => (
   <div className="group/metric">
-    <div className="flex justify-between items-end mb-1.5 px-0.5">
-      <span className="text-[8px] font-black text-brand-sage/50 uppercase tracking-widest">{label}</span>
+    <div className="flex justify-between items-end mb-2 px-1">
+      <div className="flex items-center gap-2">
+        <Icon size={10} className="text-zinc-600 group-hover/metric:text-brand-primary transition-colors" />
+        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">{label}</span>
+      </div>
       <span className="text-[10px] font-mono text-white tracking-tighter tabular-nums">{value}</span>
     </div>
-    <div className="flex gap-0.5 h-1.5">
-      {Array.from({ length: 15 }).map((_, i) => (
+    {/* Grid Segmented Bar */}
+    <div className="flex gap-1 h-1.5">
+      {Array.from({ length: 12 }).map((_, i) => (
         <div 
           key={i} 
           className={clsx(
-            "flex-1 rounded-[1px] transition-all duration-300",
-            (progress / 6.6) > i ? color : "bg-white/3"
+            "flex-1 rounded-[1px] transition-all duration-500",
+            (progress / 8.3) > i ? color : "bg-white/[0.03]"
           )}
         />
       ))}
@@ -220,23 +241,22 @@ const SegmentedMetric = memo(({ label, value, progress, color = "bg-brand-primar
 ));
 
 const StatusBadge = ({ icon: Icon, label, value }: { icon: LucideIcon, label: string, value: string }) => (
-  <div className="flex items-center gap-3 p-2.5 rounded-xl border border-white/5 bg-white/1 hover:bg-white/4 transition-colors group">
-    <Icon size={12} className="text-brand-sage group-hover:text-brand-primary transition-colors" />
+  <div className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.03] bg-white/[0.01] hover:bg-white/[0.04] transition-all group">
+    <Icon size={12} className="text-zinc-600 group-hover:text-brand-primary transition-colors" />
     <div className="min-w-0">
-      <p className="text-[6px] text-brand-sage/40 font-black uppercase leading-none mb-1">{label}</p>
+      <p className="text-[7px] text-zinc-600 font-black uppercase leading-none mb-1">{label}</p>
       <p className="text-[9px] text-white font-mono truncate">{value}</p>
     </div>
   </div>
 );
 
 const EmptyState = () => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center py-10 opacity-20">
-    <ShieldCheck size={32} strokeWidth={1} className="text-brand-sage mb-4" />
-    <span className="text-[8px] font-black uppercase tracking-[.4em]">Zero_Incidents</span>
-  </motion.div>
+  <div className="flex flex-col items-center py-20">
+    <ShieldCheck size={40} strokeWidth={1} className="text-white/5 mb-4" />
+    <span className="text-[8px] font-black text-zinc-700 uppercase tracking-[.5em]">Network_Silent</span>
+  </div>
 );
 
-/* --- Display Names --- */
 NotificationItem.displayName = "NotificationItem";
 SegmentedMetric.displayName = "SegmentedMetric";
 RightRail.displayName = "RightRail";

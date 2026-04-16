@@ -9,14 +9,14 @@ import React, { forwardRef, createContext, useContext } from "react";
 // 1. Hook Simulation: Prevent "hook not found" crashes
 export const useMotionValue = (initial: any) => ({
   get: () => initial,
-  set: () => {},
+  set: (v: any) => {},
   onChange: () => () => {},
   on: () => () => {},
   clearListeners: () => {},
 });
 
 export const useTransform = (value: any, transformer: any) => value;
-export const useSpring = (value: any) => value;
+export const useSpring = (value: any, springConfig: { damping: number; stiffness: number; }) => value;
 export const useScroll = () => ({ scrollY: useMotionValue(0), scrollX: useMotionValue(0) });
 export const useTime = () => useMotionValue(0);
 export const useVelocity = (value: any) => value;
