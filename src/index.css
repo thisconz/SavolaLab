@@ -10,45 +10,33 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 
-  /* Core */
-  --color-brand-primary: #00f0ff; /* Neon Cyan */
-  --color-brand-primary-rgb: 0, 240, 255;
-  --color-brand-deep: #050505;
-  --color-brand-accent: #ff003c; /* Cyberpunk Red/Pink */
+  /* --- LIGHT MODE PALETTE --- */
+  --color-soft-apricot: #f9dbbd;
+  --color-cotton-candy: #ffa5ab;
+  --color-blush-rose: #da627d;
+  --color-cherry-rose: #a53860;
+  --color-crimson-violet: #450920;
 
-  /* System */
-  --color-zenthar-void: #050505;
-  --color-zenthar-carbon: #0a0a0c;
-  --color-zenthar-graphite: #121214;
-  --color-zenthar-steel: #222224;
-  --color-zenthar-border: #222224;
+  /* --- LIGHT BRAND MAPPING --- */
+  --color-brand-primary: var(--color-cherry-rose); 
+  --color-brand-accent: var(--color-blush-rose);
+  
+  /* System Backgrounds (Lighter) */
+  --color-zenthar-void: #fdf6ee; /* Ultra-light Apricot tint */
+  --color-zenthar-carbon: #f9dbbd; /* Soft Apricot */
+  --color-zenthar-graphite: #f2c9a1; /* Deeper Apricot for depth */
+  --color-zenthar-steel: #e5b38a;
+  --color-zenthar-border: rgba(69, 9, 32, 0.08); /* Crimson Violet based stroke */
 
-  /* Text */
-  --color-zenthar-text-primary: #ffffff;
-  --color-zenthar-text-secondary: #a1a1aa;
-  --color-zenthar-text-muted: #52525b;
+  /* Text (Dark for Readability) */
+  --color-zenthar-text-primary: var(--color-crimson-violet);
+  --color-zenthar-text-secondary: var(--color-cherry-rose);
+  --color-zenthar-text-muted: #8d5d6e;
 
   /* Semantic */
-  --color-zenthar-success: #00ff66;
-  --color-zenthar-warning: #ffb800;
-  --color-zenthar-critical: #ff003c;
-  --color-zenthar-info: #00f0ff;
-
-  /* Legacy */
-  --color-lab-obsidian: var(--color-zenthar-void);
-  --color-lab-graphite: var(--color-zenthar-carbon);
-  --color-lab-steel: var(--color-zenthar-graphite);
-  --color-lab-charcoal: var(--color-zenthar-text-primary);
-
-  --color-lab-phosphor: var(--color-zenthar-success);
-  --color-lab-sodium: var(--color-zenthar-warning);
-  --color-lab-laser: var(--color-zenthar-critical);
-  --color-lab-ion: var(--color-zenthar-info);
-
-  /* Aliases */
-  --color-brand-sage: #a1a1aa;
-  --color-brand-mist: #222224;
-  --color-brand-laser: #ff003c;
+  --color-zenthar-success: #4a7c6b; 
+  --color-zenthar-warning: #d97706;
+  --color-zenthar-critical: var(--color-crimson-violet);
 }
 
 /* =========================
@@ -57,7 +45,7 @@
 
 @layer base {
   body {
-    @apply bg-(--color-zenthar-void) text-(--color-zenthar-text-primary) font-sans antialiased overflow-hidden;
+    @apply bg-zenthar-void text-(--color-zenthar-text-primary) font-sans antialiased overflow-hidden;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -71,19 +59,26 @@
 
 @layer components {
   .glass-panel {
-    @apply bg-(--color-zenthar-carbon)/90 border border-white/4 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)];
-    backdrop-filter: blur(20px);
+    /* Creamy, frosted glass effect */
+    @apply bg-white/60 border border-white/40 rounded-3xl;
+    backdrop-filter: blur(30px);
+    box-shadow: 
+      0 10px 30px -5px rgba(69, 9, 32, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
   }
 
   .industrial-surface {
-    @apply bg-(--color-zenthar-graphite) border border-white/4 rounded-xl shadow-md relative overflow-hidden;
+    /* "Paper-like" tactile surface */
+    @apply bg-(--color-soft-apricot)/30 border border-(--color-crimson-violet)/5 rounded-2xl shadow-sm;
   }
 
   .brand-gradient {
+    /* Soft sunrise gradient */
     background: linear-gradient(
       135deg,
-      var(--color-brand-primary) 0%,
-      var(--color-brand-accent) 100%
+      var(--color-soft-apricot) 0%,
+      var(--color-cotton-candy) 50%,
+      var(--color-blush-rose) 100%
     );
   }
 
@@ -117,20 +112,13 @@
   }
 
   .scanline {
-    width: 100%;
-    height: 100px;
-    z-index: 10;
+    /* Updated to a soft pinkish sweep */
     background: linear-gradient(
       0deg,
-      rgba(var(--color-brand-primary-rgb), 0) 0%,
-      rgba(var(--color-brand-primary-rgb), 0.05) 50%,
-      rgba(var(--color-brand-primary-rgb), 0) 100%
+      transparent 0%,
+      rgba(255, 165, 171, 0.05) 50%,
+      transparent 100%
     );
-    opacity: 0.5;
-    position: absolute;
-    bottom: 100%;
-    animation: scanline 8s linear infinite;
-    pointer-events: none;
   }
 }
 
