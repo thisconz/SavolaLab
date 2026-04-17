@@ -114,7 +114,7 @@ export const LabPanel: React.FC<LabPanelProps> = memo(
             <div className="flex flex-col">
               <div className="flex items-center gap-2 mb-1">
                 <Terminal className="w-3 h-3 text-brand-primary/60" />
-                <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-white">
+                <h3 className="text-[11px] font-display font-bold uppercase tracking-[0.5em] text-white">
                   {title}
                 </h3>
               </div>

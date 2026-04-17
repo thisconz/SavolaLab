@@ -23,7 +23,7 @@ export const Header: FC = memo(() => {
   }, [activeTab]);
 
   return (
-    <header className="sticky top-0 h-24 w-full border-b border-white/[0.04] flex items-center justify-between px-10 bg-[#080809]/90 backdrop-blur-2xl z-50 shrink-0 overflow-hidden">
+    <header className="sticky top-0 h-24 w-full border-b border-white/4 flex items-center justify-between px-10 bg-[#080809]/90 backdrop-blur-2xl z-50 shrink-0 overflow-hidden">
       {/* 1. LAYER: ATMOSPHERICS */}
       <div className="absolute inset-0 bg-[url('/assets/grid-dot.svg')] opacity-[0.02] pointer-events-none" />
       
@@ -50,7 +50,7 @@ export const Header: FC = memo(() => {
 
         <div className="flex items-center gap-8 group">
           {/* Vertical Angled Separator */}
-          <div className="h-12 w-[1px] bg-white/10 rotate-[20deg] group-hover:rotate-0 transition-transform duration-500" />
+          <div className="h-12 w-px bg-white/10 rotate-20 group-hover:rotate-0 transition-transform duration-500" />
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
@@ -93,7 +93,7 @@ export const Header: FC = memo(() => {
 
       {/* RIGHT: System Intelligence */}
       <div className="flex items-center gap-6 relative z-10">
-        <div className="hidden lg:flex items-center gap-4 px-6 py-2 rounded-2xl bg-white/[0.02] border border-white/[0.05] shadow-inner">
+        <div className="hidden lg:flex items-center gap-4 px-6 py-2 rounded-2xl bg-white/2 border border-white/5 shadow-inner">
           <TelemetryModule
             icon={Activity}
             label="Load"
@@ -101,7 +101,7 @@ export const Header: FC = memo(() => {
             status="success"
             percent={12}
           />
-          <div className="w-px h-8 bg-white/[0.03]" />
+          <div className="w-px h-8 bg-white/3" />
           <TelemetryModule
             icon={Zap}
             label="Latency"
@@ -109,7 +109,7 @@ export const Header: FC = memo(() => {
             status="info"
             percent={85}
           />
-          <div className="w-px h-8 bg-white/[0.03]" />
+          <div className="w-px h-8 bg-white/3" />
           <TelemetryModule
             icon={ShieldCheck}
             label="Security"
@@ -120,7 +120,7 @@ export const Header: FC = memo(() => {
 
         <div className="relative group">
           <div className="absolute inset-0 bg-brand-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="relative p-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-brand-primary/40 transition-all cursor-pointer">
+          <div className="relative p-3 rounded-xl bg-white/3 border border-white/10 hover:border-brand-primary/40 transition-all cursor-pointer">
              <NotificationCenter />
           </div>
         </div>
@@ -138,7 +138,7 @@ const TelemetryModule: FC<TelemetryProps> = ({ icon: Icon, label, value, status,
           cx="18"
           cy="18"
           r="16"
-          className="fill-none stroke-white/[0.05]"
+          className="fill-none stroke-white/5"
           strokeWidth="2"
         />
         <motion.circle

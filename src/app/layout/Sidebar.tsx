@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import { LogoRoot, LogoIcon } from "../../ui/components/Logo";
-import { useAppStore, AppTab } from "../../orchestrator/state/app.store";
+import { useAppStore, AppTab, useAppActions } from "../../orchestrator/state/app.store";
 import { useAuthStore } from "../../orchestrator/state/auth.store";
 import { QuickSwitch } from "../../capsules/auth";
 import { isTabAllowed } from "../../core/rbac";
@@ -70,7 +70,7 @@ const NavItem = ({ icon: Icon, label, active, onClick, variant = "default" }: an
 );
 
 export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => {
-  const { setActiveTab } = useAppStore();
+  const { setActiveTab } = useAppActions();
   const { currentUser, logout } = useAuthStore();
   const [isSwitchOpen, setIsSwitchOpen] = useState(false);
 
@@ -102,7 +102,7 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
   }, [currentUser, NAV_CONFIG]);
 
   return (
-    <nav className="w-72 h-full flex flex-col border-r border-white/[0.04] bg-[#080809]/90 backdrop-blur-3xl z-50 relative">
+    <nav className="w-72 h-full flex flex-col border-r border-white/4 bg-[#080809]/90 backdrop-blur-3xl z-50 relative">
       {/* Brand Identity */}
       <div className="p-10 relative">
         <LogoRoot size="lg" variant="light">
@@ -119,7 +119,7 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
         {filteredNav.map((section, idx) => (
           <div key={section.section} className="space-y-2">
             <header className="px-5 flex items-center justify-between opacity-40">
-              <span className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.4em]">
+              <span className="text-[8px] font-display font-bold text-zinc-400 uppercase tracking-[0.4em]">
                 {section.section}
               </span>
               <span className="text-[7px] font-mono text-brand-primary">[{section.code}-0{idx + 1}]</span>
@@ -144,14 +144,14 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
         <div className="grid grid-cols-2 gap-2">
            <button 
             onClick={() => setActiveTab("settings")}
-            className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-brand-primary/10 transition-colors group"
+            className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/2 border border-white/5 hover:bg-brand-primary/10 transition-colors group"
            >
              <Settings size={14} className="text-zinc-500 group-hover:text-brand-primary transition-colors mb-1" />
              <span className="text-[7px] font-black text-zinc-500 group-hover:text-white uppercase tracking-widest">Config</span>
            </button>
            <button 
             onClick={() => setActiveTab("archive")}
-            className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-brand-primary/10 transition-colors group"
+            className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/2 border border-white/5 hover:bg-brand-primary/10 transition-colors group"
            >
              <Archive size={14} className="text-zinc-500 group-hover:text-brand-primary transition-colors mb-1" />
              <span className="text-[7px] font-black text-zinc-500 group-hover:text-white uppercase tracking-widest">Vault</span>
@@ -159,9 +159,9 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
         </div>
 
         {/* User Identity Module */}
-        <div className="relative p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] overflow-hidden group/user">
+        <div className="relative p-4 rounded-2xl bg-white/3 border border-white/8 overflow-hidden group/user">
           {/* Integrity Bar */}
-          <div className="absolute top-0 left-0 h-[1px] w-full bg-white/5">
+          <div className="absolute top-0 left-0 h-px w-full bg-white/5">
             <motion.div 
               animate={{ x: ["-100%", "100%"] }}
               transition={{ duration: 3, repeat: Infinity, ease: "linear" }}

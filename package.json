@@ -16,6 +16,7 @@
     "gen:structure": "tsx scripts/index.ts structure"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.4.4",
     "@hono/node-server": "^1.13.0",
     "@hono/swagger-ui": "^0.6.1",
     "@sentry/react": "^10.45.0",

@@ -25,7 +25,7 @@ export function generateStructureScript() {
   const textPath = path.join(outputDir, "structure.txt");
   fs.writeFileSync(textPath, renderTreeText(tree), "utf-8");
 
-  console.log(`✅ Project structure generated`);
+  console.log(`Project structure generated`);
   console.log(`JSON: ${jsonPath}`);
   console.log(`TXT: ${textPath}`);
 }
@@ -34,7 +34,7 @@ export function generateStructureScript() {
 export function generateTypescript() {
   const outputDir = path.join(OUTPUT_DIR, "typesStructure");
   generateTypes(PROJECT_ROOT, outputDir);
-  console.log(`✅ Types structure generated in ${outputDir}`);
+  console.log(`Types structure generated in ${outputDir}`);
 }
 
 // ---------- CLI / NPM Script SUPPORT ----------

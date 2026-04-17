@@ -21,9 +21,9 @@ fs.writeFileSync(
   path.join(projectOutputDir, "structure.txt"),
   renderTreeText(projectTree),
 );
-console.log("✅ Project structure generated.");
+console.log("Project structure generated.");
 
 // Generate types
 const typesOutputDir = path.join(OUTPUT_DIR, "typesStructure");
 generateTypes(ROOT_DIR, typesOutputDir);
-console.log("✅ Types structure generated.");
+console.log("Types structure generated.");

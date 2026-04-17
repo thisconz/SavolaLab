@@ -86,7 +86,7 @@ export const AuditService = {
         action,
         ip,
         err,
-      }, "❌ Failed to write audit log");
+      }, "Failed to write audit log");
     }
   },
 };

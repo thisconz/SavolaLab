@@ -37,7 +37,7 @@ export const NotificationService = {
       }
     });
 
-    logger.info({ count: overdueTests.length }, "📢 Overdue test notifications generated.");
+    logger.info({ count: overdueTests.length }, "Overdue test notifications generated");
     return overdueTests.length;
   },
 };

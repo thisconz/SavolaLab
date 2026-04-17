@@ -52,7 +52,7 @@ export async function runMigrations() {
           [migration.version, duration]
         );
       });
-      console.log(`✅ Version ${migration.version} applied in ${Date.now() - start}ms`);
+      console.log(`Version ${migration.version} applied in ${Date.now() - start}ms`);
     }
     
   } finally {

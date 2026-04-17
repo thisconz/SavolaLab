@@ -239,6 +239,17 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
     }
   };
 
+  const handleReview = async (testId: number, status: "APPROVED" | "DISAPPROVED", comment?: string) => {
+    try {
+      await LabApi.reviewTest(testId, status, comment);
+      toast.success(`Test ${status.toLowerCase()} successfully.`);
+      loadTests(); // Reload to get updated status
+    } catch (err) {
+      console.error("Failed to review test", err);
+      toast.error("Failed to review test.");
+    }
+  };
+
   return {
     tests,
     loading,
@@ -253,5 +264,6 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
     handleNoteChange,
     handleColourParamChange,
     handleSave,
+    handleReview,
   };
 };

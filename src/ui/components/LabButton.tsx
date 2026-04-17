@@ -67,7 +67,7 @@ export const LabButton: React.FC<LabButtonProps> = memo(({
 
   const baseStyles = clsx(
     "relative inline-flex items-center justify-center gap-3 px-10 py-4",
-    "text-[11px] font-black uppercase tracking-[0.4em] rounded-xl",
+    "text-[11px] font-display font-bold uppercase tracking-[0.4em] rounded-xl",
     "transition-all duration-300 outline-none select-none overflow-hidden group/btn",
     "disabled:opacity-30 disabled:cursor-not-allowed disabled:grayscale",
     fullWidth ? "w-full" : "w-fit"

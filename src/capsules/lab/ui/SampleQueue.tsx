@@ -55,7 +55,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
     const activeFilterCount = (priorityFilter !== "ALL" ? 1 : 0) + (statusFilter !== "ALL" ? 1 : 0);
 
     return (
-      <div className="flex flex-col h-full w-full bg-(--color-zenthar-graphite)/80 backdrop-blur-xl border border-brand-sage/10 rounded-4xl overflow-hidden shadow-inner">
+      <div className="flex flex-col h-full w-full bg-(--color-zenthar-graphite)/80 backdrop-blur-xl rounded-4xl overflow-hidden shadow-inner ring-1 ring-inset ring-white/5">
         
         {/* HEADER: OPERATIONAL FILTERS */}
         <header className="flex-none p-5 pb-3 border-b border-brand-sage/5 space-y-4">
@@ -126,7 +126,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
         {/* VIRTUALIZED LIST AREA */}
         <div
           ref={parentRef}
-          className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4"
+          className="flex-1 min-h-120 overflow-y-auto custom-scrollbar p-4"
         >
           {filteredSamples.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center py-20 animate-in fade-in zoom-in duration-500">

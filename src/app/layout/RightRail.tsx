@@ -66,7 +66,7 @@ export const RightRail: FC = memo(() => {
   }, [fetchTelemetry]);
 
   return (
-    <aside className="w-80 h-full flex flex-col border-l border-white/[0.04] bg-[#0a0a0b]/80 backdrop-blur-3xl relative ml-auto z-40 overflow-hidden">
+    <aside className="w-80 h-full flex flex-col border-l border-white/4 bg-[#0a0a0b]/80 backdrop-blur-3xl relative ml-auto z-40 overflow-hidden">
       {/* HUD ACCENTS */}
       <div className="absolute inset-0 bg-[url('/assets/grid-dot.svg')] opacity-[0.02] pointer-events-none" />
       <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 blur-[80px] pointer-events-none rounded-full" />
@@ -79,12 +79,12 @@ export const RightRail: FC = memo(() => {
             <div className="flex items-center gap-3">
               <Radio size={14} className={clsx("text-brand-primary", isSyncing && "animate-pulse")} />
               <div className="flex flex-col">
-                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Live_Intercepts</h3>
+                <h3 className="text-[10px] font-display font-bold text-white uppercase tracking-[0.3em]">Live_Intercepts</h3>
                 <span className="text-[7px] font-mono text-zinc-500 uppercase tracking-widest">Buffer_Active</span>
               </div>
             </div>
             {unreadCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-brand-primary text-[8px] font-black text-black animate-pulse">
+              <span className="px-2 py-0.5 rounded-full bg-brand-primary text-[8px] font-mono font-bold text-black animate-pulse">
                 {unreadCount}_NEW
               </span>
             )}
@@ -104,10 +104,10 @@ export const RightRail: FC = memo(() => {
         </div>
 
         {/* SECTION 2: TACTICAL DIAGNOSTICS */}
-        <div className="flex flex-col gap-6 pt-6 border-t border-white/[0.03]">
+        <div className="flex flex-col gap-6 pt-6 border-t border-white/3">
           <div className="flex items-center gap-3 px-1">
             <Activity size={14} className="text-zinc-500" />
-            <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Core_Diagnostics</h3>
+            <h3 className="text-[10px] font-display font-bold text-white uppercase tracking-[0.3em]">Core_Diagnostics</h3>
           </div>
 
           {telemetry ? (
@@ -136,8 +136,8 @@ export const RightRail: FC = memo(() => {
               </div>
 
               {/* THROUGHPUT CARD */}
-              <div className="relative group overflow-hidden rounded-2xl border border-white/[0.04] bg-white/[0.02] p-5">
-                <div className="absolute top-0 left-0 w-full h-0.5 bg-brand-primary/20 blur-[1px] group-hover:top-full transition-all duration-[3000ms] ease-linear" />
+              <div className="relative group overflow-hidden rounded-2xl border border-white/4 bg-white/2 p-5">
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-brand-primary/20 blur-[1px] group-hover:top-full transition-all duration-3000 ease-linear" />
                 
                 <div className="flex justify-between items-start mb-5">
                   <div className="space-y-1">
@@ -154,7 +154,7 @@ export const RightRail: FC = memo(() => {
                   <Fingerprint size={18} className="text-white/10 group-hover:text-brand-primary/40 transition-colors" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/[0.03] font-mono">
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/3 font-mono">
                   <div className="space-y-1">
                     <p className="text-[6px] text-zinc-600 uppercase font-black">Pending_Tx</p>
                     <p className="text-[11px] text-brand-primary">{telemetry.stats.pending} REQ</p>
@@ -196,8 +196,8 @@ const NotificationItem = memo(({ type, message }: any) => {
       className={clsx(
         "p-4 rounded-xl border mb-3 transition-all cursor-default group",
         isErr 
-          ? "bg-red-500/[0.03] border-red-500/10 hover:border-red-500/30" 
-          : "bg-white/[0.02] border-white/5 hover:border-white/20"
+          ? "bg-red-500/3 border-red-500/10 hover:border-red-500/30" 
+          : "bg-white/2 border-white/5 hover:border-white/20"
       )}
     >
       <div className="flex justify-between items-center mb-2">
@@ -232,7 +232,7 @@ const SegmentedMetric = memo(({ label, value, progress, icon: Icon, color = "bg-
           key={i} 
           className={clsx(
             "flex-1 rounded-[1px] transition-all duration-500",
-            (progress / 8.3) > i ? color : "bg-white/[0.03]"
+            (progress / 8.3) > i ? color : "bg-white/3"
           )}
         />
       ))}
@@ -241,7 +241,7 @@ const SegmentedMetric = memo(({ label, value, progress, icon: Icon, color = "bg-
 ));
 
 const StatusBadge = ({ icon: Icon, label, value }: { icon: LucideIcon, label: string, value: string }) => (
-  <div className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.03] bg-white/[0.01] hover:bg-white/[0.04] transition-all group">
+  <div className="flex items-center gap-3 p-3 rounded-xl border border-white/3 bg-white/1 hover:bg-white/4 transition-all group">
     <Icon size={12} className="text-zinc-600 group-hover:text-brand-primary transition-colors" />
     <div className="min-w-0">
       <p className="text-[7px] text-zinc-600 font-black uppercase leading-none mb-1">{label}</p>

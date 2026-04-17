@@ -75,5 +75,18 @@ export const TEST_VALIDATION_RULES: Partial<Record<TestType, ValidationRule>> =
       description: "Clarity of the solution",
       step: "1",
     },
-    
+    TSS: {
+      min: 0,
+      max: 10000,
+      unit: "mg/L",
+      description: "Total Suspended Solids",
+      step: "1",
+    },
+    Density: {
+      min: 0.5,
+      max: 2.0,
+      unit: "g/cm³",
+      description: "Specific gravity / density",
+      step: "0.001",
+    },
   };

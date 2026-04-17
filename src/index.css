@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 
 /* =========================
@@ -8,30 +8,31 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 
   /* Core */
-  --color-brand-primary: #06b6d4;
-  --color-brand-primary-rgb: 6, 182, 212;
-  --color-brand-deep: #020617;
-  --color-brand-accent: #3b82f6;
+  --color-brand-primary: #00f0ff; /* Neon Cyan */
+  --color-brand-primary-rgb: 0, 240, 255;
+  --color-brand-deep: #050505;
+  --color-brand-accent: #ff003c; /* Cyberpunk Red/Pink */
 
   /* System */
-  --color-zenthar-void: #020617;
-  --color-zenthar-carbon: #0f172a;
-  --color-zenthar-graphite: #1e293b;
-  --color-zenthar-steel: #334155;
-  --color-zenthar-border: #334155;
+  --color-zenthar-void: #050505;
+  --color-zenthar-carbon: #0a0a0c;
+  --color-zenthar-graphite: #121214;
+  --color-zenthar-steel: #222224;
+  --color-zenthar-border: #222224;
 
   /* Text */
-  --color-zenthar-text-primary: #f8fafc;
-  --color-zenthar-text-secondary: #cbd5e1;
-  --color-zenthar-text-muted: #64748b;
+  --color-zenthar-text-primary: #ffffff;
+  --color-zenthar-text-secondary: #a1a1aa;
+  --color-zenthar-text-muted: #52525b;
 
   /* Semantic */
-  --color-zenthar-success: #10b981;
-  --color-zenthar-warning: #f59e0b;
-  --color-zenthar-critical: #ef4444;
-  --color-zenthar-info: #0ea5e9;
+  --color-zenthar-success: #00ff66;
+  --color-zenthar-warning: #ffb800;
+  --color-zenthar-critical: #ff003c;
+  --color-zenthar-info: #00f0ff;
 
   /* Legacy */
   --color-lab-obsidian: var(--color-zenthar-void);
@@ -45,9 +46,9 @@
   --color-lab-ion: var(--color-zenthar-info);
 
   /* Aliases */
-  --color-brand-sage: #94a3b8;
-  --color-brand-mist: #334155;
-  --color-brand-laser: #ef4444;
+  --color-brand-sage: #a1a1aa;
+  --color-brand-mist: #222224;
+  --color-brand-laser: #ff003c;
 }
 
 /* =========================
@@ -58,6 +59,10 @@
   body {
     @apply bg-(--color-zenthar-void) text-(--color-zenthar-text-primary) font-sans antialiased overflow-hidden;
   }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
 }
 
 /* =========================
@@ -66,12 +71,12 @@
 
 @layer components {
   .glass-panel {
-    @apply bg-(--color-zenthar-carbon)/80 border border-(--color-zenthar-border)/50 rounded-xl shadow-lg;
-    backdrop-filter: blur(12px);
+    @apply bg-(--color-zenthar-carbon)/90 border border-white/4 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)];
+    backdrop-filter: blur(20px);
   }
 
   .industrial-surface {
-    @apply bg-(--color-zenthar-graphite) border border-(--color-zenthar-border) rounded-lg shadow-md;
+    @apply bg-(--color-zenthar-graphite) border border-white/4 rounded-xl shadow-md relative overflow-hidden;
   }
 
   .brand-gradient {
@@ -85,22 +90,22 @@
   .instrument-grid {
     background-image: radial-gradient(
       circle at 1px 1px,
-      rgba(255, 255, 255, 0.05) 1px,
+      rgba(255, 255, 255, 0.03) 1px,
       transparent 0
     );
     background-size: 24px 24px;
   }
 
   .data-row {
-    @apply flex items-center p-4 border-b border-(--color-zenthar-border)/50 transition-all duration-200 cursor-pointer;
+    @apply flex items-center p-4 border-b border-white/2 transition-all duration-200 cursor-pointer;
   }
 
   .data-row:hover {
-    background: rgba(var(--color-brand-primary-rgb), 0.08);
+    @apply bg-white/2
   }
 
   .col-header {
-    @apply text-[10px] font-mono text-zenthar-text-muted uppercase tracking-[0.15em] mb-2 border-b border-(--color-zenthar-border)/50 pb-2;
+    @apply text-[10px] font-mono text-zenthar-text-muted uppercase tracking-[0.2em] mb-2 border-b border-white/4 pb-2;
   }
 
   .data-value {
@@ -108,7 +113,7 @@
   }
 
   .status-pill {
-    @apply px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border border-current/20 bg-current/10;
+    @apply px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest border border-current/20 bg-current/10;
   }
 
   .scanline {
@@ -118,13 +123,14 @@
     background: linear-gradient(
       0deg,
       rgba(var(--color-brand-primary-rgb), 0) 0%,
-      rgba(var(--color-brand-primary-rgb), 0.1) 50%,
+      rgba(var(--color-brand-primary-rgb), 0.05) 50%,
       rgba(var(--color-brand-primary-rgb), 0) 100%
     );
-    opacity: 0.3;
+    opacity: 0.5;
     position: absolute;
     bottom: 100%;
     animation: scanline 8s linear infinite;
+    pointer-events: none;
   }
 }
 
@@ -142,8 +148,8 @@
    ========================= */
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -151,10 +157,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-zenthar-steel);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-zenthar-text-muted);
+  background: rgba(255, 255, 255, 0.2);
 }

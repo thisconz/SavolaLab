@@ -37,8 +37,10 @@ export class ApiClient {
     const id = setTimeout(() => controller.abort(), timeout);
 
     try {
+      const token = useAuthStore.getState().token;
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(init.headers as Record<string, string>),
       };
 

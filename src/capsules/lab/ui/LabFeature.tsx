@@ -55,11 +55,11 @@ export const LabFeature: React.FC = memo(() => {
       {/* 1. HEADER SECTION */}
         <div className="flex items-center justify-between px-4 shrink-0">
           <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <LayoutDashboard className="w-5 h-5 text-brand-primary" />
+            <h2 className="text-2xl font-display font-bold text-white flex items-center gap-2">
+              <LayoutDashboard className="w-6 h-6 text-brand-primary" />
               Facility Hub
             </h2>
-            <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
+            <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest mt-1">
               Monitor and manage lab operations in real-time
             </p>
           </div>
@@ -93,7 +93,7 @@ export const LabFeature: React.FC = memo(() => {
       <div className="flex-1 overflow-hidden grid grid-cols-12 gap-6">
         
         {/* LEFT COLUMN: PROCESSING QUEUE */}
-        <div className="col-span-12 lg:col-span-4 xl:col-span-4 flex flex-col gap-4 overflow-hidden h-full">
+        <div className="col-span-12 lg:col-span-6 xl:col-span-4 flex flex-col gap-4 overflow-hidden h-full">
           <LabPanel
             title="Processing Queue"
             icon={ClipboardList}
@@ -207,7 +207,7 @@ const EmptyWorkspace = ({ samples }: { samples: Sample[] }) => (
         </div>
       </div>
       <div className="text-center max-w-sm mt-6">
-        <h2 className="text-xl font-bold text-white">Workspace Idle</h2>
+        <h2 className="text-2xl font-display font-bold text-white">Workspace Idle</h2>
         <p className="text-brand-sage text-sm mt-2 leading-relaxed">
           Terminal ready for input. Select a sample from the processing queue to initiate analysis or testing procedures.
         </p>

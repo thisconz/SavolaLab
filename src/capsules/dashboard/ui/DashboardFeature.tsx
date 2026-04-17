@@ -29,6 +29,8 @@ import { PriorityWidget } from "./PriorityWidget";
 import { EfficiencyWidget } from "./EfficiencyWidget";
 import { PlantOverviewWidget } from "./PlantOverviewWidget";
 
+import { MetricCard, MetricVariant } from "../../../ui/components/MetricCard";
+
 export const DashboardFeature: React.FC = memo(() => {
   const [data, setData] = useState({
     alerts: [] as Notification[],
@@ -75,11 +77,11 @@ export const DashboardFeature: React.FC = memo(() => {
       {/* 1. HEADER SECTION */}
       <div className="flex items-center justify-between px-4 shrink-0">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <LayoutDashboard className="w-5 h-5 text-brand-primary" />
+          <h2 className="text-2xl font-display font-bold text-white flex items-center gap-2">
+            <LayoutDashboard className="w-6 h-6 text-brand-primary" />
             Dashboard
           </h2>
-          <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
+          <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest mt-1">
             Real-time data synchronization active
           </p>
         </div>
@@ -99,28 +101,28 @@ export const DashboardFeature: React.FC = memo(() => {
             value={data.samples.filter((s) => !["COMPLETED", "ARCHIVED"].includes(s.status)).length}
             trend={trends.active}
             icon={FlaskConical}
-            variant="brand-primary"
+            variant="primary"
           />
           <MetricCard
             label="Pending Tests"
             value={data.tests.filter((t) => t.status === "PENDING").length}
             trend={trends.pending}
             icon={ListChecks}
-            variant="brand-sage"
+            variant="secondary"
           />
           <MetricCard
             label="STAT Priority"
             value={data.samples.filter((s) => s.priority === "STAT").length}
             trend={trends.stat}
             icon={Zap}
-            variant="lab-laser"
+            variant="error"
           />
           <MetricCard
             label="System Health"
             value="99.8%"
             trend="STABLE"
             icon={Activity}
-            variant="emerald-500"
+            variant="success"
           />
         </div>
 
@@ -175,99 +177,6 @@ export const DashboardFeature: React.FC = memo(() => {
 });
 
 /* --- Sub-Components --- */
-
-const MetricCard = ({ label, value, trend, icon: Icon, variant }: any) => {
-  const variants = {
-    "brand-primary": {
-      bg: "from-brand-primary/10", 
-      accent: "bg-brand-primary", 
-      text: "text-brand-primary", 
-      border: "border-brand-primary/20"
-    },
-    "brand-sage": { 
-      bg: "from-brand-sage/10", 
-      accent: "bg-brand-sage", 
-      text: "text-brand-sage", 
-      border: "border-brand-sage/20" 
-    },
-    "lab-laser": { 
-      bg: "from-red-500/10", 
-      accent: "bg-red-500", 
-      text: "text-red-500", 
-      border: "border-red-500/20" 
-    },
-    "emerald-500": { 
-      bg: "from-emerald-500/10", 
-      accent: "bg-emerald-500", 
-      text: "text-emerald-500", 
-      border: "border-emerald-500/20" 
-    },
-  };
-
-  const theme = variants[variant as keyof typeof variants] || variants["brand-primary"];
-  const isPositive = trend.includes("+");
-
-  return (
-    <motion.div 
-      whileHover={{ y: -4, scale: 1.02 }}
-      className="bg-(--color-zenthar-carbon) border border-brand-sage/10 rounded-2xl p-6 shadow-sm relative group overflow-hidden transition-all duration-300"
-    >
-      {/* Decorative Background Gradient Blur */}
-      <div className={clsx(
-        "absolute -right-16 -top-16 w-40 h-40 bg-linear-to-br to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700",
-        theme.bg
-      )} />
-
-      <div className="flex items-center justify-between mb-4 relative z-10">
-        <div className="flex items-center gap-2">
-          {/* Status Pulse */}
-          <div className={clsx(
-            "w-2 h-2 rounded-full",
-            theme.accent,
-            variant !== "emerald-500" && "animate-pulse" 
-          )} />
-          <span className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em]">
-            {label}
-          </span>
-        </div>
-        
-        <div className={clsx(
-          "text-[9px] font-bold px-2 py-0.5 rounded-md border backdrop-blur-xs",
-          isPositive 
-            ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30" 
-            : "text-brand-sage bg-(--color-zenthar-graphite)/50 border-brand-sage/20"
-        )}>
-          {trend}
-        </div>
-      </div>
-
-      <div className="flex items-end justify-between relative z-10">
-        <div className="text-5xl font-light text-white tracking-tighter leading-none">
-          {value}
-        </div>
-        
-        <div className={clsx(
-          "w-12 h-12 rounded-xl flex items-center justify-center border transition-all duration-500 group-hover:rotate-6",
-          theme.bg.replace('from-', 'bg-'), // Background fill
-          theme.border,
-          theme.text
-        )}>
-          <Icon className="w-6 h-6" />
-        </div>
-      </div>
-
-      {/* Hover Progress Indicator */}
-      <div className={clsx(
-        "absolute right-0 top-0 w-48 h-48 bg-linear-to-br to-transparent rounded-full blur-3xl -mr-20 -mt-20 transition-transform duration-700 group-hover:scale-150",
-        theme.bg
-      )} />
-      <div className={clsx(
-        "absolute left-0 bottom-0 h-1 w-full bg-linear-to-r to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500",
-        theme.accent
-      )} />
-    </motion.div>
-  );
-};
 
 const AlertItem = ({ alert }: { alert: Notification }) => {
   const isCritical = alert.type.includes("FAILURE") || alert.type.includes("CRITICAL");

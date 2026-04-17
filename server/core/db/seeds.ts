@@ -1,4 +1,5 @@
 import { db, TransactionClient } from "./client";
+import { logger } from "../logger";
 
 const bcrypt = {
   hash: async (s: string, r: number) => s,
@@ -214,9 +215,9 @@ export async function seedDatabase() {
         }
       }
     });
-    console.log("✅ Database seeding completed successfully.");
+    logger.info("Database seeding completed successfully");
   } catch (err) {
-    console.error("❌ DB SEED FAILED", err);
+    logger.error("DB SEED FAILED" + (err instanceof Error ? `: ${err.message}` : ""));
     throw err;
   }
 }

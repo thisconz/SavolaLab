@@ -11,12 +11,12 @@ export const GetPreferencesResponseSchema = z.object({
 });
 
 export const TableRecordSchema = z.object({
-  id: z.number().optional(),
-  name: z.string().optional(),
-  description: z.string().optional(),
-  is_active: z.boolean().optional(),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
+  id: z.number().nullish(),
+  name: z.string().nullish(),
+  description: z.string().nullish(),
+  is_active: z.boolean().nullish(),
+  created_at: z.union([z.string(), z.date()]).nullish().transform(d => d ? (typeof d === "string" ? d : d.toISOString()) : null),
+  updated_at: z.union([z.string(), z.date()]).nullish().transform(d => d ? (typeof d === "string" ? d : d.toISOString()) : null),
 }).catchall(z.any());
 
 export const GetTableResponseSchema = z.object({

@@ -48,7 +48,7 @@ function validateEnv() {
   const missing = required.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {
-    logger.error(`❌ Missing environment variables: ${missing.join(", ")}`);
+    logger.error(`Missing environment variables: ${missing.join(", ")}`);
     // process.exit(1);
   }
 }
@@ -120,18 +120,18 @@ async function startServer(): Promise<void> {
       await next();
       const ms = Date.now() - start;
       const status = c.res.status;
-      logger.info(`${c.req.method} ${c.req.path} ${status} — ${ms}ms`);
+      logger.info(`${c.req.method} ${c.req.path} ${status} - ${ms}ms`);
     });
   }
 
   // ── Database ──────────────────────────────
   try {
     await initDatabase();
-    logger.info("✅ Database initialized");
+    logger.info("Database initialized");
   } catch (err) {
     logger.error(
       { err },
-      "❌ DATABASE BOOT FAILURE — continuing without database"
+      "DATABASE BOOT FAILURE — continuing without database"
     );
     // process.exit(1);
   }
@@ -209,7 +209,7 @@ async function startServer(): Promise<void> {
     else if (message.includes("locked")) status = 403;
     else if (message.includes("not found")) status = 404;
 
-    logger.error({ method: c.req.method, path: c.req.path, message }, "❌ ERROR");
+    logger.error({ method: c.req.method, path: c.req.path, message }, "ERROR");
 
     return c.json(
       { error: IS_PROD ? "Internal Server Error" : message },
@@ -219,7 +219,7 @@ async function startServer(): Promise<void> {
 
   // ── HTTP Server ───────────────────────────
   const server = serve({ fetch: app.fetch, port: PORT, hostname: "0.0.0.0" }, (info) => {
-    logger.info(`🚀 Server running at http://localhost:${info.port} [${NODE_ENV}]`);
+    logger.info(`Server running at http://localhost:${info.port} [${NODE_ENV}]`);
   });
 
   // ── Vite dev middleware ───────────────────
@@ -266,14 +266,14 @@ async function startServer(): Promise<void> {
   function shutdown(signal: string): void {
     if (shuttingDown) return;
     shuttingDown = true;
-    logger.warn(`\n⚠️  ${signal} received — shutting down gracefully…`);
+    logger.warn(`\n${signal} received - shutting down gracefully`);
     server.close(() => {
-      logger.info("🛑 HTTP server closed");
+      logger.info("HTTP server closed");
       process.exit(0);
     });
     // Force-kill after 10 s
     setTimeout(() => {
-      logger.error("❌ Forced shutdown (timeout)");
+      logger.error("Forced shutdown (timeout)");
       process.exit(1);
     }, 10_000).unref();
   }
@@ -282,16 +282,16 @@ async function startServer(): Promise<void> {
   process.on("SIGTERM", () => shutdown("SIGTERM"));
 
   process.on("uncaughtException", (err) => {
-    logger.error({ err }, "❌ UNCAUGHT EXCEPTION");
+    logger.error({ err }, "UNCAUGHT EXCEPTION");
     shutdown("uncaughtException");
   });
 
   process.on("unhandledRejection", (reason) => {
-    logger.error({ reason }, "❌ UNHANDLED REJECTION");
+    logger.error({ reason }, "UNHANDLED REJECTION");
   });
 }
 
 startServer().catch((err) => {
-  logger.error({ err }, "❌ SERVER STARTUP FAILED");
+  logger.error({ err }, "SERVER STARTUP FAILED");
   process.exit(1);
 });

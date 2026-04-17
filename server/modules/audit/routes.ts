@@ -71,7 +71,7 @@ app.post("/", authenticateToken, async (c) => {
       );
     } catch (err) {
       // Never break user flow because of audit failure
-      logger.error({ reqId, err }, "❌ AUDIT WRITE FAILED");
+      logger.error({ reqId, err }, "AUDIT WRITE FAILED");
     }
 
     return c.json({ success: true });

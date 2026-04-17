@@ -41,9 +41,9 @@ const JWT_SECRET = process.env.JWT_SECRET || "insecure-dev-secret";
 
 if (JWT_SECRET === "insecure-dev-secret") {
   if (process.env.NODE_ENV === "production") {
-    console.warn("⚠️  JWT_SECRET not set — using insecure dev default. DO NOT use in production.");
+    console.warn("JWT_SECRET not set — using insecure dev default. DO NOT use in production.");
   } else {
-    console.warn("⚠️  JWT_SECRET not set — using insecure dev default. DO NOT use in production.");
+    console.warn("JWT_SECRET not set — using insecure dev default. DO NOT use in production.");
   }
 }
 
@@ -92,13 +92,13 @@ export const authenticateToken = async (
     await next();
   } catch (err: unknown) {
     if (err instanceof jwt.TokenExpiredError) {
-      return c.json({ error: "Session expired. Please log in again." }, 401);
+      return c.json({ error: "Session expired. Please log in again" }, 401);
     }
     if (err instanceof jwt.JsonWebTokenError) {
-      return c.json({ error: "Invalid token." }, 403);
+      return c.json({ error: "Invalid token" }, 403);
     }
-    console.error("❌ AUTH ERROR", err);
-    return c.json({ error: "Authentication failed." }, 403);
+    console.error("AUTH ERROR", err);
+    return c.json({ error: "Authentication failed" }, 403);
   }
 };
 
@@ -131,7 +131,7 @@ export function requirePermission(perm: keyof PermissionFlags) {
   ): Promise<Response | void> => {
     const user = c.get("user");
     if (!user.permissions[perm]) {
-      return c.json({ error: `Permission denied: '${perm}' required.` }, 403);
+      return c.json({ error: `Permission denied: '${perm}' required` }, 403);
     }
     await next();
   };

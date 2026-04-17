@@ -10,7 +10,7 @@ let initializing = false;
 type InitStage = "instrumentation" | "migrations" | "security" | "seeding";
 
 function logError(stage: InitStage, error: unknown) {
-  logger.error({ error }, `❌ DB INIT FAILED [${stage}]`);
+  logger.error({ error }, `DB INIT FAILED [${stage}]`);
 }
 
 /**
@@ -29,7 +29,7 @@ export async function initDatabase(): Promise<void> {
     /** 1️⃣ Observability instrumentation */
     try {
       // instrumentDb(); // Removed for now as it was better-sqlite3 specific
-      logger.info("🔍 DB instrumentation applied");
+      logger.info("DB instrumentation applied");
     } catch (err) {
       logError("instrumentation", err);
       throw err;
@@ -38,7 +38,7 @@ export async function initDatabase(): Promise<void> {
     /** 2️⃣ Migrations */
     try {
       await runMigrations();
-      logger.info("🛠 DB migrations completed");
+      logger.info("DB migrations completed");
     } catch (err) {
       logError("migrations", err);
       throw err;
@@ -47,7 +47,7 @@ export async function initDatabase(): Promise<void> {
     /** 3️⃣ Security triggers */
     try {
       await initSecurityTriggers();
-      logger.info("🔒 Security triggers initialized");
+      logger.info("Security triggers initialized");
     } catch (err) {
       logError("security", err);
       throw err;
@@ -56,18 +56,18 @@ export async function initDatabase(): Promise<void> {
     /** 4️⃣ Seed database (transaction-safe) */
     try {
       await seedDatabase();
-      logger.info("🌱 Initial seed applied");
+      logger.info("Initial seed applied");
     } catch (err) {
       logError("seeding", err);
       throw err;
     }
 
     initialized = true;
-    logger.info("✅ Database fully initialized");
+    logger.info("Database fully initialized");
   } catch (err) {
     // Reset state for retry
     initialized = false;
-    logger.error({ err }, "❌ DATABASE INITIALIZATION FAILED");
+    logger.error({ err }, "DATABASE INITIALIZATION FAILED");
     throw err;
   } finally {
     initializing = false;

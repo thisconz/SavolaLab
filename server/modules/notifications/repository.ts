@@ -12,7 +12,11 @@ export const NotificationRepository = {
          LIMIT 50`,
         [employeeNumber],
       );
-      return rows as Notification[];
+      return rows.map((row: any) => ({
+        ...row,
+        created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+        is_read: Boolean(row.is_read)
+      })) as Notification[];
     } catch (error: any) {
       if (error.message === "Database not connected") return [];
       throw error;
