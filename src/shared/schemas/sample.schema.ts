@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SugarStageSchema } from "../../core/types/lab.types";
+import { SugarTypesSchema } from "../../core/types/lab.types";
 
 /**
  * --- Shared Enums ---
@@ -22,9 +22,7 @@ export const SamplePrioritySchema = z.enum(["NORMAL", "HIGH", "STAT"]);
 export const SampleSchema = z.object({
   id: z.number(),
   batch_id: z.string(),
-  source_stage: z.string(),
-  sugar_stage: SugarStageSchema.nullish(),
-  sample_type: z.string().nullish(),
+  sample_type: SugarTypesSchema.nullish(),
   line_id: z.string().nullish(),
   equipment_id: z.string().nullish(),
   shift_id: z.string().nullish(),

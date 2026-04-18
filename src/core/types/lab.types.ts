@@ -1,44 +1,41 @@
 import { z } from "zod";
 
-export const SUGAR_STAGES = [
-  "Raw Handling",
-  "Refining",
-  "Carbonation",
-  "Filtration",
-  "Evaporation",
-  "Crystallization",
-  "Centrifuge",
-  "Drying",
-  "Packaging",
-  "Sweet water",
-  "12VO6",
-  "Polish liquor",
-  "Fine liquor",
-  "Evaporator liquor",
-  "SAT A",
-  "SAT B",
-  "SAT C",
-  "SAT Out",
-  "Utility samples",
-  "Effluent samples",
-  "Clean condensate",
-  "Screen melt",
-  "White sugar",
-  "Brown sugar",
-  "Raw sugar",
-  "Milk lime",
-  "Wash water",
-  "Filter supply",
-  "Icing sugar",
-  "Fine sugar",
-  "Extra fine sugar",
-  "Course sugar",
-  "Super fine sugar",
-  "Mud",
-] as const;
+export const SAMPLE_TYPES = {
+  SWEET_WATER: "Sweet water",
+  VO6_12: "12VO6",
+  POLISH_LIQUOR: "Polish liquor",
+  FINE_LIQUOR: "Fine liquor",
+  EVAPORATOR_LIQUOR: "Evaporator liquor",
 
-export const SugarStageSchema = z.enum(SUGAR_STAGES);
-export type SugarStage = z.infer<typeof SugarStageSchema>;
+  SAT_A: "SAT A",
+  SAT_B: "SAT B",
+  SAT_C: "SAT C",
+  SAT_OUT: "SAT Out",
+
+  UTILITY: "Utility samples",
+  EFFLUENT: "Effluent samples",
+  CLEAN_CONDENSATE: "Clean condensate",
+  SCREEN_MELT: "Screen melt",
+
+  WHITE_SUGAR: "White sugar",
+  BROWN_SUGAR: "Brown sugar",
+  RAW_SUGAR: "Raw sugar",
+
+  MILK_LIME: "Milk lime",
+  WASH_WATER: "Wash water",
+  FILTER_SUPPLY: "Filter supply",
+
+  ICING_SUGAR: "Icing sugar",
+  FINE_SUGAR: "Fine sugar",
+  EXTRA_FINE_SUGAR: "Extra fine sugar",
+  COURSE_SUGAR: "Course sugar",
+  SUPER_FINE_SUGAR: "Super fine sugar",
+
+  MUD: "Mud",
+} as const;
+
+export const SugarTypesSchema = z.enum(SAMPLE_TYPES);
+export type SugarType = z.infer<typeof SugarTypesSchema>;
 
 export const TEST_TYPES = [
   "pH",

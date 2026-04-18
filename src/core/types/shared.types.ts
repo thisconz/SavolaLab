@@ -10,7 +10,7 @@ import { StatRequestSchema, StatRequestStatusSchema, StatRequestUrgencySchema } 
 import { WorkflowSchema, WorkflowStepSchema } from "../../shared/schemas/workflow.schema";
 import { NotificationSchema, NotificationTypeSchema } from "../../shared/schemas/notification.schema";
 import { AuditLogSchema } from "../../shared/schemas/audit.schema";
-import { SugarStage, TestType } from "./lab.types";
+import { SugarType, TestType } from "./lab.types";
 
 /** --- Enums and Derived Types from Schemas --- */
 export type SampleStatus = z.infer<typeof SampleStatusSchema>;

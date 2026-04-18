@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TestTypeSchema, SugarStageSchema } from "../../core/types/lab.types";
+import { TestTypeSchema, SugarTypesSchema } from "../../core/types/lab.types";
 
 export const WorkflowStepSchema = z.object({
   id: z.number().optional(),
@@ -14,7 +14,7 @@ export const WorkflowSchema = z.object({
   id: z.number(),
   name: z.string(),
   description: z.string(),
-  target_stage: SugarStageSchema,
+  target_stage: SugarTypesSchema,
   created_at: z.string(),
   is_active: z.boolean(),
   steps: z.array(WorkflowStepSchema).optional(),

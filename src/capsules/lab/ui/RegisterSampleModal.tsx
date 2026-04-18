@@ -12,9 +12,9 @@ import {
 } from "lucide-react";
 import { LabButton } from "../../../ui/components/LabButton";
 import { Modal } from "../../../ui/components/Modal";
-import type { SugarStage, Sample } from "../../../core/types";
+import type { SugarType, Sample } from "../../../core/types";
 import { SamplePriority, SampleStatus } from "../../../core/types";
-import { SUGAR_STAGES } from "../../../core/types/lab.types";
+import { SAMPLE_TYPES } from "../../../core/types/lab.types";
 import { LabApi } from "../api/lab.api";
 
 interface RegisterSampleModalProps {
@@ -25,8 +25,7 @@ interface RegisterSampleModalProps {
 
 const INITIAL_FORM_STATE = {
   batch_id: "",
-  sugar_stage: SUGAR_STAGES[0] as SugarStage,
-  sample_type: "",
+  sample_type: SAMPLE_TYPES[0] as SugarType,
   priority: "NORMAL" as keyof typeof SamplePriority,
   line_id: "",
   equipment_id: "",
@@ -52,7 +51,7 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
       try {
         const payload: Partial<Sample> = {
           ...formData,
-          source_stage: formData.sugar_stage,
+          source_stage: formData.sugar_type,
           priority: SamplePriority[formData.priority],
           status: SampleStatus.REGISTERED,
           created_at: new Date().toISOString(),
@@ -145,22 +144,22 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className={labelStyle}>
-                <Layers size={14} className="text-brand-primary" /> Source_Stage
+                <Layers size={14} className="text-brand-primary" /> Sugar_Type
               </label>
               <select
                 required
-                value={formData.sugar_stage}
+                value={formData.sugar_type}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    sugar_stage: e.target.value as SugarStage,
+                    sugar_type: e.target.value as SugarType,
                   })
                 }
                 className={`${inputStyle} cursor-pointer appearance-none`}
               >
-                {SUGAR_STAGES.map((stage) => (
-                  <option key={stage} value={stage} className="bg-(--color-zenthar-carbon)">
-                    {stage}
+                {SAMPLE_TYPES.map((type) => (
+                  <option key={type} value={type} className="bg-(--color-zenthar-carbon)">
+                    {type}
                   </option>
                 ))}
               </select>

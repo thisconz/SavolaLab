@@ -41,7 +41,6 @@ const SAMPLE_TYPES: SampleType[] = [
   { name: "White sugar", category: "PRODUCT", description: "" },
   { name: "Polish liquor", category: "LIQUID", description: "" },
   { name: "Effluent samples", category: "UTILITY", description: "" },
-  // ...
 ];
 
 // --- Modular Seeder Functions ---
