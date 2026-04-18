@@ -4,41 +4,34 @@ import { StatRepository } from "./repository";
 
 export interface StatRequestInput {
   department: string;
-  reason: string;
-  urgency?: "NORMAL" | "HIGH" | "CRITICAL";
+  reason:     string;
+  urgency?:   "NORMAL" | "HIGH" | "CRITICAL";
 }
 
 export const StatService = {
-  // --- Get all stat requests ---
   getStats: async () => {
-    return await StatRepository.findAll();
+    return StatRepository.findAll();
   },
 
-  // --- Create a new stat request with audit logging ---
   createStat: async (
     data: StatRequestInput,
     employeeNumber?: string,
     ip?: string,
   ) => {
-    const { department, reason, urgency } = data;
-
     const statId = await StatRepository.create({
-      department,
-      reason,
-      urgency,
+      department: data.department,
+      reason:     data.reason,
+      urgency:    data.urgency ?? "NORMAL",
     });
 
-    // --- Audit logging ---
     if (employeeNumber) {
       await db.execute(
-        `
-        INSERT INTO audit_logs (employee_number, action, details, ip_address)
-        VALUES ($1, 'STAT_REQUEST_CREATED', $2, $3)
-      `,
+        `INSERT INTO audit_logs (employee_number, action, details, ip_address)
+         VALUES ($1, 'STAT_REQUEST_CREATED', $2, $3)`,
         [
           employeeNumber,
-          `Created stat request #${statId} for ${department}`,
-          ip || "127.0.0.1",
+          `Created STAT request #${statId} for department: ${data.department}`,
+          ip ?? "127.0.0.1",
         ],
       );
     }
@@ -46,7 +39,6 @@ export const StatService = {
     return statId;
   },
 
-  // --- Update stat request status ---
   updateStatStatus: async (
     id: number | string,
     status: string,
@@ -58,17 +50,14 @@ export const StatService = {
 
     await StatRepository.updateStatus(statId, status);
 
-    // --- Audit logging ---
     if (employeeNumber) {
       await db.execute(
-        `
-        INSERT INTO audit_logs (employee_number, action, details, ip_address)
-        VALUES ($1, 'STAT_REQUEST_UPDATED', $2, $3)
-      `,
+        `INSERT INTO audit_logs (employee_number, action, details, ip_address)
+         VALUES ($1, 'STAT_REQUEST_UPDATED', $2, $3)`,
         [
           employeeNumber,
-          `Updated stat request #${statId} status to ${status}`,
-          ip || "127.0.0.1",
+          `Updated STAT request #${statId} → ${status}`,
+          ip ?? "127.0.0.1",
         ],
       );
     }

@@ -23,7 +23,7 @@ export const migrations: Migration[] = [
           id SERIAL PRIMARY KEY,
           name TEXT NOT NULL UNIQUE,
           category TEXT NOT NULL,
-          line_id INTEGER NULL
+          line_id INTEGER NULL,
           description TEXT
         );
 
@@ -80,7 +80,7 @@ export const migrations: Migration[] = [
         CREATE TABLE IF NOT EXISTS users (
           employee_number TEXT PRIMARY KEY,
           password_hash TEXT NOT NULL,
-          pin_hash TEXT, -- Allow null for activation flow
+          pin_hash TEXT,
           status TEXT DEFAULT 'PENDING_ACTIVATION',
           last_login TIMESTAMP,
           failed_attempts INTEGER DEFAULT 0,
@@ -91,16 +91,16 @@ export const migrations: Migration[] = [
         CREATE TABLE IF NOT EXISTS samples (
           id SERIAL PRIMARY KEY,
           batch_id TEXT,
-          sample_type TEXT, -- Linked via constraint below
+          sample_type TEXT,
+          source_stage TEXT,
           line_id INTEGER,
-          equipment_id INTEGER, -- Changed to INTEGER to match equipment(id)
-          shift_id INTEGER,     -- Changed to INTEGER to match shifts(id)
+          equipment_id INTEGER,
+          shift_id INTEGER,
           status TEXT DEFAULT 'REGISTERED',
           priority TEXT DEFAULT 'NORMAL',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           technician_id TEXT,
           CONSTRAINT fk_technician FOREIGN KEY(technician_id) REFERENCES employees(employee_number),
-          CONSTRAINT fk_sample_type_ref FOREIGN KEY(sample_type) REFERENCES sample_types(name),
           CONSTRAINT fk_line_ref FOREIGN KEY(line_id) REFERENCES production_lines(id)
         );
       `);
@@ -136,6 +136,9 @@ export const migrations: Migration[] = [
           performer_id TEXT,
           reviewer_id TEXT,
           review_at TIMESTAMP,
+          review_comment TEXT,
+          notes TEXT,
+          params TEXT,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           CONSTRAINT fk_sample FOREIGN KEY(sample_id) REFERENCES samples(id) ON DELETE RESTRICT,
           CONSTRAINT fk_performer FOREIGN KEY(performer_id) REFERENCES employees(employee_number),
@@ -179,10 +182,11 @@ export const migrations: Migration[] = [
       `);
     },
   },
+
   {
     version: 7,
     up: async (client) => {
-      // INSTRUMENTS & INVENTORY (Independent Infrastructure)
+      // INSTRUMENTS & INVENTORY
       await client.execute(`
         CREATE TABLE IF NOT EXISTS instruments (
           id SERIAL PRIMARY KEY,
@@ -206,10 +210,11 @@ export const migrations: Migration[] = [
       `);
     },
   },
+
   {
     version: 8,
     up: async (client) => {
-      // WORKFLOW ENGINE (Depends on test_methods and samples)
+      // WORKFLOW ENGINE
       await client.execute(`
         CREATE TABLE IF NOT EXISTS workflows (
           id SERIAL PRIMARY KEY,
@@ -223,7 +228,7 @@ export const migrations: Migration[] = [
         CREATE TABLE IF NOT EXISTS workflow_steps (
           id SERIAL PRIMARY KEY,
           workflow_id INTEGER REFERENCES workflows(id),
-          test_method_id INTEGER REFERENCES test_methods(id),
+          test_type TEXT NOT NULL,
           sequence_order INTEGER,
           min_value DOUBLE PRECISION,
           max_value DOUBLE PRECISION
@@ -237,13 +242,27 @@ export const migrations: Migration[] = [
           started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           completed_at TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS workflow_step_executions (
+          id SERIAL PRIMARY KEY,
+          execution_id INTEGER REFERENCES workflow_executions(id) ON DELETE CASCADE,
+          step_id INTEGER REFERENCES workflow_steps(id),
+          test_id INTEGER REFERENCES tests(id),
+          result_value DOUBLE PRECISION,
+          status TEXT DEFAULT 'PENDING',
+          started_at TIMESTAMP,
+          completed_at TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_wse_execution ON workflow_step_executions(execution_id);
       `);
     },
   },
+
   {
     version: 9,
     up: async (client) => {
-      // COMMUNICATION & OUTPUT (Depends on employees)
+      // COMMUNICATION & OUTPUT
       await client.execute(`
         CREATE TABLE IF NOT EXISTS certificates (
           id SERIAL PRIMARY KEY,
@@ -273,6 +292,7 @@ export const migrations: Migration[] = [
       `);
     },
   },
+
   {
     version: 10,
     up: async (client) => {
@@ -305,6 +325,38 @@ export const migrations: Migration[] = [
           status TEXT DEFAULT 'OPEN',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+      `);
+    },
+  },
+
+  {
+    version: 11,
+    up: async (client) => {
+      // OTP AUTHENTICATION TABLE
+      await client.execute(`
+        CREATE TABLE IF NOT EXISTS otp_codes (
+          id SERIAL PRIMARY KEY,
+          employee_number TEXT NOT NULL REFERENCES employees(employee_number) ON DELETE CASCADE,
+          code TEXT NOT NULL,
+          expires_at TIMESTAMP NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_otp_employee ON otp_codes(employee_number);
+        CREATE INDEX IF NOT EXISTS idx_otp_expires ON otp_codes(expires_at);
+      `);
+    },
+  },
+
+  {
+    version: 12,
+    up: async (client) => {
+      // NOTIFICATION INDEX
+      await client.execute(`
+        CREATE INDEX IF NOT EXISTS idx_notifications_employee ON notifications(employee_number);
+        CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(is_read, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_workflow_executions_sample ON workflow_executions(sample_id);
+        CREATE INDEX IF NOT EXISTS idx_tests_updated ON tests(updated_at DESC);
       `);
     },
   },

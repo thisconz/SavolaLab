@@ -1,23 +1,8 @@
 import React, { memo } from "react";
 import {
-  ArrowLeft,
-  Beaker,
-  Save,
-  Edit2,
-  X,
-  Hash,
-  Layers,
-  TestTube2,
-  Clock,
-  MapPin,
-  Activity,
-  Settings,
-  Factory,
-  Cpu,
-  CheckCircle2,
-  TrendingUp,
-  Fingerprint,
-  Zap,
+  ArrowLeft, Beaker, Save, Edit2, X, Hash, Layers, TestTube2,
+  Clock, MapPin, Activity, Settings, Factory, Cpu, CheckCircle2,
+  TrendingUp, Fingerprint, Zap,
 } from "lucide-react";
 import type { Sample } from "../../../core/types";
 import { SampleStatus, TestStatus } from "../../../core/types";
@@ -27,26 +12,22 @@ import { useSampleDetails } from "../hooks/useSampleDetails";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 
 interface SampleDetailsProps {
-  sample: Sample;
-  onBack: () => void;
+  sample:         Sample;
+  onBack:         () => void;
   onStartTesting: () => void;
-  onUpdate: () => void;
+  onUpdate:       () => void;
 }
 
 export const SampleDetails: React.FC<SampleDetailsProps> = memo(
   ({ sample, onBack, onStartTesting, onUpdate }) => {
     const {
-      isEditing,
-      setIsEditing,
-      editedSample,
-      setEditedSample,
-      isSaving,
-      testResults,
-      handleSave,
+      isEditing, setIsEditing, editedSample, setEditedSample,
+      isSaving, testResults, handleSave,
     } = useSampleDetails(sample, onUpdate);
 
-    const isStat = sample.priority === "STAT";
-    const isCompleted = sample.status === SampleStatus.COMPLETED;
+    const isStat      = sample.priority === "STAT";
+    const isCompleted = sample.status   === SampleStatus.COMPLETED ||
+                        sample.status   === SampleStatus.APPROVED;
 
     return (
       <LabPanel
@@ -57,12 +38,12 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
             onClick={onBack}
             className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase text-brand-sage hover:text-(--color-zenthar-text-primary) bg-(--color-zenthar-carbon)/40 rounded-lg border border-brand-sage/10 transition-all"
           >
-            <ArrowLeft size={14} /> Back_To_Queue
+            <ArrowLeft size={14} /> Back
           </button>
         }
       >
         <div className="flex flex-col h-full space-y-6">
-          {/* HERO: STATUS OVERVIEW */}
+          {/* Hero status card */}
           <header
             className={`p-6 rounded-4xl border transition-all duration-500 shadow-xl ${
               isStat
@@ -73,7 +54,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-5">
                 <div
-                  className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-all ${
+                  className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ${
                     isStat
                       ? "bg-lab-laser text-(--color-zenthar-void) animate-pulse"
                       : "bg-brand-primary text-(--color-zenthar-void)"
@@ -83,8 +64,8 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                 </div>
                 <div>
                   <div className="flex items-center gap-3">
-                    <h2 className="text-3xl font-black text-(--color-zenthar-text-primary) tracking-[ -0.05em] font-mono">
-                      {sample.batch_id}
+                    <h2 className="text-3xl font-black text-(--color-zenthar-text-primary) tracking-tight font-mono">
+                      {sample.batch_id ?? `Sample #${sample.id}`}
                     </h2>
                     {isStat && (
                       <span className="px-2 py-1 bg-lab-laser text-(--color-zenthar-void) text-[8px] font-black uppercase rounded flex items-center gap-1">
@@ -94,12 +75,12 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                   </div>
                   <div className="flex items-center gap-3 mt-2 text-[10px] font-bold text-brand-sage uppercase tracking-widest">
                     <span className="flex items-center gap-1">
-                      <MapPin size={12} className="text-brand-primary/40" />{" "}
-                      {sample.source_stage}
+                      <MapPin size={12} className="text-brand-primary/40" />
+                      {sample.source_stage ?? "—"}
                     </span>
                     <span className="w-1 h-1 bg-brand-sage/30 rounded-full" />
                     <span className="flex items-center gap-1">
-                      <Clock size={12} className="text-brand-primary/40" />{" "}
+                      <Clock size={12} className="text-brand-primary/40" />
                       {new Date(sample.created_at).toLocaleTimeString()}
                     </span>
                   </div>
@@ -108,7 +89,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
 
               <div className="text-right">
                 <p className="text-[9px] font-black text-brand-sage/40 uppercase tracking-[0.2em] mb-1">
-                  Lifecycle_Phase
+                  Status
                 </p>
                 <div
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wider ${
@@ -117,7 +98,8 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                       : "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
                   }`}
                 >
-                  {sample.status === SampleStatus.VALIDATING && (
+                  {(sample.status === SampleStatus.VALIDATING ||
+                    sample.status === SampleStatus.TESTING) && (
                     <Activity size={12} className="animate-spin-slow" />
                   )}
                   {sample.status}
@@ -127,7 +109,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
           </header>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-2">
-            {/* METADATA BENTO GRID */}
+            {/* Parameter bento grid */}
             <section>
               <div className="flex items-center gap-2 mb-4 px-1">
                 <Settings size={14} className="text-brand-primary" />
@@ -155,50 +137,69 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                       />
                       <div className="p-4 bg-(--color-zenthar-carbon)/50 border border-brand-primary/20 rounded-2xl">
                         <label className="text-[9px] font-black text-brand-primary uppercase mb-2 block tracking-widest">
-                          Urgency_Tier
+                          Priority
                         </label>
                         <select
                           className="w-full bg-transparent text-xs font-bold text-(--color-zenthar-text-primary) outline-none cursor-pointer"
                           value={editedSample.priority}
                           onChange={(e) =>
-                            setEditedSample((p) => ({
-                              ...p,
-                              priority: e.target.value as any,
-                            }))
+                            setEditedSample((p) => ({ ...p, priority: e.target.value as any }))
                           }
                         >
-                          <option value="NORMAL" className="bg-(--color-zenthar-carbon)">Normal_Priority</option>
-                          <option value="HIGH" className="bg-(--color-zenthar-carbon)">High_Priority</option>
-                          <option value="STAT" className="bg-(--color-zenthar-carbon)">Stat_Urgent</option>
+                          <option value="NORMAL">Normal</option>
+                          <option value="HIGH">High</option>
+                          <option value="STAT">STAT</option>
                         </select>
                       </div>
+                      <EditField
+                        icon={TestTube2}
+                        label="Sample_Type"
+                        value={editedSample.sample_type}
+                        onChange={(v: string) =>
+                          setEditedSample((p) => ({ ...p, sample_type: v }))
+                        }
+                      />
+                      <EditField
+                        icon={Layers}
+                        label="Source_Stage"
+                        value={editedSample.source_stage}
+                        onChange={(v: string) =>
+                          setEditedSample((p) => ({ ...p, source_stage: v }))
+                        }
+                      />
                     </motion.div>
                   ) : (
                     <>
                       <DetailTile
                         className="col-span-3"
-                        icon={Layers}
+                        icon={TestTube2}
                         label="Sample_Type"
                         value={sample.sample_type}
                         highlight
                       />
                       <DetailTile
                         className="col-span-3"
+                        icon={Layers}
+                        label="Source_Stage"
+                        value={sample.source_stage}
+                      />
+                      <DetailTile
+                        className="col-span-2"
                         icon={Factory}
-                        label="Production_Line"
-                        value={sample.line_id}
+                        label="Line"
+                        value={sample.line_id ? `Line ${sample.line_id}` : null}
                       />
                       <DetailTile
                         className="col-span-2"
                         icon={Cpu}
-                        label="Instrument_ID"
-                        value={sample.equipment_id}
+                        label="Equipment"
+                        value={sample.equipment_id ? `Eq. ${sample.equipment_id}` : null}
                       />
                       <DetailTile
-                        className="col-span-4"
-                        icon={TestTube2}
-                        label="Test_Protocol"
-                        value={`${sample.test_count} Standards Mapped`}
+                        className="col-span-2"
+                        icon={Clock}
+                        label="Shift"
+                        value={sample.shift_id ? `Shift ${sample.shift_id}` : null}
                       />
                     </>
                   )}
@@ -206,7 +207,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
               </div>
             </section>
 
-            {/* LIVE INSTRUMENT READOUT */}
+            {/* Live instrument readout */}
             <AnimatePresence>
               {testResults.length > 0 && !isEditing && (
                 <motion.section
@@ -217,20 +218,24 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                   <div className="flex items-center gap-2 px-1">
                     <TrendingUp size={14} className="text-emerald-400" />
                     <h3 className="text-[10px] font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.2em]">
-                      Instrument_Readout
+                      Test_Results
                     </h3>
                   </div>
                   <div className="grid gap-2">
                     {testResults.map((result) => (
                       <div
                         key={result.id}
-                        className="flex items-center justify-between p-4 bg-(--color-zenthar-carbon) border border-brand-sage/10 rounded-2xl hover:border-brand-primary/40 transition-all shadow-sm"
+                        className="flex items-center justify-between p-4 bg-(--color-zenthar-carbon) border border-brand-sage/10 rounded-2xl hover:border-brand-primary/40 transition-all"
                       >
                         <div className="flex items-center gap-4">
                           <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center ${result.status === TestStatus.COMPLETED ? "bg-emerald-500/10 text-emerald-400" : "bg-brand-primary/10 text-brand-primary"}`}
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                              result.status === TestStatus.APPROVED || result.status === TestStatus.COMPLETED
+                                ? "bg-emerald-500/10 text-emerald-400"
+                                : "bg-brand-primary/10 text-brand-primary"
+                            }`}
                           >
-                            {result.status === TestStatus.COMPLETED ? (
+                            {result.status === TestStatus.APPROVED || result.status === TestStatus.COMPLETED ? (
                               <CheckCircle2 size={18} />
                             ) : (
                               <Activity size={18} className="animate-pulse" />
@@ -247,10 +252,10 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                         </div>
                         <div className="text-right">
                           <span className="text-xl font-mono font-black text-(--color-zenthar-text-primary)">
-                            {result.calculated_value || "---"}
+                            {result.calculated_value ?? result.raw_value ?? "—"}
                           </span>
                           <span className="text-[9px] font-bold text-brand-sage/60 ml-1 uppercase">
-                            {result.unit}
+                            {result.unit ?? ""}
                           </span>
                         </div>
                       </div>
@@ -261,35 +266,21 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
             </AnimatePresence>
           </div>
 
-          {/* ACTION BAR */}
+          {/* Action bar */}
           <footer className="pt-6 border-t border-brand-sage/10 flex gap-3">
             {isEditing ? (
               <>
-                <LabButton
-                  variant="secondary"
-                  onClick={() => setIsEditing(false)}
-                  icon={X}
-                >
-                  Abort_Changes
+                <LabButton variant="secondary" onClick={() => setIsEditing(false)} icon={X}>
+                  Cancel
                 </LabButton>
-                <LabButton
-                  variant="primary"
-                  fullWidth
-                  onClick={handleSave}
-                  loading={isSaving}
-                  icon={Save}
-                >
-                  Commit_To_Database
+                <LabButton variant="primary" fullWidth onClick={handleSave} loading={isSaving} icon={Save}>
+                  Save_Changes
                 </LabButton>
               </>
             ) : (
               <>
-                <LabButton
-                  variant="secondary"
-                  onClick={() => setIsEditing(true)}
-                  icon={Edit2}
-                >
-                  Parameter_Adjustment
+                <LabButton variant="secondary" onClick={() => setIsEditing(true)} icon={Edit2}>
+                  Edit
                 </LabButton>
                 <LabButton
                   variant="primary"
@@ -297,11 +288,9 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                   onClick={onStartTesting}
                   disabled={isCompleted}
                   icon={TestTube2}
-                  className={
-                    !isCompleted ? "shadow-lg shadow-brand-primary/20" : ""
-                  }
+                  className={!isCompleted ? "shadow-lg shadow-brand-primary/20" : ""}
                 >
-                  {isCompleted ? "Protocol_Archived" : "Execute_Lab_Run"}
+                  {isCompleted ? "Analysis_Complete" : "Start_Analysis"}
                 </LabButton>
               </>
             )}
@@ -312,15 +301,11 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
   },
 );
 
-/* --- Atomic Components --- */
+// ─────────────────────────────────────────────
+// Atomic Components
+// ─────────────────────────────────────────────
 
-const DetailTile = ({
-  icon: Icon,
-  label,
-  value,
-  highlight,
-  className,
-}: any) => (
+const DetailTile = ({ icon: Icon, label, value, highlight, className }: any) => (
   <div
     className={`p-4 rounded-2xl border transition-all ${className} ${
       highlight
@@ -329,24 +314,26 @@ const DetailTile = ({
     }`}
   >
     <div
-      className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest mb-1 ${highlight ? "text-brand-primary" : "text-brand-sage"}`}
+      className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest mb-1 ${
+        highlight ? "text-brand-primary" : "text-brand-sage"
+      }`}
     >
       <Icon size={10} /> {label}
     </div>
     <div className="text-xs font-black text-(--color-zenthar-text-primary) uppercase truncate font-mono">
-      {value || "N/A"}
+      {value ?? "—"}
     </div>
   </div>
 );
 
 const EditField = ({ icon: Icon, label, value, onChange }: any) => (
-  <div className="p-4 bg-(--color-zenthar-carbon) border-2 border-brand-primary/10 rounded-2xl focus-within:border-brand-primary transition-all shadow-inner">
+  <div className="p-4 bg-(--color-zenthar-carbon) border-2 border-brand-primary/10 rounded-2xl focus-within:border-brand-primary transition-all">
     <label className="flex items-center gap-1.5 text-[9px] font-black text-brand-primary uppercase mb-1 tracking-widest">
       <Icon size={10} /> {label}
     </label>
     <input
       className="w-full bg-transparent text-xs font-bold text-(--color-zenthar-text-primary) outline-none"
-      value={value || ""}
+      value={value ?? ""}
       onChange={(e) => onChange(e.target.value)}
       autoFocus
     />

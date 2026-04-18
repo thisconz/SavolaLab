@@ -1,57 +1,12 @@
-const jwt = {
-  verify: (token: string, secret: string, options?: any) => ({
-    employee_number: "1001",
-    role: "admin",
-    permissions: {
-      view_results: 1,
-      input_data: 1,
-      edit_formulas: 1,
-      change_specs: 1,
-    },
-  }),
-  sign: (payload: any, secret: string, options?: any) => "mock-token",
-  TokenExpiredError: class TokenExpiredError extends Error {},
-  JsonWebTokenError: class JsonWebTokenError extends Error {},
-};
-export interface JwtPayload {
-  [key: string]: any;
-}
 import type { Context, Next } from "hono";
 import { getCookie } from "hono/cookie";
 import type { Variables, User, UserRole, PermissionFlags } from "./types";
+import { verifyToken } from "../modules/auth/service";
 
 // ─────────────────────────────────────────────
-// JWT payload
+// Token extraction (Authorization header → cookie)
 // ─────────────────────────────────────────────
-export interface AuthTokenPayload extends JwtPayload {
-  employee_number: string;
-  name: string;
-  role: UserRole;
-  dept: string;
-  permissions: PermissionFlags;
-  initials: string;
-  iat: number;
-  exp: number;
-}
 
-// ─────────────────────────────────────────────
-// Secret
-// ─────────────────────────────────────────────
-const JWT_SECRET = process.env.JWT_SECRET || "insecure-dev-secret";
-
-if (JWT_SECRET === "insecure-dev-secret") {
-  if (process.env.NODE_ENV === "production") {
-    console.warn("JWT_SECRET not set — using insecure dev default. DO NOT use in production.");
-  } else {
-    console.warn("JWT_SECRET not set — using insecure dev default. DO NOT use in production.");
-  }
-}
-
-const SECRET = JWT_SECRET;
-
-// ─────────────────────────────────────────────
-// Token extraction (header > cookie)
-// ─────────────────────────────────────────────
 function extractToken(c: Context): string | null {
   const auth = c.req.header("authorization");
   if (auth?.startsWith("Bearer ")) return auth.slice(7);
@@ -61,6 +16,7 @@ function extractToken(c: Context): string | null {
 // ─────────────────────────────────────────────
 // Middleware: authenticate
 // ─────────────────────────────────────────────
+
 export const authenticateToken = async (
   c: Context<{ Variables: Variables }>,
   next: Next,
@@ -71,40 +27,33 @@ export const authenticateToken = async (
     return c.json({ error: "Authentication required." }, 401);
   }
 
-  try {
-    const decoded = jwt.verify(token, SECRET, {
-      algorithms: ["HS256"],
-    }) as AuthTokenPayload;
+  const decoded = verifyToken(token);
 
-    if (!decoded.employee_number || !decoded.role) {
-      return c.json({ error: "Malformed token payload." }, 403);
-    }
-
-    // Expose as strongly typed User
-    c.set("user", {
-      employee_number: decoded.employee_number,
-      name: decoded.name,
-      role: decoded.role,
-      dept: decoded.dept,
-      permissions: decoded.permissions,
-    } satisfies User);
-
-    await next();
-  } catch (err: unknown) {
-    if (err instanceof jwt.TokenExpiredError) {
-      return c.json({ error: "Session expired. Please log in again" }, 401);
-    }
-    if (err instanceof jwt.JsonWebTokenError) {
-      return c.json({ error: "Invalid token" }, 403);
-    }
-    console.error("AUTH ERROR", err);
-    return c.json({ error: "Authentication failed" }, 403);
+  if (!decoded) {
+    return c.json({ error: "Invalid or expired session. Please log in again." }, 401);
   }
+
+  if (!decoded.employee_number || !decoded.role) {
+    return c.json({ error: "Malformed token payload." }, 403);
+  }
+
+  c.set("user", {
+    employee_number: decoded.employee_number,
+    name:            decoded.name       ?? "Unknown",
+    role:            decoded.role       as UserRole,
+    dept:            decoded.dept       ?? "",
+    permissions:     decoded.permissions ?? {
+      view_results: 0, input_data: 0, edit_formulas: 0, change_specs: 0,
+    },
+  } satisfies User);
+
+  await next();
 };
 
 // ─────────────────────────────────────────────
 // Middleware: require specific roles
 // ─────────────────────────────────────────────
+
 export function requireRoles(...roles: UserRole[]) {
   return async (
     c: Context<{ Variables: Variables }>,
@@ -124,6 +73,7 @@ export function requireRoles(...roles: UserRole[]) {
 // ─────────────────────────────────────────────
 // Middleware: require a specific permission flag
 // ─────────────────────────────────────────────
+
 export function requirePermission(perm: keyof PermissionFlags) {
   return async (
     c: Context<{ Variables: Variables }>,

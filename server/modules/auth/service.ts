@@ -1,53 +1,87 @@
-const bcrypt = {
-  hash: async (s: string, r: number) => s,
-  compare: async (s: string, h: string) => s === h,
-};
-const jwt = {
-  verify: (token: string, secret: string) => ({
-    employee_number: "1001",
-    role: "admin",
-    permissions: {
-      view_results: 1,
-      input_data: 1,
-      edit_formulas: 1,
-      change_specs: 1,
-    },
-  }),
-  sign: (payload: any, secret: string, options: any) => "mock-token",
-};
+import { createHash, randomBytes } from "crypto";
 import { db, generateOtp, storeOtp, verifyOtp } from "../../core/database";
 import { AuditService } from "../audit/service";
+import argon2 from "argon2";
 
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET || "insecure-dev-secret";
-  return secret;
+// ---------------------------------------------------------------------------
+// Crypto helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Simple password hashing using PBKDF2-style SHA-256 with a salt.
+ * For production, replace with bcrypt or argon2.
+ */
+export async function hashPassword(password: string): Promise<string> {
+  return argon2.hash(password, {
+    type: argon2.argon2id,
+  });
 }
 
+export async function verifyPassword(
+  hash: string,
+  password: string,
+): Promise<boolean> {
+  return argon2.verify(hash, password);
+}
+
+// ---------------------------------------------------------------------------
+// JWT shim — in production replace with `jsonwebtoken`
+// ---------------------------------------------------------------------------
+
+function signToken(payload: Record<string, any>): string {
+  const header  = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
+  const body    = Buffer.from(JSON.stringify({ ...payload, iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 8 * 3600 })).toString("base64url");
+  const secret  = process.env.JWT_SECRET ?? "insecure-dev-secret";
+  const sig     = createHash("sha256").update(`${header}.${body}.${secret}`).digest("base64url");
+  return `${header}.${body}.${sig}`;
+}
+
+export function verifyToken(token: string): Record<string, any> | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const [header, body, sig] = parts;
+    const secret = process.env.JWT_SECRET ?? "insecure-dev-secret";
+    const expected = createHash("sha256").update(`${header}.${body}.${secret}`).digest("base64url");
+    if (sig !== expected) return null;
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString());
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 export type PermissionFlags = {
-  view_results: number;
-  input_data: number;
+  view_results:  number;
+  input_data:    number;
   edit_formulas: number;
-  change_specs: number;
+  change_specs:  number;
 };
 
 export type UserPayload = {
-  id: string;
+  id:              string;
   employee_number: string;
-  name: string;
-  role: string;
-  dept: string;
-  permissions: PermissionFlags;
-  initials: string;
+  name:            string;
+  role:            string;
+  dept:            string;
+  permissions:     PermissionFlags;
+  initials:        string;
 };
 
+// ---------------------------------------------------------------------------
+// Service
+// ---------------------------------------------------------------------------
+
 export const AuthService = {
-  // --- Get all active users with permissions ---
   getUsers: async (): Promise<UserPayload[]> => {
-    console.log("[DEBUG] AuthService.getUsers called");
     try {
-      const rows = await db.query(
-        `
-        SELECT 
+      const rows = await db.query(`
+        SELECT
           e.employee_number,
           e.name,
           e.role,
@@ -60,315 +94,243 @@ export const AuthService = {
         JOIN employees e ON u.employee_number = e.employee_number
         JOIN user_permissions p ON e.role = p.role
         WHERE u.status = 'ACTIVE'
-      `,
-      );
-      console.log("[DEBUG] AuthService.getUsers query success, rows:", rows.length);
-      return rows.map((user: any) => ({
-        id: user.employee_number,
-        employee_number: user.employee_number,
-        name: user.name,
-        role: user.role,
-        dept: user.dept,
-        permissions: {
-          view_results: user.view_results,
-          input_data: user.input_data,
-          edit_formulas: user.edit_formulas,
-          change_specs: user.change_specs,
-        },
-        initials: AuthService.getInitials(user.name),
-      }));
-    } catch (error: any) {
-      if (error.message === "Database not connected") {
-        console.warn("[DEBUG] Database not connected, returning mock users.");
-      } else {
-        console.warn("[DEBUG] AuthService.getUsers query failed, returning mock users. Error:", error);
-      }
-      return [
-        {
-          id: "1001",
-          employee_number: "1001",
-          name: "Admin User",
-          role: "ADMIN",
-          dept: "IT",
-          permissions: {
-            view_results: 1,
-            input_data: 1,
-            edit_formulas: 1,
-            change_specs: 1,
-          },
-          initials: "AU",
-        },
-        {
-          id: "1002",
-          employee_number: "1002",
-          name: "Lab Tech",
-          role: "CHEMIST",
-          dept: "Lab",
-          permissions: {
-            view_results: 1,
-            input_data: 1,
-            edit_formulas: 0,
-            change_specs: 0,
-          },
-          initials: "LT",
-        }
-      ];
+        ORDER BY e.name ASC
+      `);
+      return rows.map(mapToPayload);
+    } catch (err: any) {
+      if (err.message === "Database not connected") return mockUsers();
+      console.warn("getUsers DB error:", err.message);
+      return mockUsers();
     }
   },
 
-  // --- Get a single user by employee_number ---
   getMe: async (employeeNumber: string): Promise<UserPayload> => {
     try {
-      const user = await db.queryOne(
-        `
-        SELECT 
+      const row = await db.queryOne(`
+        SELECT
           e.employee_number,
           e.name,
           e.role,
           e.department AS dept,
-          p.view_results,
-          p.input_data,
-          p.edit_formulas,
-          p.change_specs
+          p.view_results, p.input_data, p.edit_formulas, p.change_specs
         FROM employees e
         JOIN user_permissions p ON e.role = p.role
         WHERE e.employee_number = $1
-      `,
-        [employeeNumber],
-      );
+      `, [employeeNumber]);
 
-      if (!user) throw new Error("User not found");
-
-      return {
-        id: user.employee_number,
-        employee_number: user.employee_number,
-        name: user.name,
-        role: user.role,
-        dept: user.dept,
-        permissions: {
-          view_results: user.view_results,
-          input_data: user.input_data,
-          edit_formulas: user.edit_formulas,
-          change_specs: user.change_specs,
-        },
-        initials: AuthService.getInitials(user.name),
-      };
-    } catch (error: any) {
-      if (error.message === "Database not connected") {
-        console.warn("[DEBUG] Database not connected, returning mock user.");
-      } else {
-        console.warn("Database query failed, returning mock user");
-      }
-      return {
-        id: employeeNumber,
-        employee_number: employeeNumber,
-        name: employeeNumber === "1001" ? "Admin User" : "Lab Tech",
-        role: employeeNumber === "1001" ? "ADMIN" : "CHEMIST",
-        dept: employeeNumber === "1001" ? "IT" : "Lab",
-        permissions: {
-          view_results: 1,
-          input_data: 1,
-          edit_formulas: employeeNumber === "1001" ? 1 : 0,
-          change_specs: employeeNumber === "1001" ? 1 : 0,
-        },
-        initials: employeeNumber === "1001" ? "AU" : "LT",
-      };
+      if (!row) throw new Error("User not found");
+      return mapToPayload(row);
+    } catch (err: any) {
+      if (err.message === "Database not connected") return mockUsers()[0];
+      throw err;
     }
   },
 
-  // --- Generate initials helper ---
-  getInitials: (fullName: string) => {
-    const parts = fullName.trim().split(" ");
-    return parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : "");
+  getInitials: (fullName: string): string => {
+    const parts = fullName.trim().split(/\s+/);
+    const first = parts[0]?.[0] ?? "";
+    const last  = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    return (first + last).toUpperCase();
   },
 
-  // --- Verify employee identity and generate OTP ---
   verifyEmployee: async (
     employeeNumber: string,
     nationalId: string,
     dob: string,
   ) => {
     const employee = await db.queryOne(
-      `SELECT * FROM employees WHERE employee_number = $1 AND national_id = $2 AND dob = $3`,
+      `SELECT * FROM employees
+       WHERE employee_number = $1
+         AND national_id = $2
+         AND dob = $3`,
       [employeeNumber, nationalId, dob],
     );
 
     if (!employee) {
-      await AuditService.createLog(employeeNumber, "VERIFICATION_FAILED", "Invalid credentials provided", "127.0.0.1");
+      await AuditService.createLog(
+        employeeNumber, "VERIFICATION_FAILED",
+        "Invalid identity credentials provided", "127.0.0.1"
+      );
       return null;
     }
 
-    const user = await db.queryOne(
+    const existingUser = await db.queryOne(
       "SELECT * FROM users WHERE employee_number = $1",
       [employeeNumber],
     );
 
-    if (user && user.status === "ACTIVE") {
+    if (existingUser?.status === "ACTIVE") {
       throw new Error("Account already active. Please login.");
     }
 
     const otp = generateOtp();
-    await storeOtp(employeeNumber, otp, 5); // 5 minutes
+    await storeOtp(employeeNumber, otp, 5);
+
+    // In dev, log OTP to console. In prod, send via SMS/email.
     console.log(`[OTP for ${employeeNumber}]: ${otp}`);
 
-    await AuditService.createLog(employeeNumber, "OTP_SENT", "OTP generated and sent for verification", "127.0.0.1");
+    await AuditService.createLog(
+      employeeNumber, "OTP_SENT",
+      "OTP generated for identity verification", "127.0.0.1"
+    );
 
     return { employee_number: employeeNumber };
   },
 
-  // --- Confirm OTP ---
-  confirmOtp: async (
-    employeeNumber: string,
-    code: string,
-  ): Promise<boolean> => {
+  confirmOtp: async (employeeNumber: string, code: string): Promise<boolean> => {
     const valid = await verifyOtp(employeeNumber, code);
     await AuditService.createLog(
       employeeNumber,
       "OTP_CONFIRMATION",
-      valid ? "OTP confirmed successfully" : "OTP failed/expired",
-      "127.0.0.1"
+      valid ? "OTP confirmed successfully" : "OTP failed or expired",
+      "127.0.0.1",
     );
     return valid;
   },
 
-  // --- Set up credentials ---
   setupCredentials: async (
     employeeNumber: string,
     password: string,
     pin?: string,
-  ) => {
-    const password_hash = await bcrypt.hash(password, 12);
-    const pin_hash = pin ? await bcrypt.hash(pin, 12) : null;
+  ): Promise<boolean> => {
+    const passwordHash  = await  hashPassword(password);
+    const pinHash = pin ? await  hashPassword(pin) : null;
 
-    // Insert or update without overwriting last_login
     await db.execute(
-      `
-      INSERT INTO users (employee_number, password_hash, pin_hash, status)
+      `INSERT INTO users (employee_number, password_hash, pin_hash, status)
       VALUES ($1, $2, $3, 'ACTIVE')
-      ON CONFLICT(employee_number) DO UPDATE SET 
-        password_hash=excluded.password_hash,
-        pin_hash=excluded.pin_hash,
-        status='ACTIVE'
-    `,
-      [employeeNumber, password_hash, pin_hash],
+      ON CONFLICT(employee_number) DO UPDATE
+        SET password_hash = EXCLUDED.password_hash,
+            pin_hash      = EXCLUDED.pin_hash,
+            status        = 'ACTIVE'`,
+      [employeeNumber, passwordHash, pinHash],
     );
 
-    await AuditService.createLog(employeeNumber, "ACCOUNT_ACTIVATED", "User completed credential setup", "127.0.0.1");
-
+    await AuditService.createLog(
+      employeeNumber,
+      "ACCOUNT_ACTIVATED",
+      "User completed credential setup",
+      "127.0.0.1",
+    );
     return true;
   },
 
-  // --- Login (password or PIN) ---
   login: async (
     employeeNumber: string,
     password?: string,
     pin?: string,
   ): Promise<{ token: string; user: UserPayload } | null> => {
     try {
-      const user = await db.queryOne(
-        `
-        SELECT u.*, e.name, e.role, e.department AS dept,
-               p.view_results, p.input_data, p.edit_formulas, p.change_specs
+      const row = await db.queryOne(`
+        SELECT
+          u.*,
+          e.name, e.role, e.department AS dept,
+          p.view_results, p.input_data, p.edit_formulas, p.change_specs
         FROM users u
         JOIN employees e ON u.employee_number = e.employee_number
         JOIN user_permissions p ON e.role = p.role
         WHERE u.employee_number = $1
-      `,
-        [employeeNumber],
-      );
+      `, [employeeNumber]);
 
-      if (!user || user.status !== "ACTIVE") return null;
+      if (!row || row.status !== "ACTIVE") return null;
 
+      // Check lock
       const now = new Date();
-      if (user.locked_until && new Date(user.locked_until) > now) {
+      if (row.locked_until && new Date(row.locked_until) > now) {
         const mins = Math.ceil(
-          (new Date(user.locked_until).getTime() - now.getTime()) / 60_000,
+          (new Date(row.locked_until).getTime() - now.getTime()) / 60_000,
         );
-        throw new Error(
-          `Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`,
-        );
+        throw new Error(`Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`);
       }
 
-      const isValid = password
-        ? await bcrypt.compare(password, user.password_hash)
-        : pin && user.pin_hash
-          ? await bcrypt.compare(pin, user.pin_hash)
-          : false;
+      // Validate credentials
+      let isValid = false;
+      if (password) {
+        isValid = await verifyPassword(password, row.password_hash);
+      } else if (pin && row.pin_hash) {
+        isValid = await verifyPassword(pin, row.pin_hash);
+      }
 
       if (!isValid) {
-        const attempts = (user.failed_attempts || 0) + 1;
+        const attempts = (row.failed_attempts || 0) + 1;
         if (attempts >= 5) {
-          const lockUntil = new Date(Date.now() + 30 * 60 * 1000);
+          const lockUntil = new Date(Date.now() + 30 * 60_000);
           await db.execute(
             "UPDATE users SET failed_attempts=$1, locked_until=$2 WHERE employee_number=$3",
             [attempts, lockUntil, employeeNumber],
           );
-          throw new Error(
-            "Account locked for 30 minutes after 5 failed attempts.",
-          );
+          throw new Error("Account locked for 30 minutes after 5 failed attempts.");
         }
         await db.execute(
           "UPDATE users SET failed_attempts=$1 WHERE employee_number=$2",
           [attempts, employeeNumber],
         );
-        await AuditService.createLog(
-          employeeNumber,
-          "LOGIN_FAILED",
-          "Incorrect password or PIN",
-          "127.0.0.1"
-        );
+        await AuditService.createLog(employeeNumber, "LOGIN_FAILED", "Incorrect credentials", "127.0.0.1");
         return null;
       }
 
+      // Reset on success
       await db.execute(
         "UPDATE users SET failed_attempts=0, locked_until=NULL, last_login=CURRENT_TIMESTAMP WHERE employee_number=$1",
         [employeeNumber],
       );
 
-      const payload: UserPayload = {
-        id: user.employee_number,
-        employee_number: user.employee_number,
-        name: user.name,
-        role: user.role,
-        dept: user.dept,
-        permissions: {
-          view_results: user.view_results,
-          input_data: user.input_data,
-          edit_formulas: user.edit_formulas,
-          change_specs: user.change_specs,
-        },
-        initials: AuthService.getInitials(user.name),
-      };
+      const payload = mapToPayload(row);
+      const token = signToken(payload as any);
 
-      const token = jwt.sign(payload, getJwtSecret(), { expiresIn: "8h" });
-
-      await AuditService.createLog(employeeNumber, "LOGIN_SUCCESS", "User logged in successfully", "127.0.0.1");
-
+      await AuditService.createLog(employeeNumber, "LOGIN_SUCCESS", "User logged in", "127.0.0.1");
       return { token, user: payload };
-    } catch (error: any) {
-      if (error.message === "Database not connected") {
-        console.warn("[DEBUG] Database not connected, returning mock login.");
-      } else {
-        console.warn("Database query failed, returning mock login");
+
+    } catch (err: any) {
+      // Re-throw business logic errors
+      if (err.message.includes("locked") || err.message.includes("Invalid")) throw err;
+
+      // DB unavailable — fall back to mock for development
+      if (err.message === "Database not connected") {
+        console.warn("[AUTH] DB unavailable, using mock login");
+        const mockUser = mockUsers().find(u => u.employee_number === employeeNumber)
+          ?? mockUsers()[0];
+        return { token: signToken(mockUser as any), user: mockUser };
       }
-      const payload: UserPayload = {
-        id: employeeNumber,
-        employee_number: employeeNumber,
-        name: employeeNumber === "1001" ? "Admin User" : "Lab Tech",
-        role: employeeNumber === "1001" ? "ADMIN" : "CHEMIST",
-        dept: employeeNumber === "1001" ? "IT" : "Lab",
-        permissions: {
-          view_results: 1,
-          input_data: 1,
-          edit_formulas: employeeNumber === "1001" ? 1 : 0,
-          change_specs: employeeNumber === "1001" ? 1 : 0,
-        },
-        initials: employeeNumber === "1001" ? "AU" : "LT",
-      };
-      
-      // Mock validation: accept any password/pin for mock users
-      const token = jwt.sign(payload, getJwtSecret(), { expiresIn: "8h" });
-      return { token, user: payload };
+      throw err;
     }
   },
 };
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function mapToPayload(row: any): UserPayload {
+  return {
+    id:              row.employee_number,
+    employee_number: row.employee_number,
+    name:            row.name,
+    role:            row.role,
+    dept:            row.dept ?? row.department ?? "",
+    permissions: {
+      view_results:  row.view_results  ?? 0,
+      input_data:    row.input_data    ?? 0,
+      edit_formulas: row.edit_formulas ?? 0,
+      change_specs:  row.change_specs  ?? 0,
+    },
+    initials: AuthService.getInitials(row.name ?? ""),
+  };
+}
+
+function mockUsers(): UserPayload[] {
+  return [
+    {
+      id: "ADMIN", employee_number: "ADMIN",
+      name: "Administrator", role: "ADMIN", dept: "IT",
+      permissions: { view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
+      initials: "AD",
+    },
+    {
+      id: "CHEMIST", employee_number: "CHEMIST",
+      name: "Lab Chemist", role: "CHEMIST", dept: "Quality Control",
+      permissions: { view_results: 1, input_data: 1, edit_formulas: 0, change_specs: 0 },
+      initials: "LC",
+    },
+  ];
+}

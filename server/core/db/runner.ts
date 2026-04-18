@@ -1,5 +1,6 @@
 import { db } from "./client";
 import { migrations } from "./migrations";
+import { logger } from "../logger"
 
 /**
  * Ensure schema_migrations table exists
@@ -52,7 +53,7 @@ export async function runMigrations() {
           [migration.version, duration]
         );
       });
-      console.log(`Version ${migration.version} applied in ${Date.now() - start}ms`);
+      logger.info(`Version ${migration.version} applied in ${Date.now() - start}ms`);
     }
     
   } finally {
