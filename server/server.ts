@@ -131,7 +131,7 @@ async function startServer(): Promise<void> {
   } catch (err) {
     logger.error(
       { err },
-      "DATABASE BOOT FAILURE — continuing without database"
+      "DATABASE BOOT FAILURE - continuing without database"
     );
     // process.exit(1);
   }

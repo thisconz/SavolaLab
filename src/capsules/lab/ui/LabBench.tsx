@@ -220,56 +220,63 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                           </div>
                         </td>
                         <td className="p-4 relative">
-                          {test.test_type === "Colour" ? (
-                            <div className="flex flex-col gap-2">
-                              <input
-                                type="number"
-                                step="0.001"
-                                value={colourParams[test.id]?.absorbance || ""}
-                                onChange={(e) => handleColourParamChange(test.id, "absorbance", e.target.value)}
-                                placeholder="Absorbance"
-                                className="w-24 bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-2 py-1 text-xs font-mono focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
-                              />
-                              <input
-                                type="number"
-                                step="0.1"
-                                value={colourParams[test.id]?.brix || ""}
-                                onChange={(e) => handleColourParamChange(test.id, "brix", e.target.value)}
-                                placeholder="Brix"
-                                className="w-24 bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-2 py-1 text-xs font-mono focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
-                              />
-                              <input
-                                type="number"
-                                step="0.1"
-                                value={colourParams[test.id]?.cellLength || ""}
-                                onChange={(e) => handleColourParamChange(test.id, "cellLength", e.target.value)}
-                                placeholder="Cell Length"
-                                className="w-24 bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-2 py-1 text-xs font-mono focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
-                              />
-                            </div>
-                          ) : (
-                            <input
-                              type="number"
-                              step={rule?.step || "any"}
-                              value={values[test.id] || ""}
-                              onChange={(e) => handleValueChange(test.id, e.target.value, test.test_type)}
-                              placeholder={`Value`}
-                              className={`w-24 bg-(--color-zenthar-void) border rounded-lg px-2 py-1 text-xs font-mono focus:outline-none transition-all ${
-                                error ? "border-red-500/50 text-red-500" : "border-(--color-zenthar-steel) focus:border-brand-primary text-(--color-zenthar-text-primary)"
-                              }`}
-                            />
-                          )}
-                          {error && (
-                            <div className="absolute top-1/2 -translate-y-1/2 right-2 group/error">
-                              <AlertTriangle className="w-4 h-4 text-red-500" />
-                              <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] rounded opacity-0 group-hover/error:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
-                                {error}
+                          <div className="w-full min-w-[200px]">
+                            {test.test_type === "Colour" ? (
+                              <div className="flex flex-col gap-2">
+                                <input
+                                  type="number"
+                                  step="0.001"
+                                  value={colourParams[test.id]?.absorbance || ""}
+                                  onChange={(e) => handleColourParamChange(test.id, "absorbance", e.target.value)}
+                                  placeholder="Absorbance"
+                                  className="w-full bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
+                                />
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={colourParams[test.id]?.brix || ""}
+                                  onChange={(e) => handleColourParamChange(test.id, "brix", e.target.value)}
+                                  placeholder="Brix"
+                                  className="w-full bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
+                                />
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={colourParams[test.id]?.cellLength || ""}
+                                  onChange={(e) => handleColourParamChange(test.id, "cellLength", e.target.value)}
+                                  placeholder="Cell Length"
+                                  className="w-full bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
+                                />
                               </div>
-                            </div>
-                          )}
+                            ) : (
+                              <input
+                                type="number"
+                                step={rule?.step || "any"}
+                                value={values[test.id] || ""}
+                                onChange={(e) => handleValueChange(test.id, e.target.value, test.test_type)}
+                                placeholder={`Value`}
+                                className={`w-full bg-(--color-zenthar-void) border rounded-lg px-3 py-2 text-xs font-mono focus:outline-none transition-all ${
+                                  error ? "border-red-500/50 text-red-500 ring-2 ring-red-500/20" : "border-(--color-zenthar-steel) focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 text-(--color-zenthar-text-primary)"
+                                }`}
+                              />
+                            )}
+                            {error && (
+                              <div className="absolute top-1/2 -translate-y-1/2 right-2 group/error z-10">
+                                <AlertTriangle className="w-4 h-4 text-red-500 drop-shadow-md" />
+                                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-3 py-2 bg-red-950/90 border border-red-500/50 shadow-xl text-red-200 text-xs rounded-lg opacity-0 group-hover/error:opacity-100 whitespace-nowrap pointer-events-none transition-opacity">
+                                  {error}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </td>
-                        <td className="p-4 text-sm font-mono text-(--color-zenthar-text-primary)">
-                          {test.test_type === "Colour" ? (values[test.id] ? values[test.id] : "---") : "---"}
+                        <td className="p-4 text-sm font-mono text-(--color-zenthar-text-primary) w-[250px]">
+                          <div className="flex flex-col gap-1 w-full">
+                            <span className="font-bold text-center block bg-(--color-zenthar-void) rounded-md py-1 border border-(--color-zenthar-steel)">
+                              {test.test_type === "Colour" ? (values[test.id] ? values[test.id] : "---") : (values[test.id] ? values[test.id] : "---")}
+                            </span>
+                            {rule && renderVisualRange(test.test_type, values[test.id] || "")}
+                          </div>
                         </td>
                         <td className="p-4 text-xs font-mono text-zenthar-text-muted uppercase">{rule?.unit || "-"}</td>
                         <td className="p-4">
@@ -322,7 +329,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
               className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 shadow-xl ${
                 hasErrors || !allFilled || isSaving
                   ? "bg-(--color-zenthar-carbon) text-zenthar-text-muted cursor-not-allowed border border-(--color-zenthar-border)/20 shadow-none"
-                  : "bg-brand-primary text-white shadow-brand-primary/30 hover:bg-brand-primary/90 active:scale-[0.98]"
+                  : "bg-brand-primary text-(--color-zenthar-void) shadow-brand-primary/30 hover:bg-brand-primary/90 active:scale-[0.98]"
               }`}
             >
               {isSaving ? (

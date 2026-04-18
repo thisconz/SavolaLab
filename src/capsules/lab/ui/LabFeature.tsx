@@ -55,7 +55,7 @@ export const LabFeature: React.FC = memo(() => {
       {/* 1. HEADER SECTION */}
         <div className="flex items-center justify-between px-4 shrink-0">
           <div>
-            <h2 className="text-2xl font-display font-bold text-white flex items-center gap-2">
+            <h2 className="text-2xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
               <LayoutDashboard className="w-6 h-6 text-brand-primary" />
               Facility Hub
             </h2>
@@ -175,7 +175,7 @@ const StatItem = ({ icon: Icon, label, value, color }: any) => (
       <span className="text-[8px] font-black uppercase text-brand-sage/60 tracking-widest leading-none">
         {label}
       </span>
-      <span className="text-sm font-black text-white leading-tight mt-0.5">
+      <span className="text-sm font-black text-(--color-zenthar-text-primary) leading-tight mt-0.5">
         {value.toString().padStart(2, '0')}
       </span>
     </div>
@@ -207,7 +207,7 @@ const EmptyWorkspace = ({ samples }: { samples: Sample[] }) => (
         </div>
       </div>
       <div className="text-center max-w-sm mt-6">
-        <h2 className="text-2xl font-display font-bold text-white">Workspace Idle</h2>
+        <h2 className="text-2xl font-display font-bold text-(--color-zenthar-text-primary)">Workspace Idle</h2>
         <p className="text-brand-sage text-sm mt-2 leading-relaxed">
           Terminal ready for input. Select a sample from the processing queue to initiate analysis or testing procedures.
         </p>

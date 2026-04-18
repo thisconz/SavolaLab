@@ -55,7 +55,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
         actions={
           <button
             onClick={onBack}
-            className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase text-brand-sage hover:text-white bg-(--color-zenthar-carbon)/40 rounded-lg border border-brand-sage/10 transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase text-brand-sage hover:text-(--color-zenthar-text-primary) bg-(--color-zenthar-carbon)/40 rounded-lg border border-brand-sage/10 transition-all"
           >
             <ArrowLeft size={14} /> Back_To_Queue
           </button>
@@ -75,19 +75,19 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                 <div
                   className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-all ${
                     isStat
-                      ? "bg-lab-laser text-white animate-pulse"
-                      : "bg-brand-primary text-white"
+                      ? "bg-lab-laser text-(--color-zenthar-void) animate-pulse"
+                      : "bg-brand-primary text-(--color-zenthar-void)"
                   }`}
                 >
                   <Beaker size={32} />
                 </div>
                 <div>
                   <div className="flex items-center gap-3">
-                    <h2 className="text-3xl font-black text-white tracking-[ -0.05em] font-mono">
+                    <h2 className="text-3xl font-black text-(--color-zenthar-text-primary) tracking-[ -0.05em] font-mono">
                       {sample.batch_id}
                     </h2>
                     {isStat && (
-                      <span className="px-2 py-1 bg-lab-laser text-white text-[8px] font-black uppercase rounded flex items-center gap-1">
+                      <span className="px-2 py-1 bg-lab-laser text-(--color-zenthar-void) text-[8px] font-black uppercase rounded flex items-center gap-1">
                         <Zap size={10} fill="currentColor" /> STAT
                       </span>
                     )}
@@ -131,7 +131,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
             <section>
               <div className="flex items-center gap-2 mb-4 px-1">
                 <Settings size={14} className="text-brand-primary" />
-                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                <h3 className="text-[10px] font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.2em]">
                   Sample_Parameters
                 </h3>
               </div>
@@ -158,7 +158,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                           Urgency_Tier
                         </label>
                         <select
-                          className="w-full bg-transparent text-xs font-bold text-white outline-none cursor-pointer"
+                          className="w-full bg-transparent text-xs font-bold text-(--color-zenthar-text-primary) outline-none cursor-pointer"
                           value={editedSample.priority}
                           onChange={(e) =>
                             setEditedSample((p) => ({
@@ -216,7 +216,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                 >
                   <div className="flex items-center gap-2 px-1">
                     <TrendingUp size={14} className="text-emerald-400" />
-                    <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                    <h3 className="text-[10px] font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.2em]">
                       Instrument_Readout
                     </h3>
                   </div>
@@ -237,7 +237,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                             )}
                           </div>
                           <div>
-                            <div className="text-[11px] font-black text-white uppercase tracking-tight">
+                            <div className="text-[11px] font-black text-(--color-zenthar-text-primary) uppercase tracking-tight">
                               {result.test_type}
                             </div>
                             <div className="text-[8px] font-bold text-brand-sage tracking-[0.2em] uppercase">
@@ -246,7 +246,7 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="text-xl font-mono font-black text-white">
+                          <span className="text-xl font-mono font-black text-(--color-zenthar-text-primary)">
                             {result.calculated_value || "---"}
                           </span>
                           <span className="text-[9px] font-bold text-brand-sage/60 ml-1 uppercase">
@@ -333,7 +333,7 @@ const DetailTile = ({
     >
       <Icon size={10} /> {label}
     </div>
-    <div className="text-xs font-black text-white uppercase truncate font-mono">
+    <div className="text-xs font-black text-(--color-zenthar-text-primary) uppercase truncate font-mono">
       {value || "N/A"}
     </div>
   </div>
@@ -345,7 +345,7 @@ const EditField = ({ icon: Icon, label, value, onChange }: any) => (
       <Icon size={10} /> {label}
     </label>
     <input
-      className="w-full bg-transparent text-xs font-bold text-white outline-none"
+      className="w-full bg-transparent text-xs font-bold text-(--color-zenthar-text-primary) outline-none"
       value={value || ""}
       onChange={(e) => onChange(e.target.value)}
       autoFocus

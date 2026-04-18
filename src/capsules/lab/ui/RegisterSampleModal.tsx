@@ -83,7 +83,7 @@ export const RegisterSampleModal: React.FC<RegisterSampleModalProps> = memo(
     const labelStyle =
       "flex items-center gap-2 text-[9px] font-black text-brand-sage uppercase tracking-[0.2em] mb-2";
     const inputStyle =
-      "w-full bg-(--color-zenthar-carbon)/60 backdrop-blur-md border-2 border-brand-sage/10 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:border-brand-primary/50 focus:ring-4 focus:ring-brand-primary/5 text-white transition-all shadow-inner placeholder:text-brand-sage/30";
+      "w-full bg-(--color-zenthar-carbon)/60 backdrop-blur-md border-2 border-brand-sage/10 rounded-2xl px-5 py-4 text-sm font-mono focus:outline-none focus:border-brand-primary/50 focus:ring-4 focus:ring-brand-primary/5 text-(--color-zenthar-text-primary) transition-all shadow-inner placeholder:text-brand-sage/30";
 
     return (
       <Modal
