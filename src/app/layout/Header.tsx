@@ -23,7 +23,7 @@ export const Header: FC = memo(() => {
   }, [activeTab]);
 
   return (
-    <header className="sticky top-0 h-24 w-full border-b border-white/4 flex items-center justify-between px-10 bg-[#080809]/90 backdrop-blur-2xl z-50 shrink-0 overflow-hidden">
+    <header className="sticky top-0 h-24 w-full border-b border-(--color-zenthar-steel) flex items-center justify-between px-10 bg-(--color-zenthar-void)/90 backdrop-blur-2xl z-50 shrink-0 overflow-hidden">
       {/* 1. LAYER: ATMOSPHERICS */}
       <div className="absolute inset-0 bg-[url('/assets/grid-dot.svg')] opacity-[0.02] pointer-events-none" />
       
@@ -50,7 +50,7 @@ export const Header: FC = memo(() => {
 
         <div className="flex items-center gap-8 group">
           {/* Vertical Angled Separator */}
-          <div className="h-12 w-px bg-white/10 rotate-20 group-hover:rotate-0 transition-transform duration-500" />
+          <div className="h-12 w-px bg-(--color-zenthar-steel) rotate-20 group-hover:rotate-0 transition-transform duration-500" />
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
@@ -61,25 +61,25 @@ export const Header: FC = memo(() => {
                 </span>
                 <span className="text-[7px] font-black text-emerald-400 uppercase tracking-widest">Live_Signal</span>
               </div>
-              <div className="h-px w-8 bg-white/5" />
-              <span className="text-[8px] font-mono font-bold text-zinc-600 uppercase tracking-[0.3em]">
+              <div className="h-px w-8 bg-(--color-zenthar-steel)" />
+              <span className="text-[8px] font-mono font-bold text-(--color-zenthar-text-muted) uppercase tracking-[0.3em]">
                 Node: 0x-ALPHA
               </span>
             </div>
 
             <nav className="flex items-center gap-3">
-              <Home className="w-3 h-3 text-zinc-500 hover:text-brand-primary transition-colors cursor-pointer" />
+              <Home className="w-3 h-3 text-(--color-zenthar-text-muted) hover:text-brand-primary transition-colors cursor-pointer" />
               {path.map((segment, i) => (
                 <React.Fragment key={`${segment}-${i}`}>
-                  <ChevronRight className="w-3 h-3 text-zinc-800" strokeWidth={4} />
+                  <ChevronRight className="w-3 h-3 text-(--color-zenthar-steel)" strokeWidth={4} />
                   <motion.span
                     initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
                     className={clsx(
                       "text-[13px] font-black tracking-[0.2em] uppercase transition-all duration-500 cursor-default",
                       i === path.length - 1
-                        ? "text-white drop-shadow-[0_0_12px_rgba(var(--brand-primary-rgb),0.4)]"
-                        : "text-zinc-600 hover:text-zinc-400"
+                        ? "text-(--color-zenthar-text-primary) drop-shadow-[0_0_12px_rgba(var(--brand-primary-rgb),0.2)]"
+                        : "text-(--color-zenthar-text-muted) hover:text-(--color-zenthar-text-secondary)"
                     )}
                   >
                     {segment}
@@ -93,7 +93,7 @@ export const Header: FC = memo(() => {
 
       {/* RIGHT: System Intelligence */}
       <div className="flex items-center gap-6 relative z-10">
-        <div className="hidden lg:flex items-center gap-4 px-6 py-2 rounded-2xl bg-white/2 border border-white/5 shadow-inner">
+        <div className="hidden lg:flex items-center gap-4 px-6 py-2 rounded-2xl bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel) shadow-[inset_0_1px_4px_rgba(0,0,0,0.05)]">
           <TelemetryModule
             icon={Activity}
             label="Load"
@@ -101,7 +101,7 @@ export const Header: FC = memo(() => {
             status="success"
             percent={12}
           />
-          <div className="w-px h-8 bg-white/3" />
+          <div className="w-px h-8 bg-(--color-zenthar-steel)" />
           <TelemetryModule
             icon={Zap}
             label="Latency"
@@ -109,7 +109,7 @@ export const Header: FC = memo(() => {
             status="info"
             percent={85}
           />
-          <div className="w-px h-8 bg-white/3" />
+          <div className="w-px h-8 bg-(--color-zenthar-steel)" />
           <TelemetryModule
             icon={ShieldCheck}
             label="Security"
@@ -120,7 +120,7 @@ export const Header: FC = memo(() => {
 
         <div className="relative group">
           <div className="absolute inset-0 bg-brand-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="relative p-3 rounded-xl bg-white/3 border border-white/10 hover:border-brand-primary/40 transition-all cursor-pointer">
+          <div className="relative p-3 rounded-xl bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel) hover:border-brand-primary/40 transition-all cursor-pointer">
              <NotificationCenter />
           </div>
         </div>
@@ -138,7 +138,7 @@ const TelemetryModule: FC<TelemetryProps> = ({ icon: Icon, label, value, status,
           cx="18"
           cy="18"
           r="16"
-          className="fill-none stroke-white/5"
+          className="fill-none stroke-(--color-zenthar-steel)"
           strokeWidth="2"
         />
         <motion.circle
@@ -163,10 +163,10 @@ const TelemetryModule: FC<TelemetryProps> = ({ icon: Icon, label, value, status,
     </div>
     
     <div className="flex flex-col">
-      <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest leading-none mb-1">
+      <span className="text-[7px] font-black text-(--color-zenthar-text-muted) uppercase tracking-widest leading-none mb-1">
         {label}
       </span>
-      <span className="text-[10px] font-mono font-bold text-white tracking-tight">
+      <span className="text-[10px] font-mono font-bold text-(--color-zenthar-text-primary) tracking-tight">
         {value}
       </span>
     </div>

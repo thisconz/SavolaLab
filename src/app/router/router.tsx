@@ -58,7 +58,7 @@ export const FeatureRouter: React.FC = () => {
 
   return (
     <GlobalErrorBoundary key={activeTab}>
-      <div className="h-full w-full relative overflow-hidden bg-(--color-zenthar-graphite)/30">
+      <div className="h-full w-full relative overflow-hidden bg-(--color-zenthar-void)">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -81,33 +81,33 @@ export const FeatureRouter: React.FC = () => {
 /* --- Enhanced Sub-Components --- */
 
 const AccessDeniedView: React.FC<{ tab: string }> = ({ tab }) => (
-  <div className="h-full w-full flex items-center justify-center p-8 bg-linear-to-br from-(--color-zenthar-carbon) to-(--color-zenthar-void)">
-    <div className="max-w-md w-full bg-(--color-zenthar-carbon) rounded-4xl p-12 shadow-2xl border border-lab-laser/10 flex flex-col items-center text-center relative overflow-hidden">
+  <div className="h-full w-full flex items-center justify-center p-8 bg-linear-to-br from-(--color-zenthar-graphite) to-(--color-zenthar-void)">
+    <div className="max-w-md w-full glass-panel p-12 shadow-2xl flex flex-col items-center text-center relative overflow-hidden">
       {/* Decorative Red Scanline */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-lab-laser animate-pulse opacity-50" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-(--color-lab-laser) animate-pulse opacity-50" />
       
-      <div className="w-24 h-24 bg-lab-laser/5 rounded-3xl flex items-center justify-center mb-8 rotate-3 border border-lab-laser/10">
+      <div className="w-24 h-24 bg-(--color-lab-laser)/10 rounded-3xl flex items-center justify-center mb-8 rotate-3 border border-(--color-lab-laser)/20">
         <div className="relative">
-          <Lock className="w-10 h-10 text-lab-laser" />
-          <Fingerprint className="w-6 h-6 text-lab-laser/40 absolute -bottom-2 -right-2" />
+          <Lock className="w-10 h-10 text-(--color-lab-laser)" />
+          <Fingerprint className="w-6 h-6 text-(--color-lab-laser)/40 absolute -bottom-2 -right-2" />
         </div>
       </div>
 
-      <h2 className="text-2xl font-black text-white uppercase tracking-[0.2em] mb-3">
+      <h2 className="text-2xl font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.2em] mb-3">
         Terminal Locked
       </h2>
       
-      <div className="px-4 py-1.5 bg-lab-laser/10 border border-lab-laser/20 rounded-full mb-8">
-        <span className="text-[10px] font-mono text-lab-laser font-bold uppercase tracking-widest">
+      <div className="px-4 py-1.5 bg-(--color-lab-laser)/10 border border-(--color-lab-laser)/20 rounded-full mb-8">
+        <span className="text-[10px] font-mono text-(--color-lab-laser) font-bold uppercase tracking-widest">
           ERR_ACCESS_RESTRICTED: {tab}
         </span>
       </div>
 
-      <p className="text-[11px] text-brand-sage uppercase font-bold tracking-widest leading-relaxed opacity-60">
+      <p className="text-[11px] text-(--color-zenthar-text-muted) uppercase font-bold tracking-widest leading-relaxed opacity-60">
         Authentication level insufficient for requested node. Please verify credentials with system oversight or QA leadership.
       </p>
 
-      <div className="mt-10 flex items-center gap-2 text-[9px] font-black text-brand-sage/40 uppercase tracking-widest">
+      <div className="mt-10 flex items-center gap-2 text-[9px] font-black text-(--color-zenthar-text-muted) uppercase tracking-widest">
         <ShieldAlert size={12} />
         System ID: {Math.random().toString(36).substring(7).toUpperCase()}
       </div>
@@ -130,7 +130,7 @@ const FeatureLoader = () => (
     </div>
     
     <div className="flex flex-col items-center">
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white animate-pulse">
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-(--color-zenthar-text-primary) animate-pulse">
         Initializing Module
       </p>
       <div className="mt-2 h-0.5 w-32 bg-(--color-zenthar-graphite) rounded-full overflow-hidden">

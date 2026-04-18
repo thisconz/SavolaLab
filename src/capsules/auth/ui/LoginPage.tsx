@@ -73,9 +73,9 @@ export const LoginPage: React.FC = () => {
         className="relative w-full max-w-md z-10"
       >
         <header className="text-center mb-10">
-          <LogoRoot className="justify-center mb-4 transform scale-110" size="xl" variant="light" direction="column" align="center">
+          <LogoRoot className="justify-center mb-4 transform scale-110" size="xl" variant="dark" direction="column" align="center">
             <LogoIcon animated={true} />
-            <LogoText className="mt-2 tracking-[0.4em] font-black uppercase text-white/90" />
+            <LogoText className="mt-2 tracking-[0.4em] font-black uppercase text-(--color-zenthar-text-primary)" />
           </LogoRoot>
           <div className="flex items-center justify-center gap-3 mt-2">
              <div className="h-px w-8 bg-linear-to-r from-transparent to-brand-primary/40" />
@@ -107,7 +107,7 @@ export const LoginPage: React.FC = () => {
                 <motion.div key="user-list" variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
                   <div className="flex justify-between items-end mb-2">
                     <div>
-                       <h2 className="text-[11px] font-black text-white uppercase tracking-widest">Select Personnel</h2>
+                       <h2 className="text-[11px] font-black text-(--color-zenthar-text-primary) uppercase tracking-widest">Select Personnel</h2>
                        <p className="text-[9px] text-brand-sage font-mono uppercase mt-1">Active Sync: {users.length} Users</p>
                     </div>
                     <button onClick={fetchUsers} className="p-2 hover:bg-(--color-zenthar-graphite) rounded-lg transition-colors group">
@@ -135,13 +135,13 @@ export const LoginPage: React.FC = () => {
                         >
                           <div className="flex items-center gap-4">
                             <div className="relative">
-                              <div className="w-12 h-12 rounded-xl bg-(--color-zenthar-void) text-white flex items-center justify-center font-black text-xs group-hover:bg-brand-primary transition-colors">
+                              <div className="w-12 h-12 rounded-xl bg-(--color-zenthar-void) text-(--color-zenthar-text-primary) flex items-center justify-center font-black text-xs group-hover:bg-brand-primary group-hover:text-white transition-colors">
                                 {user.initials}
                               </div>
                               {user.status === "online" && <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 border-2 border-(--color-zenthar-carbon) rounded-full" />}
                             </div>
                             <div>
-                              <div className="text-[11px] font-black text-white uppercase tracking-wider group-hover:text-brand-primary transition-colors">
+                              <div className="text-[11px] font-black text-(--color-zenthar-text-primary) uppercase tracking-wider group-hover:text-brand-primary transition-colors">
                                 {user.name}
                               </div>
                               <div className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-tight opacity-70">
@@ -173,18 +173,18 @@ export const LoginPage: React.FC = () => {
                       </div>
                       <div className="flex-1">
                         <p className="text-[8px] font-mono text-brand-primary uppercase tracking-[0.2em] mb-1">Personnel Verified</p>
-                        <h3 className="text-sm font-black text-white uppercase tracking-wider leading-none">{selectedUser.name}</h3>
+                        <h3 className="text-sm font-black text-(--color-zenthar-text-primary) uppercase tracking-wider leading-none">{selectedUser.name}</h3>
                         <p className="text-[9px] text-brand-sage font-mono uppercase tracking-tighter mt-1.5">{renderedRole}</p>
                       </div>
                       <button
                         onClick={() => { setSelectedUser(null); setError(""); }}
-                        className="p-2 text-brand-sage hover:text-white transition-colors bg-(--color-zenthar-graphite) rounded-lg"
+                        className="p-2 text-brand-sage hover:text-(--color-zenthar-text-primary) transition-colors bg-(--color-zenthar-graphite) rounded-lg"
                         title="Cancel"
                       >
                         <RefreshCw className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="absolute top-0 right-0 p-2 opacity-10"><Fingerprint className="w-12 h-12 text-white" /></div>
+                    <div className="absolute top-0 right-0 p-2 opacity-10"><Fingerprint className="w-12 h-12 text-(--color-zenthar-text-primary)" /></div>
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
@@ -195,7 +195,7 @@ export const LoginPage: React.FC = () => {
                           type="button"
                           onClick={() => { setAuthMode(mode); setInputValue(""); setError(""); }}
                           className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                            authMode === mode ? "bg-(--color-zenthar-carbon)] text-brand-primary shadow-lg border border-brand-sage/10" : "text-brand-sage hover:text-white"
+                            authMode === mode ? "bg-(--color-zenthar-carbon)] text-brand-primary shadow-lg border border-brand-sage/10" : "text-brand-sage hover:text-(--color-zenthar-text-primary)"
                           }`}
                         >
                           {mode === "pin" ? <Key className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
@@ -214,7 +214,7 @@ export const LoginPage: React.FC = () => {
                           value={inputValue}
                           onChange={(e) => { setInputValue(e.target.value); if(error) setError(""); }}
                           className={`w-full bg-(--color-zenthar-graphite)/30 border-2 rounded-2xl py-6 px-6 text-center text-3xl font-mono tracking-[0.6em] focus:outline-none transition-all ${
-                            error ? "border-red-500/50 bg-red-500/5 text-red-500 ring-4 ring-red-500/10" : "border-brand-sage/10 focus:border-brand-primary focus:bg-(--color-zenthar-graphite) focus:ring-4 focus:ring-brand-primary/10 text-white"
+                            error ? "border-red-500/50 bg-red-500/5 text-red-500 ring-4 ring-red-500/10" : "border-brand-sage/10 focus:border-brand-primary focus:bg-(--color-zenthar-graphite) focus:ring-4 focus:ring-brand-primary/10 text-(--color-zenthar-text-primary)"
                           }`}
                           placeholder={authMode === "pin" ? "••••" : "•••••••"}
                         />

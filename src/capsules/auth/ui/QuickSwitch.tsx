@@ -71,7 +71,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                     />
                   </div>
                   <div>
-                    <h2 className="text-sm font-black text-white uppercase tracking-[0.3em]">
+                    <h2 className="text-sm font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.3em]">
                       Switch Personnel
                     </h2>
                     <div className="flex items-center gap-2 mt-1">
@@ -85,7 +85,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                 
                 <button
                   onClick={onClose}
-                  className="w-10 h-10 flex items-center justify-center text-brand-sage hover:text-white hover:bg-(--color-zenthar-graphite) rounded-2xl transition-all active:scale-90"
+                  className="w-10 h-10 flex items-center justify-center text-brand-sage hover:text-(--color-zenthar-text-primary) hover:bg-(--color-zenthar-graphite) rounded-2xl transition-all active:scale-90"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -121,7 +121,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                         <div className="relative">
                           <div className={clsx(
                             "w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm transition-all",
-                            isActive ? "bg-brand-primary text-white shadow-lg" : "bg-(--color-zenthar-void) text-brand-sage border border-brand-sage/10"
+                            isActive ? "bg-brand-primary text-(--color-zenthar-void) shadow-lg" : "bg-(--color-zenthar-void) text-brand-sage border border-brand-sage/10"
                           )}>
                             {user.initials}
                           </div>
@@ -137,7 +137,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className={clsx(
                               "text-[11px] font-black uppercase tracking-wider truncate",
-                              isActive ? "text-brand-primary" : "text-white"
+                              isActive ? "text-brand-primary" : "text-(--color-zenthar-text-primary)"
                             )}>
                               {user.name}
                             </span>

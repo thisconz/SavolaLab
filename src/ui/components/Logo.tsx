@@ -171,7 +171,7 @@ export const LogoText: React.FC<LogoTextProps> = memo(
     const config = sizeConfig[size];
 
     const isLight = variant === "light";
-    const textColor = isLight ? "text-white" : "text-brand-deep";
+    const textColor = isLight ? "text-(--color-zenthar-text-primary)" : "text-(--color-zenthar-text-secondary)";
 
     const [primary, accent] = splitTitle(title);
 

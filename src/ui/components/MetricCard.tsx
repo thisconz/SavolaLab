@@ -68,7 +68,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     <motion.div
       whileHover={{ y: -4, scale: 1.02 }}
       className={clsx(
-        "bg-zenthar-carbon border border-white/4 rounded-[1.25rem] p-6 shadow-sm relative group overflow-hidden transition-all duration-300",
+        "bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel) rounded-[1.25rem] p-6 shadow-sm relative group overflow-hidden transition-all duration-300",
         className
       )}
     >
@@ -110,7 +110,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       </div>
 
       <div className="flex items-end justify-between relative z-10">
-        <div className="text-4xl font-display font-bold text-white tracking-tighter leading-none">
+        <div className="text-4xl font-display font-bold text-(--color-zenthar-text-primary) tracking-tighter leading-none">
           {value}
         </div>
 

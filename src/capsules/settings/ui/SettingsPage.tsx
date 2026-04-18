@@ -130,7 +130,7 @@ export const SettingsPage: React.FC = () => {
               <SettingsIcon className="w-5 h-5 text-brand-primary" />
             </div>
             <div>
-              <h1 className="text-sm font-black text-white uppercase tracking-tighter">
+              <h1 className="text-sm font-black text-(--color-zenthar-text-primary) uppercase tracking-tighter">
                 Control Center
               </h1>
               <p className="text-[10px] text-brand-sage font-bold uppercase opacity-50">
@@ -146,12 +146,12 @@ export const SettingsPage: React.FC = () => {
                 onClick={() => setActiveModule(m.id as SettingModule)}
                 className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
                   activeModule === m.id
-                    ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20 scale-[1.02]"
-                    : "text-brand-sage hover:bg-(--color-zenthar-void) hover:text-white"
+                    ? "bg-brand-primary text-(--color-zenthar-void) shadow-lg shadow-brand-primary/20 scale-[1.02]"
+                    : "text-brand-sage hover:bg-(--color-zenthar-void) hover:text-(--color-zenthar-text-primary)"
                 }`}
               >
-                <m.icon
-                  className={`w-4 h-4 ${activeModule === m.id ? "text-white" : "opacity-70"}`}
+                  <m.icon
+                  className={`w-4 h-4 ${activeModule === m.id ? "text-(--color-zenthar-void)" : "opacity-70"}`}
                 />
                 <span className="text-xs font-bold tracking-tight flex-1 text-left">
                   {m.label}
@@ -159,7 +159,7 @@ export const SettingsPage: React.FC = () => {
                 {activeModule === m.id && (
                   <motion.div
                     layoutId="dot"
-                    className="w-1.5 h-1.5 rounded-full bg-white"
+                    className="w-1.5 h-1.5 rounded-full bg-(--color-zenthar-void)"
                   />
                 )}
               </button>
@@ -177,7 +177,7 @@ export const SettingsPage: React.FC = () => {
               {currentModule && <currentModule.icon className="w-7 h-7" />}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white tracking-tight">
+              <h2 className="text-2xl font-bold text-(--color-zenthar-text-primary) tracking-tight">
                 {currentModule?.label} Registry
               </h2>
               <div className="flex items-center gap-2 text-[10px] font-bold text-brand-sage uppercase tracking-widest mt-1">
@@ -189,9 +189,9 @@ export const SettingsPage: React.FC = () => {
 
           <button
             onClick={() => setIsAdding(true)}
-            className="group flex items-center gap-3 pl-4 pr-6 py-3 bg-brand-primary text-white rounded-2xl text-xs font-bold hover:bg-brand-primary/80 transition-all shadow-xl shadow-brand-primary/10"
+            className="group flex items-center gap-3 pl-4 pr-6 py-3 bg-brand-primary text-(--color-zenthar-void) rounded-2xl text-xs font-bold hover:bg-brand-primary/80 transition-all shadow-xl shadow-brand-primary/10"
           >
-            <div className="p-1.5 bg-white/10 rounded-lg group-hover:rotate-90 transition-transform">
+            <div className="p-1.5 bg-(--color-zenthar-void)/10 rounded-lg group-hover:rotate-90 transition-transform">
               <Plus className="w-4 h-4" />
             </div>
             Add New Entry
@@ -224,7 +224,7 @@ export const SettingsPage: React.FC = () => {
 
                   {/* Main Identity */}
                   <div className="flex-2">
-                    <h4 className="text-sm font-black text-white uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate">
+                    <h4 className="text-sm font-black text-(--color-zenthar-text-primary) uppercase tracking-tight group-hover:text-brand-primary transition-colors truncate">
                       {item.name ||
                         item.key ||
                         item.employee_number ||
@@ -241,7 +241,7 @@ export const SettingsPage: React.FC = () => {
                       <span className="text-[8px] font-black text-brand-sage uppercase tracking-widest">
                         Descriptor
                       </span>
-                      <span className="text-[11px] font-bold text-white truncate">
+                      <span className="text-[11px] font-bold text-(--color-zenthar-text-primary) truncate">
                         {item.type || item.role || "Standard"}
                       </span>
                     </div>
@@ -249,7 +249,7 @@ export const SettingsPage: React.FC = () => {
                       <span className="text-[8px] font-black text-brand-sage uppercase tracking-widest">
                         Metric / Status
                       </span>
-                      <span className="text-[11px] font-bold text-white">
+                      <span className="text-[11px] font-bold text-(--color-zenthar-text-primary)">
                         {item.quantity
                           ? `${item.quantity} ${item.unit}`
                           : "Active"}
@@ -259,7 +259,7 @@ export const SettingsPage: React.FC = () => {
                       <span className="text-[8px] font-black text-brand-sage uppercase tracking-widest">
                         Last Modified
                       </span>
-                      <span className="text-[11px] font-bold text-white">
+                      <span className="text-[11px] font-bold text-(--color-zenthar-text-primary)">
                         {item.updated_at
                           ? new Date(item.updated_at).toLocaleDateString()
                           : "Today"}
@@ -271,7 +271,7 @@ export const SettingsPage: React.FC = () => {
                   <div className="flex justify-end gap-2 pr-2">
                     <button
                       onClick={() => setEditingItem(item)}
-                      className="p-2.5 rounded-xl bg-(--color-zenthar-carbon) text-brand-sage hover:bg-brand-primary hover:text-white transition-all shadow-sm active:scale-95"
+                      className="p-2.5 rounded-xl bg-(--color-zenthar-carbon) text-brand-sage hover:bg-brand-primary hover:text-(--color-zenthar-void) transition-all shadow-sm active:scale-95"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
@@ -302,20 +302,20 @@ export const SettingsPage: React.FC = () => {
             Editing entry: {editingItem?.name || editingItem?.key || editingItem?.employee_number || "Unknown"}
           </p>
           <div className="bg-(--color-zenthar-void) p-4 rounded-xl border border-brand-sage/10">
-            <pre className="text-[10px] font-mono text-white overflow-auto max-h-48">
+            <pre className="text-[10px] font-mono text-(--color-zenthar-text-primary) overflow-auto max-h-48">
               {JSON.stringify(editingItem, null, 2)}
             </pre>
           </div>
           <div className="flex justify-end gap-3 mt-6">
             <button
               onClick={() => setEditingItem(null)}
-              className="px-4 py-2 text-sm font-bold text-brand-sage hover:text-white transition-colors"
+              className="px-4 py-2 text-sm font-bold text-brand-sage hover:text-(--color-zenthar-text-primary) transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-6 py-2 bg-brand-primary text-white text-sm font-bold rounded-xl hover:bg-brand-primary/80 transition-colors shadow-lg shadow-brand-primary/20"
+              className="px-6 py-2 bg-brand-primary text-(--color-zenthar-void) text-sm font-bold rounded-xl hover:bg-brand-primary/80 transition-colors shadow-lg shadow-brand-primary/20"
             >
               Save Changes
             </button>

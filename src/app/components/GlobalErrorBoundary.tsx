@@ -89,7 +89,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     if (hasError) {
       return (
-        <div className="fixed inset-0 z-9999 bg-[#050507] text-slate-300 font-sans flex items-center justify-center p-4 overflow-hidden selection:bg-red-500/40">
+        <div className="fixed inset-0 z-9999 bg-(--color-zenthar-void) text-(--color-zenthar-text-primary) font-sans flex items-center justify-center p-4 overflow-hidden selection:bg-brand-primary/40">
           
           {/* BACKGROUND LAYERS */}
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-50 pointer-events-none" />
@@ -101,26 +101,26 @@ export class ErrorBoundary extends Component<Props, State> {
             <motion.main 
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-[#0b0b0f]/80 backdrop-blur-xl border border-white/5 rounded-[2.5rem] flex flex-col overflow-hidden shadow-2xl shadow-black"
+              className="bg-(--color-zenthar-carbon)/80 backdrop-blur-xl border border-(--color-zenthar-steel) rounded-[2.5rem] flex flex-col overflow-hidden shadow-2xl shadow-(--color-zenthar-text-muted)/20"
             >
               {/* STATUS BAR */}
               <div className={clsx(
                 "px-8 py-4 border-b flex items-center justify-between transition-colors duration-1000",
-                isLooping ? "bg-red-500/10 border-red-500/20" : "bg-white/2 border-white/5"
+                isLooping ? "bg-red-500/10 border-red-500/20" : "bg-(--color-zenthar-carbon) border-(--color-zenthar-steel)"
               )}>
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2">
                     <div className={clsx("w-2 h-2 rounded-full", isLooping ? "bg-red-500 animate-pulse" : "bg-orange-500")} />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Critical_Failure</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-(--color-zenthar-text-muted)">Critical_Failure</span>
                   </div>
-                  <div className="h-4 w-px bg-white/10 hidden md:block" />
-                  <span className="text-[10px] font-mono text-white/60 hidden md:block uppercase tracking-widest">
-                    ID // <span className="text-white">{errorId}</span>
+                  <div className="h-4 w-px bg-(--color-zenthar-steel) hidden md:block" />
+                  <span className="text-[10px] font-mono text-(--color-zenthar-text-muted) hidden md:block uppercase tracking-widest">
+                    ID // <span className="text-(--color-zenthar-text-primary)">{errorId}</span>
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-mono text-white/30">{timestamp}</span>
-                    <button onClick={this.handleHardReset} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                    <span className="text-[10px] font-mono text-(--color-zenthar-text-muted) opacity-50">{timestamp}</span>
+                    <button onClick={this.handleHardReset} className="p-2 hover:bg-brand-primary/10 rounded-full transition-colors">
                         <ArrowLeft size={14} />
                     </button>
                 </div>
@@ -142,8 +142,8 @@ export class ErrorBoundary extends Component<Props, State> {
                       >
                         <RefreshCw className="w-12 h-12 text-red-500" />
                       </motion.div>
-                      <h2 className="text-xl font-black uppercase tracking-widest text-white">Running Diagnostics...</h2>
-                      <p className="text-sm text-slate-500 font-mono tracking-tighter">Analyzing heap memory and logic branch integrity</p>
+                      <h2 className="text-xl font-black uppercase tracking-widest text-(--color-zenthar-text-primary)">Running Diagnostics...</h2>
+                      <p className="text-sm text-(--color-zenthar-text-secondary) font-mono tracking-tighter">Analyzing heap memory and logic branch integrity</p>
                     </motion.div>
                   ) : (
                     <motion.div 
@@ -156,26 +156,26 @@ export class ErrorBoundary extends Component<Props, State> {
                         <div className="inline-flex p-4 bg-red-500/10 border border-red-500/20 rounded-2xl mb-8">
                           <ServerCrash className="w-12 h-12 text-red-500" strokeWidth={1} />
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight uppercase leading-[0.9]">
+                        <h1 className="text-5xl md:text-7xl font-black text-(--color-zenthar-text-primary) tracking-tight uppercase leading-[0.9]">
                           System <br /> <span className="text-red-600">Interrupted.</span>
                         </h1>
-                        <p className="mt-8 text-lg text-slate-400 max-w-xl leading-relaxed">
-                          The application encountered a fatal exception in <span className="text-white font-mono bg-white/5 px-2 py-1 rounded">[{this.props.moduleName || "ROOT"}]</span>. Process execution has been suspended to protect state integrity.
+                        <p className="mt-8 text-lg text-(--color-zenthar-text-muted) max-w-xl leading-relaxed">
+                          The application encountered a fatal exception in <span className="text-(--color-zenthar-text-primary) font-mono bg-(--color-zenthar-steel) px-2 py-1 rounded">[{this.props.moduleName || "ROOT"}]</span>. Process execution has been suspended to protect state integrity.
                         </p>
                       </header>
 
                       {/* DIAGNOSTIC TERMINAL */}
                       <div className="relative group">
                         <div className="absolute -inset-1 bg-linear-to-r from-red-500/20 to-transparent rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000" />
-                        <div className="relative bg-black border border-white/5 rounded-3xl overflow-hidden">
-                          <div className="flex items-center justify-between px-6 py-4 bg-white/5 border-b border-white/5">
+                        <div className="relative bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-3xl overflow-hidden">
+                          <div className="flex items-center justify-between px-6 py-4 bg-(--color-zenthar-carbon) border-b border-(--color-zenthar-steel)">
                             <div className="flex items-center gap-3">
                               <Terminal className="w-4 h-4 text-red-500" />
-                              <span className="text-[10px] font-black uppercase tracking-widest">Stack_Trace</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest text-(--color-zenthar-text-primary)">Stack_Trace</span>
                             </div>
                             <button 
                               onClick={this.copyDiagnostics}
-                              className="flex items-center gap-2 px-3 py-1 bg-white/5 hover:bg-white/10 rounded-full transition-all text-[10px] font-bold"
+                              className="flex items-center gap-2 px-3 py-1 bg-(--color-zenthar-steel) hover:bg-brand-primary/20 rounded-full transition-all text-[10px] font-bold text-(--color-zenthar-text-primary)"
                             >
                               {copied ? <CheckCircle2 size={12} className="text-emerald-500" /> : <Copy size={12} />}
                               {copied ? "COPIED" : "COPY LOGS"}
@@ -183,8 +183,8 @@ export class ErrorBoundary extends Component<Props, State> {
                           </div>
                           <div className="p-6 h-48 overflow-y-auto font-mono text-xs leading-relaxed custom-scrollbar">
                             <div className="text-red-500/80 mb-2">/!/ FAULT_DETECTED: {error?.name}</div>
-                            <div className="text-white mb-4">{error?.message}</div>
-                            <div className="text-slate-600 break-all opacity-60">
+                            <div className="text-(--color-zenthar-text-primary) mb-4 font-black">{error?.message}</div>
+                            <div className="text-(--color-zenthar-text-muted) break-all">
                               {error?.stack}
                             </div>
                           </div>
@@ -199,8 +199,8 @@ export class ErrorBoundary extends Component<Props, State> {
                           className={clsx(
                             "flex items-center justify-center gap-4 py-6 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border active:scale-95",
                             isLooping 
-                              ? "opacity-20 cursor-not-allowed grayscale" 
-                              : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-red-500/20 text-white"
+                              ? "opacity-20 cursor-not-allowed grayscale text-(--color-zenthar-text-muted)" 
+                              : "bg-(--color-zenthar-carbon) border-(--color-zenthar-steel) hover:bg-brand-primary/10 hover:border-brand-primary/20 text-(--color-zenthar-text-primary)"
                           )}
                         >
                           <Cpu className="w-5 h-5" />
@@ -222,7 +222,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
             {/* SIDEBAR: System Context */}
             <aside className="space-y-6 hidden lg:block">
-              <section className="bg-white/2 border border-white/5 rounded-4xl p-8">
+              <section className="bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel) rounded-4xl p-8">
                 <h4 className="text-[10px] font-black text-red-500 uppercase tracking-[0.4em] mb-8 flex items-center gap-2">
                   <Database size={14} /> Env_Telemetry
                 </h4>
@@ -234,7 +234,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 </div>
               </section>
 
-              <section className="bg-white/2 border border-white/5 rounded-4xl p-8">
+              <section className="bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel) rounded-4xl p-8">
                 <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
                   <History size={14} /> Session_History
                 </h4>

@@ -53,7 +53,7 @@ export const NotificationCenter: React.FC = () => {
           className={`w-5 h-5 relative z-10 transition-transform duration-300 group-hover:scale-110 ${unreadCount > 0 ? "animate-pulse" : ""}`}
         />
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-lab-laser text-white text-[10px] font-black flex items-center justify-center rounded-xl border border-white/20 shadow-lg z-20">
+          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-lab-laser text-(--color-zenthar-void) text-[10px] font-black flex items-center justify-center rounded-xl border border-white/20 shadow-lg z-20">
             {unreadCount}
           </span>
         )}
@@ -82,14 +82,14 @@ export const NotificationCenter: React.FC = () => {
                   <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20 shadow-inner">
                     <Bell className="w-4 h-4 text-brand-primary" />
                   </div>
-                  <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">
+                  <h3 className="text-xs font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.2em]">
                     System Alerts
                   </h3>
                 </div>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-[10px] font-black text-brand-primary hover:text-white uppercase tracking-widest transition-colors px-3 py-1.5 rounded-lg hover:bg-brand-primary/10"
+                    className="text-[10px] font-black text-brand-primary hover:text-(--color-zenthar-text-secondary) uppercase tracking-widest transition-colors px-3 py-1.5 rounded-lg hover:bg-brand-primary/10"
                   >
                     Clear All
                   </button>
@@ -129,7 +129,7 @@ export const NotificationCenter: React.FC = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p
-                            className={`text-[11px] leading-relaxed tracking-tight ${!notification.is_read ? "text-white font-black" : "text-white/70 font-bold"}`}
+                            className={`text-[11px] leading-relaxed tracking-tight ${!notification.is_read ? "text-(--color-zenthar-text-primary) font-black" : "text-(--color-zenthar-text-primary)/70 font-bold"}`}
                           >
                             {notification.message}
                           </p>
@@ -141,7 +141,7 @@ export const NotificationCenter: React.FC = () => {
                             {!notification.is_read && (
                               <button
                                 onClick={() => markAsRead(notification.id)}
-                                className="px-4 py-1.5 rounded-xl bg-(--color-zenthar-graphite) border border-brand-sage/20 text-brand-primary text-[9px] font-black uppercase tracking-widest hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-all shadow-sm active:scale-95"
+                                className="px-4 py-1.5 rounded-xl bg-(--color-zenthar-graphite) border border-brand-sage/20 text-brand-primary text-[9px] font-black uppercase tracking-widest hover:bg-brand-primary hover:text-(--color-zenthar-void) hover:border-brand-primary transition-all shadow-sm active:scale-95"
                               >
                                 Acknowledge
                               </button>
@@ -156,7 +156,7 @@ export const NotificationCenter: React.FC = () => {
 
               <div className="p-5 border-t border-brand-sage/10 bg-(--color-zenthar-graphite)/30 text-center relative z-10">
                 <button
-                  className="text-[10px] font-black text-brand-sage hover:text-white uppercase tracking-[0.2em] transition-all px-4 py-2 rounded-xl hover:bg-(--color-zenthar-graphite) border border-transparent hover:border-brand-sage/20 hover:shadow-sm"
+                  className="text-[10px] font-black text-brand-sage hover:text-(--color-zenthar-text-primary) uppercase tracking-[0.2em] transition-all px-4 py-2 rounded-xl hover:bg-(--color-zenthar-graphite) border border-transparent hover:border-brand-sage/20 hover:shadow-sm"
                   onClick={() => setIsOpen(false)}
                 >
                   Dismiss Panel

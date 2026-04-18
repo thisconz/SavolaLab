@@ -184,7 +184,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
             <div className="w-full overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5">
+                  <tr className="border-b border-(--color-zenthar-steel)">
                     <th className="p-4 text-[10px] font-display font-bold text-zenthar-text-muted uppercase tracking-[0.2em]">Test Type</th>
                     <th className="p-4 text-[10px] font-display font-bold text-zenthar-text-muted uppercase tracking-[0.2em]">Raw Value</th>
                     <th className="p-4 text-[10px] font-display font-bold text-zenthar-text-muted uppercase tracking-[0.2em]">Calculated Value</th>
@@ -197,21 +197,21 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                     <th className="p-4 text-[10px] font-display font-bold text-zenthar-text-muted uppercase tracking-[0.2em]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-(--color-zenthar-steel)">
                   {tests.map((test) => {
                     const rule = TEST_VALIDATION_RULES[test.test_type as TestType];
                     const error = errors[test.id];
                     const isFilled = values[test.id] !== "";
                     
                     return (
-                      <tr key={test.id} className="hover:bg-white/2 transition-colors">
+                      <tr key={test.id} className="hover:bg-(--color-zenthar-carbon) transition-colors">
                         <td className="p-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-white uppercase tracking-wider">{test.test_type}</span>
+                            <span className="text-sm font-bold text-(--color-zenthar-text-primary) uppercase tracking-wider">{test.test_type}</span>
                             {rule && (
                               <div className="group/info relative">
                                 <Info className="w-3 h-3 text-zenthar-text-muted cursor-help hover:text-brand-primary transition-colors" />
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-4 py-3 bg-(--color-zenthar-carbon) text-white text-[11px] rounded-xl opacity-0 group-hover/info:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none shadow-2xl">
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-4 py-3 bg-(--color-zenthar-carbon) text-(--color-zenthar-text-primary) border border-(--color-zenthar-steel) text-[11px] rounded-xl opacity-0 group-hover/info:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none shadow-2xl">
                                   <p className="font-bold mb-1">{rule.description}</p>
                                   <p className="opacity-70 font-mono">Range: {rule.min} - {rule.max} {rule.unit}</p>
                                 </div>
@@ -228,7 +228,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                 value={colourParams[test.id]?.absorbance || ""}
                                 onChange={(e) => handleColourParamChange(test.id, "absorbance", e.target.value)}
                                 placeholder="Absorbance"
-                                className="w-24 bg-(--color-zenthar-void) border border-white/10 rounded-lg px-2 py-1 text-xs font-mono focus:outline-none focus:border-brand-primary text-white"
+                                className="w-24 bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-2 py-1 text-xs font-mono focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
                               />
                               <input
                                 type="number"
@@ -236,7 +236,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                 value={colourParams[test.id]?.brix || ""}
                                 onChange={(e) => handleColourParamChange(test.id, "brix", e.target.value)}
                                 placeholder="Brix"
-                                className="w-24 bg-(--color-zenthar-void) border border-white/10 rounded-lg px-2 py-1 text-xs font-mono focus:outline-none focus:border-brand-primary text-white"
+                                className="w-24 bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-2 py-1 text-xs font-mono focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
                               />
                               <input
                                 type="number"
@@ -244,7 +244,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                                 value={colourParams[test.id]?.cellLength || ""}
                                 onChange={(e) => handleColourParamChange(test.id, "cellLength", e.target.value)}
                                 placeholder="Cell Length"
-                                className="w-24 bg-(--color-zenthar-void) border border-white/10 rounded-lg px-2 py-1 text-xs font-mono focus:outline-none focus:border-brand-primary text-white"
+                                className="w-24 bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-2 py-1 text-xs font-mono focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
                               />
                             </div>
                           ) : (
@@ -255,7 +255,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                               onChange={(e) => handleValueChange(test.id, e.target.value, test.test_type)}
                               placeholder={`Value`}
                               className={`w-24 bg-(--color-zenthar-void) border rounded-lg px-2 py-1 text-xs font-mono focus:outline-none transition-all ${
-                                error ? "border-red-500/50 text-red-500" : "border-white/10 focus:border-brand-primary text-white"
+                                error ? "border-red-500/50 text-red-500" : "border-(--color-zenthar-steel) focus:border-brand-primary text-(--color-zenthar-text-primary)"
                               }`}
                             />
                           )}
@@ -268,7 +268,7 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                             </div>
                           )}
                         </td>
-                        <td className="p-4 text-sm font-mono text-white">
+                        <td className="p-4 text-sm font-mono text-(--color-zenthar-text-primary)">
                           {test.test_type === "Colour" ? (values[test.id] ? values[test.id] : "---") : "---"}
                         </td>
                         <td className="p-4 text-xs font-mono text-zenthar-text-muted uppercase">{rule?.unit || "-"}</td>
@@ -285,15 +285,15 @@ export const LabBench: React.FC<LabBenchProps> = memo(
                         <td className="p-4 text-xs font-mono text-zenthar-text-muted">
                           {test.performed_at ? new Date(test.performed_at).toLocaleString() : "-"}
                         </td>
-                        <td className="p-4 text-xs text-white">{test.performer_id || "-"}</td>
-                        <td className="p-4 text-xs text-white">{test.reviewer_id || "-"}</td>
+                        <td className="p-4 text-xs text-(--color-zenthar-text-primary)">{test.performer_id || "-"}</td>
+                        <td className="p-4 text-xs text-(--color-zenthar-text-primary)">{test.reviewer_id || "-"}</td>
                         <td className="p-4">
                           <input
                             type="text"
                             value={notes[test.id] || ""}
                             onChange={(e) => handleNoteChange(test.id, e.target.value)}
                             placeholder="Notes..."
-                            className="w-32 bg-(--color-zenthar-void) border border-white/10 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-brand-primary text-white"
+                            className="w-32 bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
                           />
                         </td>
                         <td className="p-4">
@@ -326,11 +326,11 @@ export const LabBench: React.FC<LabBenchProps> = memo(
               }`}
             >
               {isSaving ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-(--color-zenthar-void)/30 border-t-(--color-zenthar-void) rounded-full animate-spin" />
               ) : (
                 <>
-                  <Save className="w-5 h-5" />
-                  <span>Finalize Analysis</span>
+                  <Save className="w-5 h-5 text-(--color-zenthar-void)" />
+                  <span className="text-(--color-zenthar-void)">Finalize Analysis</span>
                 </>
               )}
             </button>

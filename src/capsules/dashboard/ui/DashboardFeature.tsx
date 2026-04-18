@@ -77,7 +77,7 @@ export const DashboardFeature: React.FC = memo(() => {
       {/* 1. HEADER SECTION */}
       <div className="flex items-center justify-between px-4 shrink-0">
         <div>
-          <h2 className="text-2xl font-display font-bold text-white flex items-center gap-2">
+          <h2 className="text-2xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
             <LayoutDashboard className="w-6 h-6 text-brand-primary" />
             Dashboard
           </h2>
@@ -198,7 +198,7 @@ const AlertItem = ({ alert }: { alert: Notification }) => {
 
       <div className="min-w-0 flex-1">
         <div className="flex justify-between items-start mb-1">
-          <p className="text-[11px] font-bold text-white leading-tight group-hover:text-brand-primary transition-colors truncate pr-2">
+          <p className="text-[11px] font-bold text-(--color-zenthar-text-primary) leading-tight group-hover:text-brand-primary transition-colors truncate pr-2">
             {alert.message}
           </p>
           <span className="text-[8px] font-mono text-brand-sage/60 shrink-0">
@@ -225,7 +225,7 @@ const EmptyAlertsState = () => (
     <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
       <CheckCircle2 className="w-6 h-6" />
     </div>
-    <p className="text-[10px] font-black text-white uppercase tracking-widest">All Systems Nominal</p>
+    <p className="text-[10px] font-black text-(--color-zenthar-text-primary) uppercase tracking-widest">All Systems Nominal</p>
     <p className="text-[9px] text-brand-sage mt-1">No pending alerts requiring action.</p>
   </div>
 );
