@@ -25,6 +25,13 @@ export type User = {
   permissions: PermissionFlags;
 };
 
+export type SampleType = {
+  id?: number;
+  name: string;
+  category: "STAGE" | "PRODUCT" | "LIQUID" | "UTILITY";
+  description?: string; // optional if not always used
+};
+
 export type Variables = {
   user: User;
   requestId: string;

@@ -1,4 +1,5 @@
 import { db, TransactionClient } from "./client";
+import { SampleType } from "../types"
 import { logger } from "../logger";
 
 /**
@@ -11,7 +12,6 @@ const bcrypt = {
 };
 
 // --- Seed Data Definitions ---
-
 const ROLE_PERMISSIONS = [
   { role: "ADMIN", view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
   { role: "CHEMIST", view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
@@ -33,6 +33,15 @@ const PRODUCTION_LINES = [
   { id: 8, name: "Drying", plant_id: "PLANT-08"},
   { id: 9, name: "Packaging", plant_id: "PLANT-09"},
   { id: 10, name: "Utility Streams", plant_id: "PLANT-10"}
+];
+
+const SAMPLE_TYPES: SampleType[] = [
+  { name: "Raw Handling", category: "STAGE", description: "" },
+  { name: "Refining", category: "STAGE", description: "" },
+  { name: "White sugar", category: "PRODUCT", description: "" },
+  { name: "Polish liquor", category: "LIQUID", description: "" },
+  { name: "Effluent samples", category: "UTILITY", description: "" },
+  // ...
 ];
 
 // --- Modular Seeder Functions ---
@@ -93,7 +102,7 @@ async function seedInfrastructure(client: TransactionClient) {
   if (Number(count) > 0) return;
 
   for (const line  of PRODUCTION_LINES) {
-    await client.execute("INSERT INTO production_lines (name, plant_id) VALUES ($2, $3)", [line.name, line.plant_id]);
+    await client.execute("INSERT INTO production_lines (name, plant_id) VALUES ($1, $2)", [line.name, line.plant_id]);
   }
 
   // Map equipment to lines dynamically
@@ -156,6 +165,21 @@ async function seedSystemPreferences(client: TransactionClient) {
   logger.info("Seeded: System Preferences");
 }
 
+// --- Sample Types Seeder ---
+async function seedSampleTypes(client: TransactionClient) {
+  const { count } = (await client.query<{ count: string }>("SELECT COUNT(*) FROM sample_types"))[0];
+  if (Number(count) > 0) return;
+
+  for (const st of SAMPLE_TYPES) {
+    await client.execute(
+      `INSERT INTO sample_types (name, category)
+       VALUES ($1, $2)`,
+      [st.name, st.category]
+    );
+  }
+  logger.info("Seeded: Sample Types");
+}
+
 // --- Samples Seeder ---
 async function seedSamples(client: TransactionClient) {
   const { count } = (await client.query<{ count: string }>("SELECT COUNT(*) FROM samples"))[0];
@@ -164,12 +188,13 @@ async function seedSamples(client: TransactionClient) {
   const line = await client.queryOne<{ id: number }>("SELECT id FROM production_lines LIMIT 1");
   const equipment = await client.queryOne<{ id: number }>("SELECT id FROM equipment LIMIT 1");
   const shift = await client.queryOne<{ id: number }>("SELECT id FROM shifts LIMIT 1");
+  const sampleType = await client.queryOne<{ id: number }>("SELECT id FROM sample_types WHERE name = $1",["Raw Handling"]);
 
   if (line && shift && equipment) {
     await client.execute(
-      `INSERT INTO samples (batch_id, line_id, equipment_id, shift_id, status, priority, created_at, technician_id) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      ["BT-1111", line.id, equipment.id, shift.id, "PENDING", "STAT", new Date(), "ADMIN"]
+      `INSERT INTO samples (batch_id, sample_type_id, line_id, equipment_id, shift_id, status, priority, created_at, technician_id) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      ["BT-1111", sampleType.id, line.id, equipment.id, shift.id, "PENDING", "STAT", new Date(), "ADMIN"]
     );
     logger.info("Seeded: Samples");
   }
@@ -184,6 +209,7 @@ export async function seedDatabase() {
       await seedInfrastructure(client);
       await seedShifts(client);
       await seedSystemPreferences(client);
+      await seedSampleTypes(client);
       await seedSamples(client);
     });
 

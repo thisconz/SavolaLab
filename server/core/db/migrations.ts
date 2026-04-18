@@ -21,7 +21,9 @@ export const migrations: Migration[] = [
 
         CREATE TABLE IF NOT EXISTS sample_types (
           id SERIAL PRIMARY KEY,
-          name TEXT UNIQUE NOT NULL,
+          name TEXT NOT NULL UNIQUE,
+          category TEXT NOT NULL,
+          line_id INTEGER NULL
           description TEXT
         );
 
