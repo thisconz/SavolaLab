@@ -1,86 +1,88 @@
 import { api } from "../../../core/http/client";
-import { 
-  Sample, 
+import {
+  Sample,
   GetSamplesResponseSchema,
   CreateSampleRequest,
-  UpdateSampleRequest
+  UpdateSampleRequest,
 } from "../model/sample.model";
 import type { TestResult } from "../../../core/types";
 
-/**
- * LabApi handles all laboratory management interactions for Zenthar.
- * Centralizing these calls ensures consistent error handling and type safety.
- */
 export const LabApi = {
-  // --- Sample Management ---
+  // ─────────────────────────────────────────────
+  // Samples
+  // ─────────────────────────────────────────────
 
   getSamples: async (): Promise<Sample[]> => {
-    const res = await api.get<any>(`/samples?t=${Date.now()}`);
-    const validated = GetSamplesResponseSchema.parse(res);
-    return validated.data || [];
+    const res       = await api.get<any>(`/samples?t=${Date.now()}`);
+    const validated = GetSamplesResponseSchema.safeParse(res);
+
+    if (!validated.success) {
+      console.warn("[LabApi.getSamples] Zod validation failed:", validated.error.flatten());
+      // Gracefully return raw data if schema is stale
+      return (res?.data ?? []) as Sample[];
+    }
+    return validated.data.data;
   },
 
-  registerSample: async (sample: CreateSampleRequest): Promise<{ id: number }> => {
+  registerSample: async (sample: Partial<{
+    batch_id:     string;
+    sample_type:  string;
+    source_stage: string;
+    priority:     string;
+    status:       string;
+    line_id?:     string;
+    equipment_id?: string;
+    shift_id?:    string;
+  }>): Promise<{ id: number }> => {
     return api.post<{ id: number }>("/samples", sample);
   },
 
-  updateSample: async (
-    sampleId: number,
-    data: UpdateSampleRequest,
-  ): Promise<void> => {
+  updateSample: async (sampleId: number, data: Partial<Sample>): Promise<void> => {
     return api.put(`/samples/${sampleId}`, data);
   },
 
-  // --- Test & Results Management ---
-  // ... rest of the methods
+  // ─────────────────────────────────────────────
+  // Tests
+  // ─────────────────────────────────────────────
 
   getTests: async (): Promise<TestResult[]> => {
     const res = await api.get<{ success: boolean; data: TestResult[] }>(
       `/tests?t=${Date.now()}`,
     );
-    return res.data || [];
+    return res.data ?? [];
   },
 
   getSampleTests: async (sampleId: number): Promise<TestResult[]> => {
     const res = await api.get<{ success: boolean; data: TestResult[] }>(
       `/samples/${sampleId}/tests`,
     );
-    return res.data || [];
+    return res.data ?? [];
   },
 
-  /**
-   * Fetches historical data for comparison.
-   * Useful for tracking stability or quality control trends.
-   */
   getPreviousResults: async (
-    stage: string,
+    stage:    string,
     testType: string,
-    limit: number = 5,
+    limit     = 5,
   ): Promise<TestResult[]> => {
     const res = await api.get<{ success: boolean; data: TestResult[] }>(
       `/samples/previous-results?stage=${encodeURIComponent(stage)}&testType=${encodeURIComponent(testType)}&limit=${limit}`,
     );
-    return res.data || [];
+    return res.data ?? [];
   },
 
   createTest: async (data: Partial<TestResult>): Promise<{ id: number }> => {
     return api.post<{ id: number }>("/tests", data);
   },
 
-  updateTest: async (
-    testId: number,
-    data: Partial<TestResult>,
-  ): Promise<void> => {
+  updateTest: async (testId: number, data: Partial<TestResult>): Promise<void> => {
     return api.put(`/tests/${testId}`, data);
   },
 
-  // --- Quality Control & Review ---
-
   reviewTest: async (
-    testId: number,
-    status: "APPROVED" | "DISAPPROVED",
+    testId:   number,
+    status:   "APPROVED" | "DISAPPROVED",
     comment?: string,
   ): Promise<void> => {
-    return api.post(`/tests/${testId}/review`, { status, comment });
+    return api.post(`/tests/${testId}/review`, { status, comment: comment ?? null });
   },
 };

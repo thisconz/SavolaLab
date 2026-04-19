@@ -2,281 +2,201 @@ import { db } from "../../core/database";
 import { TestRepository } from "./repository";
 
 /**
- * Update workflow step when a test result is entered.
- * Automatically completes the workflow if all steps are done.
+ * Advances a workflow step when a test result is saved.
+ * Silently no-ops if there is no active workflow execution.
  */
 const updateWorkflowStep = async (
-  sample_id: number,
-  test_type: string,
-  test_id: number,
-  raw_value: number,
-) => {
+  sampleId:  number,
+  testType:  string,
+  testId:    number,
+  rawValue:  number,
+): Promise<void> => {
   try {
-    const activeExecution = (await db.queryOne(
-      `
-      SELECT id FROM workflow_executions 
-      WHERE sample_id = $1 AND status = 'IN_PROGRESS'
-      LIMIT 1
-    `,
-      [sample_id],
-    )) as any;
+    const exec = await db.queryOne<{ id: number }>(
+      `SELECT id FROM workflow_executions
+       WHERE sample_id = $1 AND status = 'IN_PROGRESS'
+       ORDER BY started_at DESC LIMIT 1`,
+      [sampleId],
+    );
+    if (!exec) return;
 
-    if (!activeExecution) return;
+    // Find the matching pending/in-progress step via JOIN with workflow_steps
+    const step = await db.queryOne<{ id: number }>(
+      `SELECT wse.id
+       FROM workflow_step_executions wse
+       JOIN workflow_steps ws ON wse.step_id = ws.id
+       WHERE wse.execution_id = $1
+         AND ws.test_type     = $2
+         AND wse.status IN ('PENDING', 'IN_PROGRESS')
+       ORDER BY ws.sequence_order ASC
+       LIMIT 1`,
+      [exec.id, testType],
+    );
+    if (!step) return;
 
-    const matchingStep = (await db.queryOne(
-      `
-      SELECT wse.id 
-      FROM workflow_step_executions wse
-      JOIN workflow_steps ws ON wse.step_id = ws.id
-      WHERE wse.execution_id = $1 
-      AND ws.test_type = $2 
-      AND wse.status IN ('PENDING', 'IN_PROGRESS')
-      ORDER BY ws.sequence_order ASC
-      LIMIT 1
-    `,
-      [activeExecution.id, test_type],
-    )) as any;
-
-    if (!matchingStep) return;
-
-    // Complete this workflow step
     await db.execute(
-      `
-      UPDATE workflow_step_executions 
-      SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP, test_id = $1, result_value = $2
-      WHERE id = $3
-    `,
-      [test_id, raw_value, matchingStep.id],
+      `UPDATE workflow_step_executions
+       SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP,
+           test_id = $1, result_value = $2
+       WHERE id = $3`,
+      [testId, rawValue, step.id],
     );
 
-    // Check if workflow is fully completed
-    const pendingSteps = (await db.queryOne(
-      `
-      SELECT COUNT(*) as count 
-      FROM workflow_step_executions 
-      WHERE execution_id = $1 AND status != 'COMPLETED'
-    `,
-      [activeExecution.id],
-    )) as any;
-
-    if (Number(pendingSteps.count) === 0) {
+    // Auto-complete execution when all steps done
+    const pending = await db.queryOne<{ count: string }>(
+      `SELECT COUNT(*) AS count
+       FROM workflow_step_executions
+       WHERE execution_id = $1 AND status NOT IN ('COMPLETED','FAILED')`,
+      [exec.id],
+    );
+    if (Number(pending?.count ?? 1) === 0) {
       await db.execute(
-        `
-        UPDATE workflow_executions 
-        SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP
-        WHERE id = $1
-      `,
-        [activeExecution.id],
+        `UPDATE workflow_executions
+         SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [exec.id],
       );
     }
   } catch (err: any) {
     if (err.message === "Database not connected") return;
-    console.error("Workflow step update error:", err);
+    console.error("Workflow step update error:", err.message);
+    // Non-fatal — don't let workflow logic break test submission
   }
 };
 
 export const TestService = {
-  // Fetch all test results
-  getTests: async () => await TestRepository.findAll(),
+  getTests: async () => TestRepository.findAll(),
 
-  // Create a test result with validation, workflow update, and audit logging
   createTestResult: async (
-    sampleId: number,
-    data: any,
+    sampleId:   number,
+    data:       any,
     performerId: string,
-    ip: string = "127.0.0.1",
+    ip          = "127.0.0.1",
   ) => {
     const {
-      test_type,
-      raw_value,
-      calculated_value,
-      unit,
-      status,
-      performed_at,
-      reviewer_id,
-      review_at,
-      review_comment,
-      notes,
-      params,
+      test_type, raw_value, calculated_value, unit, status,
+      performed_at, reviewer_id, review_at, review_comment, notes, params,
     } = data;
 
-    const timestamp = performed_at || new Date().toISOString();
-    const paramsStr = params
-      ? typeof params === "string"
-        ? params
-        : JSON.stringify(params)
+    const timestamp  = performed_at ?? new Date().toISOString();
+    const paramsStr  = params != null
+      ? (typeof params === "string" ? params : JSON.stringify(params))
       : null;
 
     try {
       return await db.transaction(async (client) => {
-        const sampleResult = await client.query(
-          "SELECT id FROM samples WHERE id = $1",
-          [sampleId],
-        );
-        const sample = sampleResult[0];
+        const sample = await client.queryOne("SELECT id FROM samples WHERE id = $1", [sampleId]);
         if (!sample) throw new Error(`Sample ${sampleId} not found`);
 
         const testId = await TestRepository.create(client, {
-          sample_id: sampleId,
+          sample_id:        sampleId,
           test_type,
-          raw_value,
-          calculated_value,
-          unit,
-          status: status || "PENDING",
-          performed_at: timestamp,
-          performer_id: performerId,
-          reviewer_id: reviewer_id || null,
-          review_at: review_at || null,
-          review_comment: review_comment || null,
-          notes: notes || null,
-          params: paramsStr,
+          raw_value:        raw_value         ?? null,
+          calculated_value: calculated_value  ?? raw_value ?? null,
+          unit:             unit              ?? null,
+          status:           status            ?? "PENDING",
+          performed_at:     timestamp,
+          performer_id:     performerId,
+          reviewer_id:      reviewer_id       ?? null,
+          review_at:        review_at         ?? null,
+          review_comment:   review_comment    ?? null,
+          notes:            notes             ?? null,
+          params:           paramsStr,
         });
 
-        await updateWorkflowStep(sampleId, test_type, testId, raw_value);
+        if (raw_value != null) {
+          await updateWorkflowStep(sampleId, test_type, testId, raw_value);
+        }
 
         await client.query(
-          `
-          INSERT INTO audit_logs (employee_number, action, details, ip_address)
-          VALUES ($1, 'TEST_CREATED', $2, $3)
-        `,
-          [
-            performerId,
-            `Created test '${test_type}' for sample ${sampleId} with value ${raw_value}`,
-            ip,
-          ],
+          `INSERT INTO audit_logs (employee_number, action, details, ip_address)
+           VALUES ($1, 'TEST_CREATED', $2, $3)`,
+          [performerId, `Created '${test_type}' test for sample ${sampleId} (value: ${raw_value})`, ip],
         );
 
         return testId;
       });
-    } catch (error: any) {
-      // Attempt to log failure
-      try {
-        await db.execute(
-          `
-          INSERT INTO audit_logs (employee_number, action, details, ip_address)
-          VALUES ($1, 'TEST_CREATE_FAILED', $2, $3)
-        `,
-          [
-            performerId,
-            `Failed to create test '${test_type}' for sample ${sampleId}: ${error.message}`,
-            ip,
-          ],
-        );
-      } catch {}
-      throw error;
+    } catch (err: any) {
+      // Log failure without crashing
+      db.execute(
+        `INSERT INTO audit_logs (employee_number, action, details, ip_address)
+         VALUES ($1, 'TEST_CREATE_FAILED', $2, $3)`,
+        [performerId, `Failed to create '${test_type}' for sample ${sampleId}: ${err.message}`, ip],
+      ).catch(() => {});
+      throw err;
     }
   },
 
-  // Legacy convenience wrapper
-  createTest: async (data: any, performerId: string) =>
-    await TestService.createTestResult(
-      data.sample_id,
-      {
-        ...data,
-        calculated_value: data.calculated_value ?? data.raw_value,
-        status: data.status || "PENDING",
-        reviewer_id: data.reviewer_id ?? null,
-        review_at: data.review_at ?? null,
-        review_comment: data.review_comment ?? null,
-        notes: data.notes ?? null,
-        params: data.params ?? null,
-      },
-      performerId,
-    ),
-
-  // Update an existing test
   updateTest: async (
-    id: string,
-    data: any,
+    id:          string,
+    data:        any,
     performerId: string,
-    ip: string = "127.0.0.1",
+    ip           = "127.0.0.1",
   ) => {
-    const { raw_value, calculated_value, status, notes, params } = data;
+    const numId = Number(id);
+    if (!numId || numId < 1) throw new Error("Invalid test ID");
 
     try {
       return await db.transaction(async (client) => {
-        const test = await TestRepository.findById(id);
+        const test = await TestRepository.findById(numId);
         if (!test) throw new Error("Test not found");
 
-        await TestRepository.update(client, id, {
-          raw_value: raw_value ?? test.raw_value,
-          calculated_value: calculated_value ?? test.calculated_value,
-          status: status || test.status,
-          notes: notes ?? test.notes,
-          params: params !== undefined
-            ? typeof params === "string"
-              ? params
-              : JSON.stringify(params)
-            : test.params,
+        await TestRepository.update(client, numId, {
+          raw_value:        data.raw_value        ?? test.raw_value,
+          calculated_value: data.calculated_value ?? test.calculated_value,
+          status:           data.status           ?? test.status,
+          notes:            data.notes            ?? test.notes,
+          params:           data.params           ?? test.params,
         });
 
-        if (raw_value !== undefined) {
-          await updateWorkflowStep(
-            test.sample_id,
-            test.test_type,
-            Number(id),
-            raw_value,
-          );
+        if (data.raw_value != null) {
+          await updateWorkflowStep(test.sample_id, test.test_type, numId, data.raw_value);
         }
 
         await client.query(
-          `
-          INSERT INTO audit_logs (employee_number, action, details, ip_address)
-          VALUES ($1, 'TEST_UPDATED', $2, $3)
-        `,
-          [performerId, `Updated test ${id} (Sample: ${test.sample_id})`, ip],
+          `INSERT INTO audit_logs (employee_number, action, details, ip_address)
+           VALUES ($1, 'TEST_UPDATED', $2, $3)`,
+          [performerId, `Updated test ${numId} (sample: ${test.sample_id})`, ip],
         );
 
         return true;
       });
-    } catch (error: any) {
-      if (error.message === "Database not connected") return true;
-      throw error;
+    } catch (err: any) {
+      if (err.message === "Database not connected") return true;
+      throw err;
     }
   },
 
-  // Log attempts to delete a test (deletion blocked)
-  logDeletionAttempt: async (
-    id: string,
-    performerId: string,
-    ip: string = "127.0.0.1",
-  ) => {
+  logDeletionAttempt: async (id: string, performerId: string, ip = "127.0.0.1") => {
     try {
       await db.execute(
-        `
-        INSERT INTO audit_logs (employee_number, action, details, ip_address)
-        VALUES ($1, 'TEST_DELETE_ATTEMPT', $2, $3)
-      `,
-        [
-          performerId,
-          `Attempted to delete test result ${id} (deletion is blocked)`,
-          ip,
-        ],
+        `INSERT INTO audit_logs (employee_number, action, details, ip_address)
+         VALUES ($1, 'TEST_DELETE_ATTEMPT', $2, $3)`,
+        [performerId, `Attempted to delete test ${id} (blocked)`, ip],
       );
     } catch (e) {
       console.error("Failed to log deletion attempt:", e);
     }
   },
 
-  // Review a test
   reviewTest: async (
-    id: string,
-    data: { status: "APPROVED" | "DISAPPROVED"; comment?: string },
+    id:         string,
+    data:       { status: "APPROVED" | "DISAPPROVED"; comment?: string },
     reviewerId: string,
-    role: string,
+    role:       string,
   ) => {
-    const { status, comment } = data;
-    const review_at = new Date().toISOString();
-
-    if (!["SHIFT_CHEMIST", "HEAD_MANAGER"].includes(role)) {
-      throw new Error("Only Shift Chemists or Managers can review tests");
+    if (!["SHIFT_CHEMIST", "HEAD_MANAGER", "ADMIN"].includes(role)) {
+      throw new Error("Only Shift Chemists, Managers, or Admins can review tests");
     }
 
-    await TestRepository.review(id, {
-      status,
-      reviewer_id: reviewerId,
-      review_at,
-      review_comment: comment ?? null,
+    const numId = Number(id);
+    if (!numId || numId < 1) throw new Error("Invalid test ID");
+
+    await TestRepository.review(numId, {
+      status:         data.status,
+      reviewer_id:    reviewerId,
+      review_at:      new Date().toISOString(),
+      review_comment: data.comment ?? null,
     });
 
     return true;

@@ -9,143 +9,114 @@ import { TEST_VALIDATION_RULES } from "../constants/validation.constants";
 import { SampleStatus, SamplePriority, WorkflowStepExecutionStatus } from "../../../core/types";
 
 export const useLabBench = (sample: Sample, onComplete?: () => void) => {
-  const [tests, setTests] = useState<TestResult[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [values, setValues] = useState<Record<number, string>>({});
-  const [notes, setNotes] = useState<Record<number, string>>({});
-  const [errors, setErrors] = useState<Record<number, string>>({});
-  const [suggestions, setSuggestions] = useState<Record<number, string>>({});
-  const [colourParams, setColourParams] = useState<
-    Record<number, { absorbance: string; brix: string; cellLength: string }>
-  >({});
+  const [tests,           setTests]          = useState<TestResult[]>([]);
+  const [loading,         setLoading]        = useState(true);
+  const [values,          setValues]         = useState<Record<number, string>>({});
+  const [notes,           setNotes]          = useState<Record<number, string>>({});
+  const [errors,          setErrors]         = useState<Record<number, string>>({});
+  const [colourParams,    setColourParams]   = useState<Record<number, { absorbance: string; brix: string; cellLength: string }>>({});
   const [previousResults, setPreviousResults] = useState<Record<string, any[]>>({});
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving,        setIsSaving]       = useState(false);
+
+  // ─── Load tests ──────────────────────────────────────────────────────────
 
   const loadTests = useCallback(async () => {
     setLoading(true);
     try {
       const data = await LabApi.getSampleTests(sample.id);
       setTests(data);
-      const initialValues: Record<number, string> = {};
-      const initialNotes: Record<number, string> = {};
-      const initialColourParams: Record<number, { absorbance: string; brix: string; cellLength: string }> = {};
-      const historyPromises: Promise<void>[] = [];
 
-      data.forEach((t) => {
-        initialValues[t.id] = t.raw_value?.toString() || "";
-        initialNotes[t.id] = t.notes || "";
-        
+      const initValues:       Record<number, string>  = {};
+      const initNotes:        Record<number, string>  = {};
+      const initColourParams: Record<number, any>     = {};
+
+      for (const t of data) {
+        initValues[t.id] = t.raw_value?.toString() ?? "";
+        initNotes[t.id]  = t.notes ?? "";
+
         if (t.test_type === "Colour") {
           let p = { absorbance: "", brix: "50", cellLength: "1" };
           if (t.params) {
             try {
               const parsed = typeof t.params === "string" ? JSON.parse(t.params) : t.params;
               p = { ...p, ...parsed };
-            } catch (e) {
-              console.warn(`Failed to parse colour params for test ${t.id}:`, e);
-            }
+            } catch { /* ignore malformed params */ }
           }
-          initialColourParams[t.id] = p;
+          initColourParams[t.id] = p;
         }
+      }
 
-        // Fetch history for each test type
-        if (!previousResults[t.test_type]) {
-          historyPromises.push(
-            LabApi.getPreviousResults(sample.source_stage, t.test_type, 3).then((results) => {
-              setPreviousResults((prev) => ({
-                ...prev,
-                [t.test_type]: results,
-              }));
-            }),
-          );
-        }
-      });
+      setValues(initValues);
+      setNotes(initNotes);
+      setColourParams(initColourParams);
 
-      setValues(initialValues);
-      setNotes(initialNotes);
-      setColourParams(initialColourParams);
-      await Promise.all(historyPromises);
+      // Load history per test type (no duplicate fetches)
+      const seen = new Set<string>();
+      for (const t of data) {
+        if (seen.has(t.test_type)) continue;
+        seen.add(t.test_type);
+        LabApi.getPreviousResults(sample.source_stage ?? "", t.test_type, 3)
+          .then((res) => setPreviousResults((prev) => ({ ...prev, [t.test_type]: res })))
+          .catch(() => {/* best-effort */});
+      }
     } catch (err) {
-      console.error("Failed to load tests", err);
+      console.error("Failed to load tests:", err);
+      toast.error("Could not load test panel.");
     } finally {
       setLoading(false);
     }
-  }, [sample.id, sample.source_stage, previousResults]);
+  }, [sample.id, sample.source_stage]);
 
-  useEffect(() => {
-    loadTests();
-  }, [sample.id, sample.source_stage]); // Removed loadTests from dependency array to prevent infinite loop if loadTests changes
+  useEffect(() => { loadTests(); }, [sample.id]);
+
+  // ─── Validation ──────────────────────────────────────────────────────────
 
   const validateField = (testId: number, value: string, testType: string) => {
     if (!value) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[testId];
-        return newErrors;
-      });
-      setSuggestions((prev) => {
-        const newSuggestions = { ...prev };
-        delete newSuggestions[testId];
-        return newSuggestions;
-      });
+      setErrors((p) => { const n = { ...p }; delete n[testId]; return n; });
       return;
     }
 
     const rule = TEST_VALIDATION_RULES[testType as TestType];
     if (!rule) return;
 
-    const numValue = parseFloat(value);
-    if (isNaN(numValue)) {
-      setErrors((prev) => ({ ...prev, [testId]: "Invalid numeric format" }));
-      setSuggestions((prev) => ({ ...prev, [testId]: "Please enter a valid number (e.g. 12.5)" }));
+    const num = parseFloat(value);
+    if (isNaN(num)) {
+      setErrors((p) => ({ ...p, [testId]: "Invalid number" }));
       return;
     }
 
-    if (numValue < rule.min) {
-      setErrors((prev) => ({ ...prev, [testId]: `Value (${numValue} ${rule.unit}) is below minimum threshold` }));
-      setSuggestions((prev) => ({ ...prev, [testId]: `Input must be at least ${rule.min} ${rule.unit}. Check sample dilution or instrument zeroing.` }));
-    } else if (numValue > rule.max) {
-      setErrors((prev) => ({ ...prev, [testId]: `Value (${numValue} ${rule.unit}) exceeds maximum limit` }));
-      setSuggestions((prev) => ({ ...prev, [testId]: `Input must be no more than ${rule.max} ${rule.unit}. Verify calibration or check for contamination.` }));
+    if (num < rule.min || num > rule.max) {
+      setErrors((p) => ({
+        ...p,
+        [testId]: `Out of range (${rule.min}–${rule.max} ${rule.unit})`,
+      }));
     } else {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[testId];
-        return newErrors;
-      });
-      setSuggestions((prev) => {
-        const newSuggestions = { ...prev };
-        delete newSuggestions[testId];
-        return newSuggestions;
-      });
+      setErrors((p) => { const n = { ...p }; delete n[testId]; return n; });
     }
   };
 
   const handleValueChange = (testId: number, value: string, testType: string) => {
-    setValues((prev) => ({ ...prev, [testId]: value }));
+    setValues((p) => ({ ...p, [testId]: value }));
     validateField(testId, value, testType);
   };
 
   const handleNoteChange = (testId: number, value: string) => {
-    setNotes((prev) => ({ ...prev, [testId]: value }));
+    setNotes((p) => ({ ...p, [testId]: value }));
   };
 
   const handleColourParamChange = (
     testId: number,
-    param: "absorbance" | "brix" | "cellLength",
-    val: string,
+    param:  "absorbance" | "brix" | "cellLength",
+    val:    string,
   ) => {
     setColourParams((prev) => {
-      const current = prev[testId] || {
-        absorbance: "",
-        brix: "50",
-        cellLength: "1",
-      };
+      const current = prev[testId] ?? { absorbance: "", brix: "50", cellLength: "1" };
       const updated = { ...current, [param]: val };
 
       const abs = parseFloat(updated.absorbance);
-      const bx = parseFloat(updated.brix);
-      const cl = parseFloat(updated.cellLength);
+      const bx  = parseFloat(updated.brix);
+      const cl  = parseFloat(updated.cellLength);
 
       if (!isNaN(abs) && !isNaN(bx) && !isNaN(cl) && cl > 0) {
         const icumsa = calculateICUMSA(abs, bx, cl);
@@ -158,112 +129,106 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
     });
   };
 
+  // ─── Save ─────────────────────────────────────────────────────────────────
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const executions = await WorkflowApi.getWorkflowExecutions(sample.id);
-      const activeExec = executions.find((e) => e.status === "IN_PROGRESS");
+      const executions   = await WorkflowApi.getWorkflowExecutions(sample.id);
+      const activeExec   = executions.find((e) => e.status === "IN_PROGRESS");
+      const localSteps   = activeExec?.step_executions ? [...activeExec.step_executions] : [];
 
-      // PASS 1: Parallel Data Persistence (Fast)
-      const savedTests = await Promise.all(
-        tests.map(async (test) => {
-          const rawValue = parseFloat(values[test.id]);
-          let savedTestId = test.id;
+      // ── Pass 1: persist test data ─────────────────────────────────────────
+      const savedTests: { id: number; type: string; value: number }[] = [];
 
-          const payload: Partial<TestResult> = {
-            sample_id: sample.id,
-            test_type: test.test_type,
-            raw_value: rawValue,
-            calculated_value: rawValue,
-            unit: TEST_VALIDATION_RULES[test.test_type as TestType]?.unit || "N/A",
-            status: "VALIDATING" as any,
-            notes: notes[test.id] || undefined,
-            params: test.test_type === "Colour" ? colourParams[test.id] : undefined,
-          };
+      for (const test of tests) {
+        const rawValue = parseFloat(values[test.id]);
+        if (isNaN(rawValue)) continue;
 
-          if (test.id < 0) {
-            const res = await LabApi.createTest(payload);
-            savedTestId = res.id;
-          } else {
-            await LabApi.updateTest(test.id, payload);
-          }
+        const payload: Partial<TestResult> = {
+          sample_id:         sample.id,
+          test_type:         test.test_type as any,
+          raw_value:         rawValue,
+          calculated_value:  rawValue,
+          unit:              TEST_VALIDATION_RULES[test.test_type as TestType]?.unit ?? "N/A",
+          status:            "VALIDATING" as any,
+          notes:             notes[test.id] || undefined,
+          params:            test.test_type === "Colour" ? colourParams[test.id] : undefined,
+        };
 
-          return { id: savedTestId, type: test.test_type, value: rawValue };
-        }),
-      );
+        let savedId = test.id;
 
-      // PASS 2: Sequential Workflow Completion (Safe)
-      if (activeExec?.step_executions) {
-        const localSteps = [...activeExec.step_executions];
+        if (test.id < 0) {
+          // Template test — create it for real
+          const res = await LabApi.createTest(payload);
+          savedId = res.id;
+        } else {
+          await LabApi.updateTest(test.id, payload);
+        }
 
+        savedTests.push({ id: savedId, type: test.test_type, value: rawValue });
+      }
+
+      // ── Pass 2: advance workflow steps ────────────────────────────────────
+      if (activeExec) {
         for (const result of savedTests) {
-          const stepIndex = localSteps.findIndex(
-            (se) =>
-              se.test_type === result.type &&
-              (se.status === "IN_PROGRESS" || se.status === "PENDING"),
+          const stepIdx = localSteps.findIndex(
+            (s) =>
+              s.test_type === result.type &&
+              (s.status === "IN_PROGRESS" || s.status === "PENDING"),
           );
+          if (stepIdx === -1) continue;
 
-          if (stepIndex !== -1) {
-            const step = localSteps[stepIndex];
-
-            await WorkflowApi.completeStep(activeExec.id, step.step_id, {
-              status: "COMPLETED",
-              test_id: result.id,
-              result_value: result.value,
-            });
-
-            localSteps[stepIndex] = {
-              ...step,
-              status: WorkflowStepExecutionStatus.COMPLETED,
-            };
-          }
+          const step = localSteps[stepIdx];
+          await WorkflowApi.completeStep(activeExec.id, step.step_id, {
+            status:       "COMPLETED",
+            test_id:      result.id,
+            result_value: result.value,
+          });
+          localSteps[stepIdx] = {
+            ...step,
+            status: WorkflowStepExecutionStatus.COMPLETED,
+          };
         }
       }
 
-      // Final Sample Update
+      // ── Pass 3: advance sample status ─────────────────────────────────────
       await LabApi.updateSample(sample.id, {
-        status: SampleStatus.VALIDATING,
+        status:   SampleStatus.VALIDATING,
         priority: SamplePriority.NORMAL,
-      });
+      } as any);
 
-      toast.success("Analysis finalized and sent for validation.");
-
-      if (onComplete) {
-        onComplete();
-      }
+      toast.success("Analysis finalised — sent for validation.");
+      onComplete?.();
     } catch (err) {
-      console.error("Failed to save test results", err);
-      toast.error("Failed to save test results. Please try again.");
+      console.error("Failed to save test results:", err);
+      toast.error("Save failed. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleReview = async (testId: number, status: "APPROVED" | "DISAPPROVED", comment?: string) => {
+  // ─── Review ────────────────────────────────────────────────────────────────
+
+  const handleReview = async (
+    testId:  number,
+    status:  "APPROVED" | "DISAPPROVED",
+    comment?: string,
+  ) => {
     try {
       await LabApi.reviewTest(testId, status, comment);
       toast.success(`Test ${status.toLowerCase()} successfully.`);
-      loadTests(); // Reload to get updated status
+      loadTests();
     } catch (err) {
-      console.error("Failed to review test", err);
-      toast.error("Failed to review test.");
+      console.error("Failed to review test:", err);
+      toast.error("Review failed.");
     }
   };
 
   return {
-    tests,
-    loading,
-    values,
-    notes,
-    errors,
-    suggestions,
-    colourParams,
-    previousResults,
-    isSaving,
-    handleValueChange,
-    handleNoteChange,
-    handleColourParamChange,
-    handleSave,
-    handleReview,
+    tests, loading, values, notes, errors,
+    colourParams, previousResults, isSaving,
+    handleValueChange, handleNoteChange, handleColourParamChange,
+    handleSave, handleReview,
   };
 };

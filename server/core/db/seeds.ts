@@ -64,8 +64,8 @@ async function seedAccounts(client: TransactionClient) {
   const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM employees");
   if (Number(count) > 0) return;
 
-  const passwordHash = await hashPassword("1234");
-  const pinHash = await hashPin("1111", 12);
+  const password = ("1234");
+  const pin = ("1111");
 
   const accounts = [
     {
@@ -100,7 +100,7 @@ async function seedAccounts(client: TransactionClient) {
     await client.execute(
       `INSERT INTO users (employee_number, password_hash, pin_hash, status)
        VALUES ($1, $2, $3, 'ACTIVE')`,
-      [acc.employee_number, passwordHash, pinHash]
+      [acc.employee_number, password, pin]
     );
 
     await client.execute(
