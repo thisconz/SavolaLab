@@ -1,4 +1,5 @@
-import { db } from "../../core/database";
+import { db }     from "../../core/database";
+import { sseBus } from "../../core/sse";
 import { logger } from "../../core/logger";
 
 export type WorkflowStepInput = {
@@ -35,11 +36,10 @@ export const WorkflowService = {
     steps:         WorkflowStepInput[];
   }) => {
     const { name, description, target_stage, steps } = data;
-    if (!name?.trim())   throw new Error("Workflow name is required");
-    if (!steps?.length)  throw new Error("At least one step is required");
+    if (!name?.trim())  throw new Error("Workflow name is required");
+    if (!steps?.length) throw new Error("At least one step is required");
 
     return db.transaction(async (client) => {
-      // FIX TS2347: cast result array instead of using type argument on client.query()
       const wfRows = (await client.query(
         "INSERT INTO workflows (name, description, target_stage) VALUES ($1, $2, $3) RETURNING id",
         [name.trim(), description ?? null, target_stage ?? null],
@@ -56,6 +56,7 @@ export const WorkflowService = {
         );
       }
 
+      logger.info({ workflowId, steps: steps.length }, "Workflow created");
       return workflowId;
     });
   },
@@ -64,14 +65,13 @@ export const WorkflowService = {
     workflowId: string | number,
     sampleId:   string | number,
   ) => {
-    const workflow = await db.queryOne("SELECT id FROM workflows WHERE id = $1", [workflowId]);
-    const sample   = await db.queryOne("SELECT id FROM samples   WHERE id = $1", [sampleId]);
+    const workflow = await db.queryOne("SELECT id, name FROM workflows WHERE id = $1", [workflowId]);
+    const sample   = await db.queryOne("SELECT id, batch_id FROM samples WHERE id = $1", [sampleId]);
 
     if (!workflow) throw new Error(`Workflow ${workflowId} not found`);
     if (!sample)   throw new Error(`Sample ${sampleId} not found`);
 
     return db.transaction(async (client) => {
-      // FIX TS2347: cast result instead of type arg
       const execRows = (await client.query(
         "INSERT INTO workflow_executions (workflow_id, sample_id, status) VALUES ($1, $2, 'IN_PROGRESS') RETURNING id",
         [workflowId, sampleId],
@@ -79,7 +79,6 @@ export const WorkflowService = {
 
       const executionId = execRows[0].id;
 
-      // FIX TS2347: cast result
       const stepRows = (await client.query(
         "SELECT id FROM workflow_steps WHERE workflow_id = $1 ORDER BY sequence_order ASC",
         [workflowId],
@@ -92,6 +91,17 @@ export const WorkflowService = {
         );
       }
 
+      // Notify all clients a workflow started
+      sseBus.broadcast("WORKFLOW_STARTED", {
+        execution_id:  executionId,
+        workflow_id:   workflowId,
+        workflow_name: (workflow as any).name,
+        sample_id:     sampleId,
+        batch_id:      (sample as any).batch_id,
+        steps:         stepRows.length,
+      });
+
+      logger.info({ executionId, workflowId, sampleId }, "Workflow execution started");
       return executionId;
     });
   },
@@ -114,10 +124,10 @@ export const WorkflowService = {
     resultValue?: number,
   ) => {
     return db.transaction(async (client) => {
-      const rows = await client.query(
+      const rows = (await client.query(
         "SELECT id FROM workflow_step_executions WHERE execution_id = $1 AND step_id = $2",
         [executionId, stepId],
-      ) as Array<{ id: number }>;
+      )) as Array<{ id: number }>;
 
       if (!rows[0]) throw new Error("Step execution not found");
 
@@ -142,6 +152,9 @@ export const WorkflowService = {
           "UPDATE workflow_executions SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP WHERE id = $1",
           [executionId],
         );
+        sseBus.broadcast("WORKFLOW_COMPLETED", {
+          execution_id: executionId,
+        });
       }
 
       return true;
@@ -161,7 +174,6 @@ export const WorkflowService = {
 
       const result = [];
       for (const exec of executions) {
-        // FIX: JOIN workflow_steps to get test_type — it doesn't live on step_executions
         const steps = await db.query(
           `SELECT wse.*, ws.test_type, ws.sequence_order, ws.min_value, ws.max_value
            FROM workflow_step_executions wse
@@ -177,6 +189,26 @@ export const WorkflowService = {
     } catch (err: any) {
       if (err.message === "Database not connected") return [];
       throw err;
+    }
+  },
+
+  /**
+   * Attempt to find and auto-execute a matching workflow for a new sample.
+   * Called automatically when a sample is registered with a known stage.
+   */
+  autoExecuteForSample: async (sampleId: number, stage: string): Promise<void> => {
+    try {
+      const workflow = await db.queryOne<{ id: number }>(
+        "SELECT id FROM workflows WHERE target_stage = $1 AND is_active = 1 LIMIT 1",
+        [stage],
+      );
+      if (!workflow) return;
+
+      await WorkflowService.executeWorkflow(workflow.id, sampleId);
+      logger.info({ sampleId, stage, workflowId: workflow.id }, "Auto-executed workflow for sample");
+    } catch (err) {
+      // Non-fatal — workflow auto-start failure should not block sample registration
+      logger.warn({ err, sampleId, stage }, "Auto-workflow execution failed (non-fatal)");
     }
   },
 };

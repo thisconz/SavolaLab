@@ -1,26 +1,32 @@
 import { db, TransactionClient } from "./client";
 import { logger } from "../logger";
+import argon2 from "argon2";
 
-/**
- * Mock bcrypt - replace with real bcrypt in production:
- *   import bcrypt from "bcrypt";
- *   const hash = await bcrypt.hash(password, 12);
- */
-const mockBcrypt = {
-  hash: async (s: string, _rounds: number) => `$mock$${Buffer.from(s).toString("base64")}`,
-  compare: async (s: string, h: string) => h === `$mock$${Buffer.from(s).toString("base64")}`,
-};
+// ─────────────────────────────────────────────
+// Hash helper (same config as auth service)
+// ─────────────────────────────────────────────
 
-// --- Seed Data ---
+async function hash(plain: string): Promise<string> {
+  return argon2.hash(plain, {
+    type:        argon2.argon2id,
+    memoryCost:  65536,
+    timeCost:    3,
+    parallelism: 4,
+  });
+}
+
+// ─────────────────────────────────────────────
+// Seed data
+// ─────────────────────────────────────────────
 
 const ROLE_PERMISSIONS = [
-  { role: "ADMIN",              view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
-  { role: "CHEMIST",            view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
-  { role: "SHIFT_CHEMIST",      view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
-  { role: "ASSISTING_MANAGER",  view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
-  { role: "HEAD_MANAGER",       view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
-  { role: "ENGINEER",           view_results: 1, input_data: 0, edit_formulas: 0, change_specs: 0 },
-  { role: "DISPATCH",           view_results: 1, input_data: 0, edit_formulas: 0, change_specs: 0 },
+  { role: "ADMIN",             view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
+  { role: "CHEMIST",           view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
+  { role: "SHIFT_CHEMIST",     view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
+  { role: "ASSISTING_MANAGER", view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
+  { role: "HEAD_MANAGER",      view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
+  { role: "ENGINEER",          view_results: 1, input_data: 0, edit_formulas: 0, change_specs: 0 },
+  { role: "DISPATCH",          view_results: 1, input_data: 0, edit_formulas: 0, change_specs: 0 },
 ];
 
 const PRODUCTION_LINES = [
@@ -44,7 +50,9 @@ const SAMPLE_TYPES = [
   { name: "Effluent samples", category: "UTILITY" },
 ];
 
-// --- Seeder Functions ---
+// ─────────────────────────────────────────────
+// Seeders
+// ─────────────────────────────────────────────
 
 async function seedPermissions(client: TransactionClient) {
   const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM user_permissions");
@@ -54,7 +62,7 @@ async function seedPermissions(client: TransactionClient) {
     await client.execute(
       `INSERT INTO user_permissions (role, view_results, input_data, edit_formulas, change_specs)
        VALUES ($1, $2, $3, $4, $5)`,
-      [perm.role, perm.view_results, perm.input_data, perm.edit_formulas, perm.change_specs]
+      [perm.role, perm.view_results, perm.input_data, perm.edit_formulas, perm.change_specs],
     );
   }
   logger.info("Seeded: Permissions");
@@ -64,29 +72,40 @@ async function seedAccounts(client: TransactionClient) {
   const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM employees");
   if (Number(count) > 0) return;
 
-  const password = ("1234");
-  const pin = ("1111");
+  // IMPORTANT: passwords are hashed with argon2id — never store plaintext
+  const passwordHash = await hash("Z3nthar!2025");  // default dev password
+  const pinHash      = await hash("1111");           // default PIN
 
   const accounts = [
     {
       employee_number: "ADMIN",
-      national_id: "000000",
-      dob: "2001-01-01",
-      name: "Administrator",
-      role: "ADMIN",
-      department: "IT",
-      email: "admin@zenthar.local",
-      status: "ACTIVE",
+      national_id:     "000000",
+      dob:             "2001-01-01",
+      name:            "Administrator",
+      role:            "ADMIN",
+      department:      "IT",
+      email:           "admin@zenthar.local",
+      status:          "ACTIVE",
     },
     {
       employee_number: "CHEMIST",
-      national_id: "111111",
-      dob: "2001-01-02",
-      name: "Lab Chemist",
-      role: "CHEMIST",
-      department: "Quality Control",
-      email: "chemist@zenthar.local",
-      status: "ACTIVE",
+      national_id:     "111111",
+      dob:             "2001-01-02",
+      name:            "Lab Chemist",
+      role:            "CHEMIST",
+      department:      "Quality Control",
+      email:           "chemist@zenthar.local",
+      status:          "ACTIVE",
+    },
+    {
+      employee_number: "SHIFT01",
+      national_id:     "222222",
+      dob:             "1990-05-15",
+      name:            "Shift Supervisor",
+      role:            "SHIFT_CHEMIST",
+      department:      "Quality Control",
+      email:           "shift@zenthar.local",
+      status:          "ACTIVE",
     },
   ];
 
@@ -94,22 +113,22 @@ async function seedAccounts(client: TransactionClient) {
     await client.execute(
       `INSERT INTO employees (employee_number, national_id, dob, name, role, department, email, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [acc.employee_number, acc.national_id, acc.dob, acc.name, acc.role, acc.department, acc.email, acc.status]
+      [acc.employee_number, acc.national_id, acc.dob, acc.name, acc.role, acc.department, acc.email, acc.status],
     );
 
     await client.execute(
       `INSERT INTO users (employee_number, password_hash, pin_hash, status)
        VALUES ($1, $2, $3, 'ACTIVE')`,
-      [acc.employee_number, password, pin]
+      [acc.employee_number, passwordHash, pinHash],
     );
 
     await client.execute(
       `INSERT INTO audit_logs (employee_number, action, details)
        VALUES ($1, 'ACCOUNT_ACTIVATED', 'System initialized via seeder')`,
-      [acc.employee_number]
+      [acc.employee_number],
     );
   }
-  logger.info("Seeded: Accounts");
+  logger.info("Seeded: Accounts (passwords hashed with argon2id)");
 }
 
 async function seedInfrastructure(client: TransactionClient) {
@@ -119,25 +138,25 @@ async function seedInfrastructure(client: TransactionClient) {
   for (const line of PRODUCTION_LINES) {
     await client.execute(
       "INSERT INTO production_lines (name, plant_id) VALUES ($1, $2)",
-      [line.name, line.plant_id]
+      [line.name, line.plant_id],
     );
   }
 
   const equipmentSpecs = [
-    { name: "Centrifuge C-101",  lineName: "Centrifuge",     type: "Centrifuge" },
-    { name: "Evaporator E-202",  lineName: "Evaporation",    type: "Evaporator" },
-    { name: "Packager P-303",    lineName: "Packaging",      type: "Packer"     },
+    { name: "Centrifuge C-101",  lineName: "Centrifuge",  type: "Centrifuge" },
+    { name: "Evaporator E-202",  lineName: "Evaporation", type: "Evaporator" },
+    { name: "Packager P-303",    lineName: "Packaging",   type: "Packer"     },
   ];
 
   for (const eq of equipmentSpecs) {
     const line = await client.queryOne<{ id: number }>(
       "SELECT id FROM production_lines WHERE name = $1",
-      [eq.lineName]
+      [eq.lineName],
     );
     if (line) {
       await client.execute(
         "INSERT INTO equipment (name, line_id, type) VALUES ($1, $2, $3)",
-        [eq.name, line.id, eq.type]
+        [eq.name, line.id, eq.type],
       );
     }
   }
@@ -148,7 +167,7 @@ async function seedShifts(client: TransactionClient) {
   const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM shifts");
   if (Number(count) > 0) return;
 
-  const today = new Date().toISOString().split("T")[0];
+  const today  = new Date().toISOString().split("T")[0];
   const shifts = [
     { name: "Morning",   start: "07:00:00", end: "15:00:00" },
     { name: "Afternoon", start: "15:00:00", end: "23:00:00" },
@@ -158,7 +177,7 @@ async function seedShifts(client: TransactionClient) {
   for (const s of shifts) {
     await client.execute(
       "INSERT INTO shifts (name, start_time, end_time) VALUES ($1, $2, $3)",
-      [s.name, `${today} ${s.start}`, `${today} ${s.end}`]
+      [s.name, `${today} ${s.start}`, `${today} ${s.end}`],
     );
   }
   logger.info("Seeded: Shifts");
@@ -172,12 +191,13 @@ async function seedSystemPreferences(client: TransactionClient) {
     { key: "DATE_TIME_FORMAT", value: "YYYY-MM-DDTHH:mm:ss.SSSZ" },
     { key: "TIMEZONE",         value: "UTC" },
     { key: "UNITS",            value: "metric" },
+    { key: "APP_VERSION",      value: "2.0.0" },
   ];
 
   for (const p of prefs) {
     await client.execute(
       "INSERT INTO system_preferences (key, value) VALUES ($1, $2)",
-      [p.key, p.value]
+      [p.key, p.value],
     );
   }
   logger.info("Seeded: System Preferences");
@@ -190,7 +210,7 @@ async function seedSampleTypes(client: TransactionClient) {
   for (const st of SAMPLE_TYPES) {
     await client.execute(
       "INSERT INTO sample_types (name, category) VALUES ($1, $2)",
-      [st.name, st.category]
+      [st.name, st.category],
     );
   }
   logger.info("Seeded: Sample Types");
@@ -210,22 +230,15 @@ async function seedSamples(client: TransactionClient) {
          (batch_id, sample_type, source_stage, line_id, equipment_id, shift_id,
           status, priority, created_at, technician_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [
-        "BT-1111",
-        "Raw sugar",
-        "Raw Handling",
-        line.id,
-        equip.id,
-        shift.id,
-        "PENDING",
-        "STAT",
-        new Date(),
-        "ADMIN",
-      ]
+      ["BT-1111", "Raw sugar", "Raw Handling", line.id, equip.id, shift.id, "PENDING", "STAT", new Date(), "ADMIN"],
     );
-    logger.info("Seeded: Samples");
+    logger.info("Seeded: Sample (demo batch BT-1111)");
   }
 }
+
+// ─────────────────────────────────────────────
+// Entry point
+// ─────────────────────────────────────────────
 
 export async function seedDatabase() {
   try {

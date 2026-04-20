@@ -1,336 +1,240 @@
-import React, { memo, useEffect, useState, useMemo } from "react";
+import React, { memo, useEffect, useState, useMemo, useCallback } from "react";
 import {
-  BarChart3,
-  TrendingUp,
-  Activity,
-  Info,
-  ChevronUp,
-  ChevronDown,
+  BarChart3, TrendingUp, Activity, Info,
+  ChevronUp, ChevronDown, RefreshCw, CheckCircle2, XCircle,
 } from "lucide-react";
-import { LabPanel } from "../../../ui/components/LabPanel";
-import { api } from "../../../core/http/client";
+import { LabPanel }           from "../../../ui/components/LabPanel";
+import { api }                from "../../../core/http/client";
+import { useRealtime }        from "../../../core/providers/RealtimeProvider";
+import clsx                   from "@/src/lib/clsx";
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-  Area,
-  AreaChart,
+  LineChart, Line, BarChart, Bar,
+  AreaChart, Area,
+  XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Legend, Cell,
+  PieChart, Pie,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "@/src/lib/recharts";
 
-// --- Sub-components for specialized UI ---
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
 
-const CpkMetric = ({
-  label,
-  value,
-  target = 1.33,
-}: {
-  label: string;
-  value: number;
-  target?: number;
+interface QualityPoint   { time: string; brix: number | null; purity: number | null; color: number | null; }
+interface VolumePoint    { day: string;  volume: number; target: number; }
+interface CpkResult      { brixCpk: number; purityCpk: number; colorCpk: number; }
+interface PassRate        { test_type: string; pass_rate: number; total_tested: number; approved: number; }
+interface StatusBreakdown { status: string; count: number; }
+
+const STATUS_COLORS: Record<string, string> = {
+  COMPLETED: "#10b981",
+  APPROVED:  "#0ea5e9",
+  PENDING:   "#94a3b8",
+  TESTING:   "#f59e0b",
+  VALIDATING:"#a78bfa",
+  ARCHIVED:  "#64748b",
+};
+
+// ─────────────────────────────────────────────
+// Shared chart theme
+// ─────────────────────────────────────────────
+
+const CHART = {
+  text: { fontSize: 10, fontWeight: 700, fill: "#94a3b8", fontFamily: "inherit" },
+  grid: { stroke: "rgba(148,163,184,0.1)", strokeDasharray: "4 4" },
+  tooltip: {
+    contentStyle: {
+      backgroundColor: "var(--color-zenthar-carbon)",
+      borderRadius:    "16px",
+      border:          "1px solid rgba(148,163,184,0.15)",
+      boxShadow:       "0 20px 25px -5px rgba(0,0,0,0.4)",
+      padding:         "10px 14px",
+      backdropFilter:  "blur(12px)",
+    },
+    labelStyle: {
+      fontSize:       "9px",
+      fontWeight:     900,
+      textTransform:  "uppercase" as const,
+      letterSpacing:  "0.12em",
+      color:          "#94a3b8",
+      marginBottom:   "6px",
+    },
+  },
+} as const;
+
+// ─────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────
+
+const CpkGauge: React.FC<{ label: string; value: number; target?: number }> = ({
+  label, value, target = 1.33,
 }) => {
-  const isOptimal = value >= target;
-  const statusColor = isOptimal ? "text-emerald-500" : "text-amber-500";
-  const glowColor = isOptimal ? "bg-emerald-500/20" : "bg-amber-500/20";
+  const pct = Math.min(100, Math.max(0, (value / 2) * 100));
+  const ok  = value >= target;
 
   return (
-    <div className="text-center group relative px-4">
-      <div className="relative mb-3">
-        <div
-          className={`absolute inset-0 ${glowColor} blur-2xl rounded-full scale-0 group-hover:scale-150 transition-transform duration-700 opacity-50`}
-        />
-        <p
-          className={`text-6xl font-black ${statusColor} relative z-10 tracking-tighter tabular-nums transition-all duration-500 group-hover:scale-110`}
-        >
-          {value.toFixed(2)}
-        </p>
+    <div className="flex flex-col items-center gap-2 group">
+      <div className="relative w-24 h-24">
+        <svg viewBox="0 0 40 40" className="-rotate-90 w-full h-full">
+          <circle cx="20" cy="20" r="16" fill="none" strokeWidth="4" className="stroke-current text-brand-sage/10" />
+          <circle
+            cx="20" cy="20" r="16"
+            fill="none" strokeWidth="4" strokeLinecap="round"
+            strokeDasharray={`${pct} 100`}
+            style={{ stroke: ok ? "#10b981" : "#f59e0b", transition: "stroke-dasharray 0.8s ease" }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className={clsx("text-base font-mono font-black", ok ? "text-emerald-400" : "text-amber-400")}>
+            {value.toFixed(2)}
+          </span>
+        </div>
       </div>
-      <p className="text-[10px] font-black text-brand-sage uppercase tracking-[0.2em] group-hover:text-white transition-colors">
-        {label}
-      </p>
-      <div className="flex items-center justify-center gap-1 mt-2">
-        {isOptimal ? (
-          <ChevronUp className="w-3 h-3 text-emerald-500" />
-        ) : (
-          <ChevronDown className="w-3 h-3 text-amber-500" />
-        )}
-        <span className="text-[9px] font-bold text-brand-sage/60 uppercase tracking-tighter">
-          Target: {target}
-        </span>
+      <div className="text-center">
+        <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest">{label}</p>
+        <div className={clsx("flex items-center justify-center gap-1 mt-1 text-[9px]", ok ? "text-emerald-400" : "text-amber-400")}>
+          {ok ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+          <span>Target {target}</span>
+        </div>
       </div>
     </div>
   );
 };
 
-const EmptyState = ({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: any;
-  title: string;
-  description: string;
-}) => (
-  <div className="flex flex-col items-center justify-center h-full text-center p-8">
-    <div className="relative mb-6">
-      <div className="absolute inset-0 bg-brand-primary/10 blur-2xl rounded-full animate-pulse" />
-      <div className="relative p-5 bg-(--color-zenthar-void) border border-brand-sage/10 rounded-3xl shadow-sm">
-        <Icon className="w-10 h-10 text-brand-sage/40" />
-      </div>
-    </div>
-    <h4 className="text-sm font-black uppercase tracking-widest text-white mb-2">
-      {title}
-    </h4>
-    <p className="text-xs text-brand-sage/70 max-w-50 leading-relaxed italic">
-      {description}
-    </p>
+const EmptyChart: React.FC<{ message: string }> = ({ message }) => (
+  <div className="h-full flex flex-col items-center justify-center gap-3 opacity-50">
+    <Activity className="w-8 h-8 text-brand-sage/30" />
+    <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest text-center">{message}</p>
   </div>
 );
 
-// --- Main Feature Component ---
+// ─────────────────────────────────────────────
+// Main Feature
+// ─────────────────────────────────────────────
 
 export const AnalyticsFeature: React.FC = memo(() => {
-  const [qualityData, setQualityData] = useState<any[]>([]);
-  const [volumeData, setVolumeData] = useState<any[]>([]);
-  const [capability, setCapability] = useState<any>({
-    brixCpk: 0,
-    purityCpk: 0,
-    colorCpk: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const [quality,    setQuality]    = useState<QualityPoint[]>([]);
+  const [volume,     setVolume]     = useState<VolumePoint[]>([]);
+  const [capability, setCapability] = useState<CpkResult>({ brixCpk: 0, purityCpk: 0, colorCpk: 0 });
+  const [passRates,  setPassRates]  = useState<PassRate[]>([]);
+  const [breakdown,  setBreakdown]  = useState<StatusBreakdown[]>([]);
+  const [loading,    setLoading]    = useState(true);
+  const [lastFetch,  setLastFetch]  = useState<Date | null>(null);
 
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const [qRes, vRes, cRes] = await Promise.all([
-          api.get<any>("/analytics/quality"),
-          api.get<any>("/analytics/volume"),
-          api.get<any>("/analytics/capability"),
-        ]);
-        setQualityData(qRes.data);
-        setVolumeData(vRes.data);
-        setCapability(cRes.data);
-      } catch (err) {
-        console.error("Failed to fetch analytics", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAnalytics();
+  const { on } = useRealtime();
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [qRes, vRes, cRes, prRes, bkRes] = await Promise.allSettled([
+        api.get<any>("/analytics/quality"),
+        api.get<any>("/analytics/volume"),
+        api.get<any>("/analytics/capability"),
+        api.get<any>("/analytics/pass-rates"),
+        api.get<any>("/analytics/status"),
+      ]);
+
+      if (qRes.status  === "fulfilled") setQuality(qRes.value?.data   ?? []);
+      if (vRes.status  === "fulfilled") setVolume(vRes.value?.data    ?? []);
+      if (cRes.status  === "fulfilled") setCapability(cRes.value?.data ?? { brixCpk: 0, purityCpk: 0, colorCpk: 0 });
+      if (prRes.status === "fulfilled") setPassRates(prRes.value?.data ?? []);
+      if (bkRes.status === "fulfilled") setBreakdown(bkRes.value?.data ?? []);
+      setLastFetch(new Date());
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const chartTheme = useMemo(
-    () => ({
-      text: {
-        fontSize: 10,
-        fontWeight: 700,
-        fill: "#94a3b8",
-        fontFamily: "inherit",
-      },
-      grid: { stroke: "rgba(148, 163, 184, 0.1)", strokeDasharray: "4 4" },
-      tooltip: {
-        contentStyle: {
-          backgroundColor: "var(--color-zenthar-carbon)",
-          borderRadius: "20px",
-          border: "1px solid rgba(148, 163, 184, 0.2)",
-          boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.5)",
-          backdropFilter: "blur(10px)",
-          padding: "12px 16px",
-        },
-        labelStyle: {
-          fontSize: "9px",
-          fontWeight: 900,
-          textTransform: "uppercase",
-          letterSpacing: "0.15em",
-          color: "#94a3b8",
-          marginBottom: "8px",
-        },
-      },
-    }),
-    [],
-  );
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // Auto-refresh charts when tests complete (SSE)
+  useEffect(() => {
+    const unsub = on("TEST_REVIEWED", () => setTimeout(fetchAll, 1000));
+    return unsub;
+  }, [on, fetchAll]);
+
+  const avgPassRate = useMemo(() => {
+    if (!passRates.length) return null;
+    return (passRates.reduce((s, r) => s + (r.pass_rate ?? 0), 0) / passRates.length).toFixed(1);
+  }, [passRates]);
 
   return (
-    <div className="h-full bg-(--color-zenthar-graphite)/30 p-4 rounded-[2.5rem] overflow-hidden flex flex-col">
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
-        {/* Main Quality SPC Chart */}
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-12">
-            <LabPanel
-              title="Statistical Process Control (SPC)"
-              icon={TrendingUp}
-              loading={loading}
-              onRefresh={() => {
-                /* trigger fetch */
-              }}
-            >
-              <div className="h-112.5 w-full pt-6 bg-(--color-zenthar-void)/50 rounded-3xl p-4">
-                {qualityData.length === 0 ? (
-                  <EmptyState
-                    icon={Activity}
-                    title="No Telemetry"
-                    description="System is awaiting verified lab samples from the production floor."
-                  />
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={qualityData}
-                      margin={{ top: 10, right: 20, left: 0, bottom: 20 }}
-                    >
-                      <defs>
-                        <linearGradient
-                          id="areaBrix"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#0ea5e9"
-                            stopOpacity={0.1}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#0ea5e9"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid {...chartTheme.grid} vertical={false} />
-                      <XAxis
-                        dataKey="time"
-                        {...chartTheme.text}
-                        axisLine={false}
-                        tickLine={false}
-                        dy={15}
-                      />
-                      <YAxis
-                        yAxisId="left"
-                        {...chartTheme.text}
-                        axisLine={false}
-                        tickLine={false}
-                        dx={-10}
-                        domain={["auto", "auto"]}
-                      />
-                      <YAxis
-                        yAxisId="right"
-                        orientation="right"
-                        {...chartTheme.text}
-                        axisLine={false}
-                        tickLine={false}
-                        dx={10}
-                      />
-                      <Tooltip {...chartTheme.tooltip} />
-                      <Legend
-                        verticalAlign="top"
-                        align="right"
-                        iconType="circle"
-                        wrapperStyle={{
-                          paddingBottom: 20,
-                          fontSize: 10,
-                          fontWeight: 800,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.1em",
-                        }}
-                      />
-
-                      <Area
-                        yAxisId="left"
-                        type="monotone"
-                        dataKey="brix"
-                        stroke="#0ea5e9"
-                        strokeWidth={3}
-                        fill="url(#areaBrix)"
-                        name="Brix %"
-                        activeDot={{ r: 6, strokeWidth: 0 }}
-                      />
-                      <Line
-                        yAxisId="left"
-                        type="monotone"
-                        dataKey="purity"
-                        stroke="#10b981"
-                        strokeWidth={3}
-                        dot={false}
-                        name="Purity %"
-                      />
-                      <Line
-                        yAxisId="right"
-                        type="monotone"
-                        dataKey="color"
-                        stroke="#f59e0b"
-                        strokeWidth={2}
-                        strokeDasharray="5 5"
-                        dot={false}
-                        name="Color Index"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </LabPanel>
-          </div>
+    <div className="h-full bg-(--color-zenthar-graphite)/30 p-4 rounded-[2.5rem] overflow-hidden flex flex-col gap-2">
+      {/* Header */}
+      <div className="flex items-center justify-between px-2 shrink-0">
+        <div>
+          <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-brand-primary" />
+            Analytics
+          </h2>
+          {lastFetch && (
+            <p className="text-[9px] font-mono text-brand-sage/50 uppercase tracking-widest mt-0.5">
+              Last synced: {lastFetch.toLocaleTimeString()}
+            </p>
+          )}
         </div>
+        <button
+          onClick={fetchAll}
+          className="p-2 rounded-xl border border-brand-sage/20 bg-(--color-zenthar-graphite) hover:bg-(--color-zenthar-graphite)/80 transition-all group"
+        >
+          <RefreshCw className={clsx("w-4 h-4 text-brand-sage group-hover:text-brand-primary", loading && "animate-spin")} />
+        </button>
+      </div>
 
-        {/* Volume & Capability Grid */}
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-12 lg:col-span-7">
-            <LabPanel
-              title="Cycle Volume vs Target"
-              icon={BarChart3}
-              loading={loading}
-            >
-              <div className="h-80 w-full pt-6 bg-(--color-zenthar-void)/50 rounded-3xl p-4">
-                {volumeData.length === 0 ? (
-                  <EmptyState
-                    icon={BarChart3}
-                    title="Volume Halted"
-                    description="No throughput data detected for current cycle."
-                  />
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-6">
+
+        {/* ── SPC Chart ── */}
+        <LabPanel title="Statistical Process Control (SPC)" icon={TrendingUp} loading={loading}>
+          <div className="h-64 w-full pt-4">
+            {quality.length === 0 ? (
+              <EmptyChart message="Awaiting verified lab results (min. 1 completed test)" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={quality} margin={{ top: 8, right: 16, left: -8, bottom: 16 }}>
+                  <defs>
+                    <linearGradient id="gBrix" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#0ea5e9" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}    />
+                    </linearGradient>
+                    <linearGradient id="gPurity" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#10b981" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}    />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid {...CHART.grid} vertical={false} />
+                  <XAxis dataKey="time"  {...CHART.text} axisLine={false} tickLine={false} dy={12} />
+                  <YAxis yAxisId="left"  {...CHART.text} axisLine={false} tickLine={false} dx={-8} />
+                  <YAxis yAxisId="right" {...CHART.text} axisLine={false} tickLine={false} dx={8} orientation="right" />
+                  <Tooltip {...CHART.tooltip} />
+                  <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", paddingBottom: 16 }} />
+                  <Area yAxisId="left"  type="monotone" dataKey="brix"   name="Brix %"      stroke="#0ea5e9" strokeWidth={2.5} fill="url(#gBrix)"   activeDot={{ r: 5, strokeWidth: 0 }} connectNulls />
+                  <Line yAxisId="left"  type="monotone" dataKey="purity" name="Purity %"     stroke="#10b981" strokeWidth={2.5} dot={false}          connectNulls />
+                  <Line yAxisId="right" type="monotone" dataKey="color"  name="Colour Index" stroke="#f59e0b" strokeWidth={2}   strokeDasharray="5 5" dot={false} connectNulls />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </LabPanel>
+
+        {/* ── Volume + Capability row ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* Volume vs Target */}
+          <div className="lg:col-span-7">
+            <LabPanel title="Daily Sample Volume vs Target" icon={BarChart3} loading={loading}>
+              <div className="h-64 w-full pt-4">
+                {volume.length === 0 ? (
+                  <EmptyChart message="No volume data for the last 7 days" />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={volumeData}
-                      margin={{ top: 10, right: 10, left: -10, bottom: 20 }}
-                    >
-                      <CartesianGrid {...chartTheme.grid} vertical={false} />
-                      <XAxis
-                        dataKey="day"
-                        {...chartTheme.text}
-                        axisLine={false}
-                        tickLine={false}
-                        dy={15}
-                      />
-                      <YAxis
-                        {...chartTheme.text}
-                        axisLine={false}
-                        tickLine={false}
-                        dx={-5}
-                      />
-                      <Tooltip
-                        {...chartTheme.tooltip}
-                        cursor={{ fill: "rgba(148, 163, 184, 0.05)", radius: 12 }}
-                      />
-                      <Bar
-                        dataKey="volume"
-                        fill="#0ea5e9"
-                        radius={[10, 10, 0, 0]}
-                        name="Volume"
-                        maxBarSize={32}
-                      />
-                      <Bar
-                        dataKey="target"
-                        fill="rgba(148, 163, 184, 0.1)"
-                        radius={[10, 10, 0, 0]}
-                        name="Threshold"
-                        maxBarSize={32}
-                      />
+                    <BarChart data={volume} margin={{ top: 8, right: 8, left: -16, bottom: 16 }} barSize={28}>
+                      <CartesianGrid {...CHART.grid} vertical={false} />
+                      <XAxis dataKey="day"    {...CHART.text} axisLine={false} tickLine={false} dy={12} />
+                      <YAxis               {...CHART.text} axisLine={false} tickLine={false} dx={-4} />
+                      <Tooltip {...CHART.tooltip} cursor={{ fill: "rgba(148,163,184,0.05)", radius: 8 }} />
+                      <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", paddingBottom: 16 }} />
+                      <Bar dataKey="volume" name="Actual"    fill="#0ea5e9"               radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="target" name="Target"    fill="rgba(148,163,184,0.12)" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -338,44 +242,119 @@ export const AnalyticsFeature: React.FC = memo(() => {
             </LabPanel>
           </div>
 
-          <div className="col-span-12 lg:col-span-5">
-            <LabPanel
-              title="Efficiency Index"
-              icon={Activity}
-              loading={loading}
-            >
-              <div className="h-80 flex flex-col items-center justify-between py-6 bg-(--color-zenthar-void)/50 rounded-3xl">
-                <div className="flex items-center justify-around w-full px-4">
-                  <CpkMetric label="Brix Cpk" value={capability.brixCpk} />
-                  <div className="w-px h-16 bg-brand-sage/10" />
-                  <CpkMetric label="Color Cpk" value={capability.colorCpk} />
-                </div>
-
-                {/* Tactical Alert Box */}
-                <div className="w-[90%] mx-auto p-4 bg-(--color-zenthar-carbon) border border-brand-sage/10 rounded-3xl shadow-xs relative overflow-hidden group/alert transition-all hover:border-amber-200">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 opacity-40" />
-                  <div className="flex gap-4 items-start relative z-10">
-                    <div className="p-2 bg-amber-500/10 rounded-xl">
-                      <Info className="w-4 h-4 text-amber-500" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white">
-                        System Recommendation
-                      </p>
-                      <p className="text-xs text-brand-sage/80 leading-relaxed font-medium">
-                        Process drift detected in{" "}
-                        <span className="text-amber-500 font-bold">
-                          Color Index
-                        </span>
-                        . Optimization required in the clarification circuit.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+          {/* Cpk gauges */}
+          <div className="lg:col-span-5">
+            <LabPanel title="Process Capability (Cpk)" icon={Activity} loading={loading}>
+              <div className="h-64 flex items-center justify-around px-4 py-6">
+                <CpkGauge label="Brix"   value={capability.brixCpk}   />
+                <div className="w-px h-20 bg-brand-sage/10" />
+                <CpkGauge label="Purity" value={capability.purityCpk} />
+                <div className="w-px h-20 bg-brand-sage/10" />
+                <CpkGauge label="Colour" value={capability.colorCpk}  />
               </div>
             </LabPanel>
           </div>
         </div>
+
+        {/* ── Status breakdown + Pass rates ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* Status donut */}
+          <div className="lg:col-span-5">
+            <LabPanel title="Sample Status (30 days)" icon={Activity} loading={loading}>
+              <div className="h-64 relative">
+                {breakdown.length === 0 ? (
+                  <EmptyChart message="No sample data for the last 30 days" />
+                ) : (
+                  <>
+                    {/* Centre label */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
+                      <span className="text-2xl font-mono font-black text-(--color-zenthar-text-primary)">
+                        {breakdown.reduce((s, r) => s + r.count, 0)}
+                      </span>
+                      <span className="text-[8px] font-black text-brand-sage/50 uppercase tracking-widest">total</span>
+                    </div>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={breakdown} cx="50%" cy="50%"
+                          innerRadius={64} outerRadius={88}
+                          paddingAngle={3} dataKey="count"
+                          nameKey="status" stroke="none"
+                          animationDuration={1200}
+                        >
+                          {breakdown.map((entry) => (
+                            <Cell
+                              key={entry.status}
+                              fill={STATUS_COLORS[entry.status] ?? "#64748b"}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip {...CHART.tooltip} formatter={(v: number, name: string) => [`${v} samples`, name]} />
+                        <Legend
+                          verticalAlign="bottom" iconType="circle" iconSize={6}
+                          wrapperStyle={{ fontSize: 9, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em" }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </>
+                )}
+              </div>
+            </LabPanel>
+          </div>
+
+          {/* Pass rates table */}
+          <div className="lg:col-span-7">
+            <LabPanel title="Test Pass Rates (30 days)" icon={CheckCircle2} loading={loading}>
+              <div className="h-64 flex flex-col">
+                {passRates.length === 0 ? (
+                  <EmptyChart message="No reviewed tests in the last 30 days" />
+                ) : (
+                  <>
+                    {avgPassRate && (
+                      <div className="flex items-center justify-between px-1 mb-3 pb-3 border-b border-(--color-zenthar-steel)/40 shrink-0">
+                        <span className="text-[9px] font-black text-brand-sage uppercase tracking-widest">Average pass rate</span>
+                        <span className={clsx("text-xl font-mono font-black", Number(avgPassRate) >= 90 ? "text-emerald-400" : "text-amber-400")}>
+                          {avgPassRate}%
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                      {passRates.map((r) => (
+                        <div key={r.test_type} className="flex items-center gap-3 group">
+                          <span className="text-[10px] font-black text-(--color-zenthar-text-primary) uppercase w-20 shrink-0">
+                            {r.test_type}
+                          </span>
+                          <div className="flex-1 h-2 bg-(--color-zenthar-steel) rounded-full overflow-hidden">
+                            <div
+                              className={clsx(
+                                "h-full rounded-full transition-all duration-700",
+                                r.pass_rate >= 95 ? "bg-emerald-500" :
+                                r.pass_rate >= 80 ? "bg-amber-400" : "bg-red-400"
+                              )}
+                              style={{ width: `${r.pass_rate}%` }}
+                            />
+                          </div>
+                          <span className={clsx(
+                            "text-[10px] font-mono font-black w-12 text-right shrink-0",
+                            r.pass_rate >= 95 ? "text-emerald-400" :
+                            r.pass_rate >= 80 ? "text-amber-400" : "text-red-400"
+                          )}>
+                            {r.pass_rate?.toFixed(1)}%
+                          </span>
+                          <span className="text-[9px] font-mono text-brand-sage/40 shrink-0">
+                            {r.approved}/{r.total_tested}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </LabPanel>
+          </div>
+        </div>
+
       </div>
     </div>
   );

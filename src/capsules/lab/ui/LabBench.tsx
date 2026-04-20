@@ -1,7 +1,8 @@
-import React, { memo, useState } from "react";
+import React, { memo, useState, useCallback, useRef, useEffect } from "react";
 import {
   FlaskConical, CheckCircle2, AlertTriangle, Info,
-  Activity, TestTube2, Save, ThumbsDown, ThumbsUp,
+  Activity, Save, ThumbsDown, ThumbsUp, ChevronDown,
+  ChevronUp, Keyboard, RotateCcw, Eye, EyeOff,
 } from "lucide-react";
 import { Sample, TestResult, TestType } from "../../../core/types";
 import { LabPanel } from "../../../ui/components/LabPanel";
@@ -9,11 +10,324 @@ import { useLabBench } from "../hooks/useLabBench";
 import { TEST_VALIDATION_RULES } from "../constants/validation.constants";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import { StatusPill } from "../../../ui/components/StatusPill";
+import clsx from "@/src/lib/clsx";
 
 interface LabBenchProps {
   sample:     Sample;
   onComplete: () => void;
 }
+
+// ─────────────────────────────────────────────
+// Per-test card sub-component
+// ─────────────────────────────────────────────
+
+interface TestCardProps {
+  test:              TestResult;
+  value:             string;
+  note:              string;
+  error?:            string;
+  colourParams?:     { absorbance: string; brix: string; cellLength: string };
+  previousResults?:  any[];
+  isReviewing:       boolean;
+  reviewComment:     string;
+  onValueChange:     (val: string) => void;
+  onNoteChange:      (val: string) => void;
+  onColourParam:     (param: "absorbance" | "brix" | "cellLength", val: string) => void;
+  onReviewStart:     () => void;
+  onReviewCancel:    () => void;
+  onReviewComment:   (val: string) => void;
+  onApprove:         () => void;
+  onDisapprove:      () => void;
+  inputRef?:         React.RefObject<HTMLInputElement>;
+}
+
+const TestCard: React.FC<TestCardProps> = ({
+  test, value, note, error, colourParams, previousResults = [],
+  isReviewing, reviewComment,
+  onValueChange, onNoteChange, onColourParam,
+  onReviewStart, onReviewCancel, onReviewComment, onApprove, onDisapprove,
+  inputRef,
+}) => {
+  const [showHistory, setShowHistory] = useState(false);
+  const rule = TEST_VALIDATION_RULES[test.test_type as TestType];
+
+  const canInput = test.status === "PENDING" || test.status === "VALIDATING" || test.id < 0;
+  const canReview = test.status === "VALIDATING" && test.id > 0;
+
+  const numVal = parseFloat(value);
+  const hasValue = !isNaN(numVal) && value !== "";
+
+  // Range bar
+  const rangePercent = rule && hasValue
+    ? Math.min(100, Math.max(0, ((numVal - rule.min) / (rule.max - rule.min)) * 100))
+    : null;
+
+  const isOutOfRange = rule && hasValue && (numVal < rule.min || numVal > rule.max);
+
+  const statusConfig = {
+    PENDING:     { variant: "info" as const,    label: "Pending" },
+    VALIDATING:  { variant: "warning" as const,  label: "Validating" },
+    APPROVED:    { variant: "success" as const,  label: "Approved" },
+    DISAPPROVED: { variant: "critical" as const, label: "Rejected" },
+    COMPLETED:   { variant: "success" as const,  label: "Completed" },
+  }[test.status] ?? { variant: "neutral" as const, label: test.status };
+
+  return (
+    <motion.div
+      layout
+      className={clsx(
+        "rounded-2xl border transition-all duration-300 overflow-hidden",
+        error ? "border-red-400/40 bg-red-500/5" :
+        isOutOfRange ? "border-amber-400/40 bg-amber-500/5" :
+        hasValue && !error ? "border-emerald-400/20 bg-emerald-500/5" :
+        "border-(--color-zenthar-steel) bg-(--color-zenthar-carbon)/60"
+      )}
+    >
+      {/* Card Header */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-(--color-zenthar-steel)/40">
+        <div className="flex items-center gap-3">
+          <div className={clsx(
+            "w-2 h-2 rounded-full",
+            error ? "bg-red-400" :
+            isOutOfRange ? "bg-amber-400" :
+            hasValue ? "bg-emerald-400" : "bg-brand-sage/30"
+          )} />
+          <span className="text-[11px] font-black text-(--color-zenthar-text-primary) uppercase tracking-wider">
+            {test.test_type}
+          </span>
+          {rule?.description && (
+            <div className="group relative">
+              <Info size={12} className="text-brand-sage/40 hover:text-brand-primary cursor-help transition-colors" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel) text-[10px] rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-30 shadow-xl pointer-events-none">
+                {rule.description} — Range: {rule.min}–{rule.max} {rule.unit}
+              </div>
+            </div>
+          )}
+          {rule?.suggestion && (
+            <span className="text-[8px] font-mono text-brand-primary/50 bg-brand-primary/5 px-2 py-0.5 rounded border border-brand-primary/10">
+              {rule.suggestion}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {previousResults.length > 0 && (
+            <button
+              onClick={() => setShowHistory((v) => !v)}
+              className="text-[8px] font-bold text-brand-sage/60 hover:text-brand-primary uppercase tracking-widest flex items-center gap-1 transition-colors"
+            >
+              History {showHistory ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+            </button>
+          )}
+          <StatusPill
+            label={statusConfig.label}
+            variant={statusConfig.variant}
+          />
+        </div>
+      </div>
+
+      {/* Previous results dropdown */}
+      <AnimatePresence>
+        {showHistory && previousResults.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden border-b border-(--color-zenthar-steel)/30 bg-(--color-zenthar-void)/50"
+          >
+            <div className="px-5 py-3 flex gap-4 flex-wrap">
+              <span className="text-[8px] font-black text-brand-sage/50 uppercase tracking-widest w-full">
+                Previous results for this stage:
+              </span>
+              {previousResults.slice(0, 5).map((r: any, i: number) => (
+                <div key={i} className="flex items-center gap-2 text-[10px] font-mono">
+                  <span className="text-brand-primary font-bold">{r.raw_value}</span>
+                  <span className="text-brand-sage/50">{rule?.unit}</span>
+                  <span className="text-brand-sage/30 text-[8px]">
+                    {new Date(r.performed_at).toLocaleDateString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Input Area */}
+      <div className="p-5 grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4 items-start">
+        {/* Input */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[8px] font-black text-brand-sage uppercase tracking-widest">
+            Measurement
+          </label>
+
+          {test.test_type === "Colour" ? (
+            <div className="flex flex-col gap-2">
+              {(["absorbance", "brix", "cellLength"] as const).map((param) => (
+                <input
+                  key={param}
+                  type="number"
+                  step="0.001"
+                  value={colourParams?.[param] ?? ""}
+                  onChange={(e) => onColourParam(param, e.target.value)}
+                  placeholder={param === "absorbance" ? "Absorbance" : param === "brix" ? "Brix %" : "Cell Length (cm)"}
+                  disabled={!canInput}
+                  className={clsx(
+                    "w-full bg-(--color-zenthar-void) border rounded-xl px-3 py-2.5 text-xs font-mono",
+                    "focus:outline-none focus:ring-2 transition-all disabled:opacity-40",
+                    "text-(--color-zenthar-text-primary) placeholder:text-brand-sage/30",
+                    "border-(--color-zenthar-steel) focus:border-brand-primary focus:ring-brand-primary/10"
+                  )}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="relative">
+              <input
+                ref={inputRef}
+                type="number"
+                step={rule?.step ?? "any"}
+                value={value}
+                onChange={(e) => onValueChange(e.target.value)}
+                placeholder={rule ? `${rule.min} – ${rule.max}` : "Value"}
+                disabled={!canInput}
+                className={clsx(
+                  "w-full bg-(--color-zenthar-void) border rounded-xl px-4 py-3 text-sm font-mono",
+                  "focus:outline-none focus:ring-2 transition-all disabled:opacity-40",
+                  "text-(--color-zenthar-text-primary) placeholder:text-brand-sage/30",
+                  error
+                    ? "border-red-400/60 focus:border-red-400 focus:ring-red-400/20 text-red-400"
+                    : isOutOfRange
+                    ? "border-amber-400/60 focus:border-amber-400 focus:ring-amber-400/20"
+                    : "border-(--color-zenthar-steel) focus:border-brand-primary focus:ring-brand-primary/10"
+                )}
+              />
+              {hasValue && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  {isOutOfRange ? (
+                    <AlertTriangle size={14} className="text-amber-400" />
+                  ) : (
+                    <CheckCircle2 size={14} className="text-emerald-400" />
+                  )}
+                  <span className="text-[9px] font-mono text-brand-sage/60">{rule?.unit}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {error && (
+            <p className="text-[10px] font-bold text-red-400 flex items-center gap-1">
+              <AlertTriangle size={10} /> {error}
+            </p>
+          )}
+        </div>
+
+        {/* Range indicator + calculated value */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[8px] font-black text-brand-sage uppercase tracking-widest">
+            Range Check
+          </label>
+          <div className="h-[50px] flex flex-col justify-center gap-2">
+            <div className="text-center">
+              <span className={clsx(
+                "text-xl font-mono font-black",
+                !hasValue ? "text-brand-sage/30" :
+                isOutOfRange ? "text-amber-400" : "text-emerald-400"
+              )}>
+                {hasValue ? value : "—"}
+              </span>
+              {rule && hasValue && (
+                <span className="text-[9px] font-mono text-brand-sage/50 ml-1">{rule.unit}</span>
+              )}
+            </div>
+            {rule && (
+              <>
+                <div className="flex justify-between text-[8px] font-mono text-brand-sage/40">
+                  <span>{rule.min}</span>
+                  <span>{rule.max}</span>
+                </div>
+                <div className="relative h-1.5 w-full bg-(--color-zenthar-steel) rounded-full overflow-hidden">
+                  <div className="absolute inset-x-[25%] inset-y-0 bg-emerald-500/20 rounded-full" />
+                  {rangePercent !== null && (
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${rangePercent}%` }}
+                      className={clsx(
+                        "absolute left-0 h-full rounded-full transition-colors",
+                        isOutOfRange ? "bg-amber-400" : "bg-emerald-500"
+                      )}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Notes + Review */}
+        <div className="flex flex-col gap-2 min-w-[140px]">
+          <label className="text-[8px] font-black text-brand-sage uppercase tracking-widest">
+            Notes
+          </label>
+          <input
+            type="text"
+            value={note}
+            onChange={(e) => onNoteChange(e.target.value)}
+            placeholder="Optional..."
+            disabled={!canInput}
+            className="w-full bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-brand-primary disabled:opacity-40 text-(--color-zenthar-text-primary)"
+          />
+
+          {canReview && (
+            isReviewing ? (
+              <div className="flex flex-col gap-2 mt-1">
+                <input
+                  autoFocus
+                  type="text"
+                  value={reviewComment}
+                  onChange={(e) => onReviewComment(e.target.value)}
+                  placeholder="Review comment..."
+                  className="w-full bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-2.5 py-2 text-xs focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
+                />
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    onClick={onApprove}
+                    className="flex items-center justify-center gap-1 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white border border-emerald-500/30 rounded-lg text-[9px] font-black uppercase transition-all"
+                  >
+                    <ThumbsUp size={10} /> Pass
+                  </button>
+                  <button
+                    onClick={onDisapprove}
+                    className="flex items-center justify-center gap-1 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 rounded-lg text-[9px] font-black uppercase transition-all"
+                  >
+                    <ThumbsDown size={10} /> Fail
+                  </button>
+                </div>
+                <button
+                  onClick={onReviewCancel}
+                  className="text-[8px] font-bold text-brand-sage/50 hover:text-brand-sage uppercase text-center transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onReviewStart}
+                className="mt-1 px-3 py-2 bg-brand-primary/10 hover:bg-brand-primary text-brand-primary hover:text-white border border-brand-primary/20 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
+              >
+                Review
+              </button>
+            )
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// Main Lab Bench
+// ─────────────────────────────────────────────
 
 export const LabBench: React.FC<LabBenchProps> = memo(({ sample, onComplete }) => {
   const {
@@ -23,274 +337,187 @@ export const LabBench: React.FC<LabBenchProps> = memo(({ sample, onComplete }) =
     handleSave, handleReview,
   } = useLabBench(sample, onComplete);
 
-  const [reviewingId, setReviewingId] = useState<number | null>(null);
-  const [reviewComment, setReviewComment] = useState("");
+  const [reviewState, setReviewState] = useState<{
+    id: number | null;
+    comment: string;
+  }>({ id: null, comment: "" });
+
+  const [showShortcuts, setShowShortcuts] = useState(false);
+
+  // Auto-focus first input
+  const firstInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!loading && tests.length > 0) {
+      setTimeout(() => firstInputRef.current?.focus(), 150);
+    }
+  }, [loading, tests.length]);
+
+  // Keyboard shortcut: Cmd/Ctrl+Enter → Save
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        if (!hasErrors && allFilled && !isSaving) {
+          handleSave();
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
 
   const hasErrors  = Object.values(errors).some(Boolean);
-  const allFilled  = tests.length > 0 && tests.every((t) => {
+  const filledCount = tests.filter((t) => {
     if (t.test_type === "Colour") {
       const p = colourParams[t.id];
       return p?.absorbance && p?.brix && p?.cellLength;
     }
     return (values[t.id] ?? "") !== "";
-  });
+  }).length;
 
-  const renderRange = (testType: string, value: string) => {
-    const rule = TEST_VALIDATION_RULES[testType as TestType];
-    if (!rule) return null;
-
-    const num  = parseFloat(value);
-    const hasV = !isNaN(num);
-    const pct  = hasV
-      ? Math.min(100, Math.max(0, ((num - rule.min) / (rule.max - rule.min)) * 100))
-      : 50;
-    const isWarn = hasV && (num < rule.min || num > rule.max);
-
-    return (
-      <div className="mt-3 space-y-1">
-        <div className="flex justify-between text-[9px] font-mono text-zenthar-text-muted">
-          <span>{rule.min}</span>
-          <span className="opacity-50">{rule.unit}</span>
-          <span>{rule.max}</span>
-        </div>
-        <div className="relative h-2 w-full bg-(--color-zenthar-void) rounded-full overflow-hidden border border-(--color-zenthar-border)/30">
-          <div className="absolute left-1/4 right-1/4 h-full bg-brand-primary/10" />
-          {hasV && (
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${pct}%` }}
-              transition={{ type: "spring", stiffness: 80 }}
-              className={`absolute left-0 h-full rounded-full ${isWarn ? "bg-lab-laser" : "bg-brand-primary"}`}
-            />
-          )}
-        </div>
-      </div>
-    );
-  };
+  const allFilled  = tests.length > 0 && filledCount === tests.length;
+  const progress   = tests.length > 0 ? (filledCount / tests.length) * 100 : 0;
 
   return (
-    <LabPanel title="Lab Bench" icon={FlaskConical} loading={loading || isSaving}>
-      <div className="flex flex-col h-full gap-6">
+    <LabPanel
+      title="Lab Bench"
+      icon={FlaskConical}
+      loading={loading}
+      actions={
+        <button
+          onClick={() => setShowShortcuts((v) => !v)}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-(--color-zenthar-steel) text-brand-sage hover:text-brand-primary text-[9px] font-bold uppercase tracking-widest transition-colors"
+        >
+          <Keyboard size={12} />
+          Shortcuts
+        </button>
+      }
+    >
+      <div className="flex flex-col h-full gap-5">
+        {/* Keyboard shortcuts tooltip */}
+        <AnimatePresence>
+          {showShortcuts && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="p-4 bg-(--color-zenthar-void) border border-brand-primary/20 rounded-2xl text-[10px] font-mono grid grid-cols-2 gap-2"
+            >
+              <div className="flex justify-between gap-4">
+                <span className="text-brand-sage/60">Save analysis</span>
+                <kbd className="px-2 py-0.5 bg-(--color-zenthar-steel) rounded text-brand-primary">⌘ + Enter</kbd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-brand-sage/60">Next field</span>
+                <kbd className="px-2 py-0.5 bg-(--color-zenthar-steel) rounded text-brand-primary">Tab</kbd>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Header banner */}
-        <div className="flex items-center gap-4 p-5 bg-linear-to-r from-brand-primary/10 via-brand-primary/5 to-transparent rounded-3xl border border-brand-primary/20">
-          <div className="p-3 bg-(--color-zenthar-void) rounded-2xl border border-brand-primary/20">
+        {/* Sample info banner */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 bg-linear-to-r from-brand-primary/10 via-brand-primary/5 to-transparent rounded-3xl border border-brand-primary/20">
+          <div className="p-3 bg-(--color-zenthar-void) rounded-2xl border border-brand-primary/20 shrink-0">
             <Activity className="w-6 h-6 text-brand-primary animate-pulse" />
           </div>
-          <div>
-            <h4 className="text-lg font-black text-(--color-zenthar-text-primary) uppercase tracking-tight">
-              Analysis in Progress
+          <div className="flex-1 min-w-0">
+            <h4 className="text-base font-black text-(--color-zenthar-text-primary) uppercase tracking-tight">
+              {sample.batch_id ?? `Sample #${sample.id}`}
             </h4>
-            <div className="flex items-center gap-3 text-[11px] font-mono text-zenthar-text-muted uppercase mt-1">
-              <span className="font-bold text-brand-primary bg-(--color-zenthar-void) px-2 py-0.5 rounded border border-brand-primary/10">
-                {sample.batch_id ?? `#${sample.id}`}
-              </span>
-              <span className="bg-(--color-zenthar-void) px-2 py-0.5 rounded border border-(--color-zenthar-border)/20">
+            <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px] font-mono text-brand-sage uppercase">
+              <span className="bg-(--color-zenthar-void) px-2 py-0.5 rounded border border-brand-primary/10 text-brand-primary">
                 {sample.source_stage ?? sample.sample_type ?? "—"}
               </span>
+              <span className="bg-(--color-zenthar-void) px-2 py-0.5 rounded border border-(--color-zenthar-steel)">
+                {tests.length} tests
+              </span>
+            </div>
+          </div>
+
+          {/* Progress indicator */}
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            <span className="text-[9px] font-black text-brand-sage/60 uppercase tracking-widest">
+              {filledCount}/{tests.length} filled
+            </span>
+            <div className="w-32 h-1.5 bg-(--color-zenthar-steel) rounded-full overflow-hidden">
+              <motion.div
+                animate={{ width: `${progress}%` }}
+                transition={{ type: "spring", stiffness: 80 }}
+                className={clsx(
+                  "h-full rounded-full",
+                  progress === 100 ? "bg-emerald-400" : "bg-brand-primary"
+                )}
+              />
             </div>
           </div>
         </div>
 
-        {/* Test table */}
-        <div className="flex-1 overflow-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-(--color-zenthar-steel)">
-                {["Test", "Input", "Value / Range", "Unit", "Status", "Notes", "Action"].map((h) => (
-                  <th key={h} className="p-3 text-[9px] font-black text-zenthar-text-muted uppercase tracking-widest whitespace-nowrap">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-(--color-zenthar-steel)/50">
-              {tests.map((test) => {
-                const rule    = TEST_VALIDATION_RULES[test.test_type as TestType];
-                const errMsg  = errors[test.id];
-                const canInput = test.status === "PENDING" || test.status === "VALIDATING" || test.id < 0;
-                const canReview = test.status === "VALIDATING" && test.id > 0;
-
-                return (
-                  <tr key={test.id} className="hover:bg-(--color-zenthar-carbon) transition-colors">
-
-                    {/* Test name */}
-                    <td className="p-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-black text-(--color-zenthar-text-primary) uppercase">
-                          {test.test_type}
-                        </span>
-                        {rule?.description && (
-                          <div className="group relative">
-                            <Info className="w-3 h-3 text-zenthar-text-muted cursor-help hover:text-brand-primary" />
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel) text-[10px] rounded-xl opacity-0 group-hover:opacity-100 whitespace-nowrap z-30 shadow-xl pointer-events-none">
-                              {rule.description} ({rule.min}–{rule.max} {rule.unit})
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Input */}
-                    <td className="p-3 min-w-[180px]">
-                      {test.test_type === "Colour" ? (
-                        <div className="flex flex-col gap-1.5">
-                          {(["absorbance", "brix", "cellLength"] as const).map((param) => (
-                            <input
-                              key={param}
-                              type="number"
-                              step="0.001"
-                              value={colourParams[test.id]?.[param] ?? ""}
-                              onChange={(e) => handleColourParamChange(test.id, param, e.target.value)}
-                              placeholder={param === "absorbance" ? "Abs." : param === "brix" ? "Brix" : "Cell L."}
-                              disabled={!canInput}
-                              className={`w-full bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:border-brand-primary disabled:opacity-40 text-(--color-zenthar-text-primary)`}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="relative">
-                          <input
-                            type="number"
-                            step={rule?.step ?? "any"}
-                            value={values[test.id] ?? ""}
-                            onChange={(e) => handleValueChange(test.id, e.target.value, test.test_type)}
-                            placeholder="Value"
-                            disabled={!canInput}
-                            className={`w-full bg-(--color-zenthar-void) border rounded-lg px-3 py-2 text-xs font-mono focus:outline-none transition-all disabled:opacity-40
-                              ${errMsg
-                                ? "border-lab-laser/50 text-lab-laser focus:ring-2 focus:ring-lab-laser/20"
-                                : "border-(--color-zenthar-steel) focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 text-(--color-zenthar-text-primary)"
-                              }`}
-                          />
-                          {errMsg && (
-                            <AlertTriangle className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-lab-laser" />
-                          )}
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Calculated value + range bar */}
-                    <td className="p-3 min-w-[160px]">
-                      <div className="text-center font-mono font-black text-sm text-(--color-zenthar-text-primary) bg-(--color-zenthar-void) rounded-lg py-1 border border-(--color-zenthar-steel)">
-                        {values[test.id] || "—"}
-                      </div>
-                      {renderRange(test.test_type, values[test.id] ?? "")}
-                    </td>
-
-                    {/* Unit */}
-                    <td className="p-3">
-                      <span className="text-[10px] font-mono text-zenthar-text-muted uppercase">
-                        {rule?.unit ?? "—"}
-                      </span>
-                    </td>
-
-                    {/* Status */}
-                    <td className="p-3">
-                      <StatusPill
-                        label={test.status}
-                        variant={
-                          test.status === "APPROVED"    ? "success"
-                          : test.status === "DISAPPROVED" ? "critical"
-                          : test.status === "VALIDATING"  ? "warning"
-                          : test.status === "COMPLETED"   ? "success"
-                          : "info"
-                        }
-                      />
-                    </td>
-
-                    {/* Notes */}
-                    <td className="p-3">
-                      <input
-                        type="text"
-                        value={notes[test.id] ?? ""}
-                        onChange={(e) => handleNoteChange(test.id, e.target.value)}
-                        placeholder="Notes..."
-                        disabled={!canInput}
-                        className="w-28 bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-brand-primary disabled:opacity-40 text-(--color-zenthar-text-primary)"
-                      />
-                    </td>
-
-                    {/* Review actions */}
-                    <td className="p-3">
-                      {canReview && (
-                        reviewingId === test.id ? (
-                          <div className="flex flex-col gap-2 min-w-[160px]">
-                            <input
-                              autoFocus
-                              type="text"
-                              value={reviewComment}
-                              onChange={(e) => setReviewComment(e.target.value)}
-                              placeholder="Comment (optional)"
-                              className="w-full bg-(--color-zenthar-void) border border-(--color-zenthar-steel) rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-brand-primary text-(--color-zenthar-text-primary)"
-                            />
-                            <div className="flex gap-1">
-                              <button
-                                onClick={() => {
-                                  handleReview(test.id, "APPROVED", reviewComment || undefined);
-                                  setReviewingId(null);
-                                  setReviewComment("");
-                                }}
-                                className="flex-1 flex items-center justify-center gap-1 py-1 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white border border-emerald-500/30 rounded-lg text-[9px] font-black uppercase transition-all"
-                              >
-                                <ThumbsUp className="w-3 h-3" /> Pass
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleReview(test.id, "DISAPPROVED", reviewComment || undefined);
-                                  setReviewingId(null);
-                                  setReviewComment("");
-                                }}
-                                className="flex-1 flex items-center justify-center gap-1 py-1 bg-lab-laser/10 hover:bg-lab-laser text-lab-laser hover:text-white border border-lab-laser/30 rounded-lg text-[9px] font-black uppercase transition-all"
-                              >
-                                <ThumbsDown className="w-3 h-3" /> Fail
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setReviewingId(test.id)}
-                            className="px-3 py-1.5 bg-brand-primary/10 hover:bg-brand-primary text-brand-primary hover:text-white border border-brand-primary/20 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
-                          >
-                            Review
-                          </button>
-                        )
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        {/* Test cards */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-1">
+          {tests.map((test, idx) => (
+            <TestCard
+              key={test.id}
+              test={test}
+              value={values[test.id] ?? ""}
+              note={notes[test.id] ?? ""}
+              error={errors[test.id]}
+              colourParams={colourParams[test.id]}
+              previousResults={previousResults[test.test_type] ?? []}
+              isReviewing={reviewState.id === test.id}
+              reviewComment={reviewState.comment}
+              onValueChange={(v) => handleValueChange(test.id, v, test.test_type)}
+              onNoteChange={(v) => handleNoteChange(test.id, v)}
+              onColourParam={(p, v) => handleColourParamChange(test.id, p, v)}
+              onReviewStart={() => setReviewState({ id: test.id, comment: "" })}
+              onReviewCancel={() => setReviewState({ id: null, comment: "" })}
+              onReviewComment={(v) => setReviewState((s) => ({ ...s, comment: v }))}
+              onApprove={() => {
+                handleReview(test.id, "APPROVED", reviewState.comment || undefined);
+                setReviewState({ id: null, comment: "" });
+              }}
+              onDisapprove={() => {
+                handleReview(test.id, "DISAPPROVED", reviewState.comment || undefined);
+                setReviewState({ id: null, comment: "" });
+              }}
+              inputRef={idx === 0 ? firstInputRef : undefined}
+            />
+          ))}
         </div>
 
         {/* Save footer */}
-        <div className="pt-5 border-t border-(--color-zenthar-border)/20 mt-auto space-y-3">
+        <div className="pt-5 border-t border-(--color-zenthar-steel)/40 space-y-3">
           {hasErrors && (
-            <p className="text-[10px] font-bold text-lab-laser text-center uppercase tracking-widest">
-              ⚠ Fix validation errors before finalising
-            </p>
+            <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+              <AlertTriangle size={14} className="text-red-400 shrink-0" />
+              <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">
+                Fix validation errors before finalising
+              </p>
+            </div>
           )}
+
           <button
             onClick={handleSave}
             disabled={hasErrors || !allFilled || isSaving}
-            className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 shadow-xl ${
+            className={clsx(
+              "w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all",
+              "flex items-center justify-center gap-3 shadow-xl",
               hasErrors || !allFilled || isSaving
-                ? "bg-(--color-zenthar-carbon) text-zenthar-text-muted cursor-not-allowed border border-(--color-zenthar-border)/20 shadow-none"
+                ? "bg-(--color-zenthar-carbon) text-brand-sage/40 cursor-not-allowed border border-(--color-zenthar-steel) shadow-none"
                 : "bg-brand-primary text-(--color-zenthar-void) shadow-brand-primary/30 hover:bg-brand-primary/90 active:scale-[0.98]"
-            }`}
+            )}
           >
             {isSaving ? (
               <div className="w-5 h-5 border-2 border-(--color-zenthar-void)/30 border-t-(--color-zenthar-void) rounded-full animate-spin" />
             ) : (
               <>
                 <Save className="w-5 h-5" />
-                Finalise_Analysis
+                Finalise Analysis
+                <kbd className="text-[8px] opacity-60">⌘+Enter</kbd>
               </>
             )}
           </button>
-          <p className="text-[10px] text-zenthar-text-muted font-mono text-center uppercase tracking-widest opacity-70">
-            Results will be sent for validation and logged in the audit trail
+
+          <p className="text-[9px] text-brand-sage/40 font-mono text-center uppercase tracking-widest">
+            Results are immutable once submitted — double-check before saving
           </p>
         </div>
       </div>

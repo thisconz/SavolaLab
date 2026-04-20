@@ -1,20 +1,25 @@
 import React, { memo, useMemo, type FC } from "react";
-import { Activity, ChevronRight, Cpu, LucideIcon, Home, Zap, ShieldCheck } from "lucide-react";
-import { useAppStore } from "../../orchestrator/state/app.store";
-import { NotificationCenter } from "../../capsules/notifications";
-import { LogoRoot, LogoText } from "../../ui/components/Logo";
-import { motion } from "@/src/lib/motion";
-import clsx from "@/src/lib/clsx";
+import { Activity, ChevronRight, Zap, ShieldCheck, LucideIcon, Home } from "lucide-react";
+import { useAppStore }            from "../../orchestrator/state/app.store";
+import { NotificationCenter }     from "../../capsules/notifications";
+import { LogoRoot, LogoText }     from "../../ui/components/Logo";
+import { RealtimeStatusBadge }    from "../../core/providers/RealtimeProvider";
+import { motion }                 from "@/src/lib/motion";
+import clsx                       from "@/src/lib/clsx";
+
+interface HeaderProps {
+  onMenuToggle?: () => void;
+}
 
 interface TelemetryProps {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-  status: "success" | "info" | "warning";
+  icon:    LucideIcon;
+  label:   string;
+  value:   string;
+  status:  "success" | "info" | "warning";
   percent?: number;
 }
 
-export const Header: FC = memo(() => {
+export const Header: FC<HeaderProps> = memo(({ onMenuToggle }) => {
   const { activeTab } = useAppStore();
 
   const path = useMemo(() => {
@@ -23,105 +28,68 @@ export const Header: FC = memo(() => {
   }, [activeTab]);
 
   return (
-    <header className="sticky top-0 h-24 w-full border-b border-(--color-zenthar-steel) flex items-center justify-between px-10 bg-(--color-zenthar-void)/90 backdrop-blur-2xl z-50 shrink-0 overflow-hidden">
-      {/* 1. LAYER: ATMOSPHERICS */}
-      <div className="absolute inset-0 bg-[url('/assets/grid-dot.svg')] opacity-[0.02] pointer-events-none" />
-      
-      {/* Dynamic Scanline HUD */}
+    <header className="sticky top-0 h-20 w-full border-b border-(--color-zenthar-steel) flex items-center justify-between px-6 md:px-10 bg-(--color-zenthar-void)/90 backdrop-blur-2xl z-50 shrink-0 overflow-hidden">
+      {/* Atmosphere */}
       <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-brand-primary/20 to-transparent animate-pulse" />
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-20"
-        style={{
-          background: `linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.03) 50%, transparent 100%)`,
-          backgroundSize: '200% 100%',
-        }}
-      />
 
-      {/* LEFT: Branding & Navigation Matrix */}
-      <div className="flex items-center gap-12 relative z-10 min-w-0">
-        <motion.div 
-          whileHover={{ scale: 1.02, filter: "brightness(1.2)" }}
-          className="cursor-pointer"
-        >
-          <LogoRoot size="md" variant="light">
+      {/* LEFT: Branding + breadcrumb */}
+      <div className="flex items-center gap-6 md:gap-10 relative z-10 min-w-0">
+        {/* Logo — hidden on mobile (shown in AppShell's mobile bar) */}
+        <motion.div whileHover={{ scale: 1.02 }} className="cursor-pointer hidden md:block">
+          <LogoRoot size="sm" variant="light">
             <LogoText className="tracking-[0.5em]" />
           </LogoRoot>
         </motion.div>
 
-        <div className="flex items-center gap-8 group">
-          {/* Vertical Angled Separator */}
-          <div className="h-12 w-px bg-(--color-zenthar-steel) rotate-20 group-hover:rotate-0 transition-transform duration-500" />
-
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/5 border border-emerald-500/20">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                </span>
-                <span className="text-[7px] font-black text-emerald-400 uppercase tracking-widest">Live_Signal</span>
-              </div>
-              <div className="h-px w-8 bg-(--color-zenthar-steel)" />
-              <span className="text-[8px] font-mono font-bold text-(--color-zenthar-text-muted) uppercase tracking-[0.3em]">
-                Node: 0x-ALPHA
-              </span>
-            </div>
-
-            <nav className="flex items-center gap-3">
-              <Home className="w-3 h-3 text-(--color-zenthar-text-muted) hover:text-brand-primary transition-colors cursor-pointer" />
-              {path.map((segment, i) => (
-                <React.Fragment key={`${segment}-${i}`}>
-                  <ChevronRight className="w-3 h-3 text-(--color-zenthar-steel)" strokeWidth={4} />
-                  <motion.span
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className={clsx(
-                      "text-[13px] font-black tracking-[0.2em] uppercase transition-all duration-500 cursor-default",
-                      i === path.length - 1
-                        ? "text-(--color-zenthar-text-primary) drop-shadow-[0_0_12px_rgba(var(--brand-primary-rgb),0.2)]"
-                        : "text-(--color-zenthar-text-muted) hover:text-(--color-zenthar-text-secondary)"
-                    )}
-                  >
-                    {segment}
-                  </motion.span>
-                </React.Fragment>
-              ))}
-            </nav>
-          </div>
+        <div className="hidden md:flex items-center gap-2">
+          <div className="h-8 w-px bg-(--color-zenthar-steel)" />
+          <nav className="flex items-center gap-2">
+            <Home className="w-3 h-3 text-(--color-zenthar-text-muted)" />
+            {path.map((segment, i) => (
+              <React.Fragment key={`${segment}-${i}`}>
+                <ChevronRight className="w-3 h-3 text-(--color-zenthar-steel)" strokeWidth={4} />
+                <motion.span
+                  initial={{ opacity: 0, x: -4 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={clsx(
+                    "text-[12px] font-black tracking-[0.2em] uppercase transition-all duration-500",
+                    i === path.length - 1
+                      ? "text-(--color-zenthar-text-primary)"
+                      : "text-(--color-zenthar-text-muted)",
+                  )}
+                >
+                  {segment}
+                </motion.span>
+              </React.Fragment>
+            ))}
+          </nav>
         </div>
+
+        {/* Mobile: just the active tab */}
+        <span className="md:hidden text-[12px] font-black tracking-[0.2em] uppercase text-(--color-zenthar-text-primary)">
+          {activeTab?.toUpperCase()}
+        </span>
       </div>
 
-      {/* RIGHT: System Intelligence */}
-      <div className="flex items-center gap-6 relative z-10">
-        <div className="hidden lg:flex items-center gap-4 px-6 py-2 rounded-2xl bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel) shadow-[inset_0_1px_4px_rgba(0,0,0,0.05)]">
-          <TelemetryModule
-            icon={Activity}
-            label="Load"
-            value="Optimal"
-            status="success"
-            percent={12}
-          />
-          <div className="w-px h-8 bg-(--color-zenthar-steel)" />
-          <TelemetryModule
-            icon={Zap}
-            label="Latency"
-            value="12ms"
-            status="info"
-            percent={85}
-          />
-          <div className="w-px h-8 bg-(--color-zenthar-steel)" />
-          <TelemetryModule
-            icon={ShieldCheck}
-            label="Security"
-            value="Encrypted"
-            status="success"
-          />
+      {/* RIGHT: System status + notifications */}
+      <div className="flex items-center gap-3 md:gap-4 relative z-10">
+        {/* Realtime connection badge */}
+        <RealtimeStatusBadge className="hidden sm:flex" />
+
+        {/* Telemetry pills — desktop only */}
+        <div className="hidden lg:flex items-center gap-3 px-5 py-2 rounded-2xl bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel)">
+          <TelemetryModule icon={Activity}    label="Load"     value="Optimal"   status="success" percent={12} />
+          <div className="w-px h-6 bg-(--color-zenthar-steel)" />
+          <TelemetryModule icon={Zap}         label="Latency"  value="12ms"      status="info"    percent={85} />
+          <div className="w-px h-6 bg-(--color-zenthar-steel)" />
+          <TelemetryModule icon={ShieldCheck} label="Security" value="Encrypted" status="success" />
         </div>
 
+        {/* Notification bell */}
         <div className="relative group">
-          <div className="absolute inset-0 bg-brand-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="relative p-3 rounded-xl bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel) hover:border-brand-primary/40 transition-all cursor-pointer">
-             <NotificationCenter />
+          <div className="absolute inset-0 bg-brand-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
+          <div className="relative p-2.5 md:p-3 rounded-xl bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel) hover:border-brand-primary/40 transition-all cursor-pointer">
+            <NotificationCenter />
           </div>
         </div>
       </div>
@@ -130,45 +98,22 @@ export const Header: FC = memo(() => {
 });
 
 const TelemetryModule: FC<TelemetryProps> = ({ icon: Icon, label, value, status, percent = 100 }) => (
-  <div className="flex items-center gap-4 py-1 px-2 group/tel cursor-help">
-    <div className="relative w-9 h-9 flex items-center justify-center">
-      {/* SVG Orbital Ring */}
+  <div className="flex items-center gap-3 py-1 group/tel cursor-help">
+    <div className="relative w-7 h-7 flex items-center justify-center">
       <svg className="absolute inset-0 w-full h-full -rotate-90">
-        <circle
-          cx="18"
-          cy="18"
-          r="16"
-          className="fill-none stroke-(--color-zenthar-steel)"
-          strokeWidth="2"
-        />
-        <motion.circle
-          cx="18"
-          cy="18"
-          r="16"
-          className={clsx(
-            "fill-none transition-colors duration-500",
-            status === "success" ? "stroke-emerald-500/40" : "stroke-brand-primary/40"
-          )}
-          strokeWidth="2"
-          strokeDasharray="100"
-          initial={{ strokeDashoffset: 100 }}
-          animate={{ strokeDashoffset: 100 - percent }}
-          strokeLinecap="round"
+        <circle cx="14" cy="14" r="12" className="fill-none stroke-(--color-zenthar-steel)" strokeWidth="2" />
+        <motion.circle cx="14" cy="14" r="12"
+          className={clsx("fill-none", status === "success" ? "stroke-emerald-500/40" : "stroke-brand-primary/40")}
+          strokeWidth="2" strokeDasharray="75" strokeLinecap="round"
+          initial={{ strokeDashoffset: 75 }}
+          animate={{ strokeDashoffset: 75 - ((percent / 100) * 75) }}
         />
       </svg>
-      <Icon className={clsx(
-        "w-3.5 h-3.5 transition-all group-hover/tel:scale-110",
-        status === "success" ? "text-emerald-400" : "text-brand-primary"
-      )} />
+      <Icon className={clsx("w-3 h-3", status === "success" ? "text-emerald-400" : "text-brand-primary")} />
     </div>
-    
     <div className="flex flex-col">
-      <span className="text-[7px] font-black text-(--color-zenthar-text-muted) uppercase tracking-widest leading-none mb-1">
-        {label}
-      </span>
-      <span className="text-[10px] font-mono font-bold text-(--color-zenthar-text-primary) tracking-tight">
-        {value}
-      </span>
+      <span className="text-[7px] font-black text-(--color-zenthar-text-muted) uppercase tracking-widest leading-none mb-0.5">{label}</span>
+      <span className="text-[10px] font-mono font-bold text-(--color-zenthar-text-primary)">{value}</span>
     </div>
   </div>
 );

@@ -1,43 +1,42 @@
-import { Telemetry } from "../telemetry/telemetry.util";
-import { useAuthStore } from "../../orchestrator/state/auth.store";
+import { Telemetry }      from "../telemetry/telemetry.util";
+import { useAuthStore }   from "../../orchestrator/state/auth.store";
 
 export interface ApiError extends Error {
-  code: string;
-  status: number;
+  code:     string;
+  status:   number;
   details?: any;
 }
 
 export interface RequestConfig extends RequestInit {
   timeout?: number;
   retries?: number;
+  /** Skip token-refresh retry on 401 (used internally to prevent loops) */
+  _noRefresh?: boolean;
 }
 
-export class ApiClient {
+const BASE_URL = "/api";
+
+class ApiClient {
   private static instance: ApiClient;
-  private baseUrl: string = "/api";
+  private refreshing: Promise<boolean> | null = null; // dedup concurrent refresh attempts
 
   private constructor() {}
 
-  public static getInstance(): ApiClient {
-    if (!ApiClient.instance) {
-      ApiClient.instance = new ApiClient();
-    }
+  static getInstance(): ApiClient {
+    if (!ApiClient.instance) ApiClient.instance = new ApiClient();
     return ApiClient.instance;
   }
 
-  private async request<T>(
-    path: string,
-    config: RequestConfig = {},
-  ): Promise<T> {
-    const { timeout = 10000, retries = 3, ...init } = config;
-    const url = `${this.baseUrl}${path}`;
-    const method = (init.method ?? "GET").toUpperCase();
+  private async request<T>(path: string, config: RequestConfig = {}): Promise<T> {
+    const { timeout = 10_000, retries = 3, _noRefresh = false, ...init } = config;
 
+    const url        = `${BASE_URL}${path}`;
+    const method     = (init.method ?? "GET").toUpperCase();
     const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
+    const timer      = setTimeout(() => controller.abort(), timeout);
 
     try {
-      const token = useAuthStore.getState().token;
+      const token   = useAuthStore.getState().token;
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -46,96 +45,106 @@ export class ApiClient {
 
       const response = await fetch(url, {
         ...init,
-        credentials: "include",
-        signal: controller.signal,
+        credentials: "include", // sends httpOnly cookies
+        signal:      controller.signal,
         headers,
       });
 
-      clearTimeout(id);
+      clearTimeout(timer);
+
+      // ── 401: try to refresh once ───────────────────────────────────────
+      if (response.status === 401 && !_noRefresh) {
+        const refreshed = await this.tryRefresh();
+        if (refreshed) {
+          // Retry original request with new token
+          return this.request<T>(path, { ...config, _noRefresh: true });
+        }
+        // Refresh failed → force logout
+        useAuthStore.getState().logout();
+        throw this.makeError(response, { error: "Session expired. Please log in again." });
+      }
 
       if (!response.ok) {
-        let errorData;
-        try {
-          const text = await response.text();
-          if (response.status !== 401) {
-            console.error(`[DEBUG] API Error Response Text for ${url}:`, text);
-          }
-          errorData = JSON.parse(text);
-        } catch (e) {
-          errorData = {};
-        }
-        throw this.handleError(response, errorData);
+        let data: any = {};
+        try { data = await response.json(); } catch {}
+        throw this.makeError(response, data);
       }
 
       const text = await response.text();
-      try {
-        return JSON.parse(text);
-      } catch (e) {
-        console.error(`[DEBUG] API Success Response Parse Error for ${url}. Raw text:`, text);
-        throw e;
+      try { return JSON.parse(text); } catch {
+        return text as unknown as T;
       }
-    } catch (error: any) {
-      clearTimeout(id);
+    } catch (err: any) {
+      clearTimeout(timer);
 
-      if (error.name === "AbortError") {
+      if (err.name === "AbortError") {
         Telemetry.logError("API_TIMEOUT", { url, timeout });
-        throw new Error("Request timed out");
+        throw Object.assign(new Error("Request timed out"), { code: "TIMEOUT", status: 0 });
       }
 
-      if (retries > 0 && method === "GET") {
-        const delay = Math.min(1000 * (4 - retries), 3000);
+      if (retries > 0 && method === "GET" && !(err as ApiError).status) {
+        // Network error only — don't retry 4xx/5xx
+        const delay = Math.min(500 * (4 - retries), 3000);
         await new Promise((r) => setTimeout(r, delay));
-        Telemetry.logInfo("API_RETRY", { url, remainingRetries: retries - 1 });
         return this.request<T>(path, { ...config, retries: retries - 1 });
       }
 
-      throw error;
+      throw err;
     }
   }
 
-  private handleError(response: Response, data: any): ApiError {
-    const message = data.error || response.statusText || "Unknown API Error";
-    const error = new Error(message) as ApiError;
-    error.code = data.code || "UNKNOWN_ERROR";
-    error.status = response.status;
-    error.details = data.details;
+  /**
+   * Attempt to refresh the access token using the refresh_token cookie.
+   * Deduplicates concurrent calls so only one refresh request fires at a time.
+   */
+  private tryRefresh(): Promise<boolean> {
+    if (this.refreshing) return this.refreshing;
+
+    this.refreshing = (async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/v1/directory/refresh`, {
+          method:      "POST",
+          credentials: "include",
+        });
+        if (!res.ok) return false;
+
+        const data = await res.json();
+        if (data.success && data.token) {
+          useAuthStore.getState().setToken(data.token);
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
+      } finally {
+        this.refreshing = null;
+      }
+    })();
+
+    return this.refreshing;
+  }
+
+  private makeError(response: Response, data: any): ApiError {
+    const message = data?.error || response.statusText || "Unknown error";
+    const err     = Object.assign(new Error(message), {
+      code:    data?.code   || "API_ERROR",
+      status:  response.status,
+      details: data?.details,
+    }) as ApiError;
 
     Telemetry.logError("API_FAILURE", {
-      message: error.message,
-      code: error.code,
-      status: error.status,
+      message: err.message,
+      code:    err.code,
+      status:  err.status,
     });
 
-    if (response.status === 401) {
-      useAuthStore.getState().logout();
-    }
-
-    return error;
+    return err;
   }
 
-  public get<T>(path: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>(path, { ...config, method: "GET" });
-  }
-
-  public post<T>(path: string, body: any, config?: RequestConfig): Promise<T> {
-    return this.request<T>(path, {
-      ...config,
-      method: "POST",
-      body: JSON.stringify(body),
-    });
-  }
-
-  public put<T>(path: string, body: any, config?: RequestConfig): Promise<T> {
-    return this.request<T>(path, {
-      ...config,
-      method: "PUT",
-      body: JSON.stringify(body),
-    });
-  }
-
-  public delete<T>(path: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>(path, { ...config, method: "DELETE" });
-  }
+  get<T>(path: string, config?: RequestConfig)            { return this.request<T>(path, { ...config, method: "GET"  }); }
+  post<T>(path: string, body: any, config?: RequestConfig){ return this.request<T>(path, { ...config, method: "POST", body: JSON.stringify(body) }); }
+  put<T>(path: string, body: any, config?: RequestConfig) { return this.request<T>(path, { ...config, method: "PUT",  body: JSON.stringify(body) }); }
+  delete<T>(path: string, config?: RequestConfig)         { return this.request<T>(path, { ...config, method: "DELETE" }); }
 }
 
 export const api = ApiClient.getInstance();

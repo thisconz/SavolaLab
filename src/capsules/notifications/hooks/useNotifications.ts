@@ -1,68 +1,91 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { NotificationApi } from "../api/notification.api";
-import { Notification } from "../../../core/types";
+import { Notification }    from "../../../core/types";
+import { useRealtime }     from "../../../core/providers/RealtimeProvider";
+import { useAuthStore }    from "../../../orchestrator/state/auth.store";
 
-// Using a simple external variable to share state between all hook instances
-let globalNotifications: Notification[] = [];
-let listeners: Array<(n: Notification[]) => void> = [];
+// ─────────────────────────────────────────────
+// Shared state — all hook instances stay in sync
+// ─────────────────────────────────────────────
+
+type Listener = (n: Notification[]) => void;
+
+let _global: Notification[] = [];
+let _listeners: Set<Listener> = new Set();
+
+function broadcast(data: Notification[]) {
+  _global = data;
+  _listeners.forEach((l) => l(data));
+}
+
+// ─────────────────────────────────────────────
+// Hook
+// ─────────────────────────────────────────────
 
 export const useNotifications = () => {
-  const [notifications, setNotifications] =
-    useState<Notification[]>(globalNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>(_global);
+  const { on }          = useRealtime();
+  const { isAuthenticated } = useAuthStore();
+  const mountedRef      = useRef(true);
 
-  const broadcast = useCallback((data: Notification[]) => {
-    globalNotifications = data;
-    listeners.forEach((listener) => listener(data));
-  }, []);
-
-  const fetchNotifications = useCallback(async () => {
+  const fetch = useCallback(async () => {
+    if (!isAuthenticated || !mountedRef.current) return;
     try {
-      await NotificationApi.checkOverdue();
-    } catch (err: any) {
-      if (err?.status !== 401 && err?.status !== 403)
-        console.warn("checkOverdue failed", err);
-    }
-    try {
+      // Trigger overdue check (fire-and-forget, ignore failure)
+      NotificationApi.checkOverdue().catch(() => {});
       const data = await NotificationApi.getNotifications();
+      if (!mountedRef.current) return;
       broadcast(data as Notification[]);
     } catch (err: any) {
-      if (err?.status !== 401 && err?.status !== 403)
-        console.error("getNotifications failed", err);
+      if (err?.status !== 401 && err?.status !== 403) {
+        console.error("[Notifications] fetch failed:", err);
+      }
     }
-  }, [broadcast]);
+  }, [isAuthenticated]);
 
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
   useEffect(() => {
-    const handler = (data: Notification[]) => setNotifications(data);
-    listeners.push(handler);
+    mountedRef.current = true;
 
-    let interval: ReturnType<typeof setInterval> | null = null;
+    const listener: Listener = (data) => {
+      if (mountedRef.current) setNotifications(data);
+    };
 
-    if (listeners.length === 1) {
-      fetchNotifications();
-      interval = setInterval(fetchNotifications, 30_000);
-    }
+    _listeners.add(listener);
+
+    // Initial fetch only if this is the first subscriber
+    if (_listeners.size === 1) fetch();
 
     return () => {
-      listeners = listeners.filter((l) => l !== handler);
-      if (listeners.length === 0 && interval) {
-        clearInterval(interval);
-      }
+      mountedRef.current = false;
+      _listeners.delete(listener);
     };
-  }, [fetchNotifications]);
+  }, [fetch]);
 
+  // ── SSE — re-fetch when a notification is pushed ─────────────────────────
+  useEffect(() => {
+    const unsub = on("NOTIFICATION_PUSHED", () => fetch());
+    return unsub;
+  }, [on, fetch]);
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  const markAsRead = useCallback(async (id: number) => {
+    await NotificationApi.markAsRead(id);
+    broadcast(_global.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
+  }, []);
+
+  const markAllAsRead = useCallback(async () => {
+    await NotificationApi.markAllAsRead();
+    broadcast(_global.map((n) => ({ ...n, is_read: true })));
+  }, []);
 
   return {
     notifications,
     unreadCount,
-    fetchNotifications,
-    markAsRead: async (id: number) => {
-      await NotificationApi.markAsRead(id);
-      fetchNotifications();
-    },
-    markAllAsRead: async () => {
-      await NotificationApi.markAllAsRead();
-      fetchNotifications();
-    },
+    fetchNotifications: fetch,
+    markAsRead,
+    markAllAsRead,
   };
 };

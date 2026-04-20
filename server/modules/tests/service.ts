@@ -1,10 +1,7 @@
 import { db } from "../../core/database";
 import { TestRepository } from "./repository";
+import { sseBus } from "../../core/sse";
 
-/**
- * Advances a workflow step when a test result is saved.
- * Silently no-ops if there is no active workflow execution.
- */
 const updateWorkflowStep = async (
   sampleId:  number,
   testType:  string,
@@ -20,7 +17,6 @@ const updateWorkflowStep = async (
     );
     if (!exec) return;
 
-    // Find the matching pending/in-progress step via JOIN with workflow_steps
     const step = await db.queryOne<{ id: number }>(
       `SELECT wse.id
        FROM workflow_step_executions wse
@@ -28,8 +24,7 @@ const updateWorkflowStep = async (
        WHERE wse.execution_id = $1
          AND ws.test_type     = $2
          AND wse.status IN ('PENDING', 'IN_PROGRESS')
-       ORDER BY ws.sequence_order ASC
-       LIMIT 1`,
+       ORDER BY ws.sequence_order ASC LIMIT 1`,
       [exec.id, testType],
     );
     if (!step) return;
@@ -42,7 +37,6 @@ const updateWorkflowStep = async (
       [testId, rawValue, step.id],
     );
 
-    // Auto-complete execution when all steps done
     const pending = await db.queryOne<{ count: string }>(
       `SELECT COUNT(*) AS count
        FROM workflow_step_executions
@@ -52,15 +46,18 @@ const updateWorkflowStep = async (
     if (Number(pending?.count ?? 1) === 0) {
       await db.execute(
         `UPDATE workflow_executions
-         SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP
-         WHERE id = $1`,
+         SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP WHERE id = $1`,
         [exec.id],
       );
+      // Emit workflow completion
+      sseBus.broadcast("WORKFLOW_COMPLETED", {
+        execution_id: exec.id,
+        sample_id:    sampleId,
+      });
     }
   } catch (err: any) {
     if (err.message === "Database not connected") return;
     console.error("Workflow step update error:", err.message);
-    // Non-fatal — don't let workflow logic break test submission
   }
 };
 
@@ -68,18 +65,18 @@ export const TestService = {
   getTests: async () => TestRepository.findAll(),
 
   createTestResult: async (
-    sampleId:   number,
-    data:       any,
+    sampleId:    number,
+    data:        any,
     performerId: string,
-    ip          = "127.0.0.1",
+    ip = "127.0.0.1",
   ) => {
     const {
       test_type, raw_value, calculated_value, unit, status,
       performed_at, reviewer_id, review_at, review_comment, notes, params,
     } = data;
 
-    const timestamp  = performed_at ?? new Date().toISOString();
-    const paramsStr  = params != null
+    const timestamp = performed_at ?? new Date().toISOString();
+    const paramsStr = params != null
       ? (typeof params === "string" ? params : JSON.stringify(params))
       : null;
 
@@ -114,10 +111,19 @@ export const TestService = {
           [performerId, `Created '${test_type}' test for sample ${sampleId} (value: ${raw_value})`, ip],
         );
 
+        // Emit SSE — broadcast to all so dashboard/queue can update
+        sseBus.broadcast("TEST_SUBMITTED", {
+          id:         testId,
+          sample_id:  sampleId,
+          test_type,
+          raw_value:  raw_value ?? null,
+          status:     status ?? "PENDING",
+          performer_id: performerId,
+        });
+
         return testId;
       });
     } catch (err: any) {
-      // Log failure without crashing
       db.execute(
         `INSERT INTO audit_logs (employee_number, action, details, ip_address)
          VALUES ($1, 'TEST_CREATE_FAILED', $2, $3)`,
@@ -131,7 +137,7 @@ export const TestService = {
     id:          string,
     data:        any,
     performerId: string,
-    ip           = "127.0.0.1",
+    ip = "127.0.0.1",
   ) => {
     const numId = Number(id);
     if (!numId || numId < 1) throw new Error("Invalid test ID");
@@ -158,6 +164,14 @@ export const TestService = {
            VALUES ($1, 'TEST_UPDATED', $2, $3)`,
           [performerId, `Updated test ${numId} (sample: ${test.sample_id})`, ip],
         );
+
+        sseBus.broadcast("TEST_UPDATED", {
+          id:         numId,
+          sample_id:  test.sample_id,
+          test_type:  test.test_type,
+          status:     data.status ?? test.status,
+          updated_by: performerId,
+        });
 
         return true;
       });
@@ -192,11 +206,32 @@ export const TestService = {
     const numId = Number(id);
     if (!numId || numId < 1) throw new Error("Invalid test ID");
 
+    const test = await TestRepository.findById(numId);
+    if (!test) throw new Error("Test not found");
+
     await TestRepository.review(numId, {
       status:         data.status,
       reviewer_id:    reviewerId,
       review_at:      new Date().toISOString(),
       review_comment: data.comment ?? null,
+    });
+
+    // Notify the original performer
+    sseBus.sendTo(test.performer_id, "TEST_REVIEWED", {
+      id:          numId,
+      sample_id:   test.sample_id,
+      test_type:   test.test_type,
+      status:      data.status,
+      reviewed_by: reviewerId,
+    });
+
+    // Also broadcast to all so queues update
+    sseBus.broadcast("TEST_REVIEWED", {
+      id:          numId,
+      sample_id:   test.sample_id,
+      test_type:   test.test_type,
+      status:      data.status,
+      reviewed_by: reviewerId,
     });
 
     return true;

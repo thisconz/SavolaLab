@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { setCookie, deleteCookie } from "hono/cookie";
-import { AuthService } from "./service";
+import { setCookie, deleteCookie, getCookie } from "hono/cookie";
+import { AuthService, verifyRefreshToken } from "./service";
 import { authenticateToken } from "../../core/middleware";
 import type { Variables } from "../../core/types";
 import { logger } from "../../core/logger";
@@ -12,7 +12,7 @@ import {
 
 const app = new Hono<{ Variables: Variables }>();
 
-// ── Input schemas ────────────────────────────────────────────────────────────
+// ── Input schemas ──────────────────────────────────────────────────────────
 
 const EmployeeVerifySchema = z.object({
   employee_number: z.union([z.string(), z.number()]).transform(String),
@@ -47,15 +47,20 @@ const LoginSchema = z
     message: "Either password or pin is required",
   });
 
-// ── Helper ──────────────────────────────────────────────────────────────────
+// ── Helper ─────────────────────────────────────────────────────────────────
 
 function toMsg(err: unknown): string {
   return err instanceof Error ? err.message : "An unexpected error occurred.";
 }
 
-// ── Routes ───────────────────────────────────────────────────────────────────
+const COOKIE_OPTS_BASE = {
+  httpOnly: true,
+  sameSite: "lax" as const,
+  path: "/",
+};
 
-// List active users (public — used on login screen)
+// ── Routes ─────────────────────────────────────────────────────────────────
+
 app.get("/users", async (c) => {
   const requestId = c.get("requestId");
   try {
@@ -67,20 +72,15 @@ app.get("/users", async (c) => {
   }
 });
 
-// Verify employee identity + issue OTP
 app.post("/verify-employee", async (c) => {
   const requestId = c.get("requestId");
   try {
     const body   = await c.req.json();
     const parsed = EmployeeVerifySchema.parse(body);
     const result = await AuthService.verifyEmployee(
-      parsed.employee_number,
-      parsed.national_id,
-      parsed.dob,
+      parsed.employee_number, parsed.national_id, parsed.dob,
     );
-    if (!result) {
-      return c.json({ success: false, error: "Employee not found in registry" });
-    }
+    if (!result) return c.json({ success: false, error: "Employee not found in registry" });
     return c.json({ success: true, message: "OTP dispatched", ...result });
   } catch (err) {
     logger.error({ err, requestId }, "verify-employee failed");
@@ -88,7 +88,6 @@ app.post("/verify-employee", async (c) => {
   }
 });
 
-// Confirm OTP code
 app.post("/confirm-otp", async (c) => {
   const requestId = c.get("requestId");
   try {
@@ -103,17 +102,12 @@ app.post("/confirm-otp", async (c) => {
   }
 });
 
-// Setup password + PIN credentials
 app.post("/setup-credentials", async (c) => {
   const requestId = c.get("requestId");
   try {
     const body   = await c.req.json();
     const parsed = SetupCredentialsSchema.parse(body);
-    await AuthService.setupCredentials(
-      parsed.employee_number,
-      parsed.password,
-      parsed.pin,
-    );
+    await AuthService.setupCredentials(parsed.employee_number, parsed.password, parsed.pin);
     return c.json({ success: true, message: "Account activated successfully" });
   } catch (err) {
     logger.error({ err, requestId }, "setup-credentials failed");
@@ -121,41 +115,63 @@ app.post("/setup-credentials", async (c) => {
   }
 });
 
-// Login
 app.post("/login", async (c) => {
   const requestId = c.get("requestId");
   try {
     const body   = await c.req.json();
     const parsed = LoginSchema.parse(body);
     const result = await AuthService.login(
-      parsed.employee_number,
-      parsed.password,
-      parsed.pin,
+      parsed.employee_number, parsed.password, parsed.pin,
     );
 
-    if (!result) {
-      return c.json({ success: false, error: "Invalid credentials" }, 401);
-    }
+    if (!result) return c.json({ success: false, error: "Invalid credentials" }, 401);
 
+    const isProd = process.env.NODE_ENV === "production";
+
+    // Access token cookie (8h)
     setCookie(c, "token", result.token, {
-      httpOnly: true,
-      secure:   process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge:   8 * 60 * 60,
-      path:     "/",
+      ...COOKIE_OPTS_BASE,
+      secure: isProd,
+      maxAge: 8 * 60 * 60,
     });
 
-    return c.json({ success: true, ...result });
+    // Refresh token cookie (30d) — httpOnly, not readable by JS
+    setCookie(c, "refresh_token", result.refreshToken, {
+      ...COOKIE_OPTS_BASE,
+      secure: isProd,
+      maxAge: 30 * 24 * 60 * 60,
+    });
+
+    return c.json({ success: true, token: result.token, user: result.user });
   } catch (err) {
     logger.error({ err, requestId }, "login failed");
-    // Propagate business logic messages (account locked, etc.)
-    const msg = toMsg(err);
+    const msg    = toMsg(err);
     const status = msg.toLowerCase().includes("locked") ? 423 : 400;
     return c.json({ success: false, error: msg }, status as any);
   }
 });
 
-// Current user
+/**
+ * Refresh endpoint — exchanges a valid refresh cookie for a new access token.
+ * No body required; reads the httpOnly refresh_token cookie automatically.
+ */
+app.post("/refresh", async (c) => {
+  const refresh = getCookie(c, "refresh_token");
+  if (!refresh) return c.json({ success: false, error: "No refresh token" }, 401);
+
+  const result = await AuthService.refreshAccess(refresh);
+  if (!result) return c.json({ success: false, error: "Invalid or expired refresh token" }, 401);
+
+  const isProd = process.env.NODE_ENV === "production";
+  setCookie(c, "token", result.token, {
+    ...COOKIE_OPTS_BASE,
+    secure: isProd,
+    maxAge: 8 * 60 * 60,
+  });
+
+  return c.json({ success: true, token: result.token });
+});
+
 app.get("/me", authenticateToken, async (c) => {
   const requestId = c.get("requestId");
   try {
@@ -169,14 +185,10 @@ app.get("/me", authenticateToken, async (c) => {
   }
 });
 
-// Logout
 app.post("/logout", async (c) => {
-  deleteCookie(c, "token", {
-    httpOnly: true,
-    secure:   process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path:     "/",
-  });
+  const isProd = process.env.NODE_ENV === "production";
+  deleteCookie(c, "token",         { ...COOKIE_OPTS_BASE, secure: isProd });
+  deleteCookie(c, "refresh_token", { ...COOKIE_OPTS_BASE, secure: isProd });
   return c.json({ success: true });
 });
 

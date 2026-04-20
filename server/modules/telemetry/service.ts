@@ -1,130 +1,139 @@
-import os from "os";
-import { db } from "../../core/database";
+import os              from "os";
+import { db }          from "../../core/database";
+import { telemetryCache, TTL } from "../../core/cache";
 
 export interface TelemetryMetrics {
-  cpuLoad: string;
-  memory: string;
-  latency: string;
-  dbSync: "ACTIVE" | "INACTIVE";
-  uptime: string;
+  cpuLoad:     string;
+  memory:      string;
+  latency:     string;
+  dbSync:      "ACTIVE" | "INACTIVE";
+  uptime:      string;
   activeUsers: number;
-  errorRate: string;
-  throughput: string;
+  errorRate:   string;
+  throughput:  string;
   stats: {
-    samples: number;
-    pending: number;
+    samples:   number;
+    pending:   number;
     lastAudit: string | null;
   };
 }
 
 export interface TelemetryFilter {
   startDate?: string;
-  endDate?: string;
+  endDate?:   string;
 }
 
 export const TelemetryService = {
   getTelemetry: async (filter?: TelemetryFilter): Promise<TelemetryMetrics> => {
     const hasFilter = !!filter?.startDate;
-    const timeConstraint = hasFilter
-      ? `created_at BETWEEN $1 AND $2`
-      : `created_at > NOW() - interval '24 hours'`;
-    const params = hasFilter
-      ? [filter.startDate, filter.endDate ?? new Date().toISOString()]
-      : [];
+    const cacheKey  = hasFilter
+      ? `telemetry:custom:${filter!.startDate}:${filter!.endDate}`
+      : "telemetry:live";
 
-    // --- 1. System Metrics (Synchronous/OS Level) ---
-    const totalMem = os.totalmem();
-    const freeMem = os.freemem();
-    const memUsage = `${((totalMem - freeMem) / 1024 / 1024 / 1024).toFixed(1)}GB / ${(totalMem / 1024 / 1024 / 1024).toFixed(1)}GB`;
-    const cpuLoad = `${Math.min(100, Math.round((os.loadavg()[0] / os.cpus().length) * 100))}%`;
+    // Only cache the live (non-filtered) view; filtered views are user-specific
+    const ttl = hasFilter ? 0 : TTL.SECONDS_30;
 
-    const uptimeSeconds = Math.floor(process.uptime());
-    const days = Math.floor(uptimeSeconds / (24 * 3600));
-    const hours = Math.floor((uptimeSeconds % (24 * 3600)) / 3600);
-    const uptime =
-      days > 0
-        ? `${days}d ${hours}h`
-        : `${hours}h ${Math.floor((uptimeSeconds % 3600) / 60)}m`;
+    const fetchMetrics = async (): Promise<TelemetryMetrics> => {
+      // ── OS metrics (cheap — always fresh) ──────────────────────────────
+      const totalMem = os.totalmem();
+      const freeMem  = os.freemem();
+      const usedGB   = ((totalMem - freeMem) / 1024 ** 3).toFixed(1);
+      const totalGB  = (totalMem / 1024 ** 3).toFixed(1);
+      const memUsage = `${usedGB}GB / ${totalGB}GB`;
+      const cpuLoad  = `${Math.min(100, Math.round((os.loadavg()[0] / os.cpus().length) * 100))}%`;
 
-    // --- 2. Database Metrics (Parallel Execution) ---
-    // We initiate all promises at once.
-    let sampleCountRes, pendingTestsRes, lastAuditRes, activeUsersRes, totalLogsRes, errorLogsRes, throughputRes;
-    try {
-      [
-        sampleCountRes,
-        pendingTestsRes,
-        lastAuditRes,
-        activeUsersRes,
-        totalLogsRes,
-        errorLogsRes,
-        throughputRes,
-      ] = await Promise.all([
-        db.queryOne<{ count: string }>(
-          "SELECT COUNT(*) AS count FROM samples WHERE status NOT IN ('COMPLETED', 'ARCHIVED')",
-        ),
-        db.queryOne<{ count: string }>(
-          "SELECT COUNT(*) AS count FROM tests WHERE status = 'PENDING'",
-        ),
-        db.queryOne<{ created_at: string }>(
-          "SELECT created_at FROM audit_logs ORDER BY created_at DESC LIMIT 1",
-        ),
-        db.queryOne<{ count: string }>(
-          `SELECT COUNT(DISTINCT employee_number) AS count FROM audit_logs WHERE ${hasFilter ? timeConstraint : "created_at > NOW() - interval '1 hour'"}`,
-          params,
-        ),
-        db.queryOne<{ count: string }>(
-          `SELECT COUNT(*) AS count FROM audit_logs WHERE ${timeConstraint}`,
-          params,
-        ),
-        db.queryOne<{ count: string }>(
-          `SELECT COUNT(*) AS count FROM audit_logs WHERE (action LIKE '%FAILURE%' OR action LIKE '%ERROR%') AND ${timeConstraint}`,
-          params,
-        ),
-        db.queryOne<{ count: string }>(
-          `SELECT COUNT(*) AS count FROM tests WHERE status = 'COMPLETED' AND ${timeConstraint.replace("created_at", "updated_at")}`,
-          params,
-        ),
-      ]);
-    } catch (error: any) {
-      if (error.message === "Database not connected") {
-        return {
-          cpuLoad,
-          memory: memUsage,
-          latency: `12ms`,
-          dbSync: "INACTIVE",
-          uptime,
-          activeUsers: 2,
-          errorRate: "0.0%",
-          throughput: "0 tests",
-          stats: {
-            samples: 0,
-            pending: 0,
-            lastAudit: null,
-          },
-        };
+      const sec   = Math.floor(process.uptime());
+      const days  = Math.floor(sec / 86400);
+      const hours = Math.floor((sec % 86400) / 3600);
+      const mins  = Math.floor((sec % 3600) / 60);
+      const uptime = days > 0 ? `${days}d ${hours}h` : hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
+      // ── DB metrics ─────────────────────────────────────────────────────
+      const timeConstraint = hasFilter
+        ? `created_at BETWEEN $1 AND $2`
+        : `created_at > NOW() - interval '24 hours'`;
+      const params = hasFilter
+        ? [filter!.startDate, filter!.endDate ?? new Date().toISOString()]
+        : [];
+
+      const dbStart = Date.now();
+
+      let dbSync: "ACTIVE" | "INACTIVE" = "INACTIVE";
+      let sampleCount    = 0;
+      let pendingTests   = 0;
+      let lastAudit:   string | null = null;
+      let activeUsers    = 0;
+      let totalLogs      = 0;
+      let errorLogs      = 0;
+      let completedTests = 0;
+
+      try {
+        const [sr, pt, la, au, tl, el, ct] = await Promise.all([
+          db.queryOne<{ count: string }>(
+            "SELECT COUNT(*)::text AS count FROM samples WHERE status NOT IN ('COMPLETED', 'ARCHIVED')",
+          ),
+          db.queryOne<{ count: string }>(
+            "SELECT COUNT(*)::text AS count FROM tests WHERE status = 'PENDING'",
+          ),
+          db.queryOne<{ created_at: string }>(
+            "SELECT created_at FROM audit_logs ORDER BY created_at DESC LIMIT 1",
+          ),
+          db.queryOne<{ count: string }>(
+            `SELECT COUNT(DISTINCT employee_number)::text AS count FROM audit_logs WHERE ${hasFilter ? timeConstraint : "created_at > NOW() - interval '1 hour'"}`,
+            params,
+          ),
+          db.queryOne<{ count: string }>(
+            `SELECT COUNT(*)::text AS count FROM audit_logs WHERE ${timeConstraint}`,
+            params,
+          ),
+          db.queryOne<{ count: string }>(
+            `SELECT COUNT(*)::text AS count FROM audit_logs WHERE (action LIKE '%FAILURE%' OR action LIKE '%ERROR%') AND ${timeConstraint}`,
+            params,
+          ),
+          db.queryOne<{ count: string }>(
+            `SELECT COUNT(*)::text AS count FROM tests WHERE status = 'COMPLETED' AND ${timeConstraint.replace("created_at", "updated_at")}`,
+            params,
+          ),
+        ]);
+
+        dbSync        = "ACTIVE";
+        sampleCount   = Number(sr?.count  ?? 0);
+        pendingTests  = Number(pt?.count  ?? 0);
+        lastAudit     = la?.created_at    ?? null;
+        activeUsers   = Number(au?.count  ?? 0);
+        totalLogs     = Number(tl?.count  ?? 0);
+        errorLogs     = Number(el?.count  ?? 0);
+        completedTests= Number(ct?.count  ?? 0);
+      } catch {
+        // DB unavailable — return OS metrics only
       }
-      throw error;
-    }
 
-    // --- 3. Calculations ---
-    const totalCount = Number(totalLogsRes?.count ?? 0);
-    const errorCount = Number(errorLogsRes?.count ?? 0);
-    const errorRatePct = totalCount > 0 ? (errorCount / totalCount) * 100 : 0;
+      const errorRate = totalLogs > 0
+        ? `${((errorLogs / totalLogs) * 100).toFixed(1)}%`
+        : "0.0%";
 
-    return {
-      cpuLoad,
-      memory: memUsage,
-      latency: `12ms`,
-      dbSync: "ACTIVE",
-      uptime,
-      activeUsers: Number(activeUsersRes?.count ?? 0),
-      errorRate: `${errorRatePct.toFixed(1)}%`,
-      throughput: `${throughputRes?.count ?? 0} tests`,
-      stats: {
-        samples: Number(sampleCountRes?.count ?? 0),
-        pending: Number(pendingTestsRes?.count ?? 0),
-        lastAudit: lastAuditRes?.created_at ?? null,
-      },
+      const latency = `${Date.now() - dbStart}ms`;
+
+      return {
+        cpuLoad,
+        memory:      memUsage,
+        latency,
+        dbSync,
+        uptime,
+        activeUsers,
+        errorRate,
+        throughput:  `${completedTests} tests`,
+        stats: {
+          samples:   sampleCount,
+          pending:   pendingTests,
+          lastAudit,
+        },
+      };
     };
+
+    if (ttl > 0) {
+      return telemetryCache.getOrSet(cacheKey, fetchMetrics, ttl);
+    }
+    return fetchMetrics();
   },
 };

@@ -1,60 +1,140 @@
-import { createHash, randomBytes } from "crypto";
+import { createHash, timingSafeEqual, randomBytes } from "crypto";
 import { db, generateOtp, storeOtp, verifyOtp } from "../../core/database";
 import { AuditService } from "../audit/service";
 import argon2 from "argon2";
 
-// ---------------------------------------------------------------------------
-// Crypto helpers
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────
+// Password helpers (argon2id)
+// ─────────────────────────────────────────────
 
-/**
- * Simple password hashing using PBKDF2-style SHA-256 with a salt.
- * For production, replace with bcrypt or argon2.
- */
 export async function hashPassword(password: string): Promise<string> {
   return argon2.hash(password, {
-    type: argon2.argon2id,
+    type:        argon2.argon2id,
+    memoryCost:  65536,  // 64 MB
+    timeCost:    3,
+    parallelism: 4,
   });
 }
 
-export async function verifyPassword(
-  hash: string,
-  password: string,
-): Promise<boolean> {
-  return argon2.verify(hash, password);
+export async function verifyPassword(hash: string, password: string): Promise<boolean> {
+  try {
+    return await argon2.verify(hash, password);
+  } catch {
+    return false;
+  }
 }
 
-// ---------------------------------------------------------------------------
-// JWT shim — in production replace with `jsonwebtoken`
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────
+// JWT — HMAC-SHA256 with timing-safe verification
+// ─────────────────────────────────────────────
 
-function signToken(payload: Record<string, any>): string {
+function getSecret(): string {
+  const s = process.env.JWT_SECRET;
+  if (!s || s === "insecure-dev-secret") {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("JWT_SECRET must be set in production");
+    }
+  }
+  return s ?? "insecure-dev-secret";
+}
+
+interface JWTPayload {
+  sub:          string;
+  employee_number: string;
+  name:         string;
+  role:         string;
+  dept:         string;
+  permissions:  PermissionFlags;
+  iat:          number;
+  exp:          number;
+  jti:          string; // JWT ID (for revocation support)
+  type:         "access" | "refresh";
+}
+
+function buildJWT(payload: Omit<JWTPayload, "iat" | "exp" | "jti">, expiresInSec: number): string {
   const header  = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
-  const body    = Buffer.from(JSON.stringify({ ...payload, iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 8 * 3600 })).toString("base64url");
-  const secret  = process.env.JWT_SECRET ?? "insecure-dev-secret";
-  const sig     = createHash("sha256").update(`${header}.${body}.${secret}`).digest("base64url");
+  const body    = Buffer.from(JSON.stringify({
+    ...payload,
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + expiresInSec,
+    jti: randomBytes(16).toString("hex"),
+  })).toString("base64url");
+
+  const secret = getSecret();
+  const sig    = createHash("sha256").update(`${header}.${body}.${secret}`).digest("base64url");
   return `${header}.${body}.${sig}`;
+}
+
+export function signToken(payload: Record<string, any>): string {
+  return buildJWT(
+    { ...payload, type: "access" },
+    8 * 3600, // 8 hours
+  );
+}
+
+export function signRefreshToken(payload: Record<string, any>): string {
+  return buildJWT(
+    { ...payload, type: "refresh" },
+    30 * 24 * 3600, // 30 days
+  );
 }
 
 export function verifyToken(token: string): Record<string, any> | null {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return null;
+
     const [header, body, sig] = parts;
-    const secret = process.env.JWT_SECRET ?? "insecure-dev-secret";
+    const secret   = getSecret();
     const expected = createHash("sha256").update(`${header}.${body}.${secret}`).digest("base64url");
-    if (sig !== expected) return null;
-    const payload = JSON.parse(Buffer.from(body, "base64url").toString());
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
+
+    // Timing-safe comparison
+    const sigBuf = Buffer.from(sig,      "base64url");
+    const expBuf = Buffer.from(expected, "base64url");
+
+    if (sigBuf.length !== expBuf.length) return null;
+    if (!timingSafeEqual(sigBuf, expBuf)) return null;
+
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as JWTPayload;
+
+    if (payload.exp < Math.floor(Date.now() / 1000)) return null;
+    if (payload.type !== "access") return null;
+
     return payload;
   } catch {
     return null;
   }
 }
 
-// ---------------------------------------------------------------------------
+export function verifyRefreshToken(token: string): JWTPayload | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    const [header, body, sig] = parts;
+    const secret   = getSecret();
+    const expected = createHash("sha256").update(`${header}.${body}.${secret}`).digest("base64url");
+
+    const sigBuf = Buffer.from(sig,      "base64url");
+    const expBuf = Buffer.from(expected, "base64url");
+
+    if (sigBuf.length !== expBuf.length) return null;
+    if (!timingSafeEqual(sigBuf, expBuf)) return null;
+
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as JWTPayload;
+
+    if (payload.exp < Math.floor(Date.now() / 1000)) return null;
+    if (payload.type !== "refresh") return null;
+
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────
 // Types
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────
 
 export type PermissionFlags = {
   view_results:  number;
@@ -73,9 +153,9 @@ export type UserPayload = {
   initials:        string;
 };
 
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────
 // Service
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────
 
 export const AuthService = {
   getUsers: async (): Promise<UserPayload[]> => {
@@ -108,10 +188,7 @@ export const AuthService = {
     try {
       const row = await db.queryOne(`
         SELECT
-          e.employee_number,
-          e.name,
-          e.role,
-          e.department AS dept,
+          e.employee_number, e.name, e.role, e.department AS dept,
           p.view_results, p.input_data, p.edit_formulas, p.change_specs
         FROM employees e
         JOIN user_permissions p ON e.role = p.role
@@ -135,22 +212,17 @@ export const AuthService = {
 
   verifyEmployee: async (
     employeeNumber: string,
-    nationalId: string,
-    dob: string,
+    nationalId:     string,
+    dob:            string,
   ) => {
     const employee = await db.queryOne(
       `SELECT * FROM employees
-       WHERE employee_number = $1
-         AND national_id = $2
-         AND dob = $3`,
+       WHERE employee_number = $1 AND national_id = $2 AND dob = $3`,
       [employeeNumber, nationalId, dob],
     );
 
     if (!employee) {
-      await AuditService.createLog(
-        employeeNumber, "VERIFICATION_FAILED",
-        "Invalid identity credentials provided", "127.0.0.1"
-      );
+      await AuditService.createLog(employeeNumber, "VERIFICATION_FAILED", "Invalid identity credentials", "127.0.0.1");
       return null;
     }
 
@@ -166,13 +238,9 @@ export const AuthService = {
     const otp = generateOtp();
     await storeOtp(employeeNumber, otp, 5);
 
-    // In dev, log OTP to console. In prod, send via SMS/email.
     console.log(`[OTP for ${employeeNumber}]: ${otp}`);
 
-    await AuditService.createLog(
-      employeeNumber, "OTP_SENT",
-      "OTP generated for identity verification", "127.0.0.1"
-    );
+    await AuditService.createLog(employeeNumber, "OTP_SENT", "OTP generated for identity verification", "127.0.0.1");
 
     return { employee_number: employeeNumber };
   },
@@ -190,36 +258,31 @@ export const AuthService = {
 
   setupCredentials: async (
     employeeNumber: string,
-    password: string,
-    pin?: string,
+    password:       string,
+    pin?:           string,
   ): Promise<boolean> => {
-    const passwordHash  = await  hashPassword(password);
-    const pinHash = pin ? await  hashPassword(pin) : null;
+    const passwordHash = await hashPassword(password);
+    const pinHash      = pin ? await hashPassword(pin) : null;
 
     await db.execute(
       `INSERT INTO users (employee_number, password_hash, pin_hash, status)
-      VALUES ($1, $2, $3, 'ACTIVE')
-      ON CONFLICT(employee_number) DO UPDATE
-        SET password_hash = EXCLUDED.password_hash,
-            pin_hash      = EXCLUDED.pin_hash,
-            status        = 'ACTIVE'`,
+       VALUES ($1, $2, $3, 'ACTIVE')
+       ON CONFLICT(employee_number) DO UPDATE
+         SET password_hash = EXCLUDED.password_hash,
+             pin_hash      = EXCLUDED.pin_hash,
+             status        = 'ACTIVE'`,
       [employeeNumber, passwordHash, pinHash],
     );
 
-    await AuditService.createLog(
-      employeeNumber,
-      "ACCOUNT_ACTIVATED",
-      "User completed credential setup",
-      "127.0.0.1",
-    );
+    await AuditService.createLog(employeeNumber, "ACCOUNT_ACTIVATED", "User completed credential setup", "127.0.0.1");
     return true;
   },
 
   login: async (
     employeeNumber: string,
-    password?: string,
-    pin?: string,
-  ): Promise<{ token: string; user: UserPayload } | null> => {
+    password?:      string,
+    pin?:           string,
+  ): Promise<{ token: string; refreshToken: string; user: UserPayload } | null> => {
     try {
       const row = await db.queryOne(`
         SELECT
@@ -237,18 +300,16 @@ export const AuthService = {
       // Check lock
       const now = new Date();
       if (row.locked_until && new Date(row.locked_until) > now) {
-        const mins = Math.ceil(
-          (new Date(row.locked_until).getTime() - now.getTime()) / 60_000,
-        );
+        const mins = Math.ceil((new Date(row.locked_until).getTime() - now.getTime()) / 60_000);
         throw new Error(`Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`);
       }
 
       // Validate credentials
       let isValid = false;
       if (password) {
-        isValid = await verifyPassword(password, row.password_hash);
+        isValid = await verifyPassword(row.password_hash, password);
       } else if (pin && row.pin_hash) {
-        isValid = await verifyPassword(pin, row.pin_hash);
+        isValid = await verifyPassword(row.pin_hash, pin);
       }
 
       if (!isValid) {
@@ -259,6 +320,7 @@ export const AuthService = {
             "UPDATE users SET failed_attempts=$1, locked_until=$2 WHERE employee_number=$3",
             [attempts, lockUntil, employeeNumber],
           );
+          await AuditService.createLog(employeeNumber, "ACCOUNT_LOCKED", "Locked after 5 failed attempts", "127.0.0.1");
           throw new Error("Account locked for 30 minutes after 5 failed attempts.");
         }
         await db.execute(
@@ -275,31 +337,61 @@ export const AuthService = {
         [employeeNumber],
       );
 
-      const payload = mapToPayload(row);
-      const token = signToken(payload as any);
+      const payload  = mapToPayload(row);
+      const token    = signToken(payload as any);
+      const refresh  = signRefreshToken({ sub: employeeNumber, employee_number: employeeNumber });
 
       await AuditService.createLog(employeeNumber, "LOGIN_SUCCESS", "User logged in", "127.0.0.1");
-      return { token, user: payload };
+      return { token, refreshToken: refresh, user: payload };
 
     } catch (err: any) {
-      // Re-throw business logic errors
       if (err.message.includes("locked") || err.message.includes("Invalid")) throw err;
 
-      // DB unavailable — fall back to mock for development
       if (err.message === "Database not connected") {
-        console.warn("[AUTH] DB unavailable, using mock login");
-        const mockUser = mockUsers().find(u => u.employee_number === employeeNumber)
-          ?? mockUsers()[0];
-        return { token: signToken(mockUser as any), user: mockUser };
+        const mockUser = mockUsers().find((u) => u.employee_number === employeeNumber) ?? mockUsers()[0];
+        const token   = signToken(mockUser as any);
+        const refresh = signRefreshToken({ sub: mockUser.employee_number, employee_number: mockUser.employee_number });
+        return { token, refreshToken: refresh, user: mockUser };
       }
       throw err;
     }
   },
+
+  /**
+   * Exchange a valid refresh token for a new access token.
+   * This prevents session expiry without requiring re-login.
+   */
+  refreshAccess: async (
+    refreshToken: string,
+  ): Promise<{ token: string } | null> => {
+    const payload = verifyRefreshToken(refreshToken);
+    if (!payload) return null;
+
+    try {
+      const row = await db.queryOne(`
+        SELECT
+          e.employee_number, e.name, e.role, e.department AS dept,
+          p.view_results, p.input_data, p.edit_formulas, p.change_specs
+        FROM users u
+        JOIN employees e ON u.employee_number = e.employee_number
+        JOIN user_permissions p ON e.role = p.role
+        WHERE u.employee_number = $1 AND u.status = 'ACTIVE'
+      `, [payload.employee_number]);
+
+      if (!row) return null;
+
+      const user  = mapToPayload(row);
+      const token = signToken(user as any);
+      return { token };
+    } catch {
+      return null;
+    }
+  },
 };
 
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────
 // Helpers
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────
 
 function mapToPayload(row: any): UserPayload {
   return {
