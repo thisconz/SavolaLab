@@ -1,5 +1,6 @@
-import { Hono } from "hono";
-import { SampleService } from "./service";
+import { Hono }                                 from "hono";
+import type { Variables }                       from "../../core/types";
+import { SampleService }                        from "./service";
 import { authenticateToken, requirePermission } from "../../core/middleware";
 import { 
   CreateSampleRequestSchema, 
@@ -7,8 +8,7 @@ import {
   GetSamplesResponseSchema,
   GetSampleResponseSchema
 } from "../../../src/shared/schemas/sample.schema";
-import type { Variables } from "../../core/types";
-import { logger } from "../../core/logger";
+import { logger }                              from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 

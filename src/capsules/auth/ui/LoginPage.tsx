@@ -11,7 +11,7 @@ import {
   AlertTriangle,
   RefreshCw
 } from "lucide-react";
-import { LogoRoot, LogoIcon, LogoText } from "../../../ui/components/Logo";
+import { LogoRoot, LogoIcon, LogoText } from "../../../shared/components/Logo";
 import { RegistrationFlow } from "./RegistrationFlow";
 import { useAuthFlow } from "../hooks/useAuthFlow";
 

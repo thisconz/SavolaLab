@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "@/src/lib/motion";
 import { useAppStore, AppTab } from "../../orchestrator/state/app.store";
 import { useAuthStore } from "../../orchestrator/state/auth.store";
 import { isTabAllowed } from "../../core/rbac";
-import { ErrorBoundary as GlobalErrorBoundary } from "../../ui/components/ErrorBoundary";
+import { ErrorBoundary as GlobalErrorBoundary } from "../../shared/components/ErrorBoundary";
 
 /**
  * Registry of Feature Modules

@@ -1,6 +1,6 @@
-import { db } from "../../core/database";
+import { db }             from "../../core/database";
 import { TestRepository } from "./repository";
-import { sseBus } from "../../core/sse";
+import { sseBus }         from "../../core/sse";
 
 const updateWorkflowStep = async (
   sampleId:  number,

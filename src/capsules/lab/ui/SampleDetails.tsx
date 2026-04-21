@@ -6,8 +6,8 @@ import {
 } from "lucide-react";
 import type { Sample } from "../../../core/types";
 import { SampleStatus, TestStatus } from "../../../core/types";
-import { LabPanel } from "../../../ui/components/LabPanel";
-import { LabButton } from "../../../ui/components/LabButton";
+import { LabPanel } from "../../../shared/components/LabPanel";
+import { LabButton } from "../../../shared/components/LabButton";
 import { useSampleDetails } from "../hooks/useSampleDetails";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 

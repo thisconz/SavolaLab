@@ -5,7 +5,7 @@ import {
   Zap, Activity, FlaskConical, ListChecks, RefreshCw, Wifi,
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { LabPanel } from "../../../ui/components/LabPanel";
+import { LabPanel } from "../../../shared/components/LabPanel";
 import { NotificationApi } from "../../notifications";
 import { LabApi } from "../../lab";
 import { Notification, Sample, TestResult } from "../../../core/types";
@@ -17,7 +17,7 @@ import { QCTrendsWidget }   from "./QCTrendsWidget";
 import { PriorityWidget }   from "./PriorityWidget";
 import { EfficiencyWidget } from "./EfficiencyWidget";
 import { PlantOverviewWidget } from "./PlantOverviewWidget";
-import { MetricCard } from "../../../ui/components/MetricCard";
+import { MetricCard } from "../../../shared/components/MetricCard";
 
 export const DashboardFeature: React.FC = memo(() => {
   const [data, setData] = useState({

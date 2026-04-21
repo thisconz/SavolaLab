@@ -1,5 +1,5 @@
 import { createNotification } from "../../core/db/events";
-import { db } from "../../core/database";
+import { db }                 from "../../core/database";
 
 export const ALLOWED_TABLES = new Set([
   "sample_types",

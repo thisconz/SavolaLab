@@ -14,6 +14,7 @@ import {
 import { WorkflowSchema, WorkflowStepSchema } from "../../shared/schemas/workflow.schema";
 import { NotificationSchema, NotificationTypeSchema } from "../../shared/schemas/notification.schema";
 import { AuditLogSchema } from "../../shared/schemas/audit.schema";
+import { TestType } from "./lab.types";
 
 /** --- Enums from Schemas --- */
 export type SampleStatus = z.infer<typeof SampleStatusSchema>;
@@ -64,20 +65,22 @@ export interface WorkflowExecution {
   workflow_id:  number;
   sample_id:    number;
   status:       WorkflowExecutionStatus;
-  started_at:   string;
+  started_at?:   string;
   completed_at?: string;
   step_executions?: WorkflowStepExecution[];
 }
 
 export interface WorkflowStepExecution {
-  id:             number;
-  execution_id:   number;
-  step_id:        number;
-  test_id?:       number;
-  result_value?:  number;
+  id:            number;
+  execution_id:  number;
+  step_id:       number;
   status:         WorkflowStepExecutionStatus;
-  started_at?:    string;
-  completed_at?:  string;
-  test_type?:     string;
+  started_at?:   string;
+  completed_at?: string;
+  test_id?:      number;
+  result_value?: number;
   sequence_order?: number;
+  test_type?:    TestType;
+  min_value?:    number;
+  max_value?:    number;
 }

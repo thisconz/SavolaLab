@@ -2,7 +2,7 @@ import React, { memo, useMemo, type FC } from "react";
 import { Activity, ChevronRight, Zap, ShieldCheck, LucideIcon, Home } from "lucide-react";
 import { useAppStore }            from "../../orchestrator/state/app.store";
 import { NotificationCenter }     from "../../capsules/notifications";
-import { LogoRoot, LogoText }     from "../../ui/components/Logo";
+import { LogoRoot, LogoText }     from "../../shared/components/Logo";
 import { RealtimeStatusBadge }    from "../../core/providers/RealtimeProvider";
 import { motion }                 from "@/src/lib/motion";
 import clsx                       from "@/src/lib/clsx";

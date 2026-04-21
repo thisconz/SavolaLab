@@ -1,4 +1,4 @@
-import { db }                     from "../../core/database";
+import { db }                      from "../../core/database";
 import { logger }                  from "../../core/logger";
 import { NotificationRepository }  from "./repository";
 import { sseBus }                  from "../../core/sse";

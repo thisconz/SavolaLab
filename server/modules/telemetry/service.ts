@@ -1,27 +1,7 @@
 import os              from "os";
 import { db }          from "../../core/database";
 import { telemetryCache, TTL } from "../../core/cache";
-
-export interface TelemetryMetrics {
-  cpuLoad:     string;
-  memory:      string;
-  latency:     string;
-  dbSync:      "ACTIVE" | "INACTIVE";
-  uptime:      string;
-  activeUsers: number;
-  errorRate:   string;
-  throughput:  string;
-  stats: {
-    samples:   number;
-    pending:   number;
-    lastAudit: string | null;
-  };
-}
-
-export interface TelemetryFilter {
-  startDate?: string;
-  endDate?:   string;
-}
+import { TelemetryMetrics, TelemetryFilter } from "../../core/types";
 
 export const TelemetryService = {
   getTelemetry: async (filter?: TelemetryFilter): Promise<TelemetryMetrics> => {

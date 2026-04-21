@@ -1,9 +1,9 @@
-import { Hono } from "hono";
-import { NotificationService } from "./service";
-import { authenticateToken } from "../../core/middleware";
-import type { Variables } from "../../core/types";
-import { logger } from "../../core/logger";
+import { Hono }                           from "hono";
+import type { Variables }                 from "../../core/types";
+import { NotificationService }            from "./service";
+import { authenticateToken }              from "../../core/middleware";
 import { GetNotificationsResponseSchema } from "../../../src/shared/schemas/notification.schema";
+import { logger }                         from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 

@@ -3,7 +3,7 @@ import {
   ListChecks, Search, Clock, CheckCircle2, XCircle,
   Play, History, AlertCircle, Plus, RefreshCw, Zap,
 } from "lucide-react";
-import { LabPanel }      from "../../../ui/components/LabPanel";
+import { LabPanel }      from "../../../shared/components/LabPanel";
 import { LabApi }        from "../../lab/api/lab.api";
 import { WorkflowApi }   from "../api/workflow.api";
 import { WorkflowExecution, Sample } from "../../../core/types";

@@ -5,7 +5,7 @@ import {
   Archive, LogOut, RefreshCw, Cpu, Fingerprint
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { LogoRoot, LogoIcon } from "../../ui/components/Logo";
+import { LogoRoot, LogoIcon } from "../../shared/components/Logo";
 import { useAppStore, AppTab, useAppActions } from "../../orchestrator/state/app.store";
 import { useAuthStore } from "../../orchestrator/state/auth.store";
 import { QuickSwitch } from "../../capsules/auth";

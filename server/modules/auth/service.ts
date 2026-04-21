@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual, randomBytes } from "crypto";
-import { db, generateOtp, storeOtp, verifyOtp } from "../../core/database";
-import { AuditService } from "../audit/service";
-import argon2 from "argon2";
+import { db, generateOtp, storeOtp, verifyOtp }     from "../../core/database";
+import { AuditService }                             from "../audit/service";
+import argon2                                       from "argon2";
 
 // ─────────────────────────────────────────────
 // Password helpers (argon2id)
@@ -67,14 +67,40 @@ function buildJWT(payload: Omit<JWTPayload, "iat" | "exp" | "jti">, expiresInSec
 
 export function signToken(payload: Record<string, any>): string {
   return buildJWT(
-    { ...payload, type: "access" },
+    {
+      ...payload, type: "access",
+      sub: "",
+      employee_number: "",
+      name: "",
+      role: "",
+      dept: "",
+      permissions: {
+        view_results: 0,
+        input_data: 0,
+        edit_formulas: 0,
+        change_specs: 0
+      }
+    },
     8 * 3600, // 8 hours
   );
 }
 
 export function signRefreshToken(payload: Record<string, any>): string {
   return buildJWT(
-    { ...payload, type: "refresh" },
+    {
+      ...payload, type: "refresh",
+      sub: "",
+      employee_number: "",
+      name: "",
+      role: "",
+      dept: "",
+      permissions: {
+        view_results: 0,
+        input_data: 0,
+        edit_formulas: 0,
+        change_specs: 0
+      }
+    },
     30 * 24 * 3600, // 30 days
   );
 }

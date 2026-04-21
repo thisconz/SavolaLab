@@ -4,7 +4,7 @@ import {
   FileText, ArrowRight, Activity, RefreshCw, Wifi,
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { LabPanel }      from "../../../ui/components/LabPanel";
+import { LabPanel }      from "../../../shared/components/LabPanel";
 import { StatApi }       from "../api/stat.api";
 import { StatRequest }   from "../../../core/types";
 import { useRealtime }   from "../../../core/providers/RealtimeProvider";

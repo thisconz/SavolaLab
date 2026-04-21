@@ -5,11 +5,11 @@ import {
   ChevronUp, Keyboard, RotateCcw, Eye, EyeOff,
 } from "lucide-react";
 import { Sample, TestResult, TestType } from "../../../core/types";
-import { LabPanel } from "../../../ui/components/LabPanel";
+import { LabPanel } from "../../../shared/components/LabPanel";
 import { useLabBench } from "../hooks/useLabBench";
 import { TEST_VALIDATION_RULES } from "../constants/validation.constants";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { StatusPill } from "../../../ui/components/StatusPill";
+import { StatusPill } from "../../../shared/components/StatusPill";
 import clsx from "@/src/lib/clsx";
 
 interface LabBenchProps {

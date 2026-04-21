@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import { SettingsApi }             from "../api/settings.api";
-import { Modal }                   from "../../../ui/components/Modal";
+import { Modal }                   from "../../../shared/components/Modal";
 import { toast }                   from "sonner";
 import clsx                        from "@/src/lib/clsx";
 

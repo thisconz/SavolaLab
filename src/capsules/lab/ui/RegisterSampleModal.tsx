@@ -2,8 +2,8 @@ import React, { useState, memo } from "react";
 import {
   Plus, Beaker, Layers, Activity, Hash, Settings, TestTube2, AlertCircle, Clock,
 } from "lucide-react";
-import { LabButton } from "../../../ui/components/LabButton";
-import { Modal } from "../../../ui/components/Modal";
+import { LabButton } from "../../../shared/components/LabButton";
+import { Modal } from "../../../shared/components/Modal";
 import { SamplePriority, SampleStatus } from "../../../core/types";
 import { LabApi } from "../api/lab.api";
 

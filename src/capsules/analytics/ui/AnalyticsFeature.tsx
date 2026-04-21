@@ -3,7 +3,7 @@ import {
   BarChart3, TrendingUp, Activity, Info,
   ChevronUp, ChevronDown, RefreshCw, CheckCircle2, XCircle,
 } from "lucide-react";
-import { LabPanel }           from "../../../ui/components/LabPanel";
+import { LabPanel }           from "../../../shared/components/LabPanel";
 import { api }                from "../../../core/http/client";
 import { useRealtime }        from "../../../core/providers/RealtimeProvider";
 import clsx                   from "@/src/lib/clsx";

@@ -12,7 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Sample, SampleStatus } from "../../../core/types";
-import { PriorityBadge } from "../../../ui/components/PriorityBadge";
+import { PriorityBadge } from "../../../shared/components/PriorityBadge";
 
 interface SampleCardProps {
   sample:  Sample;

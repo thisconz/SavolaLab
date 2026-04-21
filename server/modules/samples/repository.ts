@@ -1,5 +1,5 @@
-import { db } from "../../core/database";
-import { SampleData, TestResultSummary, SampleTest } from "./service";
+import { db }                                        from "../../core/database";
+import { SampleData, TestResultSummary, SampleTest } from "../../core/types";
 
 export const SampleRepository = {
   async findAll(): Promise<any[]> {

@@ -1,187 +1,134 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useState, useCallback, useRef } from "react";
 import {
-  Truck,
-  MapPin,
-  Clock,
-  Package,
-  CheckCircle2,
-  AlertCircle,
+  Truck, Package, Clock, AlertCircle, CheckCircle2,
+  RefreshCw, MapPin, Wifi,
 } from "lucide-react";
-import { LabPanel } from "../../../ui/components/LabPanel";
-import { api } from "../../../core/http/client";
+import { LabPanel }     from "../../../shared/components/LabPanel";
+import { MetricCard }   from "../../../shared/components/MetricCard";
+import { DataListRow }  from "../../../shared/components/DataListRow";
+import { api }          from "../../../core/http/client";
+import { useRealtime }  from "../../../core/providers/RealtimeProvider";
+import { motion, AnimatePresence } from "@/src/lib/motion";
+import clsx             from "@/src/lib/clsx";
 
-/**
- * DispatchFeature Component
- *
- * Provides a real-time overview of the dispatch and logistics operations.
- * It integrates with the laboratory's QC release process to ensure only approved
- * batches are shipped.
- *
- * Features:
- * - High-level metrics for pending, in-transit, and delivered shipments.
- * - A detailed view of active shipments, including destination and ETA.
- * - A QC Release Queue that links production batches to their laboratory testing status,
- *   visually indicating whether a batch is ready for release or still pending analysis.
- */
-import { MetricCard } from "../../../ui/components/MetricCard";
-import { DataListRow } from "../../../ui/components/DataListRow";
+interface DispatchData {
+  metrics:         { pending: number; inTransit: number; delayed: number; critical: number };
+  activeShipments: { id: string; client: string; destination: string; status: string; eta: string }[];
+  qcQueue:         { batch: string; client: string; status: string; progress: number; testsCompleted: number; totalTests: number }[];
+}
 
 export const DispatchFeature: React.FC = memo(() => {
-  const [dispatchData, setDispatchData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [data,         setData]        = useState<DispatchData | null>(null);
+  const [loading,      setLoading]     = useState(true);
+  const [isRefreshing, setIsRefreshing]= useState(false);
 
-  useEffect(() => {
-    const fetchDispatch = async () => {
-      try {
-        const res = await api.get<any>("/dispatch");
-        setDispatchData(res.data);
-      } catch (err) {
-        console.error("Failed to fetch dispatch data", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDispatch();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+  const { on }        = useRealtime();
+
+  const fetchDispatch = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true); else setIsRefreshing(true);
+    try {
+      const res = await api.get<any>("/dispatch");
+      setData(res.data);
+    } catch (err) {
+      console.error("Failed to fetch dispatch data", err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
   }, []);
 
-  if (loading || !dispatchData) {
+  useEffect(() => { fetchDispatch(); }, [fetchDispatch]);
+
+  // Refresh QC queue when samples/tests update via SSE
+  useEffect(() => {
+    const refresh = () => { clearTimeout(debounceTimer.current); debounceTimer.current = setTimeout(() => fetchDispatch(true), 800); };
+    const unsubs  = [on("SAMPLE_STATUS_CHANGED", refresh), on("TEST_REVIEWED", refresh)];
+    return () => { unsubs.forEach((u) => u()); clearTimeout(debounceTimer.current); };
+  }, [on, fetchDispatch]);
+
+  if (loading || !data) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-primary" />
       </div>
     );
   }
 
+  const statusVariant = (s: string): "success" | "warning" | "error" | "info" => (
+    { "In Transit": "success", "Delayed": "warning", "Critical": "error" }[s] ?? "info"
+  ) as any;
+
   return (
     <div className="flex flex-col h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-8 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
-          <MetricCard
-            label="Pending Shipments"
-            value={dispatchData.metrics.pending}
-            trend="Awaiting QC"
-            icon={Package}
-            variant="primary"
-          />
-          <MetricCard
-            label="In Transit"
-            value={dispatchData.metrics.inTransit}
-            trend="On Schedule"
-            icon={Truck}
-            variant="success"
-          />
-          <MetricCard
-            label="Delayed"
-            value={dispatchData.metrics.delayed}
-            trend="Traffic/Weather"
-            icon={Clock}
-            variant="warning"
-          />
-          <MetricCard
-            label="Critical Issues"
-            value={dispatchData.metrics.critical}
-            trend="All Clear"
-            icon={AlertCircle}
-            variant="error"
-          />
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 mb-4 shrink-0">
+        <div>
+          <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
+            <Truck className="w-5 h-5 text-brand-primary" /> Dispatch
+          </h2>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">Logistics & QC Release</p>
+            {isRefreshing && <span className="flex items-center gap-1 text-[9px] font-bold text-brand-primary"><RefreshCw size={9} className="animate-spin" /> Syncing</span>}
+          </div>
+        </div>
+        <button onClick={() => fetchDispatch(true)} className="p-2 rounded-xl border border-brand-sage/20 bg-(--color-zenthar-graphite) hover:bg-(--color-zenthar-graphite)/80 transition-colors group">
+          <RefreshCw className={clsx("w-4 h-4 text-brand-sage group-hover:text-brand-primary", isRefreshing && "animate-spin")} />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 pb-6">
+        {/* Metrics */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+          <MetricCard label="Pending"     value={data.metrics.pending}   trend="Awaiting QC"   icon={Package}      variant="primary"   />
+          <MetricCard label="In Transit"  value={data.metrics.inTransit} trend="On Schedule"   icon={Truck}        variant="success"   />
+          <MetricCard label="Delayed"     value={data.metrics.delayed}   trend="Under review"  icon={Clock}        variant="warning"   />
+          <MetricCard label="Critical"    value={data.metrics.critical}  trend="Needs action"  icon={AlertCircle}  variant="error"     />
         </div>
 
-        <div className="grid grid-cols-12 gap-8 shrink-0">
-          <div className="col-span-12 lg:col-span-8">
+        <div className="grid grid-cols-12 gap-6 shrink-0">
+          {/* Active shipments */}
+          <div className="col-span-12 lg:col-span-7">
             <LabPanel title="Active Shipments" icon={Truck}>
-              <div className="flex flex-col gap-4 p-4">
-                {dispatchData.activeShipments.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-zenthar-text-secondary gap-6 bg-zenthar-carbon/50 rounded-3xl border border-white/5 relative overflow-hidden group py-12">
-                    <div className="absolute inset-0 bg-brand-primary/5 rounded-full blur-3xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                    <div className="p-6 bg-zenthar-void rounded-full border border-white/10 relative z-10">
-                      <Truck className="w-16 h-16 opacity-40 text-brand-primary group-hover:opacity-80 transition-opacity duration-300" />
-                    </div>
-                    <div className="text-center relative z-10">
-                      <p className="text-sm font-black text-white uppercase tracking-[0.2em]">
-                        No Active Shipments
-                      </p>
-                      <p className="text-xs text-zenthar-text-secondary mt-2 font-medium">
-                        Logistics_Pipeline_Standby
-                      </p>
-                    </div>
-                  </div>
+              <div className="flex flex-col gap-3 p-4">
+                {data.activeShipments.length === 0 ? (
+                  <EmptyState icon={Truck} title="No Active Shipments" subtitle="Logistics_Pipeline_Standby" />
                 ) : (
-                  dispatchData.activeShipments.map((shipment: any, i: number) => (
-                    <DataListRow
-                      key={i}
-                      id={shipment.id}
-                      title={shipment.client}
-                      subtitle={shipment.destination}
-                      icon={Truck}
-                      status={{
-                        label: shipment.status,
-                        variant: shipment.status === "In Transit" ? "success" : shipment.status === "Delayed" ? "warning" : "info"
-                      }}
-                      metrics={[
-                        { label: "Status", value: shipment.status },
-                        { label: "ETA", value: shipment.eta }
-                      ]}
-                    />
+                  data.activeShipments.map((s, i) => (
+                    <DataListRow key={i} id={s.id} title={s.client} subtitle={s.destination}
+                      icon={MapPin}
+                      status={{ label: s.status, variant: statusVariant(s.status) }}
+                      metrics={[{ label: "ETA", value: s.eta }]} />
                   ))
                 )}
               </div>
             </LabPanel>
           </div>
-          <div className="col-span-4">
+
+          {/* QC Release Queue */}
+          <div className="col-span-12 lg:col-span-5">
             <LabPanel title="QC Release Queue" icon={CheckCircle2}>
               <div className="flex flex-col gap-4 p-4">
-                {dispatchData.qcQueue.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-brand-sage gap-6 bg-(--color-zenthar-carbon)/50 rounded-3xl border border-brand-sage/10 relative overflow-hidden group py-12">
-                    <div className="absolute inset-0 bg-brand-primary/5 rounded-full blur-3xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                    <div className="p-6 bg-(--color-zenthar-void) rounded-full border border-brand-sage/20 relative z-10">
-                      <CheckCircle2 className="w-16 h-16 opacity-40 text-brand-primary group-hover:opacity-80 transition-opacity duration-300" />
-                    </div>
-                    <div className="text-center relative z-10">
-                      <p className="text-sm font-black text-white uppercase tracking-[0.2em]">
-                        Queue Empty
-                      </p>
-                      <p className="text-xs text-brand-sage mt-2 font-medium">
-                        No batches awaiting QC release.
-                      </p>
-                    </div>
-                  </div>
+                {data.qcQueue.length === 0 ? (
+                  <EmptyState icon={CheckCircle2} title="Queue Empty" subtitle="No batches awaiting QC release" />
                 ) : (
-                  dispatchData.qcQueue.map((item: any, i: number) => {
-                    const isReleased = item.status === "Released";
-                    const colorClass = isReleased ? "emerald" : "amber";
-
+                  data.qcQueue.map((item, i) => {
+                    const released = item.status === "Released";
                     return (
-                      <div
-                        key={i}
-                        className="p-5 bg-(--color-zenthar-carbon) border border-brand-sage/20 rounded-2xl hover:border-brand-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer group"
-                      >
+                      <div key={i} className="p-5 bg-(--color-zenthar-carbon) border border-brand-sage/20 rounded-2xl hover:border-brand-primary/30 hover:shadow-sm transition-all group">
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-sm font-black text-white uppercase tracking-wider">
-                            {item.batch}
-                          </h4>
-                          <span
-                            className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.2em] border ${
-                              isReleased
-                                ? "text-emerald-400 bg-emerald-900/30 border-emerald-500/20"
-                                : "text-amber-400 bg-amber-900/30 border-amber-500/20"
-                            }`}
-                          >
+                          <h4 className="text-sm font-black text-white uppercase tracking-tight">{item.batch}</h4>
+                          <span className={clsx("px-2.5 py-1 rounded-md text-[9px] font-black uppercase border",
+                            released ? "text-emerald-400 bg-emerald-900/30 border-emerald-500/20" : "text-amber-400 bg-amber-900/30 border-amber-500/20")}>
                             {item.status}
                           </span>
                         </div>
-                        <p className="text-xs text-brand-sage font-medium mb-4">
-                          Client: {item.client}
-                        </p>
-                        <div className="w-full bg-(--color-zenthar-void) rounded-full h-2 overflow-hidden">
-                          <div
-                            className={`h-2 rounded-full transition-all duration-1000 ease-out ${isReleased ? "bg-emerald-500" : "bg-amber-500"}`}
-                            style={{ width: `${item.progress}%` }}
-                          ></div>
+                        <div className="w-full bg-(--color-zenthar-void) rounded-full h-1.5 overflow-hidden mb-2">
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${item.progress}%` }} transition={{ duration: 0.8, ease: "easeOut" }}
+                            className={clsx("h-full rounded-full", released ? "bg-emerald-500" : "bg-amber-500")} />
                         </div>
-                        <p className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-[0.2em] mt-3 text-right">
-                          {isReleased
-                            ? "Ready for Dispatch"
-                            : `${item.testsCompleted}/${item.totalTests} Tests Completed`}
+                        <p className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-widest text-right">
+                          {released ? "Ready for Dispatch" : `${item.testsCompleted}/${item.totalTests} Tests`}
                         </p>
                       </div>
                     );
@@ -195,6 +142,16 @@ export const DispatchFeature: React.FC = memo(() => {
     </div>
   );
 });
+
+const EmptyState: React.FC<{ icon: React.ElementType; title: string; subtitle: string }> = ({ icon: Icon, title, subtitle }) => (
+  <div className="flex flex-col items-center justify-center py-12 text-brand-sage gap-4 relative overflow-hidden group">
+    <div className="p-6 bg-(--color-zenthar-void) rounded-full border border-brand-sage/20 relative z-10">
+      <Icon className="w-10 h-10 opacity-30 text-brand-primary" />
+    </div>
+    <p className="text-sm font-black text-white uppercase tracking-widest">{title}</p>
+    <p className="text-[9px] font-mono text-brand-sage/60">{subtitle}</p>
+  </div>
+);
 
 DispatchFeature.displayName = "DispatchFeature";
 export default DispatchFeature;

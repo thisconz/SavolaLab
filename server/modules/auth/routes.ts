@@ -1,14 +1,13 @@
-import { Hono } from "hono";
+import { Hono }                               from "hono";
+import type { Variables }                     from "../../core/types";
 import { setCookie, deleteCookie, getCookie } from "hono/cookie";
-import { AuthService, verifyRefreshToken } from "./service";
-import { authenticateToken } from "../../core/middleware";
-import type { Variables } from "../../core/types";
-import { logger } from "../../core/logger";
-import { z } from "zod";
+import { AuthService, verifyRefreshToken }    from "./service";
+import { authenticateToken }                  from "../../core/middleware";
+import { z }                                  from "zod";
 import {
-  GetUsersResponseSchema,
-  GetMeResponseSchema,
-} from "../../../src/shared/schemas/auth.schema";
+  GetUsersResponseSchema, 
+  GetMeResponseSchema }                       from "../../../src/shared/schemas/auth.schema";
+import { logger }                             from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 

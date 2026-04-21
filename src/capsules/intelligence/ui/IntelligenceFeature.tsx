@@ -1,135 +1,109 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useState, useCallback, useRef } from "react";
 import {
-  Factory,
-  Activity,
-  AlertTriangle,
-  CheckCircle2,
-  Zap,
-  Clock,
+  Factory, Activity, AlertTriangle, CheckCircle2,
+  Zap, Clock, RefreshCw, TrendingUp,
 } from "lucide-react";
-import { LabPanel } from "../../../ui/components/LabPanel";
-import { api } from "../../../core/http/client";
+import { LabPanel }    from "../../../shared/components/LabPanel";
+import { MetricCard }  from "../../../shared/components/MetricCard";
+import { DataListRow } from "../../../shared/components/DataListRow";
+import { AlertCard }   from "../../../shared/components/AlertCard";
+import { api }         from "../../../core/http/client";
+import { useRealtime } from "../../../core/providers/RealtimeProvider";
+import clsx            from "@/src/lib/clsx";
 
-/**
- * IntelligenceFeature Component
- *
- * Acts as the central nervous system for plant operations, providing real-time
- * insights into equipment status, predictive maintenance alerts, and overall
- * operational efficiency (OEE).
- *
- * Features:
- * - Live monitoring of production line statuses (Running, Warning, Stopped).
- * - Predictive maintenance alerts to prevent unplanned downtime.
- * - Key performance indicators (KPIs) like OEE, Energy Efficiency, and Yield.
- */
-import { MetricCard } from "../../../ui/components/MetricCard";
-import { DataListRow } from "../../../ui/components/DataListRow";
-import { AlertCard } from "../../../ui/components/AlertCard";
+interface PlantData {
+  metrics: { oee: string; yield: string; energy: number; activeAlarms: number };
+  lines:   { name: string; status: string; uptime: string; oee: string }[];
+}
 
 export const IntelligenceFeature: React.FC = memo(() => {
-  const [intelData, setIntelData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [data,        setData]        = useState<PlantData | null>(null);
+  const [loading,     setLoading]     = useState(true);
+  const [isRefreshing,setIsRefreshing]= useState(false);
 
-  useEffect(() => {
-    const fetchIntel = async () => {
-      try {
-        const res = await api.get<any>("/operational/plant-intel");
-        setIntelData(res.data);
-      } catch (err) {
-        console.error("Failed to fetch plant intel", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchIntel();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+  const { on }        = useRealtime();
+
+  const fetchIntel = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true); else setIsRefreshing(true);
+    try {
+      const res = await api.get<any>("/operational/plant-intel");
+      setData(res.data);
+    } catch (err) { console.error("Failed to fetch plant intel", err); }
+    finally { setLoading(false); setIsRefreshing(false); }
   }, []);
 
-  if (loading || !intelData) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
-      </div>
-    );
+  useEffect(() => { fetchIntel(); }, [fetchIntel]);
+
+  // Refresh alarm count when audit events fire
+  useEffect(() => {
+    const refresh = () => { clearTimeout(debounceTimer.current); debounceTimer.current = setTimeout(() => fetchIntel(true), 1200); };
+    const unsub   = on("SYSTEM_ALERT", refresh);
+    return () => { unsub(); clearTimeout(debounceTimer.current); };
+  }, [on, fetchIntel]);
+
+  const statusVariant = (s: string): "success" | "warning" | "error" | "info" => (
+    { Running: "success", Warning: "warning", Stopped: "error" }[s] ?? "info"
+  ) as any;
+
+  if (loading || !data) {
+    return <div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-primary" /></div>;
   }
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-8 pb-8">
-        {/* Top Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
-          <MetricCard
-            label="Overall Equipment Effectiveness"
-            value={intelData.metrics.oee}
-            trend="+2.1% WEEKLY"
-            icon={Activity}
-            variant="success"
-          />
-          <MetricCard
-            label="Plant Yield"
-            value={intelData.metrics.yield}
-            trend="+0.5% TARGET"
-            icon={Factory}
-            variant="primary"
-          />
-          <MetricCard
-            label="Energy Consumption"
-            value={`${intelData.metrics.energy} kWh/t`}
-            trend="+1.2% TARGET"
-            icon={Zap}
-            variant="warning"
-          />
-          <MetricCard
-            label="Active Alarms"
-            value={intelData.metrics.activeAlarms}
-            trend="CRITICAL REQ"
-            icon={AlertTriangle}
-            variant="error"
-          />
+      <div className="flex items-center justify-between px-4 mb-4 shrink-0">
+        <div>
+          <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
+            <Factory className="w-5 h-5 text-brand-primary" /> Plant Intelligence
+          </h2>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">Real-time OEE & line status</p>
+            {isRefreshing && <span className="flex items-center gap-1 text-[9px] font-bold text-brand-primary"><RefreshCw size={9} className="animate-spin" /> Syncing</span>}
+          </div>
+        </div>
+        <button onClick={() => fetchIntel(true)} className="p-2 rounded-xl border border-brand-sage/20 bg-(--color-zenthar-graphite) hover:bg-(--color-zenthar-graphite)/80 transition-colors group">
+          <RefreshCw className={clsx("w-4 h-4 text-brand-sage group-hover:text-brand-primary", isRefreshing && "animate-spin")} />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 pb-6">
+        {/* KPI metrics */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+          <MetricCard label="OEE"            value={data.metrics.oee}           trend="+2.1% weekly"  icon={TrendingUp}   variant="success"  />
+          <MetricCard label="Plant Yield"    value={data.metrics.yield}         trend="+0.5% target"  icon={Factory}      variant="primary"  />
+          <MetricCard label="Energy (kWh/t)" value={`${data.metrics.energy}`}   trend="Monitor"       icon={Zap}          variant="warning"  />
+          <MetricCard label="Active Alarms"  value={data.metrics.activeAlarms}  trend={data.metrics.activeAlarms > 0 ? "Investigate" : "All clear"} icon={AlertTriangle} variant={data.metrics.activeAlarms > 0 ? "error" : "success"} />
         </div>
 
-        <div className="grid grid-cols-12 gap-8 shrink-0">
+        <div className="grid grid-cols-12 gap-6 shrink-0">
+          {/* Line status */}
           <div className="col-span-12 lg:col-span-8">
-            <LabPanel title="Line Status" icon={Factory}>
-              <div className="flex flex-col gap-4 p-4">
-                {intelData.lines.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center bg-zenthar-carbon/50 rounded-2xl border border-dashed border-white/5">
-                    <div className="p-4 bg-zenthar-void rounded-full mb-4">
-                      <Factory className="w-8 h-8 text-zenthar-text-muted" />
-                    </div>
-                    <p className="text-sm font-bold text-white uppercase tracking-wider">
-                      No Production Lines
-                    </p>
-                    <p className="text-[10px] text-zenthar-text-secondary mt-1 font-mono">
-                      CONFIGURE_RESOURCES_PENDING
-                    </p>
+            <LabPanel title="Production Line Status" icon={Factory}>
+              <div className="flex flex-col gap-3 p-4">
+                {data.lines.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <Factory className="w-8 h-8 text-brand-sage/20 mx-auto mb-2" />
+                    <p className="text-sm font-bold text-white uppercase tracking-wider">No production lines configured</p>
                   </div>
                 ) : (
-                  intelData.lines.map((line: any, i: number) => (
-                    <DataListRow
-                      key={i}
-                      title={line.name}
-                      subtitle={`Status: ${line.status}`}
-                      icon={Factory}
-                      status={{
-                        label: line.status,
-                        variant: line.status === "Running" ? "success" : line.status === "Warning" ? "warning" : "error"
-                      }}
-                      metrics={[
-                        { label: "Uptime", value: line.uptime },
-                        { label: "OEE", value: line.oee }
-                      ]}
-                    />
+                  data.lines.map((line, i) => (
+                    <DataListRow key={i} title={line.name} subtitle={`Status: ${line.status}`} icon={Factory}
+                      status={{ label: line.status, variant: statusVariant(line.status) }}
+                      metrics={[{ label: "Uptime", value: line.uptime }, { label: "OEE", value: line.oee }]} />
                   ))
                 )}
               </div>
             </LabPanel>
           </div>
+
+          {/* Predictive maintenance */}
           <div className="col-span-12 lg:col-span-4">
             <LabPanel title="Predictive Maintenance" icon={Activity}>
               <div className="flex flex-col gap-4 p-4">
                 <AlertCard
                   title="Centrifuge C-101 Vibration"
-                  message="Vibration levels increasing. Predicted failure in 48 hours if unaddressed."
+                  message="Vibration levels increasing. Predicted failure in 48h if unaddressed."
                   type="warning"
                   icon={AlertTriangle}
                 />
@@ -139,6 +113,14 @@ export const IntelligenceFeature: React.FC = memo(() => {
                   type="info"
                   icon={Clock}
                 />
+                {data.metrics.activeAlarms > 0 && (
+                  <AlertCard
+                    title={`${data.metrics.activeAlarms} Active Alarm${data.metrics.activeAlarms > 1 ? "s" : ""}`}
+                    message="Check audit logs for details on recent error events."
+                    type="error"
+                    icon={AlertTriangle}
+                  />
+                )}
               </div>
             </LabPanel>
           </div>

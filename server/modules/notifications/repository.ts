@@ -1,4 +1,4 @@
-import { db } from "../../core/database";
+import { db }           from "../../core/database";
 import { Notification } from "../../../src/shared/schemas/notification.schema";
 
 export const NotificationRepository = {

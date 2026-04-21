@@ -1,31 +1,8 @@
 import { createNotification } from "../../core/db/events";
-import { SampleRepository } from "./repository";
-import { AuditService } from "../audit/service";
-import { sseBus } from "../../core/sse";
-
-export type SampleData = {
-  batch_id?:     string;
-  sample_type?:  string;
-  source_stage?: string;
-  priority?:     string;
-  line_id?:      string | number | null;
-  equipment_id?: string | number | null;
-  shift_id?:     string | number | null;
-  status?:       string;
-};
-
-export type TestResultSummary = {
-  raw_value:    number;
-  performed_at: string;
-  batch_id:     string;
-};
-
-export type SampleTest = {
-  id:         number;
-  sample_id:  number;
-  test_type:  string;
-  status:     "PENDING" | "APPROVED" | "DISAPPROVED" | "COMPLETED" | "VALIDATING";
-};
+import { SampleRepository }   from "./repository";
+import { AuditService }       from "../audit/service";
+import { sseBus }             from "../../core/sse";
+import { SampleData, TestResultSummary, SampleTest } from "../../core/types";
 
 const DEFAULT_TESTS: Record<string, string[]> = {
   "Raw sugar":       ["Pol", "Moisture", "Colour"],

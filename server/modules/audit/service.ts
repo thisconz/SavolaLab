@@ -1,5 +1,5 @@
-import { db } from "../../core/database";
-import { logger } from "../../core/logger";
+import { db }          from "../../core/database";
+import { logger }      from "../../core/logger";
 
 export type AuditLog = {
   id: number;

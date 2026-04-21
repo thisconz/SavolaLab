@@ -1,12 +1,12 @@
-import { Hono } from "hono";
-import { StatService } from "./service";
+import { Hono }              from "hono";
+import type { Variables }    from "../../core/types";
+import { StatService }       from "./service";
 import { authenticateToken } from "../../core/middleware";
-import { logger } from "../../core/logger";
-import type { Variables } from "../../core/types";
 import {
   CreateStatRequestSchema,
   UpdateStatStatusRequestSchema,
 } from "../../../src/shared/schemas/stat.schema";
+import { logger }            from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 

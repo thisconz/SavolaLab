@@ -1,20 +1,7 @@
-import ExcelJS          from "exceljs";
-import { db }           from "../../core/database";
-import { logger }       from "../../core/logger";
-
-export type ExportType =
-  | "samples"
-  | "tests"
-  | "audit"
-  | "certificates"
-  | "instruments"
-  | "inventory";
-
-export interface ExportOptions {
-  type:       ExportType;
-  filters?:   Record<string, string | undefined>;
-  limit?:     number;
-}
+import ExcelJS                       from "exceljs";
+import { ExportType, ExportOptions } from "../../core/types";
+import { db }                        from "../../core/database";
+import { logger }                    from "../../core/logger";
 
 // ─────────────────────────────────────────────
 // Query builders per export type
@@ -257,15 +244,17 @@ function formatHeader(h: string): string {
 }
 
 const BORDER_MEDIUM: ExcelJS.Borders = {
-  top:    { style: "medium", color: { argb: "FF000000" } },
+  top: { style: "medium", color: { argb: "FF000000" } },
   bottom: { style: "medium", color: { argb: "FF000000" } },
-  left:   { style: "thin",   color: { argb: "FF334155" } },
-  right:  { style: "thin",   color: { argb: "FF334155" } },
+  left: { style: "thin", color: { argb: "FF334155" } },
+  right: { style: "thin", color: { argb: "FF334155" } },
+  diagonal: { style: "thin", color: { argb: "FF334155" } }
 };
 
 const BORDER_THIN: ExcelJS.Borders = {
-  top:    { style: "thin", color: { argb: "FFE2E8F0" } },
+  top: { style: "thin", color: { argb: "FFE2E8F0" } },
   bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
-  left:   { style: "thin", color: { argb: "FFE2E8F0" } },
-  right:  { style: "thin", color: { argb: "FFE2E8F0" } },
+  left: { style: "thin", color: { argb: "FFE2E8F0" } },
+  right: { style: "thin", color: { argb: "FFE2E8F0" } },
+  diagonal: { style: "thin", color: { argb: "FFE2E8F0" } }
 };

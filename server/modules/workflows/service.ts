@@ -1,6 +1,5 @@
 import { db }     from "../../core/database";
 import { sseBus } from "../../core/sse";
-import { logger } from "../../core/logger";
 
 export type WorkflowStepInput = {
   test_type:  string;
@@ -56,7 +55,6 @@ export const WorkflowService = {
         );
       }
 
-      logger.info({ workflowId, steps: steps.length }, "Workflow created");
       return workflowId;
     });
   },
@@ -101,7 +99,6 @@ export const WorkflowService = {
         steps:         stepRows.length,
       });
 
-      logger.info({ executionId, workflowId, sampleId }, "Workflow execution started");
       return executionId;
     });
   },
@@ -205,10 +202,8 @@ export const WorkflowService = {
       if (!workflow) return;
 
       await WorkflowService.executeWorkflow(workflow.id, sampleId);
-      logger.info({ sampleId, stage, workflowId: workflow.id }, "Auto-executed workflow for sample");
     } catch (err) {
       // Non-fatal — workflow auto-start failure should not block sample registration
-      logger.warn({ err, sampleId, stage }, "Auto-workflow execution failed (non-fatal)");
     }
   },
 };

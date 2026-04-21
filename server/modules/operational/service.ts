@@ -1,8 +1,6 @@
-import { db, createAuditLog } from "../../core/database";
+import { db, createAuditLog }    from "../../core/database";
 import { operationalCache, TTL } from "../../core/cache";
-
-type Pagination    = { limit?: number; offset?: number };
-type EquipmentFilter = { lineId?: string } & Pagination;
+import { Pagination, EquipmentFilter } from "../../core/types";
 
 function replacePlaceholders(sql: string) {
   let index = 1;

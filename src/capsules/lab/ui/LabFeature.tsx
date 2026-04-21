@@ -4,15 +4,15 @@ import {
   Activity, LayoutDashboard, RefreshCw, Wifi,
 } from "lucide-react";
 import { motion, AnimatePresence }   from "@/src/lib/motion";
-import { LabPanel }                  from "../../../ui/components/LabPanel";
-import { LabButton }                 from "../../../ui/components/LabButton";
+import { LabPanel }                  from "../../../shared/components/LabPanel";
+import { LabButton }                 from "../../../shared/components/LabButton";
 import { SampleQueue }               from "./SampleQueue";
 import { SampleDetails }             from "./SampleDetails";
 import { LabBench }                  from "./LabBench";
 import { RegisterSampleModal }       from "./RegisterSampleModal";
 import { useLabSamples }             from "../hooks/useLabSamples";   // ← live hook
 import { Sample, SampleStatus }      from "../../../core/types";
-import { ErrorBoundary }             from "../../../ui/components/ErrorBoundary";
+import { ErrorBoundary }             from "../../../shared/components/ErrorBoundary";
 import { QCStatsWidget }             from "../../dashboard/ui/QCStatsWidget";
 import { PriorityWidget }            from "../../dashboard/ui/PriorityWidget";
 import clsx from "@/src/lib/clsx";

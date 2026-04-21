@@ -5,8 +5,8 @@ import {
 } from "lucide-react";
 import { motion } from "@/src/lib/motion";
 import { ArchiveApi }          from "../api/archive.api";
-import { Modal }               from "../../../ui/components/Modal";
-import { TableSkeleton }       from "../../../ui/components/Skeletons";
+import { Modal }               from "../../../shared/components/Modal";
+import { TableSkeleton }       from "../../../shared/components/Skeletons";
 import { toast }               from "sonner";
 
 type ArchiveSection = "samples" | "tests" | "certificates" | "instruments" | "audit";
