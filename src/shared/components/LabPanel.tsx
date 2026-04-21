@@ -1,16 +1,20 @@
 import React, { memo, type FC, type ReactNode, type ElementType } from "react";
 import clsx from "@/src/lib/clsx";
+import { AlertCircle } from "lucide-react";
 
 interface LabPanelProps {
-  title?:    string;
-  icon?:     ElementType;
-  children:  ReactNode;
-  actions?:  ReactNode;
-  footer?:   ReactNode;
-  loading?:  boolean;
-  className?:string;
-  compact?:  boolean;
-  glow?:     boolean;
+  title?:          string;
+  icon?:           ElementType;
+  children:        ReactNode;
+  actions?:        ReactNode;
+  footer?:         ReactNode;
+  loading?:        boolean;
+  error?:          string | null;
+  onRefresh?:      () => void;
+  contentClassName?: string;
+  className?:      string;
+  compact?:        boolean;
+  glow?:           boolean;
 }
 
 export const LabPanel: FC<LabPanelProps> = memo(({
@@ -52,8 +56,15 @@ export const LabPanel: FC<LabPanelProps> = memo(({
     )}
 
     {/* Body */}
-    <div className="flex-1 overflow-hidden">
-      {children}
+    <div className={clsx("flex-1 overflow-hidden", contentClassName)}>
+      {error ? (
+        <div className="p-4 text-red-400 text-xs font-mono flex items-center gap-2">
+          <AlertCircle size={14} /> {error}
+          {onRefresh && (
+            <button onClick={onRefresh} className="ml-auto text-brand-primary hover:underline">Retry</button>
+          )}
+        </div>
+      ) : children}
     </div>
 
     {/* Footer */}

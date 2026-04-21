@@ -108,7 +108,7 @@ export function useLabSamples(): UseLiveSamplesReturn {
     samples,
     loading,
     error,
-    refresh:      (silent = false) => fetchSamples(silent as unknown as boolean),
+    refresh:      () => fetchSamples(true),
     lastUpdated,
     isRefreshing,
   };

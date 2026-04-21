@@ -41,6 +41,7 @@ import archiveRoutes          from "./modules/archive/routes";
 import settingsRoutes         from "./modules/settings/routes";
 import analyticsRoutes        from "./modules/analytics/routes";
 import dispatchRoutes         from "./modules/dispatch/routes";
+import realtimeRoutes         from "./modules/realtime/router";
 import exportRoutes           from "./modules/export/routes";
 
 
@@ -140,7 +141,7 @@ async function startServer(): Promise<void> {
   app.route(`${api}/settings`,        settingsRoutes);
   app.route(`${api}/analytics`,       analyticsRoutes);
   app.route(`${api}/dispatch`,        dispatchRoutes);
-
+  app.route(`${api}/realtime`,        realtimeRoutes);
   app.route(`${api}/export`,          exportRoutes);
 
   // ── Health ────────────────────────────────────────────────────────────────

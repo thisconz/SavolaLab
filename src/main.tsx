@@ -1,7 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import * as Sentry from "@sentry/react";
-import { ErrorBoundary as GlobalErrorBoundary } from "./app/components/GlobalErrorBoundary";
 import App from "./App.tsx";
 
 /* --- Core Styles --- */
@@ -73,9 +72,7 @@ const boot = () => {
   
   root.render(
     <StrictMode>
-      <GlobalErrorBoundary>
-        <App />
-      </GlobalErrorBoundary>
+      <App />
     </StrictMode>,
   );
 };

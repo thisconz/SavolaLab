@@ -1,10 +1,11 @@
 import { Hono }          from "hono";
 import { stream }        from "hono/streaming";
-import { sseBus }        from "../../core/sse";
+import { sseBus, ZentharEvent } from "../../core/sse";
 import { authenticateToken } from "../../core/middleware";
 import { sseRateLimit }  from "../../core/rateLimit";
 import { logger }        from "../../core/logger";
 import type { Variables } from "../../core/types";
+import { v4 as uuidv4 } from "uuid";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -27,13 +28,11 @@ app.get("/stream", sseRateLimit, authenticateToken, async (c) => {
     let closed = false;
 
     // Register on the bus
-    const unsubscribe = sseBus.subscribe(userId, async (eventType: string, payload: unknown) => {
+    const connectionId = uuidv4();
+    const unsubscribe = sseBus.subscribe(connectionId, userId, (event: ZentharEvent) => {
       if (closed) return;
-      try {
-        await writer.write(`event: ${eventType}\ndata: ${JSON.stringify(payload)}\n\n`);
-      } catch {
-        closed = true;
-      }
+      writer.write(`event: ${event.type}\ndata: ${JSON.stringify(event.data)}\n\n`)
+        .catch(() => { closed = true; });
     });
 
     // Heartbeat every 20s to keep connection alive through proxies

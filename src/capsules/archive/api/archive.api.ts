@@ -5,12 +5,10 @@ import { api } from "../../../core/http/client";
  */
 export type ArchiveSection = 
   | "samples" 
-  | "test_results" 
+  | "test" 
   | "certificates" 
-  | "inventory_logs" 
-  | "audit_trails"
   | "instruments"
-  | "audit_trails"
+  | "audit"
 
 interface ArchiveResponse<T> {
   success: boolean;
@@ -63,6 +61,6 @@ export const ArchiveApi = {
    */
   getExportUrl: (section: ArchiveSection, filters: Record<string, any>) => {
     const queryParams = new URLSearchParams(filters as any);
-    return `${process.env.NEXT_PUBLIC_API_URL}/archive/${section}/export?${queryParams.toString()}`;
+    return `${import.meta.env.VITE_API_URL ?? ""}/archive/${section}/export?${queryParams.toString()}`;
   }
 };
