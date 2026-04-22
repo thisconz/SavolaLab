@@ -1,9 +1,9 @@
-import { Hono }                  from "hono";
+import { Hono } from "hono";
 import type { Variables, TelemetryFilter } from "../../core/types";
-import { TelemetryService }      from "./service";
-import { authenticateToken }     from "../../core/middleware";
+import { TelemetryService } from "./service";
+import { authenticateToken } from "../../core/middleware";
 import { TelemetryFilterSchema } from "../../../src/shared/schemas/telemetry.schema";
-import { logger }                from "../../core/logger";
+import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -18,7 +18,7 @@ app.get("/", authenticateToken, async (c) => {
       startDate: c.req.query("startDate") || undefined,
       endDate: c.req.query("endDate") || undefined,
     };
-    
+
     const filter = TelemetryFilterSchema.parse(query);
 
     const telemetry = await TelemetryService.getTelemetry(filter);

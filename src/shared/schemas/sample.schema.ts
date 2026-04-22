@@ -22,22 +22,22 @@ export const SamplePrioritySchema = z.enum(["NORMAL", "HIGH", "STAT"]);
 // ─────────────────────────────────────────────
 
 export const SampleSchema = z.object({
-  id:           z.number(),
-  batch_id:     z.string().nullable().optional(),
+  id: z.number(),
+  batch_id: z.string().nullable().optional(),
   /** Type/classification of the sample (e.g. "Raw sugar") */
-  sample_type:  z.string().nullable().optional(),
+  sample_type: z.string().nullable().optional(),
   /** Stage within the production process (e.g. "Evaporation") */
   source_stage: z.string().nullable().optional(),
-  line_id:      z.union([z.string(), z.number()]).nullable().optional(),
+  line_id: z.union([z.string(), z.number()]).nullable().optional(),
   equipment_id: z.union([z.string(), z.number()]).nullable().optional(),
-  shift_id:     z.union([z.string(), z.number()]).nullable().optional(),
-  status:       SampleStatusSchema,
-  priority:     SamplePrioritySchema,
+  shift_id: z.union([z.string(), z.number()]).nullable().optional(),
+  status: SampleStatusSchema,
+  priority: SamplePrioritySchema,
   created_at: z
     .union([z.string(), z.date()])
     .transform((d) => (typeof d === "string" ? d : d.toISOString())),
   technician_id: z.string().nullable().optional(),
-  test_count:    z.number().nullable().optional().default(0),
+  test_count: z.number().nullable().optional().default(0),
 });
 
 // ─────────────────────────────────────────────
@@ -45,9 +45,9 @@ export const SampleSchema = z.object({
 // ─────────────────────────────────────────────
 
 export const CreateSampleRequestSchema = SampleSchema.omit({
-  id:           true,
-  created_at:   true,
-  test_count:   true,
+  id: true,
+  created_at: true,
+  test_count: true,
   technician_id: true,
 }).partial();
 
@@ -55,20 +55,20 @@ export const UpdateSampleRequestSchema = CreateSampleRequestSchema;
 
 export const GetSamplesResponseSchema = z.object({
   success: z.boolean(),
-  data:    z.array(SampleSchema),
+  data: z.array(SampleSchema),
 });
 
 export const GetSampleResponseSchema = z.object({
   success: z.boolean(),
-  data:    SampleSchema,
+  data: SampleSchema,
 });
 
 // ─────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────
 
-export type Sample              = z.infer<typeof SampleSchema>;
-export type SampleStatus        = z.infer<typeof SampleStatusSchema>;
-export type SamplePriority      = z.infer<typeof SamplePrioritySchema>;
+export type Sample = z.infer<typeof SampleSchema>;
+export type SampleStatus = z.infer<typeof SampleStatusSchema>;
+export type SamplePriority = z.infer<typeof SamplePrioritySchema>;
 export type CreateSampleRequest = z.infer<typeof CreateSampleRequestSchema>;
 export type UpdateSampleRequest = z.infer<typeof UpdateSampleRequestSchema>;

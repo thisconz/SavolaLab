@@ -1,8 +1,8 @@
-import { Hono }             from "hono";
+import { Hono } from "hono";
 import { AnalyticsService } from "./service";
 import { authenticateToken } from "../../core/middleware";
-import { logger }           from "../../core/logger";
-import type { Variables }   from "../../core/types";
+import { logger } from "../../core/logger";
+import type { Variables } from "../../core/types";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -19,12 +19,36 @@ function wrap<T>(fn: () => Promise<T>) {
   };
 }
 
-app.get("/quality",    authenticateToken, wrap(() => AnalyticsService.getQualityData()));
-app.get("/volume",     authenticateToken, wrap(() => AnalyticsService.getVolumeData()));
-app.get("/capability", authenticateToken, wrap(() => AnalyticsService.getProcessCapability()));
-app.get("/status",     authenticateToken, wrap(() => AnalyticsService.getSampleStatusBreakdown()));
-app.get("/pass-rates", authenticateToken, wrap(() => AnalyticsService.getTestPassRates()));
-app.get("/efficiency", authenticateToken, wrap(() => AnalyticsService.getStageEfficiency()));
+app.get(
+  "/quality",
+  authenticateToken,
+  wrap(() => AnalyticsService.getQualityData()),
+);
+app.get(
+  "/volume",
+  authenticateToken,
+  wrap(() => AnalyticsService.getVolumeData()),
+);
+app.get(
+  "/capability",
+  authenticateToken,
+  wrap(() => AnalyticsService.getProcessCapability()),
+);
+app.get(
+  "/status",
+  authenticateToken,
+  wrap(() => AnalyticsService.getSampleStatusBreakdown()),
+);
+app.get(
+  "/pass-rates",
+  authenticateToken,
+  wrap(() => AnalyticsService.getTestPassRates()),
+);
+app.get(
+  "/efficiency",
+  authenticateToken,
+  wrap(() => AnalyticsService.getStageEfficiency()),
+);
 
 /** Admin: bust cache */
 app.post("/invalidate", authenticateToken, async (c) => {

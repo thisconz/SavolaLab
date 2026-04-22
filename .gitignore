@@ -79,6 +79,10 @@ scripts/output/
 issues/
 *issues/
 
+/test-results
+/playwright-report
+DELETABLE_FILES.md
+
 # --- Firebase config files should never be in source if they contain real API keys
 # Uncomment if you have real credentials in these:
 # src/core/config/firebase/firebase-applet-config.json

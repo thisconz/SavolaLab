@@ -2,21 +2,29 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { LabApi } from "../api/lab.api";
 import { WorkflowApi } from "../../workflows/api/workflow.api";
-import { Sample } from "../model/sample.model";
+import { Sample } from "../../../shared/schemas/sample.schema";
 import type { TestResult, TestType } from "../../../core/types";
 import { calculateICUMSA } from "../../../core/utils/calculations.util";
 import { TEST_VALIDATION_RULES } from "../constants/validation.constants";
-import { SampleStatus, SamplePriority, WorkflowStepExecutionStatus } from "../../../core/types";
+import {
+  SampleStatus,
+  SamplePriority,
+  WorkflowStepExecutionStatus,
+} from "../../../core/types";
 
 export const useLabBench = (sample: Sample, onComplete?: () => void) => {
-  const [tests,           setTests]          = useState<TestResult[]>([]);
-  const [loading,         setLoading]        = useState(true);
-  const [values,          setValues]         = useState<Record<number, string>>({});
-  const [notes,           setNotes]          = useState<Record<number, string>>({});
-  const [errors,          setErrors]         = useState<Record<number, string>>({});
-  const [colourParams,    setColourParams]   = useState<Record<number, { absorbance: string; brix: string; cellLength: string }>>({});
-  const [previousResults, setPreviousResults] = useState<Record<string, any[]>>({});
-  const [isSaving,        setIsSaving]       = useState(false);
+  const [tests, setTests] = useState<TestResult[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [values, setValues] = useState<Record<number, string>>({});
+  const [notes, setNotes] = useState<Record<number, string>>({});
+  const [errors, setErrors] = useState<Record<number, string>>({});
+  const [colourParams, setColourParams] = useState<
+    Record<number, { absorbance: string; brix: string; cellLength: string }>
+  >({});
+  const [previousResults, setPreviousResults] = useState<Record<string, any[]>>(
+    {},
+  );
+  const [isSaving, setIsSaving] = useState(false);
 
   // ─── Load tests ──────────────────────────────────────────────────────────
 
@@ -26,21 +34,24 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
       const data = await LabApi.getSampleTests(sample.id);
       setTests(data);
 
-      const initValues:       Record<number, string>  = {};
-      const initNotes:        Record<number, string>  = {};
-      const initColourParams: Record<number, any>     = {};
+      const initValues: Record<number, string> = {};
+      const initNotes: Record<number, string> = {};
+      const initColourParams: Record<number, any> = {};
 
       for (const t of data) {
         initValues[t.id] = t.raw_value?.toString() ?? "";
-        initNotes[t.id]  = t.notes ?? "";
+        initNotes[t.id] = t.notes ?? "";
 
         if (t.test_type === "Colour") {
           let p = { absorbance: "", brix: "50", cellLength: "1" };
           if (t.params) {
             try {
-              const parsed = typeof t.params === "string" ? JSON.parse(t.params) : t.params;
+              const parsed =
+                typeof t.params === "string" ? JSON.parse(t.params) : t.params;
               p = { ...p, ...parsed };
-            } catch { /* ignore malformed params */ }
+            } catch {
+              /* ignore malformed params */
+            }
           }
           initColourParams[t.id] = p;
         }
@@ -56,8 +67,12 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
         if (seen.has(t.test_type)) continue;
         seen.add(t.test_type);
         LabApi.getPreviousResults(sample.source_stage ?? "", t.test_type, 3)
-          .then((res) => setPreviousResults((prev) => ({ ...prev, [t.test_type]: res })))
-          .catch(() => {/* best-effort */});
+          .then((res) =>
+            setPreviousResults((prev) => ({ ...prev, [t.test_type]: res })),
+          )
+          .catch(() => {
+            /* best-effort */
+          });
       }
     } catch (err) {
       console.error("Failed to load tests:", err);
@@ -67,13 +82,19 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
     }
   }, [sample.id, sample.source_stage]);
 
-  useEffect(() => { loadTests(); }, [sample.id]);
+  useEffect(() => {
+    loadTests();
+  }, [sample.id]);
 
   // ─── Validation ──────────────────────────────────────────────────────────
 
   const validateField = (testId: number, value: string, testType: string) => {
     if (!value) {
-      setErrors((p) => { const n = { ...p }; delete n[testId]; return n; });
+      setErrors((p) => {
+        const n = { ...p };
+        delete n[testId];
+        return n;
+      });
       return;
     }
 
@@ -92,11 +113,19 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
         [testId]: `Out of range (${rule.min}–${rule.max} ${rule.unit})`,
       }));
     } else {
-      setErrors((p) => { const n = { ...p }; delete n[testId]; return n; });
+      setErrors((p) => {
+        const n = { ...p };
+        delete n[testId];
+        return n;
+      });
     }
   };
 
-  const handleValueChange = (testId: number, value: string, testType: string) => {
+  const handleValueChange = (
+    testId: number,
+    value: string,
+    testType: string,
+  ) => {
     setValues((p) => ({ ...p, [testId]: value }));
     validateField(testId, value, testType);
   };
@@ -107,16 +136,20 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
 
   const handleColourParamChange = (
     testId: number,
-    param:  "absorbance" | "brix" | "cellLength",
-    val:    string,
+    param: "absorbance" | "brix" | "cellLength",
+    val: string,
   ) => {
     setColourParams((prev) => {
-      const current = prev[testId] ?? { absorbance: "", brix: "50", cellLength: "1" };
+      const current = prev[testId] ?? {
+        absorbance: "",
+        brix: "50",
+        cellLength: "1",
+      };
       const updated = { ...current, [param]: val };
 
       const abs = parseFloat(updated.absorbance);
-      const bx  = parseFloat(updated.brix);
-      const cl  = parseFloat(updated.cellLength);
+      const bx = parseFloat(updated.brix);
+      const cl = parseFloat(updated.cellLength);
 
       if (!isNaN(abs) && !isNaN(bx) && !isNaN(cl) && cl > 0) {
         const icumsa = calculateICUMSA(abs, bx, cl);
@@ -134,9 +167,11 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const executions   = await WorkflowApi.getWorkflowExecutions(sample.id);
-      const activeExec   = executions.find((e) => e.status === "IN_PROGRESS");
-      const localSteps   = activeExec?.step_executions ? [...activeExec.step_executions] : [];
+      const executions = await WorkflowApi.getWorkflowExecutions(sample.id);
+      const activeExec = executions.find((e) => e.status === "IN_PROGRESS");
+      const localSteps = activeExec?.step_executions
+        ? [...activeExec.step_executions]
+        : [];
 
       // ── Pass 1: persist test data ─────────────────────────────────────────
       const savedTests: { id: number; type: string; value: number }[] = [];
@@ -146,14 +181,16 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
         if (isNaN(rawValue)) continue;
 
         const payload: Partial<TestResult> = {
-          sample_id:         sample.id,
-          test_type:         test.test_type as any,
-          raw_value:         rawValue,
-          calculated_value:  rawValue,
-          unit:              TEST_VALIDATION_RULES[test.test_type as TestType]?.unit ?? "N/A",
-          status:            "VALIDATING" as any,
-          notes:             notes[test.id] || undefined,
-          params:            test.test_type === "Colour" ? colourParams[test.id] : undefined,
+          sample_id: sample.id,
+          test_type: test.test_type as any,
+          raw_value: rawValue,
+          calculated_value: rawValue,
+          unit:
+            TEST_VALIDATION_RULES[test.test_type as TestType]?.unit ?? "N/A",
+          status: "VALIDATING" as any,
+          notes: notes[test.id] || undefined,
+          params:
+            test.test_type === "Colour" ? colourParams[test.id] : undefined,
         };
 
         let savedId = test.id;
@@ -181,8 +218,8 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
 
           const step = localSteps[stepIdx];
           await WorkflowApi.completeStep(activeExec.id, step.step_id, {
-            status:       "COMPLETED",
-            test_id:      result.id,
+            status: "COMPLETED",
+            test_id: result.id,
             result_value: result.value,
           });
           localSteps[stepIdx] = {
@@ -194,7 +231,7 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
 
       // ── Pass 3: advance sample status ─────────────────────────────────────
       await LabApi.updateSample(sample.id, {
-        status:   SampleStatus.VALIDATING,
+        status: SampleStatus.VALIDATING,
         priority: SamplePriority.NORMAL,
       } as any);
 
@@ -211,8 +248,8 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
   // ─── Review ────────────────────────────────────────────────────────────────
 
   const handleReview = async (
-    testId:  number,
-    status:  "APPROVED" | "DISAPPROVED",
+    testId: number,
+    status: "APPROVED" | "DISAPPROVED",
     comment?: string,
   ) => {
     try {
@@ -226,9 +263,18 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
   };
 
   return {
-    tests, loading, values, notes, errors,
-    colourParams, previousResults, isSaving,
-    handleValueChange, handleNoteChange, handleColourParamChange,
-    handleSave, handleReview,
+    tests,
+    loading,
+    values,
+    notes,
+    errors,
+    colourParams,
+    previousResults,
+    isSaving,
+    handleValueChange,
+    handleNoteChange,
+    handleColourParamChange,
+    handleSave,
+    handleReview,
   };
 };

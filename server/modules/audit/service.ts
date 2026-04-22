@@ -1,5 +1,5 @@
-import { db }          from "../../core/database";
-import { logger }      from "../../core/logger";
+import { db } from "../../core/database";
+import { logger } from "../../core/logger";
 
 export type AuditLog = {
   id: number;
@@ -81,12 +81,15 @@ export const AuditService = {
       );
     } catch (err: any) {
       if (err.message === "Database not connected") return;
-      logger.error({
-        employeeNumber,
-        action,
-        ip,
-        err,
-      }, "Failed to write audit log");
+      logger.error(
+        {
+          employeeNumber,
+          action,
+          ip,
+          err,
+        },
+        "Failed to write audit log",
+      );
     }
   },
 };

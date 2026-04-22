@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { LabApi }      from "../api/lab.api";
-import { Sample }      from "../../../core/types";
+import { LabApi } from "../api/lab.api";
+import { Sample } from "../../../core/types";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
-import { toast }       from "sonner";
+import { toast } from "sonner";
 
 interface UseLiveSamplesReturn {
-  samples:      Sample[];
-  loading:      boolean;
-  error:        string | null;
-  refresh:      () => Promise<void>;
-  lastUpdated:  Date | null;
+  samples: Sample[];
+  loading: boolean;
+  error: string | null;
+  refresh: () => Promise<void>;
+  lastUpdated: Date | null;
   /** True when a background SSE refresh is in-flight */
   isRefreshing: boolean;
 }
@@ -22,21 +22,21 @@ interface UseLiveSamplesReturn {
  * automatically refreshes with a small debounce to coalesce rapid events.
  */
 export function useLabSamples(): UseLiveSamplesReturn {
-  const [samples,      setSamples]      = useState<Sample[]>([]);
-  const [loading,      setLoading]      = useState(true);
+  const [samples, setSamples] = useState<Sample[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error,        setError]        = useState<string | null>(null);
-  const [lastUpdated,  setLastUpdated]  = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const mountedRef    = useRef(true);
+  const mountedRef = useRef(true);
 
   const { on } = useRealtime();
 
   const fetchSamples = useCallback(async (silent = false) => {
     if (!mountedRef.current) return;
     if (!silent) setLoading(true);
-    else         setIsRefreshing(true);
+    else setIsRefreshing(true);
 
     try {
       const data = await LabApi.getSamples();
@@ -108,7 +108,7 @@ export function useLabSamples(): UseLiveSamplesReturn {
     samples,
     loading,
     error,
-    refresh:      () => fetchSamples(true),
+    refresh: () => fetchSamples(true),
     lastUpdated,
     isRefreshing,
   };

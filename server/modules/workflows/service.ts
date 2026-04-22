@@ -11,7 +11,7 @@ export const WorkflowService = {
   getWorkflows: async () => {
     try {
       const workflows = await db.query(
-        "SELECT * FROM workflows WHERE is_active = TRUE ORDER BY created_at DESC"
+        "SELECT * FROM workflows WHERE is_active = TRUE ORDER BY created_at DESC",
       );
 
       const result = [];
@@ -19,7 +19,7 @@ export const WorkflowService = {
       for (const wf of workflows) {
         const steps = await db.query(
           "SELECT * FROM workflow_steps WHERE workflow_id = $1 ORDER BY sequence_order ASC",
-          [(wf as any).id]
+          [(wf as any).id],
         );
 
         result.push({
@@ -51,7 +51,7 @@ export const WorkflowService = {
         `INSERT INTO workflows (name, description, target_stage)
          VALUES ($1, $2, $3)
          RETURNING id`,
-        [name.trim(), description ?? null, target_stage ?? null]
+        [name.trim(), description ?? null, target_stage ?? null],
       )) as Array<{ id: number }>;
 
       const workflowId = wfRows[0].id;
@@ -69,7 +69,7 @@ export const WorkflowService = {
             i + 1,
             step.min_value ?? null,
             step.max_value ?? null,
-          ]
+          ],
         );
       }
 
@@ -79,30 +79,28 @@ export const WorkflowService = {
 
   executeWorkflow: async (
     workflowId: string | number,
-    sampleId: string | number
+    sampleId: string | number,
   ) => {
     const workflow = await db.queryOne(
       "SELECT id, name FROM workflows WHERE id = $1",
-      [workflowId]
+      [workflowId],
     );
 
     const sample = await db.queryOne(
       "SELECT id, batch_id FROM samples WHERE id = $1",
-      [sampleId]
+      [sampleId],
     );
 
-    if (!workflow)
-      throw new Error(`Workflow ${workflowId} not found`);
+    if (!workflow) throw new Error(`Workflow ${workflowId} not found`);
 
-    if (!sample)
-      throw new Error(`Sample ${sampleId} not found`);
+    if (!sample) throw new Error(`Sample ${sampleId} not found`);
 
     return db.transaction(async (client) => {
       const execRows = (await client.query(
         `INSERT INTO workflow_executions (workflow_id, sample_id, status)
          VALUES ($1, $2, 'IN_PROGRESS')
          RETURNING id`,
-        [workflowId, sampleId]
+        [workflowId, sampleId],
       )) as Array<{ id: number }>;
 
       const executionId = execRows[0].id;
@@ -111,7 +109,7 @@ export const WorkflowService = {
         `SELECT id FROM workflow_steps
          WHERE workflow_id = $1
          ORDER BY sequence_order ASC`,
-        [workflowId]
+        [workflowId],
       )) as Array<{ id: number }>;
 
       for (const step of stepRows) {
@@ -119,7 +117,7 @@ export const WorkflowService = {
           `INSERT INTO workflow_step_executions
            (execution_id, step_id, status)
            VALUES ($1, $2, 'PENDING')`,
-          [executionId, step.id]
+          [executionId, step.id],
         );
       }
 
@@ -136,16 +134,13 @@ export const WorkflowService = {
     });
   },
 
-  startStep: async (
-    executionId: string | number,
-    stepId: string | number
-  ) => {
+  startStep: async (executionId: string | number, stepId: string | number) => {
     await db.execute(
       `UPDATE workflow_step_executions
        SET status = 'IN_PROGRESS',
            started_at = CURRENT_TIMESTAMP
        WHERE execution_id = $1 AND step_id = $2`,
-      [executionId, stepId]
+      [executionId, stepId],
     );
 
     return true;
@@ -156,14 +151,14 @@ export const WorkflowService = {
     stepId: string | number,
     status = "COMPLETED",
     testId?: number,
-    resultValue?: number
+    resultValue?: number,
   ) => {
     return db.transaction(async (client) => {
       const rows = (await client.query(
         `SELECT id
          FROM workflow_step_executions
          WHERE execution_id = $1 AND step_id = $2`,
-        [executionId, stepId]
+        [executionId, stepId],
       )) as Array<{ id: number }>;
 
       if (!rows[0]) throw new Error("Step execution not found");
@@ -175,7 +170,7 @@ export const WorkflowService = {
              test_id = $2,
              result_value = $3
          WHERE execution_id = $4 AND step_id = $5`,
-        [status, testId ?? null, resultValue ?? null, executionId, stepId]
+        [status, testId ?? null, resultValue ?? null, executionId, stepId],
       );
 
       const pendingRows = (await client.query(
@@ -183,7 +178,7 @@ export const WorkflowService = {
          FROM workflow_step_executions
          WHERE execution_id = $1
          AND status NOT IN ('COMPLETED','FAILED')`,
-        [executionId]
+        [executionId],
       )) as Array<{ count: string }>;
 
       const remaining = Number(pendingRows[0]?.count ?? 0);
@@ -194,7 +189,7 @@ export const WorkflowService = {
            SET status = 'COMPLETED',
                completed_at = CURRENT_TIMESTAMP
            WHERE id = $1`,
-          [executionId]
+          [executionId],
         );
 
         sseBus.broadcast("WORKFLOW_COMPLETED", {
@@ -214,7 +209,7 @@ export const WorkflowService = {
          JOIN workflows w ON we.workflow_id = w.id
          WHERE we.sample_id = $1
          ORDER BY we.started_at DESC`,
-        [sampleId]
+        [sampleId],
       );
 
       const result = [];
@@ -226,7 +221,7 @@ export const WorkflowService = {
            JOIN workflow_steps ws ON wse.step_id = ws.id
            WHERE wse.execution_id = $1
            ORDER BY ws.sequence_order ASC`,
-          [(exec as any).id]
+          [(exec as any).id],
         );
 
         result.push({
@@ -244,7 +239,7 @@ export const WorkflowService = {
 
   autoExecuteForSample: async (
     sampleId: number,
-    stage: string
+    stage: string,
   ): Promise<void> => {
     try {
       const workflow = await db.queryOne<{ id: number }>(
@@ -253,7 +248,7 @@ export const WorkflowService = {
          WHERE target_stage = $1
          AND is_active = TRUE
          LIMIT 1`,
-        [stage]
+        [stage],
       );
 
       if (!workflow) return;

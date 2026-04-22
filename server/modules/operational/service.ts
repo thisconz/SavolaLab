@@ -1,4 +1,4 @@
-import { db, createAuditLog }    from "../../core/database";
+import { db, createAuditLog } from "../../core/database";
 import { operationalCache, TTL } from "../../core/cache";
 import { Pagination, EquipmentFilter } from "../../core/types";
 
@@ -12,10 +12,16 @@ export const OperationalService = {
     return operationalCache.getOrSet(
       "op:production-lines",
       async () => {
-        let sql    = "SELECT * FROM production_lines ORDER BY name ASC";
+        let sql = "SELECT * FROM production_lines ORDER BY name ASC";
         const params: any[] = [];
-        if (pagination?.limit)  { sql += " LIMIT ?";  params.push(pagination.limit);  }
-        if (pagination?.offset) { sql += " OFFSET ?"; params.push(pagination.offset); }
+        if (pagination?.limit) {
+          sql += " LIMIT ?";
+          params.push(pagination.limit);
+        }
+        if (pagination?.offset) {
+          sql += " OFFSET ?";
+          params.push(pagination.offset);
+        }
         try {
           return await db.query(replacePlaceholders(sql), params);
         } catch (err: any) {
@@ -27,14 +33,21 @@ export const OperationalService = {
     );
   },
 
-  getEquipment: async ({ lineId, limit = 100, offset = 0 }: EquipmentFilter = {}) => {
+  getEquipment: async ({
+    lineId,
+    limit = 100,
+    offset = 0,
+  }: EquipmentFilter = {}) => {
     const cacheKey = `op:equipment:${lineId ?? "all"}`;
     return operationalCache.getOrSet(
       cacheKey,
       async () => {
         let sql = "SELECT * FROM equipment";
         const params: any[] = [];
-        if (lineId) { sql += " WHERE line_id = ?"; params.push(lineId); }
+        if (lineId) {
+          sql += " WHERE line_id = ?";
+          params.push(lineId);
+        }
         sql += " ORDER BY name ASC LIMIT ? OFFSET ?";
         params.push(limit, offset);
         try {
@@ -54,8 +67,14 @@ export const OperationalService = {
       async () => {
         let sql = "SELECT * FROM instruments ORDER BY name ASC";
         const params: any[] = [];
-        if (pagination?.limit)  { sql += " LIMIT ?";  params.push(pagination.limit);  }
-        if (pagination?.offset) { sql += " OFFSET ?"; params.push(pagination.offset); }
+        if (pagination?.limit) {
+          sql += " LIMIT ?";
+          params.push(pagination.limit);
+        }
+        if (pagination?.offset) {
+          sql += " OFFSET ?";
+          params.push(pagination.offset);
+        }
         try {
           return await db.query(replacePlaceholders(sql), params);
         } catch (err: any) {
@@ -73,8 +92,14 @@ export const OperationalService = {
       async () => {
         let sql = "SELECT * FROM inventory ORDER BY name ASC";
         const params: any[] = [];
-        if (pagination?.limit)  { sql += " LIMIT ?";  params.push(pagination.limit);  }
-        if (pagination?.offset) { sql += " OFFSET ?"; params.push(pagination.offset); }
+        if (pagination?.limit) {
+          sql += " LIMIT ?";
+          params.push(pagination.limit);
+        }
+        if (pagination?.offset) {
+          sql += " OFFSET ?";
+          params.push(pagination.offset);
+        }
         try {
           return await db.query(replacePlaceholders(sql), params);
         } catch (err: any) {
@@ -89,10 +114,19 @@ export const OperationalService = {
   getCertificates: async (filters?: { status?: string } & Pagination) => {
     let sql = "SELECT * FROM certificates WHERE 1=1";
     const params: any[] = [];
-    if (filters?.status) { sql += " AND status = ?"; params.push(filters.status); }
+    if (filters?.status) {
+      sql += " AND status = ?";
+      params.push(filters.status);
+    }
     sql += " ORDER BY created_at DESC";
-    if (filters?.limit)  { sql += " LIMIT ?";  params.push(filters.limit);  }
-    if (filters?.offset) { sql += " OFFSET ?"; params.push(filters.offset); }
+    if (filters?.limit) {
+      sql += " LIMIT ?";
+      params.push(filters.limit);
+    }
+    if (filters?.offset) {
+      sql += " OFFSET ?";
+      params.push(filters.offset);
+    }
     try {
       return await db.query(replacePlaceholders(sql), params);
     } catch (err: any) {
@@ -118,22 +152,33 @@ export const OperationalService = {
             db.query("SELECT * FROM production_lines ORDER BY name ASC"),
           ]);
           activeAlarms = Number(alarms[0]?.count ?? 0);
-          linesResult  = lines;
+          linesResult = lines;
         } catch (err: any) {
           if (err.message !== "Database not connected") throw err;
         }
 
         const lineStatuses = linesResult.map((line: any) => {
-          const hash   = line.name.length;
-          const status = hash % 7 === 0 ? "Stopped" : hash % 5 === 0 ? "Warning" : "Running";
-          const uptime = status === "Running" ? `${(98 + (hash % 2)).toFixed(1)}%` : status === "Warning" ? `${(93 + (hash % 2)).toFixed(1)}%` : `${(80 + (hash % 5)).toFixed(1)}%`;
-          const oee    = status === "Running" ? `${(80 + (hash % 10))}%` : status === "Warning" ? `${(70 + (hash % 8))}%` : `${(60 + (hash % 6))}%`;
+          const hash = line.name.length;
+          const status =
+            hash % 7 === 0 ? "Stopped" : hash % 5 === 0 ? "Warning" : "Running";
+          const uptime =
+            status === "Running"
+              ? `${(98 + (hash % 2)).toFixed(1)}%`
+              : status === "Warning"
+                ? `${(93 + (hash % 2)).toFixed(1)}%`
+                : `${(80 + (hash % 5)).toFixed(1)}%`;
+          const oee =
+            status === "Running"
+              ? `${80 + (hash % 10)}%`
+              : status === "Warning"
+                ? `${70 + (hash % 8)}%`
+                : `${60 + (hash % 6)}%`;
           return { name: line.name, status, uptime, oee };
         });
 
         return {
           metrics: { oee: "84.2%", yield: "92.5%", energy: 42.1, activeAlarms },
-          lines:   lineStatuses,
+          lines: lineStatuses,
         };
       },
       TTL.MINUTES_1,
@@ -143,6 +188,6 @@ export const OperationalService = {
   /** Invalidate caches when equipment/lines are mutated via settings */
   invalidate(prefix?: string): void {
     if (prefix) operationalCache.invalidatePrefix(`op:${prefix}`);
-    else        operationalCache.invalidatePrefix("op:");
+    else operationalCache.invalidatePrefix("op:");
   },
 };

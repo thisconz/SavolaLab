@@ -8,10 +8,10 @@
  *  - signToken: payload values always override defaults (not the other way around)
  */
 import { createHmac, timingSafeEqual, randomBytes } from "crypto";
-import { db }                  from "../../core/db/client";
+import { db } from "../../core/db/client";
 import { generateOtp, storeOtp, verifyOtp } from "../../core/db/security";
-import { AuditService }        from "../audit/service";
-import argon2                  from "argon2";
+import { AuditService } from "../audit/service";
+import argon2 from "argon2";
 
 // ─────────────────────────────────────────────
 // Argon2id password helpers
@@ -19,16 +19,22 @@ import argon2                  from "argon2";
 
 export async function hashPassword(password: string): Promise<string> {
   return argon2.hash(password, {
-    type:        argon2.argon2id,
-    memoryCost:  65536,
-    timeCost:    3,
+    type: argon2.argon2id,
+    memoryCost: 65536,
+    timeCost: 3,
     parallelism: 4,
   });
 }
 
-export async function verifyPassword(hash: string, password: string): Promise<boolean> {
-  try { return await argon2.verify(hash, password); }
-  catch { return false; }
+export async function verifyPassword(
+  hash: string,
+  password: string,
+): Promise<boolean> {
+  try {
+    return await argon2.verify(hash, password);
+  } catch {
+    return false;
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -46,16 +52,16 @@ function getSecret(): string {
 }
 
 export interface JWTPayload {
-  sub:             string;
+  sub: string;
   employee_number: string;
-  name:            string;
-  role:            string;
-  dept:            string;
-  permissions:     PermissionFlags;
-  iat:             number;
-  exp:             number;
-  jti:             string;
-  type:            "access" | "refresh";
+  name: string;
+  role: string;
+  dept: string;
+  permissions: PermissionFlags;
+  iat: number;
+  exp: number;
+  jti: string;
+  type: "access" | "refresh";
 }
 
 function signPayload(header: string, body: string): string {
@@ -68,13 +74,17 @@ function buildJWT(
   payload: Omit<JWTPayload, "iat" | "exp" | "jti">,
   expiresInSec: number,
 ): string {
-  const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
-  const body   = Buffer.from(JSON.stringify({
-    ...payload,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + expiresInSec,
-    jti: randomBytes(16).toString("hex"),
-  })).toString("base64url");
+  const header = Buffer.from(
+    JSON.stringify({ alg: "HS256", typ: "JWT" }),
+  ).toString("base64url");
+  const body = Buffer.from(
+    JSON.stringify({
+      ...payload,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + expiresInSec,
+      jti: randomBytes(16).toString("hex"),
+    }),
+  ).toString("base64url");
   return `${header}.${body}.${signPayload(header, body)}`;
 }
 
@@ -85,13 +95,16 @@ function buildJWT(
 export function signToken(payload: Record<string, any>): string {
   return buildJWT(
     {
-      sub:             payload.employee_number ?? "",
+      sub: payload.employee_number ?? "",
       employee_number: payload.employee_number ?? "",
-      name:            payload.name            ?? "",
-      role:            payload.role            ?? "",
-      dept:            payload.dept            ?? "",
-      permissions:     payload.permissions     ?? {
-        view_results: 0, input_data: 0, edit_formulas: 0, change_specs: 0,
+      name: payload.name ?? "",
+      role: payload.role ?? "",
+      dept: payload.dept ?? "",
+      permissions: payload.permissions ?? {
+        view_results: 0,
+        input_data: 0,
+        edit_formulas: 0,
+        change_specs: 0,
       },
       ...payload,
       type: "access" as const, // always forced
@@ -103,13 +116,16 @@ export function signToken(payload: Record<string, any>): string {
 export function signRefreshToken(payload: Record<string, any>): string {
   return buildJWT(
     {
-      sub:             payload.employee_number ?? "",
+      sub: payload.employee_number ?? "",
       employee_number: payload.employee_number ?? "",
-      name:            payload.name            ?? "",
-      role:            payload.role            ?? "",
-      dept:            payload.dept            ?? "",
-      permissions:     payload.permissions     ?? {
-        view_results: 0, input_data: 0, edit_formulas: 0, change_specs: 0,
+      name: payload.name ?? "",
+      role: payload.role ?? "",
+      dept: payload.dept ?? "",
+      permissions: payload.permissions ?? {
+        view_results: 0,
+        input_data: 0,
+        edit_formulas: 0,
+        change_specs: 0,
       },
       ...payload,
       type: "refresh" as const,
@@ -120,8 +136,8 @@ export function signRefreshToken(payload: Record<string, any>): string {
 
 function verifySignature(header: string, body: string, sig: string): boolean {
   const expected = signPayload(header, body);
-  const sigBuf   = Buffer.from(sig,      "base64url");
-  const expBuf   = Buffer.from(expected, "base64url");
+  const sigBuf = Buffer.from(sig, "base64url");
+  const expBuf = Buffer.from(expected, "base64url");
   if (sigBuf.length !== expBuf.length) return false;
   return timingSafeEqual(sigBuf, expBuf);
 }
@@ -132,11 +148,15 @@ export function verifyToken(token: string): Record<string, any> | null {
     if (parts.length !== 3) return null;
     const [header, body, sig] = parts;
     if (!verifySignature(header, body, sig)) return null;
-    const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as JWTPayload;
+    const payload = JSON.parse(
+      Buffer.from(body, "base64url").toString(),
+    ) as JWTPayload;
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
     if (payload.type !== "access") return null;
     return payload;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export function verifyRefreshToken(token: string): JWTPayload | null {
@@ -145,11 +165,15 @@ export function verifyRefreshToken(token: string): JWTPayload | null {
     if (parts.length !== 3) return null;
     const [header, body, sig] = parts;
     if (!verifySignature(header, body, sig)) return null;
-    const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as JWTPayload;
+    const payload = JSON.parse(
+      Buffer.from(body, "base64url").toString(),
+    ) as JWTPayload;
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
     if (payload.type !== "refresh") return null;
     return payload;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -157,20 +181,20 @@ export function verifyRefreshToken(token: string): JWTPayload | null {
 // ─────────────────────────────────────────────
 
 export type PermissionFlags = {
-  view_results:  number;
-  input_data:    number;
+  view_results: number;
+  input_data: number;
   edit_formulas: number;
-  change_specs:  number;
+  change_specs: number;
 };
 
 export type UserPayload = {
-  id:              string;
+  id: string;
   employee_number: string;
-  name:            string;
-  role:            string;
-  dept:            string;
-  permissions:     PermissionFlags;
-  initials:        string;
+  name: string;
+  role: string;
+  dept: string;
+  permissions: PermissionFlags;
+  initials: string;
 };
 
 // ─────────────────────────────────────────────
@@ -199,13 +223,16 @@ export const AuthService = {
 
   getMe: async (employeeNumber: string): Promise<UserPayload> => {
     try {
-      const row = await db.queryOne(`
+      const row = await db.queryOne(
+        `
         SELECT e.employee_number, e.name, e.role, e.department AS dept,
                p.view_results, p.input_data, p.edit_formulas, p.change_specs
         FROM employees e
         JOIN user_permissions p ON e.role = p.role
         WHERE e.employee_number = $1
-      `, [employeeNumber]);
+      `,
+        [employeeNumber],
+      );
       if (!row) throw new Error("User not found");
       return mapToPayload(row);
     } catch (err: any) {
@@ -217,41 +244,68 @@ export const AuthService = {
   getInitials: (fullName: string): string => {
     const parts = fullName.trim().split(/\s+/);
     const first = parts[0]?.[0] ?? "";
-    const last  = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
     return (first + last).toUpperCase();
   },
 
-  verifyEmployee: async (employeeNumber: string, nationalId: string, dob: string) => {
+  verifyEmployee: async (
+    employeeNumber: string,
+    nationalId: string,
+    dob: string,
+  ) => {
     const employee = await db.queryOne(
       `SELECT * FROM employees WHERE employee_number = $1 AND national_id = $2 AND dob = $3`,
       [employeeNumber, nationalId, dob],
     );
     if (!employee) {
-      await AuditService.createLog(employeeNumber, "VERIFICATION_FAILED", "Invalid identity credentials", "127.0.0.1");
+      await AuditService.createLog(
+        employeeNumber,
+        "VERIFICATION_FAILED",
+        "Invalid identity credentials",
+        "127.0.0.1",
+      );
       return null;
     }
     const existingUser = await db.queryOne(
       "SELECT * FROM users WHERE employee_number = $1",
       [employeeNumber],
     );
-    if (existingUser?.status === "ACTIVE") throw new Error("Account already active. Please login.");
+    if (existingUser?.status === "ACTIVE")
+      throw new Error("Account already active. Please login.");
 
     const otp = generateOtp();
     await storeOtp(employeeNumber, otp, 5);
     console.log(`[OTP for ${employeeNumber}]: ${otp}`);
-    await AuditService.createLog(employeeNumber, "OTP_SENT", "OTP generated for identity verification", "127.0.0.1");
+    await AuditService.createLog(
+      employeeNumber,
+      "OTP_SENT",
+      "OTP generated for identity verification",
+      "127.0.0.1",
+    );
     return { employee_number: employeeNumber };
   },
 
-  confirmOtp: async (employeeNumber: string, code: string): Promise<boolean> => {
+  confirmOtp: async (
+    employeeNumber: string,
+    code: string,
+  ): Promise<boolean> => {
     const valid = await verifyOtp(employeeNumber, code);
-    await AuditService.createLog(employeeNumber, "OTP_CONFIRMATION", valid ? "OTP confirmed successfully" : "OTP failed or expired", "127.0.0.1");
+    await AuditService.createLog(
+      employeeNumber,
+      "OTP_CONFIRMATION",
+      valid ? "OTP confirmed successfully" : "OTP failed or expired",
+      "127.0.0.1",
+    );
     return valid;
   },
 
-  setupCredentials: async (employeeNumber: string, password: string, pin?: string): Promise<boolean> => {
+  setupCredentials: async (
+    employeeNumber: string,
+    password: string,
+    pin?: string,
+  ): Promise<boolean> => {
     const passwordHash = await hashPassword(password);
-    const pinHash      = pin ? await hashPassword(pin) : null;
+    const pinHash = pin ? await hashPassword(pin) : null;
     await db.execute(
       `INSERT INTO users (employee_number, password_hash, pin_hash, status)
        VALUES ($1, $2, $3, 'ACTIVE')
@@ -261,7 +315,12 @@ export const AuthService = {
              status        = 'ACTIVE'`,
       [employeeNumber, passwordHash, pinHash],
     );
-    await AuditService.createLog(employeeNumber, "ACCOUNT_ACTIVATED", "User completed credential setup", "127.0.0.1");
+    await AuditService.createLog(
+      employeeNumber,
+      "ACCOUNT_ACTIVATED",
+      "User completed credential setup",
+      "127.0.0.1",
+    );
     return true;
   },
 
@@ -269,28 +328,40 @@ export const AuthService = {
     employeeNumber: string,
     password?: string,
     pin?: string,
-  ): Promise<{ token: string; refreshToken: string; user: UserPayload } | null> => {
+  ): Promise<{
+    token: string;
+    refreshToken: string;
+    user: UserPayload;
+  } | null> => {
     try {
-      const row = await db.queryOne(`
+      const row = await db.queryOne(
+        `
         SELECT u.*, e.name, e.role, e.department AS dept,
                p.view_results, p.input_data, p.edit_formulas, p.change_specs
         FROM users u
         JOIN employees e ON u.employee_number = e.employee_number
         JOIN user_permissions p ON e.role = p.role
         WHERE u.employee_number = $1
-      `, [employeeNumber]);
+      `,
+        [employeeNumber],
+      );
 
       if (!row || row.status !== "ACTIVE") return null;
 
       const now = new Date();
       if (row.locked_until && new Date(row.locked_until) > now) {
-        const mins = Math.ceil((new Date(row.locked_until).getTime() - now.getTime()) / 60_000);
-        throw new Error(`Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`);
+        const mins = Math.ceil(
+          (new Date(row.locked_until).getTime() - now.getTime()) / 60_000,
+        );
+        throw new Error(
+          `Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`,
+        );
       }
 
       let isValid = false;
       if (password) isValid = await verifyPassword(row.password_hash, password);
-      else if (pin && row.pin_hash) isValid = await verifyPassword(row.pin_hash, pin);
+      else if (pin && row.pin_hash)
+        isValid = await verifyPassword(row.pin_hash, pin);
 
       if (!isValid) {
         const attempts = (row.failed_attempts || 0) + 1;
@@ -300,14 +371,26 @@ export const AuthService = {
             "UPDATE users SET failed_attempts=$1, locked_until=$2 WHERE employee_number=$3",
             [attempts, lockUntil, employeeNumber],
           );
-          await AuditService.createLog(employeeNumber, "ACCOUNT_LOCKED", "Locked after 5 failed attempts", "127.0.0.1");
-          throw new Error("Account locked for 30 minutes after 5 failed attempts.");
+          await AuditService.createLog(
+            employeeNumber,
+            "ACCOUNT_LOCKED",
+            "Locked after 5 failed attempts",
+            "127.0.0.1",
+          );
+          throw new Error(
+            "Account locked for 30 minutes after 5 failed attempts.",
+          );
         }
         await db.execute(
           "UPDATE users SET failed_attempts=$1 WHERE employee_number=$2",
           [attempts, employeeNumber],
         );
-        await AuditService.createLog(employeeNumber, "LOGIN_FAILED", "Incorrect credentials", "127.0.0.1");
+        await AuditService.createLog(
+          employeeNumber,
+          "LOGIN_FAILED",
+          "Incorrect credentials",
+          "127.0.0.1",
+        );
         return null;
       }
 
@@ -317,38 +400,58 @@ export const AuthService = {
       );
 
       const payload = mapToPayload(row);
-      const token   = signToken(payload as any);
-      const refresh = signRefreshToken({ sub: employeeNumber, employee_number: employeeNumber });
-      await AuditService.createLog(employeeNumber, "LOGIN_SUCCESS", "User logged in", "127.0.0.1");
+      const token = signToken(payload as any);
+      const refresh = signRefreshToken({
+        sub: employeeNumber,
+        employee_number: employeeNumber,
+      });
+      await AuditService.createLog(
+        employeeNumber,
+        "LOGIN_SUCCESS",
+        "User logged in",
+        "127.0.0.1",
+      );
       return { token, refreshToken: refresh, user: payload };
-
     } catch (err: any) {
-      if (err.message?.includes("locked") || err.message?.includes("Invalid")) throw err;
+      if (err.message?.includes("locked") || err.message?.includes("Invalid"))
+        throw err;
       if (err.message === "Database not connected") {
-        const mockUser = mockUsers().find((u) => u.employee_number === employeeNumber) ?? mockUsers()[0];
-        const token   = signToken(mockUser as any);
-        const refresh = signRefreshToken({ sub: mockUser.employee_number, employee_number: mockUser.employee_number });
+        const mockUser =
+          mockUsers().find((u) => u.employee_number === employeeNumber) ??
+          mockUsers()[0];
+        const token = signToken(mockUser as any);
+        const refresh = signRefreshToken({
+          sub: mockUser.employee_number,
+          employee_number: mockUser.employee_number,
+        });
         return { token, refreshToken: refresh, user: mockUser };
       }
       throw err;
     }
   },
 
-  refreshAccess: async (refreshToken: string): Promise<{ token: string } | null> => {
+  refreshAccess: async (
+    refreshToken: string,
+  ): Promise<{ token: string } | null> => {
     const payload = verifyRefreshToken(refreshToken);
     if (!payload) return null;
     try {
-      const row = await db.queryOne(`
+      const row = await db.queryOne(
+        `
         SELECT e.employee_number, e.name, e.role, e.department AS dept,
                p.view_results, p.input_data, p.edit_formulas, p.change_specs
         FROM users u
         JOIN employees e ON u.employee_number = e.employee_number
         JOIN user_permissions p ON e.role = p.role
         WHERE u.employee_number = $1 AND u.status = 'ACTIVE'
-      `, [payload.employee_number]);
+      `,
+        [payload.employee_number],
+      );
       if (!row) return null;
       return { token: signToken(mapToPayload(row) as any) };
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   },
 };
 
@@ -358,16 +461,16 @@ export const AuthService = {
 
 function mapToPayload(row: any): UserPayload {
   return {
-    id:              row.employee_number,
+    id: row.employee_number,
     employee_number: row.employee_number,
-    name:            row.name,
-    role:            row.role,
-    dept:            row.dept ?? row.department ?? "",
+    name: row.name,
+    role: row.role,
+    dept: row.dept ?? row.department ?? "",
     permissions: {
-      view_results:  row.view_results  ?? 0,
-      input_data:    row.input_data    ?? 0,
+      view_results: row.view_results ?? 0,
+      input_data: row.input_data ?? 0,
       edit_formulas: row.edit_formulas ?? 0,
-      change_specs:  row.change_specs  ?? 0,
+      change_specs: row.change_specs ?? 0,
     },
     initials: AuthService.getInitials(row.name ?? ""),
   };
@@ -376,15 +479,31 @@ function mapToPayload(row: any): UserPayload {
 function mockUsers(): UserPayload[] {
   return [
     {
-      id: "ADMIN", employee_number: "ADMIN",
-      name: "Administrator", role: "ADMIN", dept: "IT",
-      permissions: { view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
+      id: "ADMIN",
+      employee_number: "ADMIN",
+      name: "Administrator",
+      role: "ADMIN",
+      dept: "IT",
+      permissions: {
+        view_results: 1,
+        input_data: 1,
+        edit_formulas: 1,
+        change_specs: 1,
+      },
       initials: "AD",
     },
     {
-      id: "CHEMIST", employee_number: "CHEMIST",
-      name: "Lab Chemist", role: "CHEMIST", dept: "Quality Control",
-      permissions: { view_results: 1, input_data: 1, edit_formulas: 0, change_specs: 0 },
+      id: "CHEMIST",
+      employee_number: "CHEMIST",
+      name: "Lab Chemist",
+      role: "CHEMIST",
+      dept: "Quality Control",
+      permissions: {
+        view_results: 1,
+        input_data: 1,
+        edit_formulas: 0,
+        change_specs: 0,
+      },
       initials: "LC",
     },
   ];

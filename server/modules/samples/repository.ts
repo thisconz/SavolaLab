@@ -1,4 +1,4 @@
-import { db }                                        from "../../core/database";
+import { db } from "../../core/database";
 import { SampleData, TestResultSummary, SampleTest } from "../../core/types";
 
 export const SampleRepository = {
@@ -89,14 +89,14 @@ export const SampleRepository = {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING id`,
         [
-          data.batch_id      ?? null,
-          data.sample_type   ?? null,
-          data.source_stage  ?? null,
-          data.priority      ?? "NORMAL",
+          data.batch_id ?? null,
+          data.sample_type ?? null,
+          data.source_stage ?? null,
+          data.priority ?? "NORMAL",
           data.technician_id,
-          data.line_id       ?? null,
-          data.equipment_id  ?? null,
-          data.shift_id      ?? null,
+          data.line_id ?? null,
+          data.equipment_id ?? null,
+          data.shift_id ?? null,
         ],
       );
       return rows[0].id;
@@ -158,12 +158,20 @@ export const SampleRepository = {
 
   async findTestsBySampleId(sampleId: number): Promise<SampleTest[]> {
     try {
-      return await db.query("SELECT * FROM tests WHERE sample_id = $1 ORDER BY id ASC", [sampleId]);
+      return await db.query(
+        "SELECT * FROM tests WHERE sample_id = $1 ORDER BY id ASC",
+        [sampleId],
+      );
     } catch (error: any) {
       if (error.message === "Database not connected") {
         return [
-          { id: 101, sample_id: sampleId, test_type: "Pol",      status: "PENDING"   },
-          { id: 102, sample_id: sampleId, test_type: "Moisture", status: "COMPLETED" },
+          { id: 101, sample_id: sampleId, test_type: "Pol", status: "PENDING" },
+          {
+            id: 102,
+            sample_id: sampleId,
+            test_type: "Moisture",
+            status: "COMPLETED",
+          },
         ];
       }
       throw error;

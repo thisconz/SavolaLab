@@ -8,9 +8,9 @@ import argon2 from "argon2";
 
 async function hash(plain: string): Promise<string> {
   return argon2.hash(plain, {
-    type:        argon2.argon2id,
-    memoryCost:  65536,
-    timeCost:    3,
+    type: argon2.argon2id,
+    memoryCost: 65536,
+    timeCost: 3,
     parallelism: 4,
   });
 }
@@ -20,33 +20,75 @@ async function hash(plain: string): Promise<string> {
 // ─────────────────────────────────────────────
 
 const ROLE_PERMISSIONS = [
-  { role: "ADMIN",             view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
-  { role: "CHEMIST",           view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
-  { role: "SHIFT_CHEMIST",     view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
-  { role: "ASSISTING_MANAGER", view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
-  { role: "HEAD_MANAGER",      view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
-  { role: "ENGINEER",          view_results: 1, input_data: 0, edit_formulas: 0, change_specs: 0 },
-  { role: "DISPATCH",          view_results: 1, input_data: 0, edit_formulas: 0, change_specs: 0 },
+  {
+    role: "ADMIN",
+    view_results: 1,
+    input_data: 1,
+    edit_formulas: 1,
+    change_specs: 1,
+  },
+  {
+    role: "CHEMIST",
+    view_results: 1,
+    input_data: 1,
+    edit_formulas: 1,
+    change_specs: 1,
+  },
+  {
+    role: "SHIFT_CHEMIST",
+    view_results: 1,
+    input_data: 1,
+    edit_formulas: 1,
+    change_specs: 1,
+  },
+  {
+    role: "ASSISTING_MANAGER",
+    view_results: 1,
+    input_data: 1,
+    edit_formulas: 1,
+    change_specs: 1,
+  },
+  {
+    role: "HEAD_MANAGER",
+    view_results: 1,
+    input_data: 1,
+    edit_formulas: 1,
+    change_specs: 1,
+  },
+  {
+    role: "ENGINEER",
+    view_results: 1,
+    input_data: 0,
+    edit_formulas: 0,
+    change_specs: 0,
+  },
+  {
+    role: "DISPATCH",
+    view_results: 1,
+    input_data: 0,
+    edit_formulas: 0,
+    change_specs: 0,
+  },
 ];
 
 const PRODUCTION_LINES = [
-  { name: "Raw Handling",    plant_id: "PLANT-01" },
-  { name: "Refining",        plant_id: "PLANT-02" },
-  { name: "Carbonation",     plant_id: "PLANT-03" },
-  { name: "Filtration",      plant_id: "PLANT-04" },
-  { name: "Evaporation",     plant_id: "PLANT-05" },
+  { name: "Raw Handling", plant_id: "PLANT-01" },
+  { name: "Refining", plant_id: "PLANT-02" },
+  { name: "Carbonation", plant_id: "PLANT-03" },
+  { name: "Filtration", plant_id: "PLANT-04" },
+  { name: "Evaporation", plant_id: "PLANT-05" },
   { name: "Crystallization", plant_id: "PLANT-06" },
-  { name: "Centrifuge",      plant_id: "PLANT-07" },
-  { name: "Drying",          plant_id: "PLANT-08" },
-  { name: "Packaging",       plant_id: "PLANT-09" },
+  { name: "Centrifuge", plant_id: "PLANT-07" },
+  { name: "Drying", plant_id: "PLANT-08" },
+  { name: "Packaging", plant_id: "PLANT-09" },
   { name: "Utility Streams", plant_id: "PLANT-10" },
 ];
 
 const SAMPLE_TYPES = [
-  { name: "Raw Handling",     category: "STAGE"   },
-  { name: "Refining",         category: "STAGE"   },
-  { name: "White sugar",      category: "PRODUCT" },
-  { name: "Polish liquor",    category: "LIQUID"  },
+  { name: "Raw Handling", category: "STAGE" },
+  { name: "Refining", category: "STAGE" },
+  { name: "White sugar", category: "PRODUCT" },
+  { name: "Polish liquor", category: "LIQUID" },
   { name: "Effluent samples", category: "UTILITY" },
 ];
 
@@ -55,57 +97,67 @@ const SAMPLE_TYPES = [
 // ─────────────────────────────────────────────
 
 async function seedPermissions(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM user_permissions");
+  const [{ count }] = await client.query<{ count: string }>(
+    "SELECT COUNT(*) FROM user_permissions",
+  );
   if (Number(count) > 0) return;
 
   for (const perm of ROLE_PERMISSIONS) {
     await client.execute(
       `INSERT INTO user_permissions (role, view_results, input_data, edit_formulas, change_specs)
        VALUES ($1, $2, $3, $4, $5)`,
-      [perm.role, perm.view_results, perm.input_data, perm.edit_formulas, perm.change_specs],
+      [
+        perm.role,
+        perm.view_results,
+        perm.input_data,
+        perm.edit_formulas,
+        perm.change_specs,
+      ],
     );
   }
   logger.info("Seeded: Permissions");
 }
 
 async function seedAccounts(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM employees");
+  const [{ count }] = await client.query<{ count: string }>(
+    "SELECT COUNT(*) FROM employees",
+  );
   if (Number(count) > 0) return;
 
   // IMPORTANT: passwords are hashed with argon2id — never store plaintext
-  const passwordHash = await hash("Z3nthar!2025");  // default dev password
-  const pinHash      = await hash("1111");           // default PIN
+  const passwordHash = await hash("Z3nthar!2025"); // default dev password
+  const pinHash = await hash("1111"); // default PIN
 
   const accounts = [
     {
       employee_number: "ADMIN",
-      national_id:     "000000",
-      dob:             "2001-01-01",
-      name:            "Administrator",
-      role:            "ADMIN",
-      department:      "IT",
-      email:           "admin@zenthar.local",
-      status:          "ACTIVE",
+      national_id: "000000",
+      dob: "2001-01-01",
+      name: "Administrator",
+      role: "ADMIN",
+      department: "IT",
+      email: "admin@zenthar.local",
+      status: "ACTIVE",
     },
     {
       employee_number: "CHEMIST",
-      national_id:     "111111",
-      dob:             "2001-01-02",
-      name:            "Lab Chemist",
-      role:            "CHEMIST",
-      department:      "Quality Control",
-      email:           "chemist@zenthar.local",
-      status:          "ACTIVE",
+      national_id: "111111",
+      dob: "2001-01-02",
+      name: "Lab Chemist",
+      role: "CHEMIST",
+      department: "Quality Control",
+      email: "chemist@zenthar.local",
+      status: "ACTIVE",
     },
     {
       employee_number: "SHIFT01",
-      national_id:     "222222",
-      dob:             "1990-05-15",
-      name:            "Shift Supervisor",
-      role:            "SHIFT_CHEMIST",
-      department:      "Quality Control",
-      email:           "shift@zenthar.local",
-      status:          "ACTIVE",
+      national_id: "222222",
+      dob: "1990-05-15",
+      name: "Shift Supervisor",
+      role: "SHIFT_CHEMIST",
+      department: "Quality Control",
+      email: "shift@zenthar.local",
+      status: "ACTIVE",
     },
   ];
 
@@ -113,7 +165,16 @@ async function seedAccounts(client: TransactionClient) {
     await client.execute(
       `INSERT INTO employees (employee_number, national_id, dob, name, role, department, email, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [acc.employee_number, acc.national_id, acc.dob, acc.name, acc.role, acc.department, acc.email, acc.status],
+      [
+        acc.employee_number,
+        acc.national_id,
+        acc.dob,
+        acc.name,
+        acc.role,
+        acc.department,
+        acc.email,
+        acc.status,
+      ],
     );
 
     await client.execute(
@@ -132,7 +193,9 @@ async function seedAccounts(client: TransactionClient) {
 }
 
 async function seedInfrastructure(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM production_lines");
+  const [{ count }] = await client.query<{ count: string }>(
+    "SELECT COUNT(*) FROM production_lines",
+  );
   if (Number(count) > 0) return;
 
   for (const line of PRODUCTION_LINES) {
@@ -143,9 +206,9 @@ async function seedInfrastructure(client: TransactionClient) {
   }
 
   const equipmentSpecs = [
-    { name: "Centrifuge C-101",  lineName: "Centrifuge",  type: "Centrifuge" },
-    { name: "Evaporator E-202",  lineName: "Evaporation", type: "Evaporator" },
-    { name: "Packager P-303",    lineName: "Packaging",   type: "Packer"     },
+    { name: "Centrifuge C-101", lineName: "Centrifuge", type: "Centrifuge" },
+    { name: "Evaporator E-202", lineName: "Evaporation", type: "Evaporator" },
+    { name: "Packager P-303", lineName: "Packaging", type: "Packer" },
   ];
 
   for (const eq of equipmentSpecs) {
@@ -164,14 +227,16 @@ async function seedInfrastructure(client: TransactionClient) {
 }
 
 async function seedShifts(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM shifts");
+  const [{ count }] = await client.query<{ count: string }>(
+    "SELECT COUNT(*) FROM shifts",
+  );
   if (Number(count) > 0) return;
 
-  const today  = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split("T")[0];
   const shifts = [
-    { name: "Morning",   start: "07:00:00", end: "15:00:00" },
+    { name: "Morning", start: "07:00:00", end: "15:00:00" },
     { name: "Afternoon", start: "15:00:00", end: "23:00:00" },
-    { name: "Night",     start: "23:00:00", end: "07:00:00" },
+    { name: "Night", start: "23:00:00", end: "07:00:00" },
   ];
 
   for (const s of shifts) {
@@ -184,14 +249,16 @@ async function seedShifts(client: TransactionClient) {
 }
 
 async function seedSystemPreferences(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM system_preferences");
+  const [{ count }] = await client.query<{ count: string }>(
+    "SELECT COUNT(*) FROM system_preferences",
+  );
   if (Number(count) > 0) return;
 
   const prefs = [
     { key: "DATE_TIME_FORMAT", value: "YYYY-MM-DDTHH:mm:ss.SSSZ" },
-    { key: "TIMEZONE",         value: "UTC" },
-    { key: "UNITS",            value: "metric" },
-    { key: "APP_VERSION",      value: "2.0.0" },
+    { key: "TIMEZONE", value: "UTC" },
+    { key: "UNITS", value: "metric" },
+    { key: "APP_VERSION", value: "2.0.0" },
   ];
 
   for (const p of prefs) {
@@ -204,7 +271,9 @@ async function seedSystemPreferences(client: TransactionClient) {
 }
 
 async function seedSampleTypes(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM sample_types");
+  const [{ count }] = await client.query<{ count: string }>(
+    "SELECT COUNT(*) FROM sample_types",
+  );
   if (Number(count) > 0) return;
 
   for (const st of SAMPLE_TYPES) {
@@ -217,12 +286,20 @@ async function seedSampleTypes(client: TransactionClient) {
 }
 
 async function seedSamples(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM samples");
+  const [{ count }] = await client.query<{ count: string }>(
+    "SELECT COUNT(*) FROM samples",
+  );
   if (Number(count) > 0) return;
 
-  const line  = await client.queryOne<{ id: number }>("SELECT id FROM production_lines LIMIT 1");
-  const equip = await client.queryOne<{ id: number }>("SELECT id FROM equipment LIMIT 1");
-  const shift = await client.queryOne<{ id: number }>("SELECT id FROM shifts LIMIT 1");
+  const line = await client.queryOne<{ id: number }>(
+    "SELECT id FROM production_lines LIMIT 1",
+  );
+  const equip = await client.queryOne<{ id: number }>(
+    "SELECT id FROM equipment LIMIT 1",
+  );
+  const shift = await client.queryOne<{ id: number }>(
+    "SELECT id FROM shifts LIMIT 1",
+  );
 
   if (line && equip && shift) {
     await client.execute(
@@ -230,7 +307,18 @@ async function seedSamples(client: TransactionClient) {
          (batch_id, sample_type, source_stage, line_id, equipment_id, shift_id,
           status, priority, created_at, technician_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      ["BT-1111", "Raw sugar", "Raw Handling", line.id, equip.id, shift.id, "PENDING", "STAT", new Date(), "ADMIN"],
+      [
+        "BT-1111",
+        "Raw sugar",
+        "Raw Handling",
+        line.id,
+        equip.id,
+        shift.id,
+        "PENDING",
+        "STAT",
+        new Date(),
+        "ADMIN",
+      ],
     );
     logger.info("Seeded: Sample (demo batch BT-1111)");
   }
@@ -253,7 +341,9 @@ export async function seedDatabase() {
     });
     logger.info("Database seeding completed successfully");
   } catch (err) {
-    logger.error(`DB SEED FAILED: ${err instanceof Error ? err.message : String(err)}`);
+    logger.error(
+      `DB SEED FAILED: ${err instanceof Error ? err.message : String(err)}`,
+    );
     throw err;
   }
 }

@@ -1,9 +1,9 @@
-import { Hono }                               from "hono";
-import type { Variables }                     from "../../core/types";
-import { AuditFilters, AuditService }         from "./service";
-import { authenticateToken, requireRoles }    from "../../core/middleware";
-import { CreateAuditLogRequestSchema }        from "../../../src/shared/schemas/audit.schema";
-import { logger }                             from "../../core/logger";
+import { Hono } from "hono";
+import type { Variables } from "../../core/types";
+import { AuditFilters, AuditService } from "./service";
+import { authenticateToken, requireRoles } from "../../core/middleware";
+import { CreateAuditLogRequestSchema } from "../../../src/shared/schemas/audit.schema";
+import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -59,7 +59,10 @@ app.post("/", authenticateToken, async (c) => {
 
     const body = await c.req.json();
     const parsedBody = CreateAuditLogRequestSchema.parse(body);
-    const detailsStr = typeof parsedBody.details === "string" ? parsedBody.details : JSON.stringify(parsedBody.details ?? {});
+    const detailsStr =
+      typeof parsedBody.details === "string"
+        ? parsedBody.details
+        : JSON.stringify(parsedBody.details ?? {});
 
     // Fire-and-forget pattern (audit should not block request)
     try {

@@ -1,12 +1,12 @@
-import { create }                               from "zustand";
+import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
-import { User }                                 from "../../core/types/";
-import { safeLocalStorage }                     from "../../core/utils/storage";
+import { User } from "../../core/types/";
+import { safeLocalStorage } from "../../core/utils/storage";
 
 export interface AuthUser extends User {
-  pin?:      string;
+  pin?: string;
   password?: string;
-  avatar?:   string;
+  avatar?: string;
 }
 
 interface AuthState {
@@ -17,8 +17,8 @@ interface AuthState {
   /** Derived at runtime — never persisted independently to avoid desync. */
   readonly isAuthenticated: boolean;
 
-  login:    (user: AuthUser, token?: string) => void;
-  logout:   () => void;
+  login: (user: AuthUser, token?: string) => void;
+  logout: () => void;
   setToken: (token: string) => void;
 }
 
@@ -26,8 +26,8 @@ export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
       (set, get) => ({
-        currentUser:     null,
-        token:           null,
+        currentUser: null,
+        token: null,
 
         // Derived — computed lazily so it's always consistent with currentUser
         get isAuthenticated() {
@@ -35,24 +35,15 @@ export const useAuthStore = create<AuthState>()(
         },
 
         login: (user, token) =>
-          set(
-            { currentUser: user, token: token ?? null },
-            false,
-            "auth/login",
-          ),
+          set({ currentUser: user, token: token ?? null }, false, "auth/login"),
 
         logout: () =>
-          set(
-            { currentUser: null, token: null },
-            false,
-            "auth/logout",
-          ),
+          set({ currentUser: null, token: null }, false, "auth/logout"),
 
-        setToken: (token) =>
-          set({ token }, false, "auth/setToken"),
+        setToken: (token) => set({ token }, false, "auth/setToken"),
       }),
       {
-        name:    "zenthar-auth-storage",
+        name: "zenthar-auth-storage",
         storage: createJSONStorage(() => safeLocalStorage),
         /**
          * Only persist the user identity, never the access token.

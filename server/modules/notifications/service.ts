@@ -1,8 +1,8 @@
-import { db }                      from "../../core/database";
-import { logger }                  from "../../core/logger";
-import { NotificationRepository }  from "./repository";
-import { sseBus }                  from "../../core/sse";
-import { Notification }            from "../../../src/shared/schemas/notification.schema";
+import { db } from "../../core/database";
+import { logger } from "../../core/logger";
+import { NotificationRepository } from "./repository";
+import { sseBus } from "../../core/sse";
+import { Notification } from "../../../src/shared/schemas/notification.schema";
 
 export const NotificationService = {
   getNotifications: async (employeeNumber: string): Promise<Notification[]> => {
@@ -36,19 +36,22 @@ export const NotificationService = {
         await client.execute(
           `INSERT INTO notifications (employee_number, type, message)
            VALUES ($1, 'OVERDUE_TEST', $2)
-           ON CONFLICT DO NOTHING`,  // prevent duplicate notifications per shift
+           ON CONFLICT DO NOTHING`, // prevent duplicate notifications per shift
           [recipientId, message],
         );
 
         // Push SSE to the technician so their bell updates instantly
         sseBus.sendTo(recipientId, "NOTIFICATION_PUSHED", {
-          type:    "OVERDUE_TEST",
+          type: "OVERDUE_TEST",
           message,
         });
       }
     });
 
-    logger.info({ count: overdueTests.length }, "Overdue test notifications generated");
+    logger.info(
+      { count: overdueTests.length },
+      "Overdue test notifications generated",
+    );
     return overdueTests.length;
   },
 
@@ -57,8 +60,8 @@ export const NotificationService = {
    */
   pushNotification: async (
     employeeNumber: string,
-    type:           string,
-    message:        string,
+    type: string,
+    message: string,
   ) => {
     await NotificationRepository.create(employeeNumber, type, message);
     sseBus.sendTo(employeeNumber, "NOTIFICATION_PUSHED", { type, message });

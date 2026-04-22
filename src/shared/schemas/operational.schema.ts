@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-export const ProductionLineStatusSchema = z.enum(["ACTIVE", "INACTIVE", "MAINTENANCE"]);
+export const ProductionLineStatusSchema = z.enum([
+  "ACTIVE",
+  "INACTIVE",
+  "MAINTENANCE",
+]);
 export type ProductionLineStatus = z.infer<typeof ProductionLineStatusSchema>;
 
 export const ProductionLineSchema = z.object({
@@ -11,7 +15,11 @@ export const ProductionLineSchema = z.object({
   status: ProductionLineStatusSchema,
 });
 
-export const EquipmentStatusSchema = z.enum(["OPERATIONAL", "MAINTENANCE", "DOWNTIME"]);
+export const EquipmentStatusSchema = z.enum([
+  "OPERATIONAL",
+  "MAINTENANCE",
+  "DOWNTIME",
+]);
 export type EquipmentStatus = z.infer<typeof EquipmentStatusSchema>;
 
 export const EquipmentSchema = z.object({
@@ -22,7 +30,11 @@ export const EquipmentSchema = z.object({
   status: EquipmentStatusSchema,
 });
 
-export const InstrumentStatusSchema = z.enum(["ACTIVE", "CALIBRATION_DUE", "INACTIVE"]);
+export const InstrumentStatusSchema = z.enum([
+  "ACTIVE",
+  "CALIBRATION_DUE",
+  "INACTIVE",
+]);
 export type InstrumentStatus = z.infer<typeof InstrumentStatusSchema>;
 
 export const InstrumentSchema = z.object({
@@ -46,7 +58,12 @@ export const InventoryItemSchema = z.object({
   location: z.string().optional().nullable(),
 });
 
-export const CertificateStatusSchema = z.enum(["DRAFT", "PENDING_APPROVAL", "APPROVED", "RELEASED"]);
+export const CertificateStatusSchema = z.enum([
+  "DRAFT",
+  "PENDING_APPROVAL",
+  "APPROVED",
+  "RELEASED",
+]);
 export type CertificateStatus = z.infer<typeof CertificateStatusSchema>;
 
 export const CertificateSchema = z.object({

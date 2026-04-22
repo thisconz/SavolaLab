@@ -1,5 +1,5 @@
 import type { Context, Next, MiddlewareHandler } from "hono";
-import { ZodSchema, ZodError, z }               from "zod";
+import { ZodSchema, ZodError, z } from "zod";
 
 type Target = "json" | "query" | "param";
 
@@ -22,9 +22,15 @@ export function validate<S extends ZodSchema>(
 
     try {
       switch (target) {
-        case "json":  raw = await c.req.json(); break;
-        case "query": raw = c.req.query();      break;
-        case "param": raw = c.req.param();      break;
+        case "json":
+          raw = await c.req.json();
+          break;
+        case "query":
+          raw = c.req.query();
+          break;
+        case "param":
+          raw = c.req.param();
+          break;
       }
     } catch {
       return c.json(
@@ -37,16 +43,16 @@ export function validate<S extends ZodSchema>(
 
     if (!result.success) {
       const issues = (result.error as ZodError).issues.map((i) => ({
-        path:    i.path.join("."),
+        path: i.path.join("."),
         message: i.message,
-        code:    i.code,
+        code: i.code,
       }));
 
       return c.json(
         {
           success: false,
-          error:   "Validation failed",
-          code:    "VALIDATION_ERROR",
+          error: "Validation failed",
+          code: "VALIDATION_ERROR",
           issues,
         },
         422,
@@ -64,7 +70,7 @@ export function validate<S extends ZodSchema>(
  * Throws a typed error if validation middleware wasn't applied.
  */
 export function getValid<T>(c: Context, target: Target): T {
-  const key  = `valid_${target}`;
+  const key = `valid_${target}`;
   const data = c.get(key);
   if (data === undefined) {
     throw new Error(

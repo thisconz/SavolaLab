@@ -1,4 +1,4 @@
-import { db }           from "../../core/database";
+import { db } from "../../core/database";
 import { Notification } from "../../../src/shared/schemas/notification.schema";
 
 export const NotificationRepository = {
@@ -14,8 +14,11 @@ export const NotificationRepository = {
       );
       return rows.map((row: any) => ({
         ...row,
-        created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
-        is_read: Boolean(row.is_read)
+        created_at:
+          row.created_at instanceof Date
+            ? row.created_at.toISOString()
+            : row.created_at,
+        is_read: Boolean(row.is_read),
       })) as Notification[];
     } catch (error: any) {
       if (error.message === "Database not connected") return [];
@@ -23,7 +26,10 @@ export const NotificationRepository = {
     }
   },
 
-  async markAsRead(id: string | number, employeeNumber: string): Promise<boolean> {
+  async markAsRead(
+    id: string | number,
+    employeeNumber: string,
+  ): Promise<boolean> {
     await db.execute(
       `UPDATE notifications 
        SET is_read = TRUE 
@@ -41,7 +47,11 @@ export const NotificationRepository = {
     return true;
   },
 
-  async create(employeeNumber: string, type: string, message: string): Promise<void> {
+  async create(
+    employeeNumber: string,
+    type: string,
+    message: string,
+  ): Promise<void> {
     await db.execute(
       `INSERT INTO notifications (employee_number, type, message) VALUES ($1, $2, $3)`,
       [employeeNumber, type, message],

@@ -1,27 +1,36 @@
 import React, { useState, memo, useCallback, useMemo } from "react";
 import {
-  Microscope, ClipboardList, FlaskConical, Plus,
-  Activity, LayoutDashboard, RefreshCw, Wifi,
+  Microscope,
+  ClipboardList,
+  FlaskConical,
+  Plus,
+  Activity,
+  LayoutDashboard,
+  RefreshCw,
+  Wifi,
 } from "lucide-react";
-import { motion, AnimatePresence }   from "@/src/lib/motion";
-import { LabPanel }                  from "../../../shared/components/LabPanel";
-import { LabButton }                 from "../../../shared/components/LabButton";
-import { SampleQueue }               from "./SampleQueue";
-import { SampleDetails }             from "./SampleDetails";
-import { LabBench }                  from "./LabBench";
-import { RegisterSampleModal }       from "./RegisterSampleModal";
-import { useLabSamples }             from "../hooks/useLabSamples";   // ← live hook
-import { Sample, SampleStatus }      from "../../../core/types";
-import { ErrorBoundary }             from "../../../shared/components/ErrorBoundary";
-import { QCStatsWidget }             from "../../dashboard/ui/QCStatsWidget";
-import { PriorityWidget }            from "../../dashboard/ui/PriorityWidget";
+import { motion, AnimatePresence } from "@/src/lib/motion";
+import { LabPanel } from "../../../shared/components/LabPanel";
+import { LabButton } from "../../../shared/components/LabButton";
+import { SampleQueue } from "./SampleQueue";
+import { SampleDetails } from "./SampleDetails";
+import { LabBench } from "./LabBench";
+import { RegisterSampleModal } from "./RegisterSampleModal";
+import { useLabSamples } from "../hooks/useLabSamples"; // ← live hook
+import { Sample, SampleStatus } from "../../../core/types";
+import { ErrorBoundary } from "../../../shared/components/ErrorBoundary";
+import { QCStatsWidget } from "../../dashboard/ui/QCStatsWidget";
+import { PriorityWidget } from "../../dashboard/ui/PriorityWidget";
 import clsx from "@/src/lib/clsx";
 
 export const LabFeature: React.FC = memo(() => {
-  const { samples, loading, error, refresh, lastUpdated, isRefreshing } = useLabSamples();
+  const { samples, loading, error, refresh, lastUpdated, isRefreshing } =
+    useLabSamples();
 
-  const [selectedSampleId,    setSelectedSampleId]    = useState<number | null>(null);
-  const [viewMode,            setViewMode]            = useState<"queue" | "details" | "bench">("queue");
+  const [selectedSampleId, setSelectedSampleId] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<"queue" | "details" | "bench">(
+    "queue",
+  );
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
   const selectedSample = useMemo(
@@ -30,7 +39,9 @@ export const LabFeature: React.FC = memo(() => {
   );
 
   const activeCount = useMemo(
-    () => samples?.filter((s) => s.status === ("TESTING" as SampleStatus)).length || 0,
+    () =>
+      samples?.filter((s) => s.status === ("TESTING" as SampleStatus)).length ||
+      0,
     [samples],
   );
 
@@ -72,11 +83,25 @@ export const LabFeature: React.FC = memo(() => {
 
         <div className="flex gap-3 flex-wrap items-center">
           <div className="flex items-center gap-4 bg-(--color-zenthar-graphite)/60 backdrop-blur-md border border-brand-sage/10 px-5 py-2 rounded-2xl shadow-sm">
-            <StatItem icon={Activity}    label="Testing"  value={activeCount}          color="text-emerald-400" />
+            <StatItem
+              icon={Activity}
+              label="Testing"
+              value={activeCount}
+              color="text-emerald-400"
+            />
             <div className="w-px h-4 bg-brand-sage/20" />
-            <StatItem icon={FlaskConical} label="Queue"   value={samples?.length || 0} color="text-brand-primary" />
+            <StatItem
+              icon={FlaskConical}
+              label="Queue"
+              value={samples?.length || 0}
+              color="text-brand-primary"
+            />
           </div>
-          <LabButton variant="primary" icon={Plus} onClick={() => setIsRegisterModalOpen(true)}>
+          <LabButton
+            variant="primary"
+            icon={Plus}
+            onClick={() => setIsRegisterModalOpen(true)}
+          >
             Register Sample
           </LabButton>
         </div>
@@ -123,7 +148,10 @@ export const LabFeature: React.FC = memo(() => {
                 <ErrorBoundary name="Lab Bench">
                   <LabBench
                     sample={selectedSample}
-                    onComplete={() => { refresh(); handleBackToQueue(); }}
+                    onComplete={() => {
+                      refresh();
+                      handleBackToQueue();
+                    }}
                   />
                 </ErrorBoundary>
               </WorkspaceTransition>
@@ -145,11 +173,13 @@ export const LabFeature: React.FC = memo(() => {
 // Micro-components
 // ─────────────────────────────────────────────
 
-const WorkspaceTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const WorkspaceTransition: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.99, y: 10 }}
-    animate={{ opacity: 1, scale: 1,    y: 0  }}
-    exit={   { opacity: 0, scale: 0.99, y: -10 }}
+    animate={{ opacity: 1, scale: 1, y: 0 }}
+    exit={{ opacity: 0, scale: 0.99, y: -10 }}
     transition={{ duration: 0.22, ease: "easeOut" }}
     className="h-full"
   >
@@ -161,17 +191,29 @@ const StatItem = ({ icon: Icon, label, value, color }: any) => (
   <div className="flex items-center gap-2">
     <Icon size={14} className={color} />
     <div className="flex flex-col">
-      <span className="text-[8px] font-black uppercase text-brand-sage/60 tracking-widest leading-none">{label}</span>
-      <span className="text-sm font-black text-(--color-zenthar-text-primary) leading-tight mt-0.5">{String(value).padStart(2, "0")}</span>
+      <span className="text-[8px] font-black uppercase text-brand-sage/60 tracking-widest leading-none">
+        {label}
+      </span>
+      <span className="text-sm font-black text-(--color-zenthar-text-primary) leading-tight mt-0.5">
+        {String(value).padStart(2, "0")}
+      </span>
     </div>
   </div>
 );
 
 const EmptyWorkspace = ({ samples }: { samples: Sample[] }) => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full flex flex-col gap-6">
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    className="h-full flex flex-col gap-6"
+  >
     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
-      <LabPanel title="Quality Distribution" icon={Activity}><QCStatsWidget samples={samples} /></LabPanel>
-      <LabPanel title="Urgency Heatmap"      icon={Activity}><PriorityWidget samples={samples} /></LabPanel>
+      <LabPanel title="Quality Distribution" icon={Activity}>
+        <QCStatsWidget samples={samples} />
+      </LabPanel>
+      <LabPanel title="Urgency Heatmap" icon={Activity}>
+        <PriorityWidget samples={samples} />
+      </LabPanel>
     </div>
     <div className="flex flex-col items-center justify-center p-8 bg-(--color-zenthar-graphite)/30 rounded-[2.5rem] border-2 border-dashed border-brand-sage/10">
       <div className="relative">
@@ -181,8 +223,12 @@ const EmptyWorkspace = ({ samples }: { samples: Sample[] }) => (
         </div>
       </div>
       <div className="text-center max-w-sm mt-5">
-        <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary)">Workspace Idle</h2>
-        <p className="text-brand-sage text-sm mt-2 leading-relaxed">Select a sample from the processing queue to begin analysis.</p>
+        <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary)">
+          Workspace Idle
+        </h2>
+        <p className="text-brand-sage text-sm mt-2 leading-relaxed">
+          Select a sample from the processing queue to begin analysis.
+        </p>
       </div>
     </div>
   </motion.div>

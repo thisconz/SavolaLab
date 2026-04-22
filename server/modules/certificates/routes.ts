@@ -1,8 +1,8 @@
-import { Hono }              from "hono";
-import type { Variables }    from "../../core/types";
+import { Hono } from "hono";
+import type { Variables } from "../../core/types";
 import { authenticateToken, requireRoles } from "../../core/middleware";
-import { db }                from "../../core/database";
-import { logger }            from "../../core/logger";
+import { db } from "../../core/database";
+import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -35,27 +35,36 @@ app.get("/:id", authenticateToken, async (c) => {
   if (!id) return c.json({ success: false, error: "Invalid ID" }, 400);
 
   try {
-    const cert = await db.queryOne(`
+    const cert = await db.queryOne(
+      `
       SELECT c.*, e.name AS approved_by_name
       FROM certificates c
       LEFT JOIN employees e ON c.approved_by = e.employee_number
       WHERE c.id = $1
-    `, [id]);
+    `,
+      [id],
+    );
 
-    if (!cert) return c.json({ success: false, error: "Certificate not found" }, 404);
+    if (!cert)
+      return c.json({ success: false, error: "Certificate not found" }, 404);
 
     // Find samples matching this batch
-    const samples = await db.query(`
+    const samples = await db.query(
+      `
       SELECT s.*, COUNT(t.id)::int AS test_count
       FROM samples s
       LEFT JOIN tests t ON t.sample_id = s.id
       WHERE s.batch_id = $1
       GROUP BY s.id
-    `, [(cert as any).batch_id]);
+    `,
+      [(cert as any).batch_id],
+    );
 
     // Get all tests for those samples
-    const tests = samples.length > 0
-      ? await db.query(`
+    const tests =
+      samples.length > 0
+        ? await db.query(
+            `
           SELECT t.*, e.name AS performer_name, r.name AS reviewer_name
           FROM tests t
           JOIN samples s ON t.sample_id = s.id
@@ -63,8 +72,10 @@ app.get("/:id", authenticateToken, async (c) => {
           LEFT JOIN employees r ON t.reviewer_id  = r.employee_number
           WHERE s.batch_id = $1
           ORDER BY s.id, t.sequence_order
-        `, [(cert as any).batch_id])
-      : [];
+        `,
+            [(cert as any).batch_id],
+          )
+        : [];
 
     return c.json({ success: true, data: { ...cert, samples, tests } });
   } catch (err: any) {
@@ -83,16 +94,21 @@ app.get("/:id/pdf", authenticateToken, async (c) => {
 
   try {
     // ── 1. Fetch full certificate data ──────────────────────────────────
-    const cert = await db.queryOne<any>(`
+    const cert = await db.queryOne<any>(
+      `
       SELECT c.*, e.name AS approved_by_name, e.role AS approved_by_role
       FROM certificates c
       LEFT JOIN employees e ON c.approved_by = e.employee_number
       WHERE c.id = $1
-    `, [id]);
+    `,
+      [id],
+    );
 
-    if (!cert) return c.json({ success: false, error: "Certificate not found" }, 404);
+    if (!cert)
+      return c.json({ success: false, error: "Certificate not found" }, 404);
 
-    const tests = await db.query<any>(`
+    const tests = await db.query<any>(
+      `
       SELECT
         t.test_type,
         t.raw_value,
@@ -111,7 +127,9 @@ app.get("/:id/pdf", authenticateToken, async (c) => {
       LEFT JOIN employees er ON t.reviewer_id  = er.employee_number
       WHERE s.batch_id = $1 AND t.status IN ('APPROVED', 'COMPLETED')
       ORDER BY s.id, t.id
-    `, [cert.batch_id]);
+    `,
+      [cert.batch_id],
+    );
 
     // ── 2. Build PDF content ────────────────────────────────────────────
     // Using a simple HTML-like string that gets converted.
@@ -123,9 +141,9 @@ app.get("/:id/pdf", authenticateToken, async (c) => {
     // For now we serve HTML that the browser can print-to-PDF (Ctrl+P).
     const filename = `Certificate-${cert.batch_id ?? id}-v${cert.version}.html`;
 
-    c.header("Content-Type",        "text/html; charset=utf-8");
+    c.header("Content-Type", "text/html; charset=utf-8");
     c.header("Content-Disposition", `attachment; filename="${filename}"`);
-    c.header("Cache-Control",       "no-store");
+    c.header("Cache-Control", "no-store");
 
     return c.body(htmlContent);
   } catch (err: any) {
@@ -143,17 +161,24 @@ app.put(
   authenticateToken,
   requireRoles("ADMIN", "HEAD_MANAGER", "SHIFT_CHEMIST"),
   async (c) => {
-    const id   = Number(c.req.param("id"));
+    const id = Number(c.req.param("id"));
     const user = c.get("user");
 
     if (!id) return c.json({ success: false, error: "Invalid ID" }, 400);
 
     try {
-      const cert = await db.queryOne("SELECT * FROM certificates WHERE id = $1", [id]);
-      if (!cert) return c.json({ success: false, error: "Certificate not found" }, 404);
+      const cert = await db.queryOne(
+        "SELECT * FROM certificates WHERE id = $1",
+        [id],
+      );
+      if (!cert)
+        return c.json({ success: false, error: "Certificate not found" }, 404);
 
       if ((cert as any).status === "RELEASED") {
-        return c.json({ success: false, error: "Certificate already released" }, 400);
+        return c.json(
+          { success: false, error: "Certificate already released" },
+          400,
+        );
       }
 
       await db.execute(
@@ -185,11 +210,16 @@ export default app;
 
 function buildCertificateHTML(cert: any, tests: any[]): string {
   const now = new Date().toLocaleString("en-GB", {
-    day: "2-digit", month: "long", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 
-  const testRows = tests.map((t) => `
+  const testRows = tests
+    .map(
+      (t) => `
     <tr>
       <td>${t.test_type ?? "—"}</td>
       <td>${t.source_stage ?? t.sample_type ?? "—"}</td>
@@ -199,7 +229,9 @@ function buildCertificateHTML(cert: any, tests: any[]): string {
       <td>${t.performer_name ?? "—"}</td>
       <td>${t.reviewer_name ?? "—"}</td>
     </tr>
-  `).join("");
+  `,
+    )
+    .join("");
 
   return `<!DOCTYPE html>
 <html lang="en">

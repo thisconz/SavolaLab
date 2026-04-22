@@ -4,14 +4,24 @@ import { Role } from "../../src/core/types/role";
 import type { AppTab } from "../../src/core/types/app.types";
 
 d3("isTabAllowed — RBAC matrix", () => {
-
   it3("ADMIN can access all tabs", () => {
     const allTabs: AppTab[] = [
-      "dashboard", "lab", "stat", "dispatch", "analytics",
-      "workflows", "intelligence", "assets", "audit", "settings", "archive",
+      "dashboard",
+      "lab",
+      "stat",
+      "dispatch",
+      "analytics",
+      "workflows",
+      "intelligence",
+      "assets",
+      "audit",
+      "settings",
+      "archive",
     ];
     allTabs.forEach((tab) => {
-      e3(isTabAllowed(Role.ADMIN, tab), `ADMIN should access ${tab}`).toBe(true);
+      e3(isTabAllowed(Role.ADMIN, tab), `ADMIN should access ${tab}`).toBe(
+        true,
+      );
     });
   });
 
@@ -46,5 +56,4 @@ d3("isTabAllowed — RBAC matrix", () => {
     e3(isTabAllowed(null, "dashboard")).toBe(false);
     e3(isTabAllowed(null, "lab")).toBe(false);
   });
-
 });

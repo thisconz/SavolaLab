@@ -6,23 +6,23 @@ import type { Sample, TestResult } from "../../../core/types";
 import { SampleStatus } from "../../../core/types";
 
 export const useSampleDetails = (sample: Sample, onUpdate: () => void) => {
-  const [isEditing,    setIsEditing]    = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [editedSample, setEditedSample] = useState<Partial<Sample>>({});
-  const [isSaving,     setIsSaving]     = useState(false);
-  const [testResults,  setTestResults]  = useState<TestResult[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
   const { currentUser } = useAuthStore();
 
   // Populate edit form when editing starts
   useEffect(() => {
     if (isEditing) {
       setEditedSample({
-        batch_id:     sample.batch_id     ?? "",
-        sample_type:  sample.sample_type  ?? "",
+        batch_id: sample.batch_id ?? "",
+        sample_type: sample.sample_type ?? "",
         source_stage: sample.source_stage ?? "",
-        priority:     sample.priority,
-        line_id:      sample.line_id      ?? "",
+        priority: sample.priority,
+        line_id: sample.line_id ?? "",
         equipment_id: sample.equipment_id ?? "",
-        shift_id:     sample.shift_id     ?? "",
+        shift_id: sample.shift_id ?? "",
       });
     }
   }, [isEditing, sample]);
@@ -50,7 +50,9 @@ export const useSampleDetails = (sample: Sample, onUpdate: () => void) => {
     };
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [sample.id, sample.status]);
 
   const handleSave = async () => {

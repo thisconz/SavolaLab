@@ -1,27 +1,27 @@
 import { createNotification } from "../../core/db/events";
-import { db }                 from "../../core/database";
-import { StatRepository }     from "./repository";
-import { sseBus }             from "../../core/sse";
-import { analyticsCache }     from "../../core/cache";
+import { db } from "../../core/database";
+import { StatRepository } from "./repository";
+import { sseBus } from "../../core/sse";
+import { analyticsCache } from "../../core/cache";
 
 export interface StatRequestInput {
   department: string;
-  reason:     string;
-  urgency?:   "NORMAL" | "HIGH" | "CRITICAL";
+  reason: string;
+  urgency?: "NORMAL" | "HIGH" | "CRITICAL";
 }
 
 export const StatService = {
   getStats: async () => StatRepository.findAll(),
 
   createStat: async (
-    data:           StatRequestInput,
+    data: StatRequestInput,
     employeeNumber?: string,
-    ip?:             string,
+    ip?: string,
   ) => {
     const statId = await StatRepository.create({
       department: data.department,
-      reason:     data.reason,
-      urgency:    data.urgency ?? "NORMAL",
+      reason: data.reason,
+      urgency: data.urgency ?? "NORMAL",
     });
 
     if (employeeNumber) {
@@ -38,9 +38,9 @@ export const StatService = {
 
     // Broadcast to all — critical stats shown as toast in the frontend
     sseBus.broadcast("STAT_CREATED", {
-      id:         statId,
+      id: statId,
       department: data.department,
-      urgency:    data.urgency ?? "NORMAL",
+      urgency: data.urgency ?? "NORMAL",
     });
 
     // Invalidate sample-count analytics cache (STAT changes active queue view)
@@ -50,10 +50,10 @@ export const StatService = {
   },
 
   updateStatStatus: async (
-    id:              number | string,
-    status:          string,
+    id: number | string,
+    status: string,
     employeeNumber?: string,
-    ip?:             string,
+    ip?: string,
   ) => {
     const statId = Number(id);
     if (isNaN(statId)) throw new Error("Invalid stat ID");
@@ -73,7 +73,7 @@ export const StatService = {
     }
 
     sseBus.broadcast("STAT_UPDATED", {
-      id:     statId,
+      id: statId,
       status,
       updated_by: employeeNumber ?? "SYSTEM",
     });

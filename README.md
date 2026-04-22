@@ -68,16 +68,16 @@ Zenthar is an enterprise-grade **Laboratory Information Management System (LIMS)
 
 ### Tech Stack
 
-| Layer          | Technology                                           |
-|----------------|------------------------------------------------------|
-| Runtime        | Node.js 20+, TypeScript 5.8                          |
-| Frontend       | React 19, Vite 6, Tailwind CSS v4, Framer Motion 11  |
-| API            | Hono v4, Zod v4 validation                           |
-| Database       | PostgreSQL 15+ (production), PGlite (dev/offline)    |
-| Auth           | Custom HMAC-SHA256 JWT + Argon2id + OTP              |
-| State          | Zustand 5 (client), XState 5 (workflow state)        |
-| Charts         | Recharts 2                                           |
-| Testing        | Vitest + Testing Library + Playwright (E2E)          |
+| Layer    | Technology                                          |
+| -------- | --------------------------------------------------- |
+| Runtime  | Node.js 20+, TypeScript 5.8                         |
+| Frontend | React 19, Vite 6, Tailwind CSS v4, Framer Motion 11 |
+| API      | Hono v4, Zod v4 validation                          |
+| Database | PostgreSQL 15+ (production), PGlite (dev/offline)   |
+| Auth     | Custom HMAC-SHA256 JWT + Argon2id + OTP             |
+| State    | Zustand 5 (client), XState 5 (workflow state)       |
+| Charts   | Recharts 2                                          |
+| Testing  | Vitest + Testing Library + Playwright (E2E)         |
 
 ---
 
@@ -176,7 +176,7 @@ zenthar/
 ### Prerequisites
 
 - **Node.js** ≥ 20
-- **PostgreSQL** 15+ *(optional — PGlite is used automatically if `DATABASE_URL` is not set)*
+- **PostgreSQL** 15+ _(optional — PGlite is used automatically if `DATABASE_URL` is not set)_
 
 ### 1 — Install dependencies
 
@@ -211,17 +211,18 @@ npm run dev
 ```
 
 This starts the unified Hono server on **http://localhost:3000** with:
+
 - React SPA served via Vite middleware (HMR enabled)
 - REST API at `/api/*`
 - SSE stream at `/api/realtime/stream`
 
 On first boot, migrations run automatically and seed data is inserted including three default accounts:
 
-| Employee # | Password         | PIN  | Role        |
-|-----------|-----------------|------|-------------|
-| `ADMIN`   | `Z3nthar!2025`  | 1111 | Admin       |
-| `CHEMIST` | `Z3nthar!2025`  | 1111 | Chemist     |
-| `SHIFT01` | `Z3nthar!2025`  | 1111 | Shift Chemist |
+| Employee # | Password       | PIN  | Role          |
+| ---------- | -------------- | ---- | ------------- |
+| `ADMIN`    | `Z3nthar!2025` | 1111 | Admin         |
+| `CHEMIST`  | `Z3nthar!2025` | 1111 | Chemist       |
+| `SHIFT01`  | `Z3nthar!2025` | 1111 | Shift Chemist |
 
 > ⚠️ Change all default credentials before deploying to production.
 
@@ -252,45 +253,50 @@ npm run test:e2e
 
 Test suites:
 
-| File | Coverage |
-|------|----------|
+| File                              | Coverage                                               |
+| --------------------------------- | ------------------------------------------------------ |
 | `tests/unit/auth.test.ts`         | JWT signing, HMAC verification, token type enforcement |
-| `tests/unit/archive.test.ts`      | Dynamic SQL builder, placeholder ordering |
-| `tests/unit/rbac.test.ts`         | Role → tab permission matrix |
-| `tests/unit/calculations.test.ts` | ICUMSA colour calculation |
-| `tests/e2e/lab-workflow.spec.ts`  | Full registration → testing → review flow |
+| `tests/unit/archive.test.ts`      | Dynamic SQL builder, placeholder ordering              |
+| `tests/unit/rbac.test.ts`         | Role → tab permission matrix                           |
+| `tests/unit/calculations.test.ts` | ICUMSA colour calculation                              |
+| `tests/e2e/lab-workflow.spec.ts`  | Full registration → testing → review flow              |
 
 ---
 
 ## Key Features
 
 ### Sample Lifecycle
+
 ```
 REGISTERED → PENDING → TESTING → VALIDATING → COMPLETED / APPROVED
 ```
+
 Transitions are tracked, audited, and broadcast via SSE to all connected clients.
 
 ### Immutable Data Guarantee
+
 Database triggers enforce:
+
 - Tests cannot be deleted (attempt is logged to `audit_logs`)
 - Completed/approved samples and tests cannot be modified
 - Audit logs cannot be updated or deleted
 - OTPs are single-use and time-limited (5–10 min)
 
 ### Real-time Updates
+
 All state changes (new sample, test submitted, review completed, STAT request) are pushed over a single SSE connection per user. The frontend uses debounced handlers to coalesce rapid events.
 
 ### Role-Based Access Control
 
-| Role | Dashboard | Lab | STAT | Dispatch | Analytics | Settings | Audit |
-|------|:---------:|:---:|:----:|:--------:|:---------:|:--------:|:-----:|
-| Admin | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Head Manager | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Assisting Manager | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | – |
-| Shift Chemist | ✓ | ✓ | ✓ | ✓ | – | – | – |
-| Chemist | ✓ | ✓ | ✓ | ✓ | – | – | – |
-| Engineer | ✓ | – | – | – | – | – | – |
-| Dispatch | ✓ | – | – | ✓ | – | – | – |
+| Role              | Dashboard | Lab | STAT | Dispatch | Analytics | Settings | Audit |
+| ----------------- | :-------: | :-: | :--: | :------: | :-------: | :------: | :---: |
+| Admin             |     ✓     |  ✓  |  ✓   |    ✓     |     ✓     |    ✓     |   ✓   |
+| Head Manager      |     ✓     |  ✓  |  ✓   |    ✓     |     ✓     |    ✓     |   ✓   |
+| Assisting Manager |     ✓     |  ✓  |  ✓   |    ✓     |     ✓     |    ✓     |   –   |
+| Shift Chemist     |     ✓     |  ✓  |  ✓   |    ✓     |     –     |    –     |   –   |
+| Chemist           |     ✓     |  ✓  |  ✓   |    ✓     |     –     |    –     |   –   |
+| Engineer          |     ✓     |  –  |  –   |    –     |     –     |    –     |   –   |
+| Dispatch          |     ✓     |  –  |  –   |    ✓     |     –     |    –     |   –   |
 
 ---
 
@@ -313,15 +319,15 @@ The runner acquires a Postgres advisory lock before applying, making it safe to 
 
 ## Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DATABASE_URL` | Prod only | — | PostgreSQL connection string |
-| `JWT_SECRET` | Prod only | `insecure-dev-secret` | HMAC signing key |
-| `BETTER_AUTH_SECRET` | Optional | same as JWT_SECRET | better-auth signing key |
-| `LOG_LEVEL` | No | `info` | Pino log level (`debug`/`info`/`warn`/`error`) |
-| `NODE_ENV` | No | `development` | `development` or `production` |
-| `VITE_SENTRY_DSN` | No | — | Sentry DSN for error tracking |
-| `VITE_ZENTHAR_VERSION` | No | — | Displayed in UI footer |
+| Variable               | Required  | Default               | Description                                    |
+| ---------------------- | --------- | --------------------- | ---------------------------------------------- |
+| `DATABASE_URL`         | Prod only | —                     | PostgreSQL connection string                   |
+| `JWT_SECRET`           | Prod only | `insecure-dev-secret` | HMAC signing key                               |
+| `BETTER_AUTH_SECRET`   | Optional  | same as JWT_SECRET    | better-auth signing key                        |
+| `LOG_LEVEL`            | No        | `info`                | Pino log level (`debug`/`info`/`warn`/`error`) |
+| `NODE_ENV`             | No        | `development`         | `development` or `production`                  |
+| `VITE_SENTRY_DSN`      | No        | —                     | Sentry DSN for error tracking                  |
+| `VITE_ZENTHAR_VERSION` | No        | —                     | Displayed in UI footer                         |
 
 ---
 

@@ -11,7 +11,11 @@ export type RegistryTable =
   | "inventory"
   | "system_preferences";
 
-interface ApiResponse<T> { success: boolean; data: T; message?: string; }
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
 
 export const SettingsApi = {
   getSettings: async <T = any>(table: RegistryTable): Promise<T[]> => {
@@ -24,8 +28,15 @@ export const SettingsApi = {
     return res.data;
   },
 
-  updateSetting: async <T = any>(table: RegistryTable, id: string | number, payload: Partial<T>): Promise<T> => {
-    const res = await api.put<ApiResponse<T>>(`/settings/${table}/${id}`, payload);
+  updateSetting: async <T = any>(
+    table: RegistryTable,
+    id: string | number,
+    payload: Partial<T>,
+  ): Promise<T> => {
+    const res = await api.put<ApiResponse<T>>(
+      `/settings/${table}/${id}`,
+      payload,
+    );
     return res.data;
   },
 
@@ -34,7 +45,10 @@ export const SettingsApi = {
    * Note: the server must have a DELETE route for the given table.
    * Currently only "deletable" tables (sample_types, clients, inventory) expose this.
    */
-  deleteSetting: async (table: RegistryTable, id: string | number): Promise<void> => {
+  deleteSetting: async (
+    table: RegistryTable,
+    id: string | number,
+  ): Promise<void> => {
     await api.delete(`/settings/${table}/${id}`);
   },
 };

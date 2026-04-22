@@ -1,19 +1,19 @@
 import { createNotification } from "../../core/db/events";
-import { SampleRepository }   from "./repository";
-import { AuditService }       from "../audit/service";
-import { sseBus }             from "../../core/sse";
+import { SampleRepository } from "./repository";
+import { AuditService } from "../audit/service";
+import { sseBus } from "../../core/sse";
 import { SampleData, TestResultSummary, SampleTest } from "../../core/types";
 
 const DEFAULT_TESTS: Record<string, string[]> = {
-  "Raw sugar":       ["Pol", "Moisture", "Colour"],
-  "White sugar":     ["Pol", "Moisture", "Colour", "Ash"],
-  "Brown sugar":     ["Pol", "Moisture", "Colour", "Ash"],
-  "Raw Handling":    ["Brix", "pH"],
-  "Refining":        ["Brix", "Purity", "Colour"],
-  "Clarification":   ["pH", "Brix"],
-  "Evaporation":     ["Brix", "pH"],
-  "Crystallization": ["Brix", "Purity"],
-  "Centrifuge":      ["Pol", "Moisture"],
+  "Raw sugar": ["Pol", "Moisture", "Colour"],
+  "White sugar": ["Pol", "Moisture", "Colour", "Ash"],
+  "Brown sugar": ["Pol", "Moisture", "Colour", "Ash"],
+  "Raw Handling": ["Brix", "pH"],
+  Refining: ["Brix", "Purity", "Colour"],
+  Clarification: ["pH", "Brix"],
+  Evaporation: ["Brix", "pH"],
+  Crystallization: ["Brix", "Purity"],
+  Centrifuge: ["Pol", "Moisture"],
 };
 
 export const SampleService = {
@@ -21,14 +21,20 @@ export const SampleService = {
     return SampleRepository.findAll();
   },
 
-  createSample: async (data: SampleData, technicianId: string): Promise<number> => {
-    const id = await SampleRepository.create({ ...data, technician_id: technicianId });
+  createSample: async (
+    data: SampleData,
+    technicianId: string,
+  ): Promise<number> => {
+    const id = await SampleRepository.create({
+      ...data,
+      technician_id: technicianId,
+    });
 
     // Emit SSE event to all connected clients
     sseBus.broadcast("SAMPLE_CREATED", {
       id,
-      batch_id:     data.batch_id     ?? null,
-      priority:     data.priority     ?? "NORMAL",
+      batch_id: data.batch_id ?? null,
+      priority: data.priority ?? "NORMAL",
       source_stage: data.source_stage ?? null,
       technician_id: technicianId,
     });
@@ -37,10 +43,10 @@ export const SampleService = {
   },
 
   updateSample: async (
-    id:             string | number,
-    data:           SampleData,
+    id: string | number,
+    data: SampleData,
     employeeNumber: string,
-    ip:             string,
+    ip: string,
   ): Promise<boolean> => {
     const sampleId = Number(id);
     if (isNaN(sampleId)) throw new Error("Invalid sample ID");
@@ -66,15 +72,15 @@ export const SampleService = {
         );
         // Targeted SSE notification to the technician
         sseBus.sendTo(oldSample.technician_id, "NOTIFICATION_PUSHED", {
-          type:    "SAMPLE_COMPLETED",
+          type: "SAMPLE_COMPLETED",
           message: `Sample ${oldSample.batch_id} has been completed.`,
         });
       }
 
       // Broadcast status change to all
       sseBus.broadcast("SAMPLE_STATUS_CHANGED", {
-        id:        sampleId,
-        batch_id:  oldSample.batch_id,
+        id: sampleId,
+        batch_id: oldSample.batch_id,
         old_status: oldSample.status,
         new_status: data.status,
         changed_by: employeeNumber,
@@ -96,8 +102,8 @@ export const SampleService = {
       );
       // Broadcast general update
       sseBus.broadcast("SAMPLE_UPDATED", {
-        id:         sampleId,
-        batch_id:   oldSample.batch_id,
+        id: sampleId,
+        batch_id: oldSample.batch_id,
         changed_by: employeeNumber,
         changes,
       });
@@ -107,7 +113,7 @@ export const SampleService = {
   },
 
   getPreviousResults: async (
-    stage:    string,
+    stage: string,
     testType: string,
     limit = 5,
   ): Promise<TestResultSummary[]> => {
@@ -124,14 +130,14 @@ export const SampleService = {
     const sample = await SampleRepository.findById(sampleId);
     if (!sample) return [];
 
-    const key   = sample.source_stage || sample.sample_type || "";
+    const key = sample.source_stage || sample.sample_type || "";
     const panel = DEFAULT_TESTS[key] ?? ["Pol", "Moisture"];
 
     return panel.map((testType: string, index: number) => ({
-      id:        -(index + 1),
+      id: -(index + 1),
       sample_id: sampleId,
       test_type: testType,
-      status:    "PENDING" as const,
+      status: "PENDING" as const,
     }));
   },
 };

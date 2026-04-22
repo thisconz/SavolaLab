@@ -17,10 +17,17 @@ export const TestResultSchema = z.object({
   calculated_value: z.number(),
   unit: z.string(),
   status: TestStatusSchema,
-  performed_at: z.union([z.string(), z.date()]).transform(d => typeof d === "string" ? d : d.toISOString()),
+  performed_at: z
+    .union([z.string(), z.date()])
+    .transform((d) => (typeof d === "string" ? d : d.toISOString())),
   performer_id: z.string().nullish(),
   reviewer_id: z.string().nullish(),
-  review_at: z.union([z.string(), z.date()]).nullish().transform(d => d ? (typeof d === "string" ? d : d.toISOString()) : null),
+  review_at: z
+    .union([z.string(), z.date()])
+    .nullish()
+    .transform((d) =>
+      d ? (typeof d === "string" ? d : d.toISOString()) : null,
+    ),
   review_comment: z.string().nullish(),
   notes: z.string().nullish(),
   params: z.record(z.string(), z.any()).optional().nullable(),

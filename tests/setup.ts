@@ -44,8 +44,8 @@ if (!globalThis.matchMedia) {
 // ResizeObserver
 if (!globalThis.ResizeObserver) {
   (globalThis as any).ResizeObserver = class {
-    observe    = vi.fn();
-    unobserve  = vi.fn();
+    observe = vi.fn();
+    unobserve = vi.fn();
     disconnect = vi.fn();
   };
 }
@@ -53,8 +53,8 @@ if (!globalThis.ResizeObserver) {
 // IntersectionObserver
 if (!globalThis.IntersectionObserver) {
   (globalThis as any).IntersectionObserver = class {
-    observe    = vi.fn();
-    unobserve  = vi.fn();
+    observe = vi.fn();
+    unobserve = vi.fn();
     disconnect = vi.fn();
   };
 }

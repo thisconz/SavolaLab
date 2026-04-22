@@ -79,13 +79,45 @@ export const DispatchService = {
         return {
           metrics: { pending: 2, inTransit: 1, delayed: 0, critical: 0 },
           activeShipments: [
-            { id: "SHP-001", client: "Acme Corp", destination: "New York", status: "In Transit", eta: "14:00" },
-            { id: "SHP-002", client: "Globex", destination: "London", status: "Pending", eta: "16:30" },
-            { id: "SHP-003", client: "Initech", destination: "Tokyo", status: "Loading", eta: "18:00" },
+            {
+              id: "SHP-001",
+              client: "Acme Corp",
+              destination: "New York",
+              status: "In Transit",
+              eta: "14:00",
+            },
+            {
+              id: "SHP-002",
+              client: "Globex",
+              destination: "London",
+              status: "Pending",
+              eta: "16:30",
+            },
+            {
+              id: "SHP-003",
+              client: "Initech",
+              destination: "Tokyo",
+              status: "Loading",
+              eta: "18:00",
+            },
           ],
           qcQueue: [
-            { batch: "Batch #B-2026-001", client: "Internal", status: "Pending", progress: 80, testsCompleted: 4, totalTests: 5 },
-            { batch: "Batch #B-2026-003", client: "Internal", status: "Released", progress: 100, testsCompleted: 5, totalTests: 5 },
+            {
+              batch: "Batch #B-2026-001",
+              client: "Internal",
+              status: "Pending",
+              progress: 80,
+              testsCompleted: 4,
+              totalTests: 5,
+            },
+            {
+              batch: "Batch #B-2026-003",
+              client: "Internal",
+              status: "Released",
+              progress: 100,
+              testsCompleted: 5,
+              totalTests: 5,
+            },
           ],
         };
       }

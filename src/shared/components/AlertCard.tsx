@@ -20,22 +20,29 @@ export const AlertCard: React.FC<AlertCardProps> = ({
   className,
 }) => {
   const variants = {
-    warning: "bg-zenthar-warning/10 border-zenthar-warning/20 text-zenthar-warning",
-    error: "bg-zenthar-critical/10 border-zenthar-critical/20 text-zenthar-critical",
+    warning:
+      "bg-zenthar-warning/10 border-zenthar-warning/20 text-zenthar-warning",
+    error:
+      "bg-zenthar-critical/10 border-zenthar-critical/20 text-zenthar-critical",
     info: "bg-zenthar-info/10 border-zenthar-info/20 text-zenthar-info",
-    success: "bg-zenthar-success/10 border-zenthar-success/20 text-zenthar-success",
+    success:
+      "bg-zenthar-success/10 border-zenthar-success/20 text-zenthar-success",
   };
 
   return (
-    <div className={clsx(
-      "p-5 rounded-2xl border relative overflow-hidden group transition-all duration-300",
-      variants[type],
-      className
-    )}>
-      <div className={clsx(
-        "absolute right-0 top-0 w-24 h-24 bg-linear-to-br from-current/10 to-transparent rounded-full blur-xl -mr-12 -mt-12 pointer-events-none transition-transform duration-700 group-hover:scale-150"
-      )} />
-      
+    <div
+      className={clsx(
+        "p-5 rounded-2xl border relative overflow-hidden group transition-all duration-300",
+        variants[type],
+        className,
+      )}
+    >
+      <div
+        className={clsx(
+          "absolute right-0 top-0 w-24 h-24 bg-linear-to-br from-current/10 to-transparent rounded-full blur-xl -mr-12 -mt-12 pointer-events-none transition-transform duration-700 group-hover:scale-150",
+        )}
+      />
+
       <div className="flex items-center justify-between mb-3 relative z-10">
         <div className="flex items-center gap-3">
           <div className={clsx("p-2 rounded-lg bg-current/10")}>

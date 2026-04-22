@@ -1,11 +1,11 @@
 import React, { Suspense } from "react";
-import { Toaster }         from "sonner";
-import { AppShell }        from "./app/AppShell";
-import { FeatureRouter }   from "./app/router/router";
-import { ErrorBoundary }   from "./shared/components/ErrorBoundary";
+import { Toaster } from "sonner";
+import { AppShell } from "./app/AppShell";
+import { FeatureRouter } from "./app/router/router";
+import { ErrorBoundary } from "./shared/components/ErrorBoundary";
 import { RealtimeProvider } from "./core/providers/RealtimeProvider";
-import { motion }          from "@/src/lib/motion";
-import { Terminal }        from "lucide-react";
+import { motion } from "@/src/lib/motion";
+import { Terminal } from "lucide-react";
 
 export default function App() {
   return (
@@ -18,14 +18,14 @@ export default function App() {
         theme="dark"
         toastOptions={{
           style: {
-            background:    "var(--color-zenthar-carbon)",
-            border:        "1px solid rgba(255, 255, 255, 0.06)",
-            borderRadius:  "1.25rem",
-            color:         "var(--color-zenthar-text-primary)",
-            fontSize:      "11px",
+            background: "var(--color-zenthar-carbon)",
+            border: "1px solid rgba(255, 255, 255, 0.06)",
+            borderRadius: "1.25rem",
+            color: "var(--color-zenthar-text-primary)",
+            fontSize: "11px",
             textTransform: "uppercase",
             letterSpacing: "0.08em",
-            fontFamily:    "var(--font-mono)",
+            fontFamily: "var(--font-mono)",
           },
         }}
       />

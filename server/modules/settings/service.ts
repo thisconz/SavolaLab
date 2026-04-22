@@ -1,5 +1,5 @@
 import { createNotification } from "../../core/db/events";
-import { db }                 from "../../core/database";
+import { db } from "../../core/database";
 
 export const ALLOWED_TABLES = new Set([
   "sample_types",
@@ -49,11 +49,11 @@ export const SettingsService = {
     if (!ALLOWED_TABLES.has(table)) {
       throw new Error(`Unauthorized access attempt to table: ${table}`);
     }
-    
+
     let pk = "id";
     if (table === "system_preferences") pk = "key";
     if (table === "employees") pk = "employee_number";
-    
+
     try {
       return await db.query(`SELECT * FROM ${table} ORDER BY ${pk} DESC`);
     } catch (error: any) {

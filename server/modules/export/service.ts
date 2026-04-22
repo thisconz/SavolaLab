@@ -1,7 +1,7 @@
-import ExcelJS                       from "exceljs";
+import ExcelJS from "exceljs";
 import { ExportType, ExportOptions } from "../../core/types";
-import { db }                        from "../../core/database";
-import { logger }                    from "../../core/logger";
+import { db } from "../../core/database";
+import { logger } from "../../core/logger";
 
 // ─────────────────────────────────────────────
 // Query builders per export type
@@ -97,40 +97,49 @@ export async function buildExcelExport(opts: ExportOptions): Promise<Buffer> {
     throw new Error("No data found for the requested export.");
   }
 
-  const wb    = new ExcelJS.Workbook();
-  wb.creator  = "Zenthar LIMS";
-  wb.created  = new Date();
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "Zenthar LIMS";
+  wb.created = new Date();
   wb.modified = new Date();
 
   const ws = wb.addWorksheet(opts.type.toUpperCase(), {
-    properties:   { tabColor: { argb: "FF004B49" } },
-    pageSetup:    { orientation: "landscape", fitToPage: true, fitToWidth: 1 },
-    views:        [{ state: "frozen", xSplit: 0, ySplit: 7 }],
+    properties: { tabColor: { argb: "FF004B49" } },
+    pageSetup: { orientation: "landscape", fitToPage: true, fitToWidth: 1 },
+    views: [{ state: "frozen", xSplit: 0, ySplit: 7 }],
   });
 
   // ── Banner row ────────────────────────────────────────────────────────────
-  const headers  = Object.keys(rows[0]);
+  const headers = Object.keys(rows[0]);
   ws.mergeCells(`A1:${colLetter(headers.length)}2`);
-  const title    = ws.getCell("A1");
-  title.value    = `ZENTHAR QC LIMS — ${opts.type.toUpperCase()} REPORT`;
-  title.font     = { name: "Arial", size: 16, bold: true, color: { argb: "FFFFFFFF" } };
-  title.fill     = { type: "pattern", pattern: "solid", fgColor: { argb: "FF004B49" } };
-  title.alignment= { vertical: "middle", horizontal: "center" };
+  const title = ws.getCell("A1");
+  title.value = `ZENTHAR QC LIMS — ${opts.type.toUpperCase()} REPORT`;
+  title.font = {
+    name: "Arial",
+    size: 16,
+    bold: true,
+    color: { argb: "FFFFFFFF" },
+  };
+  title.fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "FF004B49" },
+  };
+  title.alignment = { vertical: "middle", horizontal: "center" };
 
   // ── Metadata ──────────────────────────────────────────────────────────────
   const meta: [string, string][] = [
-    ["Generated on",    new Date().toLocaleString()],
-    ["Export type",     opts.type.toUpperCase()],
-    ["Total records",   String(rows.length)],
-    ["System",          "Zenthar LIMS v2"],
+    ["Generated on", new Date().toLocaleString()],
+    ["Export type", opts.type.toUpperCase()],
+    ["Total records", String(rows.length)],
+    ["System", "Zenthar LIMS v2"],
   ];
 
   meta.forEach(([label, value], i) => {
     const row = i + 3;
     ws.getCell(`A${row}`).value = label;
     ws.getCell(`B${row}`).value = value;
-    ws.getCell(`A${row}`).font  = { bold: true, color: { argb: "FF334155" } };
-    ws.getCell(`B${row}`).font  = { color: { argb: "FF0F172A" } };
+    ws.getCell(`A${row}`).font = { bold: true, color: { argb: "FF334155" } };
+    ws.getCell(`B${row}`).font = { color: { argb: "FF0F172A" } };
   });
 
   // ── Column headers (row 8) ────────────────────────────────────────────────
@@ -140,15 +149,19 @@ export async function buildExcelExport(opts: ExportOptions): Promise<Buffer> {
   headers.forEach((h, i) => {
     const cell = headerRow.getCell(i + 1);
     cell.value = formatHeader(h);
-    cell.font  = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
-    cell.fill  = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0F172A" } };
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF0F172A" },
+    };
     cell.alignment = { vertical: "middle", horizontal: "center" };
-    cell.border    = BORDER_MEDIUM;
+    cell.border = BORDER_MEDIUM;
   });
 
   ws.autoFilter = {
     from: { row: 8, column: 1 },
-    to:   { row: 8, column: headers.length },
+    to: { row: 8, column: headers.length },
   };
 
   // ── Data rows ─────────────────────────────────────────────────────────────
@@ -158,19 +171,19 @@ export async function buildExcelExport(opts: ExportOptions): Promise<Buffer> {
 
     headers.forEach((field, ci) => {
       const cell = dataRow.getCell(ci + 1);
-      const raw  = row[field];
+      const raw = row[field];
 
       // Coerce value
       if (raw === null || raw === undefined) {
         cell.value = "";
       } else if (raw instanceof Date) {
-        cell.value  = raw;
+        cell.value = raw;
         cell.numFmt = "yyyy-mm-dd hh:mm:ss";
       } else if (typeof raw === "string" && /^\d{4}-\d{2}-\d{2}T/.test(raw)) {
-        cell.value  = new Date(raw);
+        cell.value = new Date(raw);
         cell.numFmt = "yyyy-mm-dd hh:mm:ss";
       } else if (typeof raw === "number") {
-        cell.value  = raw;
+        cell.value = raw;
         cell.numFmt = Number.isInteger(raw) ? "#,##0" : "#,##0.00";
         cell.alignment = { horizontal: "right" };
       } else {
@@ -178,24 +191,40 @@ export async function buildExcelExport(opts: ExportOptions): Promise<Buffer> {
       }
 
       cell.border = BORDER_THIN;
-      cell.fill   = ri % 2 === 0
-        ? { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } }
-        : undefined as any;
+      cell.fill =
+        ri % 2 === 0
+          ? { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } }
+          : (undefined as any);
 
       // Status colouring
-      if (field.toLowerCase().includes("status") || field.toLowerCase().includes("priority")) {
+      if (
+        field.toLowerCase().includes("status") ||
+        field.toLowerCase().includes("priority")
+      ) {
         const s = String(raw ?? "").toUpperCase();
-        cell.font      = { bold: true };
+        cell.font = { bold: true };
         cell.alignment = { horizontal: "center" };
         if (["COMPLETED", "APPROVED", "ACTIVE"].includes(s)) {
           cell.font.color = { argb: "FF15803D" };
-          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFDCFCE7" } };
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFDCFCE7" },
+          };
         } else if (["PENDING", "IN_PROGRESS", "HIGH", "WARNING"].includes(s)) {
           cell.font.color = { argb: "FFB45309" };
-          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEF3C7" } };
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFFEF3C7" },
+          };
         } else if (["FAILED", "CRITICAL", "STAT", "DISAPPROVED"].includes(s)) {
           cell.font.color = { argb: "FFB91C1C" };
-          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEE2E2" } };
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFFEE2E2" },
+          };
         }
       }
     });
@@ -217,8 +246,16 @@ export async function buildExcelExport(opts: ExportOptions): Promise<Buffer> {
   const summaryRow = ws.getRow(rows.length + 10);
   summaryRow.getCell(1).value = "END OF REPORT";
   summaryRow.getCell(2).value = `${rows.length} records exported`;
-  summaryRow.getCell(1).font  = { bold: true, italic: true, color: { argb: "FF64748B" } };
-  summaryRow.getCell(2).font  = { bold: true, italic: true, color: { argb: "FF64748B" } };
+  summaryRow.getCell(1).font = {
+    bold: true,
+    italic: true,
+    color: { argb: "FF64748B" },
+  };
+  summaryRow.getCell(2).font = {
+    bold: true,
+    italic: true,
+    color: { argb: "FF64748B" },
+  };
 
   const buf = await wb.xlsx.writeBuffer();
   logger.info({ type: opts.type, rows: rows.length }, "Excel export generated");
@@ -240,7 +277,10 @@ function colLetter(n: number): string {
 }
 
 function formatHeader(h: string): string {
-  return h.split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  return h
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 }
 
 const BORDER_MEDIUM: ExcelJS.Borders = {
@@ -248,7 +288,7 @@ const BORDER_MEDIUM: ExcelJS.Borders = {
   bottom: { style: "medium", color: { argb: "FF000000" } },
   left: { style: "thin", color: { argb: "FF334155" } },
   right: { style: "thin", color: { argb: "FF334155" } },
-  diagonal: { style: "thin", color: { argb: "FF334155" } }
+  diagonal: { style: "thin", color: { argb: "FF334155" } },
 };
 
 const BORDER_THIN: ExcelJS.Borders = {
@@ -256,5 +296,5 @@ const BORDER_THIN: ExcelJS.Borders = {
   bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
   left: { style: "thin", color: { argb: "FFE2E8F0" } },
   right: { style: "thin", color: { argb: "FFE2E8F0" } },
-  diagonal: { style: "thin", color: { argb: "FFE2E8F0" } }
+  diagonal: { style: "thin", color: { argb: "FFE2E8F0" } },
 };

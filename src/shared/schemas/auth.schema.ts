@@ -15,14 +15,22 @@ export const SetupSchema = z.object({
   pin: z.union([z.string(), z.number()]).transform(String),
 });
 
-export const LoginSchema = z.object({
-  employee_number: z.union([z.string(), z.number()]).transform(String),
-  password: z.union([z.string(), z.number()]).optional().transform(v => v ? String(v) : undefined),
-  pin: z.union([z.string(), z.number()]).optional().transform(v => v ? String(v) : undefined),
-}).refine(data => data.password || data.pin, {
-  message: "Missing password or pin",
-  path: ["password", "pin"],
-});
+export const LoginSchema = z
+  .object({
+    employee_number: z.union([z.string(), z.number()]).transform(String),
+    password: z
+      .union([z.string(), z.number()])
+      .optional()
+      .transform((v) => (v ? String(v) : undefined)),
+    pin: z
+      .union([z.string(), z.number()])
+      .optional()
+      .transform((v) => (v ? String(v) : undefined)),
+  })
+  .refine((data) => data.password || data.pin, {
+    message: "Missing password or pin",
+    path: ["password", "pin"],
+  });
 
 export const UserPermissionsSchema = z.object({
   view_results: z.number().optional(),

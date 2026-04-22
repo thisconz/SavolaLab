@@ -1,7 +1,16 @@
 import React, { useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { X, Hexagon, Terminal, Activity, ShieldCheck, Zap, Radar, Fingerprint } from "lucide-react";
+import {
+  X,
+  Hexagon,
+  Terminal,
+  Activity,
+  ShieldCheck,
+  Zap,
+  Radar,
+  Fingerprint,
+} from "lucide-react";
 import clsx from "@/src/lib/clsx";
 
 interface ModalProps {
@@ -29,13 +38,16 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape") onClose();
-  }, [onClose]);
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    },
+    [onClose],
+  );
 
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const originalStyle = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
@@ -58,10 +70,10 @@ export const Modal: React.FC<ModalProps> = ({
             onClick={onClose}
             className="absolute inset-0 bg-black/80 backdrop-blur-2xl cursor-zoom-out"
           >
-             {/* Vignette Overlay */}
-             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]" />
-             {/* Grainy Texture */}
-             <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+            {/* Vignette Overlay */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]" />
+            {/* Grainy Texture */}
+            <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
           </motion.div>
 
           {/* 2. TACTICAL MODAL FRAME */}
@@ -76,15 +88,15 @@ export const Modal: React.FC<ModalProps> = ({
             className={clsx(
               "relative w-full flex flex-col md:flex-row bg-[#080809] rounded-[3rem] shadow-[0_0_80px_-20px_rgba(0,0,0,1)]",
               "overflow-hidden border border-white/6 backdrop-blur-3xl",
-              maxWidth
+              maxWidth,
             )}
           >
             {/* HUD Scanline Effect */}
-            <motion.div 
-                initial={{ top: "-10%" }}
-                animate={{ top: "110%" }}
-                transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-                className="absolute left-0 right-0 h-[10%] bg-linear-to-b from-transparent via-brand-primary/5 to-transparent z-40 pointer-events-none border-t border-brand-primary/10"
+            <motion.div
+              initial={{ top: "-10%" }}
+              animate={{ top: "110%" }}
+              transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+              className="absolute left-0 right-0 h-[10%] bg-linear-to-b from-transparent via-brand-primary/5 to-transparent z-40 pointer-events-none border-t border-brand-primary/10"
             />
 
             {/* MAIN INTERFACE */}
@@ -92,19 +104,19 @@ export const Modal: React.FC<ModalProps> = ({
               {/* Biometric Brackets */}
               <div className="absolute top-6 left-6 w-3 h-3 border-t border-l border-white/10 rounded-tl-xs pointer-events-none" />
               <div className="absolute top-6 right-6 w-3 h-3 border-t border-r border-white/10 rounded-tr-xs pointer-events-none" />
-              
+
               {/* HEADER: COMMAND MODULE */}
               <header className="relative z-10 flex items-center justify-between px-10 py-8 border-b border-white/3 bg-white/1">
                 <div className="flex items-center gap-6">
                   <div className="relative group">
                     <div className="absolute inset-0 bg-brand-primary/20 blur-xl rounded-full animate-pulse" />
                     <div className="relative w-14 h-14 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
-                       <Hexagon className="w-6 h-6 text-brand-primary relative z-10" />
-                       <motion.div 
+                      <Hexagon className="w-6 h-6 text-brand-primary relative z-10" />
+                      <motion.div
                         animate={{ opacity: [0.1, 0.4, 0.1] }}
                         transition={{ duration: 3, repeat: Infinity }}
-                        className="absolute inset-0 bg-linear-to-tr from-brand-primary/40 to-transparent" 
-                       />
+                        className="absolute inset-0 bg-linear-to-tr from-brand-primary/40 to-transparent"
+                      />
                     </div>
                   </div>
 
@@ -125,7 +137,9 @@ export const Modal: React.FC<ModalProps> = ({
                   {showShield && (
                     <div className="hidden sm:flex items-center gap-2.5 px-4 py-2 bg-black/40 border border-brand-primary/10 rounded-full shadow-inner">
                       <ShieldCheck size={12} className="text-brand-primary" />
-                      <span className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">Verified_Link</span>
+                      <span className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">
+                        Verified_Link
+                      </span>
                     </div>
                   )}
                   <button
@@ -141,9 +155,7 @@ export const Modal: React.FC<ModalProps> = ({
 
               {/* VIEWPORT ENGINE */}
               <main className="relative flex-1 overflow-y-auto p-10 lg:p-14 custom-scrollbar bg-linear-to-b from-transparent to-black/20">
-                <div className="relative z-10">
-                  {children}
-                </div>
+                <div className="relative z-10">{children}</div>
                 {/* Decorative Grid Shard */}
                 <div className="absolute bottom-0 right-0 w-64 h-64 bg-brand-primary/1 blur-3xl rounded-full pointer-events-none" />
               </main>
@@ -152,25 +164,34 @@ export const Modal: React.FC<ModalProps> = ({
               <footer className="relative z-10 px-10 py-5 bg-black/40 border-t border-white/3 flex items-center justify-between">
                 <div className="flex items-center gap-8">
                   <div className="flex items-center gap-3 opacity-40 hover:opacity-100 transition-opacity">
-                    <Activity size={14} className="text-brand-primary animate-pulse" />
+                    <Activity
+                      size={14}
+                      className="text-brand-primary animate-pulse"
+                    />
                     <div className="flex flex-col">
-                        <span className="text-[7px] font-black text-zinc-600 uppercase">Stream</span>
-                        <span className="text-[9px] font-bold text-zinc-300">ACTIVE_TX</span>
+                      <span className="text-[7px] font-black text-zinc-600 uppercase">
+                        Stream
+                      </span>
+                      <span className="text-[9px] font-bold text-zinc-300">
+                        ACTIVE_TX
+                      </span>
                     </div>
                   </div>
                   <div className="h-6 w-px bg-white/5" />
                   <div className="flex items-center gap-3 opacity-40 hover:opacity-100 transition-opacity">
                     <Zap size={12} className="text-orange-400" />
                     <div className="flex flex-col">
-                        <span className="text-[7px] font-black text-zinc-600 uppercase">Latency</span>
-                        <span className="text-[9px] font-bold text-zinc-300">0.02ms</span>
+                      <span className="text-[7px] font-black text-zinc-600 uppercase">
+                        Latency
+                      </span>
+                      <span className="text-[9px] font-bold text-zinc-300">
+                        0.02ms
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  {footer}
-                </div>
+                <div className="flex items-center gap-4">{footer}</div>
               </footer>
             </div>
 
@@ -179,8 +200,10 @@ export const Modal: React.FC<ModalProps> = ({
               <aside className="w-full md:w-80 bg-black/30 border-l border-white/4 flex flex-col relative">
                 {/* Side Panel Header */}
                 <div className="px-8 py-6 border-b border-white/3 flex items-center gap-3">
-                    <Fingerprint size={14} className="text-brand-primary/40" />
-                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Metadata_Buffer</span>
+                  <Fingerprint size={14} className="text-brand-primary/40" />
+                  <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+                    Metadata_Buffer
+                  </span>
                 </div>
                 {/* Side Panel Content */}
                 <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
@@ -188,7 +211,9 @@ export const Modal: React.FC<ModalProps> = ({
                 </div>
                 {/* Side Panel Decorative Vents */}
                 <div className="p-4 flex gap-1 justify-center opacity-20">
-                    {[1,2,3,4].map(i => <div key={i} className="w-1 h-3 bg-white/20 rounded-full" />)}
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="w-1 h-3 bg-white/20 rounded-full" />
+                  ))}
                 </div>
               </aside>
             )}

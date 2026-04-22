@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { 
-  ProductionLineSchema, 
-  EquipmentSchema, 
-  InstrumentSchema, 
-  InventoryItemSchema, 
-  CertificateSchema 
+import {
+  ProductionLineSchema,
+  EquipmentSchema,
+  InstrumentSchema,
+  InventoryItemSchema,
+  CertificateSchema,
 } from "../../shared/schemas/operational.schema";
 
 export type ProductionLine = z.infer<typeof ProductionLineSchema>;

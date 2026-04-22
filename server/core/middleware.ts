@@ -23,11 +23,14 @@ export const authenticateToken = async (
 
   c.set("user", {
     employee_number: decoded.employee_number,
-    name:            decoded.name        ?? "Unknown",
-    role:            decoded.role        as UserRole,
-    dept:            decoded.dept        ?? "",
-    permissions:     decoded.permissions ?? {
-      view_results: 0, input_data: 0, edit_formulas: 0, change_specs: 0,
+    name: decoded.name ?? "Unknown",
+    role: decoded.role as UserRole,
+    dept: decoded.dept ?? "",
+    permissions: decoded.permissions ?? {
+      view_results: 0,
+      input_data: 0,
+      edit_formulas: 0,
+      change_specs: 0,
     },
   } satisfies User);
 
@@ -41,7 +44,10 @@ export function requireRoles(...roles: UserRole[]) {
   ): Promise<Response | void> => {
     const user = c.get("user");
     if (!roles.includes(user.role)) {
-      return c.json({ error: `Access denied. Required: ${roles.join(", ")}` }, 403);
+      return c.json(
+        { error: `Access denied. Required: ${roles.join(", ")}` },
+        403,
+      );
     }
     await next();
   };

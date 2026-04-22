@@ -1,29 +1,29 @@
-import { create }                from "zustand";
+import { create } from "zustand";
 import { useEffect, useCallback } from "react";
-import { NotificationApi }       from "../api/notification.api";
-import { Notification }          from "../../../core/types";
-import { useRealtime }           from "../../../core/providers/RealtimeProvider";
-import { useAuthStore }          from "../../../orchestrator/state/auth.store";
+import { NotificationApi } from "../api/notification.api";
+import { Notification } from "../../../core/types";
+import { useRealtime } from "../../../core/providers/RealtimeProvider";
+import { useAuthStore } from "../../../orchestrator/state/auth.store";
 
 // ─────────────────────────────────────────────
 // Zustand store — single source of truth
 // ─────────────────────────────────────────────
 
 interface NotificationStore {
-  notifications:   Notification[];
-  isFetching:      boolean;
-  lastFetchedAt:   number | null;
+  notifications: Notification[];
+  isFetching: boolean;
+  lastFetchedAt: number | null;
 
   setNotifications: (n: Notification[]) => void;
-  setFetching:      (v: boolean) => void;
-  markOneAsRead:    (id: number) => void;
-  markAllAsRead:    () => void;
+  setFetching: (v: boolean) => void;
+  markOneAsRead: (id: number) => void;
+  markAllAsRead: () => void;
 }
 
 const useNotificationStore = create<NotificationStore>((set) => ({
-  notifications:   [],
-  isFetching:      false,
-  lastFetchedAt:   null,
+  notifications: [],
+  isFetching: false,
+  lastFetchedAt: null,
 
   setNotifications: (notifications) =>
     set({ notifications, lastFetchedAt: Date.now() }),
@@ -34,7 +34,7 @@ const useNotificationStore = create<NotificationStore>((set) => ({
   markOneAsRead: (id) =>
     set((state) => ({
       notifications: state.notifications.map((n) =>
-        n.id === id ? { ...n, is_read: true } : n
+        n.id === id ? { ...n, is_read: true } : n,
       ),
     })),
 
@@ -80,11 +80,11 @@ async function fetchNotifications(): Promise<void> {
 
 export const useNotifications = () => {
   const { isAuthenticated } = useAuthStore();
-  const { on }              = useRealtime();
+  const { on } = useRealtime();
 
   const notifications = useNotificationStore((s) => s.notifications);
-  const isFetching    = useNotificationStore((s) => s.isFetching);
-  const store         = useNotificationStore();
+  const isFetching = useNotificationStore((s) => s.isFetching);
+  const store = useNotificationStore();
 
   // ── Initial fetch ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -103,10 +103,13 @@ export const useNotifications = () => {
   // ── Derived values ──────────────────────────────────────────────────────
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  const unreadByType = notifications.reduce<Record<string, number>>((acc, n) => {
-    if (!n.is_read) acc[n.type] = (acc[n.type] || 0) + 1;
-    return acc;
-  }, {});
+  const unreadByType = notifications.reduce<Record<string, number>>(
+    (acc, n) => {
+      if (!n.is_read) acc[n.type] = (acc[n.type] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
   // ── Actions ─────────────────────────────────────────────────────────────
   const markAsRead = useCallback(async (id: number) => {

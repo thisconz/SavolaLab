@@ -3,12 +3,12 @@ import { api } from "../../../core/http/client";
 /**
  * Registry sections available in the Zenthar Archive.
  */
-export type ArchiveSection = 
-  | "samples" 
-  | "tests" 
-  | "certificates" 
+export type ArchiveSection =
+  | "samples"
+  | "tests"
+  | "certificates"
   | "instruments"
-  | "audit"
+  | "audit";
 
 interface ArchiveResponse<T> {
   success: boolean;
@@ -27,18 +27,18 @@ export const ArchiveApi = {
    * @param filters - Key-value pairs for filtering (dates, batch numbers, analysts).
    */
   search: async <T = any>(
-    section: ArchiveSection, 
-    filters: Record<string, any>
+    section: ArchiveSection,
+    filters: Record<string, any>,
   ): Promise<T[]> => {
     // Clean up empty filters to keep the URL concise
     const cleanFilters = Object.fromEntries(
-      Object.entries(filters).filter(([_, v]) => v != null && v !== "")
+      Object.entries(filters).filter(([_, v]) => v != null && v !== ""),
     );
 
     const queryParams = new URLSearchParams(cleanFilters as any);
-    
+
     const res = await api.get<ArchiveResponse<T[]>>(
-      `/archive/${section}?${queryParams.toString()}`
+      `/archive/${section}?${queryParams.toString()}`,
     );
 
     return res.data || [];
@@ -49,8 +49,8 @@ export const ArchiveApi = {
    * Useful for "View Details" modals in the Archive UI.
    */
   getRecordById: async <T = any>(
-    section: ArchiveSection, 
-    id: string | number
+    section: ArchiveSection,
+    id: string | number,
   ): Promise<T | null> => {
     const res = await api.get<ArchiveResponse<T>>(`/archive/${section}/${id}`);
     return res.data || null;
@@ -62,5 +62,5 @@ export const ArchiveApi = {
   getExportUrl: (section: ArchiveSection, filters: Record<string, any>) => {
     const queryParams = new URLSearchParams(filters as any);
     return `${import.meta.env.VITE_API_URL ?? ""}/archive/${section}/export?${queryParams.toString()}`;
-  }
+  },
 };

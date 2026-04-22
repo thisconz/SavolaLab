@@ -9,7 +9,7 @@ import {
   ShieldCheck,
   Globe,
   Radio,
-  Zap
+  Zap,
 } from "lucide-react";
 import { useAuthStore } from "../../../orchestrator/state/auth.store";
 import { useAuthFlow } from "../hooks/useAuthFlow";
@@ -20,15 +20,20 @@ interface QuickSwitchProps {
   onClose: () => void;
 }
 
-export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => {
+export const QuickSwitch: React.FC<QuickSwitchProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const { currentUser, logout } = useAuthStore();
   const { users, handleUserSelect } = useAuthFlow();
   const isBrowser = typeof window !== "undefined";
 
-  // Filter out current user from the list if you want a "Switch To" focus, 
+  // Filter out current user from the list if you want a "Switch To" focus,
   // or keep them to show status. Here we keep them but highlight differently.
   const sortedUsers = useMemo(() => {
-    return [...users].sort((a, b) => (String(a.id) === String(currentUser?.id) ? -1 : 1));
+    return [...users].sort((a, b) =>
+      String(a.id) === String(currentUser?.id) ? -1 : 1,
+    );
   }, [users, currentUser]);
 
   if (!isOpen || typeof document === "undefined") return null;
@@ -55,14 +60,18 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
             {/* Structural Header */}
             <div className="relative p-8 pb-6 overflow-hidden bg-(--color-zenthar-graphite)/30">
               <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-brand-primary to-transparent" />
-              
+
               <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-(--color-zenthar-void) flex items-center justify-center shadow-inner group overflow-hidden relative">
                     <Fingerprint className="w-6 h-6 text-brand-primary group-hover:scale-110 transition-transform" />
-                    <motion.div 
-                      animate={{ y: [-20, 40] }} 
-                      transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                    <motion.div
+                      animate={{ y: [-20, 40] }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 2,
+                        ease: "linear",
+                      }}
                       className="absolute top-0 left-0 w-full h-0.5 bg-brand-primary/40 blur-[2px]"
                     />
                   </div>
@@ -78,7 +87,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                     </div>
                   </div>
                 </div>
-                
+
                 <button
                   onClick={onClose}
                   className="w-10 h-10 flex items-center justify-center text-brand-sage hover:text-(--color-zenthar-text-primary) hover:bg-(--color-zenthar-graphite) rounded-2xl transition-all active:scale-90"
@@ -93,7 +102,10 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
               <div className="space-y-3 py-4">
                 {sortedUsers.map((user, index) => {
                   const isActive = String(currentUser?.id) === String(user.id);
-                  const userRole = typeof user.role === 'string' ? user.role : (user.role as any)?.name;
+                  const userRole =
+                    typeof user.role === "string"
+                      ? user.role
+                      : (user.role as any)?.name;
 
                   return (
                     <motion.button
@@ -109,16 +121,20 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                         "w-full flex items-center p-2 rounded-2xl border transition-all duration-300 group relative",
                         isActive
                           ? "border-brand-primary/40 bg-brand-primary/10 ring-1 ring-brand-primary/20 shadow-sm"
-                          : "border-brand-sage/10 bg-(--color-zenthar-graphite)/30 hover:bg-(--color-zenthar-graphite) hover:border-brand-primary/30 hover:shadow-md"
+                          : "border-brand-sage/10 bg-(--color-zenthar-graphite)/30 hover:bg-(--color-zenthar-graphite) hover:border-brand-primary/30 hover:shadow-md",
                       )}
                     >
                       <div className="flex items-center gap-4 w-full p-2">
                         {/* Avatar Cell */}
                         <div className="relative">
-                          <div className={clsx(
-                            "w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm transition-all",
-                            isActive ? "bg-brand-primary text-(--color-zenthar-void) shadow-lg" : "bg-(--color-zenthar-void) text-brand-sage border border-brand-sage/10"
-                          )}>
+                          <div
+                            className={clsx(
+                              "w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm transition-all",
+                              isActive
+                                ? "bg-brand-primary text-(--color-zenthar-void) shadow-lg"
+                                : "bg-(--color-zenthar-void) text-brand-sage border border-brand-sage/10",
+                            )}
+                          >
                             {user.initials}
                           </div>
                           {isActive && (
@@ -131,14 +147,18 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                         {/* Text Content */}
                         <div className="flex-1 text-left min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <span className={clsx(
-                              "text-[11px] font-black uppercase tracking-wider truncate",
-                              isActive ? "text-brand-primary" : "text-(--color-zenthar-text-primary)"
-                            )}>
+                            <span
+                              className={clsx(
+                                "text-[11px] font-black uppercase tracking-wider truncate",
+                                isActive
+                                  ? "text-brand-primary"
+                                  : "text-(--color-zenthar-text-primary)",
+                              )}
+                            >
                               {user.name}
                             </span>
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
                             <span className="text-[9px] text-brand-sage font-bold uppercase tracking-tighter opacity-70">
                               {userRole}
@@ -151,11 +171,19 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                         </div>
 
                         {/* Action Hint */}
-                        <div className={clsx(
-                          "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-                          isActive ? "bg-brand-primary/10 text-brand-primary" : "opacity-0 group-hover:opacity-100 bg-(--color-zenthar-void) text-brand-sage"
-                        )}>
-                          {isActive ? <Zap className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                        <div
+                          className={clsx(
+                            "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                            isActive
+                              ? "bg-brand-primary/10 text-brand-primary"
+                              : "opacity-0 group-hover:opacity-100 bg-(--color-zenthar-void) text-brand-sage",
+                          )}
+                        >
+                          {isActive ? (
+                            <Zap className="w-4 h-4" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
                         </div>
                       </div>
                     </motion.button>
@@ -167,9 +195,12 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
             {/* Termination Zone */}
             <div className="p-8 pt-4">
               <div className="h-px w-full bg-linear-to-r from-transparent via-brand-sage/10 to-transparent mb-6" />
-              
+
               <button
-                onClick={() => { logout(); onClose(); }}
+                onClick={() => {
+                  logout();
+                  onClose();
+                }}
                 className="w-full group flex items-center justify-between p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-600 hover:text-white transition-all duration-500 shadow-sm hover:shadow-red-500/20"
               >
                 <div className="flex items-center gap-4">
@@ -186,7 +217,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                   </div>
                 </div>
                 <div className="hidden sm:block">
-                   <Globe className="w-4 h-4 opacity-20 group-hover:opacity-100 animate-spin-slow" />
+                  <Globe className="w-4 h-4 opacity-20 group-hover:opacity-100 animate-spin-slow" />
                 </div>
               </button>
 
@@ -200,6 +231,6 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 };

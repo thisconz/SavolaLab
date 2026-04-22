@@ -3,7 +3,7 @@ import { AppTab } from "./types/app.types";
 
 /**
  * 1. Define Resource Scopes
- * In a professional lab environment, access isn't just "Can I see the tab?", 
+ * In a professional lab environment, access isn't just "Can I see the tab?",
  * it's "What can I do inside it?".
  */
 export type AccessLevel = "NONE" | "READ" | "WRITE" | "FULL";
@@ -34,7 +34,7 @@ const ROLE_GROUPS: Record<string, AppTab[]> = {
 const ROLE_PERMISSIONS: Record<Role, AppTab[]> = {
   ADMIN: Object.values(ROLE_GROUPS).flat(),
   HEAD_MANAGER: Object.values(ROLE_GROUPS).flat(),
-  
+
   ASSISTING_MANAGER: [
     ...ROLE_GROUPS.STAFF,
     ...ROLE_GROUPS.LAB_CORE,
@@ -43,10 +43,18 @@ const ROLE_PERMISSIONS: Record<Role, AppTab[]> = {
     "workflows",
     "assets",
   ],
-  
-  SHIFT_CHEMIST: [...ROLE_GROUPS.STAFF, ...ROLE_GROUPS.LAB_CORE, ...ROLE_GROUPS.FIELD],
-  CHEMIST: [...ROLE_GROUPS.STAFF, ...ROLE_GROUPS.LAB_CORE, ...ROLE_GROUPS.FIELD],
-  
+
+  SHIFT_CHEMIST: [
+    ...ROLE_GROUPS.STAFF,
+    ...ROLE_GROUPS.LAB_CORE,
+    ...ROLE_GROUPS.FIELD,
+  ],
+  CHEMIST: [
+    ...ROLE_GROUPS.STAFF,
+    ...ROLE_GROUPS.LAB_CORE,
+    ...ROLE_GROUPS.FIELD,
+  ],
+
   ENGINEER: [...ROLE_GROUPS.STAFF, ...ROLE_GROUPS.INTELLIGENCE, "assets"],
   DISPATCH: [...ROLE_GROUPS.STAFF, ...ROLE_GROUPS.FIELD],
 };
@@ -59,7 +67,10 @@ const ROLE_PERMISSIONS: Record<Role, AppTab[]> = {
  * Checks if a specific tab is allowed for a given role.
  * Includes a fallback to ensure the app doesn't crash on undefined roles.
  */
-export const isTabAllowed = (role: Role | undefined | null, tab: AppTab): boolean => {
+export const isTabAllowed = (
+  role: Role | undefined | null,
+  tab: AppTab,
+): boolean => {
   if (!role) return false;
   const allowedTabs = ROLE_PERMISSIONS[role] || BASE_TABS;
   return allowedTabs.includes(tab);
@@ -79,14 +90,14 @@ export const getAllowedTabs = (role: Role | undefined | null): AppTab[] => {
  * Example: isAuthorized(userRole, 'lab', 'WRITE')
  */
 export const isAuthorized = (
-  role: Role, 
-  tab: AppTab, 
-  requiredLevel: AccessLevel = "READ"
+  role: Role,
+  tab: AppTab,
+  requiredLevel: AccessLevel = "READ",
 ): boolean => {
   const allowed = isTabAllowed(role, tab);
   if (!allowed) return false;
-  
+
   // Logic for granular levels (e.g., CHEMIST is READ-ONLY in 'assets')
   // This can be expanded into a secondary Record if needed.
-  return true; 
+  return true;
 };

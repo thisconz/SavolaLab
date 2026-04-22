@@ -1,8 +1,23 @@
 import React, { memo } from "react";
 import {
-  ArrowLeft, Beaker, Save, Edit2, X, Hash, Layers, TestTube2,
-  Clock, MapPin, Activity, Settings, Factory, Cpu, CheckCircle2,
-  TrendingUp, Fingerprint, Zap,
+  ArrowLeft,
+  Beaker,
+  Save,
+  Edit2,
+  X,
+  Hash,
+  Layers,
+  TestTube2,
+  Clock,
+  MapPin,
+  Activity,
+  Settings,
+  Factory,
+  Cpu,
+  CheckCircle2,
+  TrendingUp,
+  Fingerprint,
+  Zap,
 } from "lucide-react";
 import type { Sample } from "../../../core/types";
 import { SampleStatus, TestStatus } from "../../../core/types";
@@ -12,22 +27,28 @@ import { useSampleDetails } from "../hooks/useSampleDetails";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 
 interface SampleDetailsProps {
-  sample:         Sample;
-  onBack:         () => void;
+  sample: Sample;
+  onBack: () => void;
   onStartTesting: () => void;
-  onUpdate:       () => void;
+  onUpdate: () => void;
 }
 
 export const SampleDetails: React.FC<SampleDetailsProps> = memo(
   ({ sample, onBack, onStartTesting, onUpdate }) => {
     const {
-      isEditing, setIsEditing, editedSample, setEditedSample,
-      isSaving, testResults, handleSave,
+      isEditing,
+      setIsEditing,
+      editedSample,
+      setEditedSample,
+      isSaving,
+      testResults,
+      handleSave,
     } = useSampleDetails(sample, onUpdate);
 
-    const isStat      = sample.priority === "STAT";
-    const isCompleted = sample.status   === SampleStatus.COMPLETED ||
-                        sample.status   === SampleStatus.APPROVED;
+    const isStat = sample.priority === "STAT";
+    const isCompleted =
+      sample.status === SampleStatus.COMPLETED ||
+      sample.status === SampleStatus.APPROVED;
 
     return (
       <LabPanel
@@ -143,7 +164,10 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                           className="w-full bg-transparent text-xs font-bold text-(--color-zenthar-text-primary) outline-none cursor-pointer"
                           value={editedSample.priority}
                           onChange={(e) =>
-                            setEditedSample((p) => ({ ...p, priority: e.target.value as any }))
+                            setEditedSample((p) => ({
+                              ...p,
+                              priority: e.target.value as any,
+                            }))
                           }
                         >
                           <option value="NORMAL">Normal</option>
@@ -193,13 +217,19 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                         className="col-span-2"
                         icon={Cpu}
                         label="Equipment"
-                        value={sample.equipment_id ? `Eq. ${sample.equipment_id}` : null}
+                        value={
+                          sample.equipment_id
+                            ? `Eq. ${sample.equipment_id}`
+                            : null
+                        }
                       />
                       <DetailTile
                         className="col-span-2"
                         icon={Clock}
                         label="Shift"
-                        value={sample.shift_id ? `Shift ${sample.shift_id}` : null}
+                        value={
+                          sample.shift_id ? `Shift ${sample.shift_id}` : null
+                        }
                       />
                     </>
                   )}
@@ -230,12 +260,14 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                         <div className="flex items-center gap-4">
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                              result.status === TestStatus.APPROVED || result.status === TestStatus.COMPLETED
+                              result.status === TestStatus.APPROVED ||
+                              result.status === TestStatus.COMPLETED
                                 ? "bg-emerald-500/10 text-emerald-400"
                                 : "bg-brand-primary/10 text-brand-primary"
                             }`}
                           >
-                            {result.status === TestStatus.APPROVED || result.status === TestStatus.COMPLETED ? (
+                            {result.status === TestStatus.APPROVED ||
+                            result.status === TestStatus.COMPLETED ? (
                               <CheckCircle2 size={18} />
                             ) : (
                               <Activity size={18} className="animate-pulse" />
@@ -270,16 +302,30 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
           <footer className="pt-6 border-t border-brand-sage/10 flex gap-3">
             {isEditing ? (
               <>
-                <LabButton variant="secondary" onClick={() => setIsEditing(false)} icon={X}>
+                <LabButton
+                  variant="secondary"
+                  onClick={() => setIsEditing(false)}
+                  icon={X}
+                >
                   Cancel
                 </LabButton>
-                <LabButton variant="primary" fullWidth onClick={handleSave} loading={isSaving} icon={Save}>
+                <LabButton
+                  variant="primary"
+                  fullWidth
+                  onClick={handleSave}
+                  loading={isSaving}
+                  icon={Save}
+                >
                   Save_Changes
                 </LabButton>
               </>
             ) : (
               <>
-                <LabButton variant="secondary" onClick={() => setIsEditing(true)} icon={Edit2}>
+                <LabButton
+                  variant="secondary"
+                  onClick={() => setIsEditing(true)}
+                  icon={Edit2}
+                >
                   Edit
                 </LabButton>
                 <LabButton
@@ -288,7 +334,9 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                   onClick={onStartTesting}
                   disabled={isCompleted}
                   icon={TestTube2}
-                  className={!isCompleted ? "shadow-lg shadow-brand-primary/20" : ""}
+                  className={
+                    !isCompleted ? "shadow-lg shadow-brand-primary/20" : ""
+                  }
                 >
                   {isCompleted ? "Analysis_Complete" : "Start_Analysis"}
                 </LabButton>
@@ -305,7 +353,13 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
 // Atomic Components
 // ─────────────────────────────────────────────
 
-const DetailTile = ({ icon: Icon, label, value, highlight, className }: any) => (
+const DetailTile = ({
+  icon: Icon,
+  label,
+  value,
+  highlight,
+  className,
+}: any) => (
   <div
     className={`p-4 rounded-2xl border transition-all ${className} ${
       highlight

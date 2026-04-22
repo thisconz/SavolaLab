@@ -10,14 +10,26 @@ export const GetPreferencesResponseSchema = z.object({
   data: z.record(z.string(), z.string()),
 });
 
-export const TableRecordSchema = z.object({
-  id: z.number().nullish(),
-  name: z.string().nullish(),
-  description: z.string().nullish(),
-  is_active: z.boolean().nullish(),
-  created_at: z.union([z.string(), z.date()]).nullish().transform(d => d ? (typeof d === "string" ? d : d.toISOString()) : null),
-  updated_at: z.union([z.string(), z.date()]).nullish().transform(d => d ? (typeof d === "string" ? d : d.toISOString()) : null),
-}).catchall(z.any());
+export const TableRecordSchema = z
+  .object({
+    id: z.number().nullish(),
+    name: z.string().nullish(),
+    description: z.string().nullish(),
+    is_active: z.boolean().nullish(),
+    created_at: z
+      .union([z.string(), z.date()])
+      .nullish()
+      .transform((d) =>
+        d ? (typeof d === "string" ? d : d.toISOString()) : null,
+      ),
+    updated_at: z
+      .union([z.string(), z.date()])
+      .nullish()
+      .transform((d) =>
+        d ? (typeof d === "string" ? d : d.toISOString()) : null,
+      ),
+  })
+  .catchall(z.any());
 
 export const GetTableResponseSchema = z.object({
   success: z.boolean(),

@@ -1,14 +1,14 @@
-import { Hono }                                 from "hono";
-import type { Variables }                       from "../../core/types";
-import { SampleService }                        from "./service";
+import { Hono } from "hono";
+import type { Variables } from "../../core/types";
+import { SampleService } from "./service";
 import { authenticateToken, requirePermission } from "../../core/middleware";
-import { 
-  CreateSampleRequestSchema, 
+import {
+  CreateSampleRequestSchema,
   UpdateSampleRequestSchema,
   GetSamplesResponseSchema,
-  GetSampleResponseSchema
+  GetSampleResponseSchema,
 } from "../../../src/shared/schemas/sample.schema";
-import { logger }                              from "../../core/logger";
+import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -26,7 +26,9 @@ app.get("/", authenticateToken, async (c) => {
   const requestId = c.get("requestId");
   try {
     const samples = await SampleService.getSamples();
-    return c.json(GetSamplesResponseSchema.parse({ success: true, data: samples }));
+    return c.json(
+      GetSamplesResponseSchema.parse({ success: true, data: samples }),
+    );
   } catch (err: unknown) {
     logger.error({ err, requestId }, "Failed to fetch samples");
     return c.json({ success: false, error: toMsg(err) }, 500);
@@ -40,8 +42,11 @@ app.post("/", authenticateToken, requirePermission("input_data"), async (c) => {
     const user = c.get("user");
     const body = await c.req.json();
     const validated = CreateSampleRequestSchema.parse(body);
-    
-    const id = await SampleService.createSample(validated, user.employee_number);
+
+    const id = await SampleService.createSample(
+      validated,
+      user.employee_number,
+    );
     return c.json({ success: true, id }, 201);
   } catch (err: unknown) {
     logger.error({ err, requestId }, "Failed to create sample");
@@ -64,7 +69,7 @@ app.put(
       const user = c.get("user");
       const body = await c.req.json();
       const validated = UpdateSampleRequestSchema.parse(body);
-      
+
       await SampleService.updateSample(
         sampleId,
         validated,
@@ -86,14 +91,14 @@ app.get("/previous-results", authenticateToken, async (c) => {
     const stage = c.req.query("stage") ?? "";
     const testType = c.req.query("testType") ?? "";
     const limit = Math.min(Number(c.req.query("limit") ?? 5), 50);
-    
+
     if (!stage || !testType) {
       return c.json(
         { success: false, error: "stage and testType are required." },
         400,
       );
     }
-    
+
     const data = await SampleService.getPreviousResults(stage, testType, limit);
     return c.json({ success: true, data });
   } catch (err: unknown) {
@@ -110,7 +115,7 @@ app.get("/:id/tests", authenticateToken, async (c) => {
     if (!Number.isInteger(sampleId) || sampleId < 1) {
       return c.json({ success: false, error: "Invalid sample ID." }, 400);
     }
-    
+
     const data = await SampleService.getSampleTests(sampleId);
     return c.json({ success: true, data });
   } catch (err: unknown) {

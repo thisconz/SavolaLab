@@ -99,25 +99,55 @@ export const RealtimeStatusBadge: React.FC<{ className?: string }> = ({
   const { status, reconnect } = useRealtime();
 
   const config = {
-    connected: { dot: "bg-emerald-400", pulse: true, label: "Live", color: "text-emerald-400" },
-    connecting: { dot: "bg-amber-400", pulse: true, label: "Connecting", color: "text-amber-400" },
-    reconnecting: { dot: "bg-amber-500", pulse: true, label: "Reconnecting", color: "text-amber-500" },
-    disconnected: { dot: "bg-red-500", pulse: false, label: "Offline", color: "text-red-400" },
+    connected: {
+      dot: "bg-emerald-400",
+      pulse: true,
+      label: "Live",
+      color: "text-emerald-400",
+    },
+    connecting: {
+      dot: "bg-amber-400",
+      pulse: true,
+      label: "Connecting",
+      color: "text-amber-400",
+    },
+    reconnecting: {
+      dot: "bg-amber-500",
+      pulse: true,
+      label: "Reconnecting",
+      color: "text-amber-500",
+    },
+    disconnected: {
+      dot: "bg-red-500",
+      pulse: false,
+      label: "Offline",
+      color: "text-red-400",
+    },
   }[status];
 
   return (
     <button
       onClick={status === "disconnected" ? reconnect : undefined}
       className={`flex items-center gap-1.5 px-2 py-1 rounded-full bg-current/5 border border-current/20 transition-all ${config.color} ${className}`}
-      title={status === "disconnected" ? "Click to reconnect" : `Real-time: ${status}`}
+      title={
+        status === "disconnected"
+          ? "Click to reconnect"
+          : `Real-time: ${status}`
+      }
     >
       <span className="relative flex h-1.5 w-1.5">
         {config.pulse && (
-          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.dot} opacity-75`} />
+          <span
+            className={`animate-ping absolute inline-flex h-full w-full rounded-full ${config.dot} opacity-75`}
+          />
         )}
-        <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${config.dot}`} />
+        <span
+          className={`relative inline-flex rounded-full h-1.5 w-1.5 ${config.dot}`}
+        />
       </span>
-      <span className="text-[8px] font-black uppercase tracking-widest">{config.label}</span>
+      <span className="text-[8px] font-black uppercase tracking-widest">
+        {config.label}
+      </span>
     </button>
   );
 };

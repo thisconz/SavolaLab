@@ -1,13 +1,14 @@
-import { Hono }                               from "hono";
-import type { Variables }                     from "../../core/types";
+import { Hono } from "hono";
+import type { Variables } from "../../core/types";
 import { setCookie, deleteCookie, getCookie } from "hono/cookie";
-import { AuthService, verifyRefreshToken }    from "./service";
-import { authenticateToken }                  from "../../core/middleware";
-import { z }                                  from "zod";
+import { AuthService, verifyRefreshToken } from "./service";
+import { authenticateToken } from "../../core/middleware";
+import { z } from "zod";
 import {
-  GetUsersResponseSchema, 
-  GetMeResponseSchema }                       from "../../../src/shared/schemas/auth.schema";
-import { logger }                             from "../../core/logger";
+  GetUsersResponseSchema,
+  GetMeResponseSchema,
+} from "../../../src/shared/schemas/auth.schema";
+import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -15,32 +16,35 @@ const app = new Hono<{ Variables: Variables }>();
 
 const EmployeeVerifySchema = z.object({
   employee_number: z.union([z.string(), z.number()]).transform(String),
-  national_id:     z.union([z.string(), z.number()]).transform(String),
-  dob:             z.union([z.string(), z.number()]).transform(String),
+  national_id: z.union([z.string(), z.number()]).transform(String),
+  dob: z.union([z.string(), z.number()]).transform(String),
 });
 
 const ConfirmOtpSchema = z.object({
   employee_number: z.union([z.string(), z.number()]).transform(String),
-  code:            z.union([z.string(), z.number()]).transform(String),
+  code: z.union([z.string(), z.number()]).transform(String),
 });
 
 const SetupCredentialsSchema = z.object({
   employee_number: z.union([z.string(), z.number()]).transform(String),
-  password:        z.union([z.string(), z.number()]).transform(String),
-  pin:             z.union([z.string(), z.number()]).optional().transform((v) =>
-    v !== undefined ? String(v) : undefined
-  ),
+  password: z.union([z.string(), z.number()]).transform(String),
+  pin: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((v) => (v !== undefined ? String(v) : undefined)),
 });
 
 const LoginSchema = z
   .object({
     employee_number: z.union([z.string(), z.number()]).transform(String),
-    password:        z.union([z.string(), z.number()]).optional().transform((v) =>
-      v !== undefined ? String(v) : undefined
-    ),
-    pin:             z.union([z.string(), z.number()]).optional().transform((v) =>
-      v !== undefined ? String(v) : undefined
-    ),
+    password: z
+      .union([z.string(), z.number()])
+      .optional()
+      .transform((v) => (v !== undefined ? String(v) : undefined)),
+    pin: z
+      .union([z.string(), z.number()])
+      .optional()
+      .transform((v) => (v !== undefined ? String(v) : undefined)),
   })
   .refine((d) => d.password || d.pin, {
     message: "Either password or pin is required",
@@ -74,12 +78,18 @@ app.get("/users", async (c) => {
 app.post("/verify-employee", async (c) => {
   const requestId = c.get("requestId");
   try {
-    const body   = await c.req.json();
+    const body = await c.req.json();
     const parsed = EmployeeVerifySchema.parse(body);
     const result = await AuthService.verifyEmployee(
-      parsed.employee_number, parsed.national_id, parsed.dob,
+      parsed.employee_number,
+      parsed.national_id,
+      parsed.dob,
     );
-    if (!result) return c.json({ success: false, error: "Employee not found in registry" });
+    if (!result)
+      return c.json({
+        success: false,
+        error: "Employee not found in registry",
+      });
     return c.json({ success: true, message: "OTP dispatched", ...result });
   } catch (err) {
     logger.error({ err, requestId }, "verify-employee failed");
@@ -90,10 +100,14 @@ app.post("/verify-employee", async (c) => {
 app.post("/confirm-otp", async (c) => {
   const requestId = c.get("requestId");
   try {
-    const body   = await c.req.json();
+    const body = await c.req.json();
     const parsed = ConfirmOtpSchema.parse(body);
-    const valid  = await AuthService.confirmOtp(parsed.employee_number, parsed.code);
-    if (!valid) return c.json({ success: false, error: "Invalid or expired OTP" });
+    const valid = await AuthService.confirmOtp(
+      parsed.employee_number,
+      parsed.code,
+    );
+    if (!valid)
+      return c.json({ success: false, error: "Invalid or expired OTP" });
     return c.json({ success: true, message: "Identity confirmed" });
   } catch (err) {
     logger.error({ err, requestId }, "confirm-otp failed");
@@ -104,9 +118,13 @@ app.post("/confirm-otp", async (c) => {
 app.post("/setup-credentials", async (c) => {
   const requestId = c.get("requestId");
   try {
-    const body   = await c.req.json();
+    const body = await c.req.json();
     const parsed = SetupCredentialsSchema.parse(body);
-    await AuthService.setupCredentials(parsed.employee_number, parsed.password, parsed.pin);
+    await AuthService.setupCredentials(
+      parsed.employee_number,
+      parsed.password,
+      parsed.pin,
+    );
     return c.json({ success: true, message: "Account activated successfully" });
   } catch (err) {
     logger.error({ err, requestId }, "setup-credentials failed");
@@ -117,13 +135,16 @@ app.post("/setup-credentials", async (c) => {
 app.post("/login", async (c) => {
   const requestId = c.get("requestId");
   try {
-    const body   = await c.req.json();
+    const body = await c.req.json();
     const parsed = LoginSchema.parse(body);
     const result = await AuthService.login(
-      parsed.employee_number, parsed.password, parsed.pin,
+      parsed.employee_number,
+      parsed.password,
+      parsed.pin,
     );
 
-    if (!result) return c.json({ success: false, error: "Invalid credentials" }, 401);
+    if (!result)
+      return c.json({ success: false, error: "Invalid credentials" }, 401);
 
     const isProd = process.env.NODE_ENV === "production";
 
@@ -144,7 +165,7 @@ app.post("/login", async (c) => {
     return c.json({ success: true, token: result.token, user: result.user });
   } catch (err) {
     logger.error({ err, requestId }, "login failed");
-    const msg    = toMsg(err);
+    const msg = toMsg(err);
     const status = msg.toLowerCase().includes("locked") ? 423 : 400;
     return c.json({ success: false, error: msg }, status as any);
   }
@@ -156,10 +177,15 @@ app.post("/login", async (c) => {
  */
 app.post("/refresh", async (c) => {
   const refresh = getCookie(c, "refresh_token");
-  if (!refresh) return c.json({ success: false, error: "No refresh token" }, 401);
+  if (!refresh)
+    return c.json({ success: false, error: "No refresh token" }, 401);
 
   const result = await AuthService.refreshAccess(refresh);
-  if (!result) return c.json({ success: false, error: "Invalid or expired refresh token" }, 401);
+  if (!result)
+    return c.json(
+      { success: false, error: "Invalid or expired refresh token" },
+      401,
+    );
 
   const isProd = process.env.NODE_ENV === "production";
   setCookie(c, "token", result.token, {
@@ -186,7 +212,7 @@ app.get("/me", authenticateToken, async (c) => {
 
 app.post("/logout", async (c) => {
   const isProd = process.env.NODE_ENV === "production";
-  deleteCookie(c, "token",         { ...COOKIE_OPTS_BASE, secure: isProd });
+  deleteCookie(c, "token", { ...COOKIE_OPTS_BASE, secure: isProd });
   deleteCookie(c, "refresh_token", { ...COOKIE_OPTS_BASE, secure: isProd });
   return c.json({ success: true });
 });

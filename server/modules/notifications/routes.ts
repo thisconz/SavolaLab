@@ -1,9 +1,9 @@
-import { Hono }                           from "hono";
-import type { Variables }                 from "../../core/types";
-import { NotificationService }            from "./service";
-import { authenticateToken }              from "../../core/middleware";
+import { Hono } from "hono";
+import type { Variables } from "../../core/types";
+import { NotificationService } from "./service";
+import { authenticateToken } from "../../core/middleware";
 import { GetNotificationsResponseSchema } from "../../../src/shared/schemas/notification.schema";
-import { logger }                         from "../../core/logger";
+import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -19,7 +19,12 @@ app.get("/", authenticateToken, async (c) => {
     const notifications = await NotificationService.getNotifications(
       user.employee_number,
     );
-    return c.json(GetNotificationsResponseSchema.parse({ success: true, data: notifications }));
+    return c.json(
+      GetNotificationsResponseSchema.parse({
+        success: true,
+        data: notifications,
+      }),
+    );
   } catch (err: unknown) {
     logger.error({ err, requestId }, "Failed to fetch notifications");
     return c.json({ success: false, error: toMsg(err) }, 500);
@@ -54,7 +59,10 @@ app.post("/read-all", authenticateToken, async (c) => {
     await NotificationService.markAllAsRead(user.employee_number);
     return c.json({ success: true });
   } catch (err: unknown) {
-    logger.error({ err, requestId }, "Failed to mark all notifications as read");
+    logger.error(
+      { err, requestId },
+      "Failed to mark all notifications as read",
+    );
     return c.json({ success: false, error: toMsg(err) }, 500);
   }
 });

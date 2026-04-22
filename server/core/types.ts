@@ -36,27 +36,27 @@ export type SampleType = {
 };
 
 export type SampleData = {
-  batch_id?:     string;
-  sample_type?:  string;
+  batch_id?: string;
+  sample_type?: string;
   source_stage?: string;
-  priority?:     string;
-  line_id?:      string | number | null;
+  priority?: string;
+  line_id?: string | number | null;
   equipment_id?: string | number | null;
-  shift_id?:     string | number | null;
-  status?:       string;
+  shift_id?: string | number | null;
+  status?: string;
 };
 
 export type TestResultSummary = {
-  raw_value:    number;
+  raw_value: number;
   performed_at: string;
-  batch_id:     string;
+  batch_id: string;
 };
 
 export type SampleTest = {
-  id:         number;
-  sample_id:  number;
-  test_type:  string;
-  status:     "PENDING" | "APPROVED" | "DISAPPROVED" | "COMPLETED" | "VALIDATING";
+  id: number;
+  sample_id: number;
+  test_type: string;
+  status: "PENDING" | "APPROVED" | "DISAPPROVED" | "COMPLETED" | "VALIDATING";
 };
 
 // --- Variables and Export ---
@@ -75,42 +75,42 @@ export type ExportType =
   | "inventory";
 
 export interface ExportOptions {
-  type:       ExportType;
-  filters?:   Record<string, string | undefined>;
-  limit?:     number;
+  type: ExportType;
+  filters?: Record<string, string | undefined>;
+  limit?: number;
 }
 
 // --- Telemetry ---
 export interface TelemetryMetrics {
-  cpuLoad:     string;
-  memory:      string;
-  latency:     string;
-  dbSync:      "ACTIVE" | "INACTIVE";
-  uptime:      string;
+  cpuLoad: string;
+  memory: string;
+  latency: string;
+  dbSync: "ACTIVE" | "INACTIVE";
+  uptime: string;
   activeUsers: number;
-  errorRate:   string;
-  throughput:  string;
+  errorRate: string;
+  throughput: string;
   stats: {
-    samples:   number;
-    pending:   number;
+    samples: number;
+    pending: number;
     lastAudit: string | null;
   };
 }
 
 export interface TelemetryFilter {
   startDate?: string;
-  endDate?:   string;
+  endDate?: string;
 }
 
 // --- Workflow ---
 export type WorkflowStepInput = {
-  test_type:  string;
+  test_type: string;
   min_value?: number | null;
   max_value?: number | null;
 };
 
 // --- Operational Data ---
-export type Pagination    = { limit?: number; offset?: number };
+export type Pagination = { limit?: number; offset?: number };
 export type EquipmentFilter = { lineId?: string } & Pagination;
 // ─────────────────────────────────────────────
 // Permission helpers
@@ -120,7 +120,11 @@ export function can(user: User, perm: keyof PermissionFlags): boolean {
   return user.permissions[perm] === 1;
 }
 
-export const REVIEWER_ROLES: UserRole[] = ["SHIFT_CHEMIST", "HEAD_MANAGER", "ADMIN"];
+export const REVIEWER_ROLES: UserRole[] = [
+  "SHIFT_CHEMIST",
+  "HEAD_MANAGER",
+  "ADMIN",
+];
 
 export function isReviewer(role: string): role is UserRole {
   return REVIEWER_ROLES.includes(role as UserRole);

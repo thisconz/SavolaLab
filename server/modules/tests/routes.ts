@@ -1,13 +1,13 @@
-import { Hono }              from "hono";
-import type { Variables }    from "../../core/types";
-import { TestService }       from "./service";
+import { Hono } from "hono";
+import type { Variables } from "../../core/types";
+import { TestService } from "./service";
 import { authenticateToken } from "../../core/middleware";
 import {
   CreateTestRequestSchema,
   UpdateTestRequestSchema,
   ReviewTestRequestSchema,
 } from "../../../src/shared/schemas/test.schema";
-import { logger }            from "../../core/logger";
+import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -76,7 +76,12 @@ app.post("/:id/review", authenticateToken, async (c) => {
     const performerId = user.employee_number;
     const role = user.role;
 
-    await TestService.reviewTest(testId as string, parsedBody, performerId, role);
+    await TestService.reviewTest(
+      testId as string,
+      parsedBody,
+      performerId,
+      role,
+    );
     return c.json({ success: true });
   } catch (err: any) {
     logger.error({ reqId, err }, "Error reviewing test");

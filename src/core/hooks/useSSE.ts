@@ -22,28 +22,32 @@ export type SSEEventType =
   | "connected";
 
 export type SSECallback<T = any> = (data: T) => void;
-export type SSEStatus = "connecting" | "connected" | "reconnecting" | "disconnected";
+export type SSEStatus =
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "disconnected";
 
 interface UseSSEOptions {
-  onConnect?:   (info: { connectionId: string }) => void;
+  onConnect?: (info: { connectionId: string }) => void;
   onReconnect?: (attempt: number) => void;
-  onGiveUp?:    () => void;
-  maxRetries?:  number;
+  onGiveUp?: () => void;
+  maxRetries?: number;
   autoConnect?: boolean;
 }
 
 interface UseSSEReturn {
-  status:      SSEStatus;
+  status: SSEStatus;
   isConnected: boolean;
-  on:          <T = any>(event: SSEEventType, callback: SSECallback<T>) => () => void;
-  lastEvent:   { type: SSEEventType; data: any } | null;
-  disconnect:  () => void;
-  reconnect:   () => void;
+  on: <T = any>(event: SSEEventType, callback: SSECallback<T>) => () => void;
+  lastEvent: { type: SSEEventType; data: any } | null;
+  disconnect: () => void;
+  reconnect: () => void;
 }
 
-const SSE_URL      = "/api/realtime/stream";
-const BASE_DELAY   = 1_000;
-const MAX_DELAY    = 30_000;
+const SSE_URL = "/api/realtime/stream";
+const BASE_DELAY = 1_000;
+const MAX_DELAY = 30_000;
 
 // ─── FIX: add ±10% jitter to spread reconnection load ───────────────────────
 function jitteredDelay(baseMs: number): number {
@@ -60,20 +64,23 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     onConnect,
     onReconnect,
     onGiveUp,
-    maxRetries  = 8,
+    maxRetries = 8,
     autoConnect = true,
   } = options;
 
   const { isAuthenticated } = useAuthStore();
 
-  const [status,    setStatus]    = useState<SSEStatus>("disconnected");
-  const [lastEvent, setLastEvent] = useState<{ type: SSEEventType; data: any } | null>(null);
+  const [status, setStatus] = useState<SSEStatus>("disconnected");
+  const [lastEvent, setLastEvent] = useState<{
+    type: SSEEventType;
+    data: any;
+  } | null>(null);
 
-  const esRef          = useRef<EventSource | null>(null);
-  const listenersRef   = useRef<Map<SSEEventType, Set<SSECallback>>>(new Map());
-  const retryRef       = useRef(0);
-  const retryTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const mountedRef     = useRef(true);
+  const esRef = useRef<EventSource | null>(null);
+  const listenersRef = useRef<Map<SSEEventType, Set<SSECallback>>>(new Map());
+  const retryRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
 
   const emit = useCallback((type: SSEEventType, data: any) => {
     if (!mountedRef.current) return;
@@ -97,18 +104,30 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     };
 
     const EVENTS: SSEEventType[] = [
-      "SAMPLE_CREATED", "SAMPLE_UPDATED", "SAMPLE_STATUS_CHANGED",
-      "TEST_SUBMITTED", "TEST_REVIEWED", "TEST_UPDATED",
-      "STAT_CREATED", "STAT_UPDATED",
+      "SAMPLE_CREATED",
+      "SAMPLE_UPDATED",
+      "SAMPLE_STATUS_CHANGED",
+      "TEST_SUBMITTED",
+      "TEST_REVIEWED",
+      "TEST_UPDATED",
+      "STAT_CREATED",
+      "STAT_UPDATED",
       "NOTIFICATION_PUSHED",
-      "WORKFLOW_STARTED", "WORKFLOW_COMPLETED",
-      "SYSTEM_ALERT", "heartbeat", "connected",
+      "WORKFLOW_STARTED",
+      "WORKFLOW_COMPLETED",
+      "SYSTEM_ALERT",
+      "heartbeat",
+      "connected",
     ];
 
     EVENTS.forEach((type) => {
       es.addEventListener(type, (e: MessageEvent) => {
         let parsed: any;
-        try { parsed = JSON.parse(e.data); } catch { parsed = e.data; }
+        try {
+          parsed = JSON.parse(e.data);
+        } catch {
+          parsed = e.data;
+        }
         if (type === "connected" && parsed?.connectionId) onConnect?.(parsed);
         emit(type, parsed);
       });
@@ -126,7 +145,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
 
       // FIX: jitter prevents thundering herd
       const baseDelay = Math.min(BASE_DELAY * 2 ** retryRef.current, MAX_DELAY);
-      const delay     = jitteredDelay(baseDelay);
+      const delay = jitteredDelay(baseDelay);
       retryRef.current++;
       onReconnect?.(retryRef.current);
 
@@ -144,13 +163,18 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     };
   }, [isAuthenticated, autoConnect]); // eslint-disable-line
 
-  const on = useCallback(<T = any>(event: SSEEventType, callback: SSECallback<T>) => {
-    if (!listenersRef.current.has(event)) {
-      listenersRef.current.set(event, new Set());
-    }
-    listenersRef.current.get(event)!.add(callback as SSECallback);
-    return () => { listenersRef.current.get(event)?.delete(callback as SSECallback); };
-  }, []);
+  const on = useCallback(
+    <T = any>(event: SSEEventType, callback: SSECallback<T>) => {
+      if (!listenersRef.current.has(event)) {
+        listenersRef.current.set(event, new Set());
+      }
+      listenersRef.current.get(event)!.add(callback as SSECallback);
+      return () => {
+        listenersRef.current.get(event)?.delete(callback as SSECallback);
+      };
+    },
+    [],
+  );
 
   const disconnect = useCallback(() => {
     clearTimeout(retryTimerRef.current);
@@ -164,5 +188,12 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     setTimeout(connect, 100);
   }, [connect, disconnect]);
 
-  return { status, isConnected: status === "connected", on, lastEvent, disconnect, reconnect };
+  return {
+    status,
+    isConnected: status === "connected",
+    on,
+    lastEvent,
+    disconnect,
+    reconnect,
+  };
 }

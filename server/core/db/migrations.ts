@@ -382,7 +382,7 @@ export const migrations: Migration[] = [
       `);
     },
   },
- 
+
   {
     version: 14,
     up: async (client) => {
@@ -399,7 +399,7 @@ export const migrations: Migration[] = [
       `);
     },
   },
- 
+
   {
     version: 15,
     up: async (client) => {
@@ -426,7 +426,7 @@ export const migrations: Migration[] = [
       `);
     },
   },
- 
+
   {
     version: 16,
     up: async (client) => {

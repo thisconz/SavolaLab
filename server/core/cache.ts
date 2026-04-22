@@ -10,7 +10,7 @@
  */
 
 interface CacheEntry<T> {
-  value:     T;
+  value: T;
   expiresAt: number;
 }
 
@@ -75,8 +75,8 @@ export class TTLCache {
    * result for `ttlMs` ms, and returns it.
    */
   async getOrSet<T>(
-    key:   string,
-    fn:    () => Promise<T>,
+    key: string,
+    fn: () => Promise<T>,
     ttlMs: number,
   ): Promise<T> {
     const cached = this.get<T>(key);
@@ -115,10 +115,10 @@ export const operationalCache = new TTLCache();
 
 // Named TTLs (ms)
 export const TTL = {
-  SECONDS_30:  30_000,
-  MINUTES_1:   60_000,
-  MINUTES_5:   5  * 60_000,
-  MINUTES_15:  15 * 60_000,
-  MINUTES_30:  30 * 60_000,
-  HOURS_1:     60 * 60_000,
+  SECONDS_30: 30_000,
+  MINUTES_1: 60_000,
+  MINUTES_5: 5 * 60_000,
+  MINUTES_15: 15 * 60_000,
+  MINUTES_30: 30 * 60_000,
+  HOURS_1: 60 * 60_000,
 } as const;

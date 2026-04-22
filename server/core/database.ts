@@ -4,7 +4,7 @@ import { seedDatabase } from "./db/seeds";
 import { initSecurityTriggers } from "./db/security";
 import { logger } from "./logger";
 
-let initialized  = false;
+let initialized = false;
 let initializing = false;
 
 type InitStage = "instrumentation" | "migrations" | "security" | "seeding";
@@ -19,7 +19,8 @@ function logError(stage: InitStage, error: unknown) {
  */
 export async function initDatabase(): Promise<void> {
   if (initialized) return;
-  if (initializing) throw new Error("Database initialization already in progress");
+  if (initializing)
+    throw new Error("Database initialization already in progress");
 
   initializing = true;
 
@@ -62,7 +63,7 @@ export async function initDatabase(): Promise<void> {
     initialized = true;
     logger.info("Database fully initialized");
   } catch (err) {
-    initialized  = false;
+    initialized = false;
     initializing = false;
     logger.error({ err }, "DATABASE INITIALIZATION FAILED");
     throw err;

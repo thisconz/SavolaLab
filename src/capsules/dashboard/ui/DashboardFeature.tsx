@@ -1,25 +1,43 @@
 import React, {
-  memo, useState, useEffect, useMemo, useCallback, useRef,
+  memo,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
 } from "react";
 import {
-  LayoutDashboard, Bell, AlertCircle, CheckCircle2, XCircle,
-  Clock, TrendingUp, BarChart3, PieChart as PieChartIcon,
-  Zap, Activity, FlaskConical, ListChecks, RefreshCw, Wifi,
-  Calendar, ChevronDown,
+  LayoutDashboard,
+  Bell,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  TrendingUp,
+  BarChart3,
+  PieChart as PieChartIcon,
+  Zap,
+  Activity,
+  FlaskConical,
+  ListChecks,
+  RefreshCw,
+  Wifi,
+  Calendar,
+  ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { LabPanel }        from "../../../shared/components/LabPanel";
+import { LabPanel } from "../../../shared/components/LabPanel";
 import { NotificationApi } from "../../notifications";
-import { LabApi }          from "../../lab";
+import { LabApi } from "../../lab";
 import { Notification, Sample, TestResult } from "../../../core/types";
-import { useRealtime }     from "../../../core/providers/RealtimeProvider";
-import { useAppActions }   from "../../../orchestrator/state/app.store";
-import clsx                from "@/src/lib/clsx";
+import { useRealtime } from "../../../core/providers/RealtimeProvider";
+import { useAppActions } from "../../../orchestrator/state/app.store";
+import clsx from "@/src/lib/clsx";
 
-import { QCStatsWidget }       from "./QCStatsWidget";
-import { QCTrendsWidget }      from "./QCTrendsWidget";
-import { PriorityWidget }      from "./PriorityWidget";
-import { EfficiencyWidget }    from "./EfficiencyWidget";
+import { QCStatsWidget } from "./QCStatsWidget";
+import { QCTrendsWidget } from "./QCTrendsWidget";
+import { PriorityWidget } from "./PriorityWidget";
+import { EfficiencyWidget } from "./EfficiencyWidget";
 import { PlantOverviewWidget } from "./PlantOverviewWidget";
 import {
   MetricCard,
@@ -38,12 +56,12 @@ type DateRange = "24h" | "7d" | "30d";
 
 const DATE_RANGE_LABELS: Record<DateRange, string> = {
   "24h": "Last 24 hours",
-  "7d":  "Last 7 days",
+  "7d": "Last 7 days",
   "30d": "Last 30 days",
 };
 
 const DateRangeSelector: React.FC<{
-  value:    DateRange;
+  value: DateRange;
   onChange: (v: DateRange) => void;
 }> = ({ value, onChange }) => {
   const [open, setOpen] = useState(false);
@@ -55,7 +73,10 @@ const DateRangeSelector: React.FC<{
       >
         <Calendar size={12} />
         {DATE_RANGE_LABELS[value]}
-        <ChevronDown size={10} className={clsx("transition-transform", open && "rotate-180")} />
+        <ChevronDown
+          size={10}
+          className={clsx("transition-transform", open && "rotate-180")}
+        />
       </button>
       <AnimatePresence>
         {open && (
@@ -68,12 +89,15 @@ const DateRangeSelector: React.FC<{
             {(["24h", "7d", "30d"] as DateRange[]).map((opt) => (
               <button
                 key={opt}
-                onClick={() => { onChange(opt); setOpen(false); }}
+                onClick={() => {
+                  onChange(opt);
+                  setOpen(false);
+                }}
                 className={clsx(
                   "w-full text-left px-4 py-3 text-[11px] font-bold transition-all",
                   value === opt
                     ? "bg-brand-primary/10 text-brand-primary"
-                    : "text-(--color-zenthar-text-primary) hover:bg-(--color-zenthar-graphite)/40"
+                    : "text-(--color-zenthar-text-primary) hover:bg-(--color-zenthar-graphite)/40",
                 )}
               >
                 {DATE_RANGE_LABELS[opt]}
@@ -94,19 +118,19 @@ export const DashboardFeature: React.FC = memo(() => {
   const { setActiveTab } = useAppActions();
 
   const [data, setData] = useState({
-    alerts:  [] as Notification[],
+    alerts: [] as Notification[],
     samples: [] as Sample[],
-    tests:   [] as TestResult[],
+    tests: [] as TestResult[],
   });
-  const [loading,      setLoading]      = useState(true);
+  const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdated,  setLastUpdated]  = useState<Date | null>(null);
-  const [dateRange,    setDateRange]    = useState<DateRange>("24h");
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange>("24h");
 
   // Per-widget loading states for skeleton granularity
-  const [alertsLoading,  setAlertsLoading]  = useState(true);
+  const [alertsLoading, setAlertsLoading] = useState(true);
   const [samplesLoading, setSamplesLoading] = useState(true);
-  const [testsLoading,   setTestsLoading]   = useState(true);
+  const [testsLoading, setTestsLoading] = useState(true);
 
   const { on, isConnected } = useRealtime();
 
@@ -115,8 +139,14 @@ export const DashboardFeature: React.FC = memo(() => {
     setAlertsLoading(true);
     try {
       const n = await NotificationApi.getNotifications();
-      setData((p) => ({ ...p, alerts: (n as Notification[]).filter((x) => !x.is_read).slice(0, 5) }));
-    } catch {} finally { setAlertsLoading(false); }
+      setData((p) => ({
+        ...p,
+        alerts: (n as Notification[]).filter((x) => !x.is_read).slice(0, 5),
+      }));
+    } catch {
+    } finally {
+      setAlertsLoading(false);
+    }
   }, []);
 
   const fetchSamples = useCallback(async () => {
@@ -124,7 +154,10 @@ export const DashboardFeature: React.FC = memo(() => {
     try {
       const s = await LabApi.getSamples();
       setData((p) => ({ ...p, samples: s }));
-    } catch {} finally { setSamplesLoading(false); }
+    } catch {
+    } finally {
+      setSamplesLoading(false);
+    }
   }, []);
 
   const fetchTests = useCallback(async () => {
@@ -132,40 +165,67 @@ export const DashboardFeature: React.FC = memo(() => {
     try {
       const t = await LabApi.getTests();
       setData((p) => ({ ...p, tests: t }));
-    } catch {} finally { setTestsLoading(false); }
+    } catch {
+    } finally {
+      setTestsLoading(false);
+    }
   }, []);
 
-  const fetchAll = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true); else setIsRefreshing(true);
-    try {
-      await Promise.allSettled([fetchAlerts(), fetchSamples(), fetchTests()]);
-      setLastUpdated(new Date());
-    } finally {
-      setLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [fetchAlerts, fetchSamples, fetchTests]);
+  const fetchAll = useCallback(
+    async (silent = false) => {
+      if (!silent) setLoading(true);
+      else setIsRefreshing(true);
+      try {
+        await Promise.allSettled([fetchAlerts(), fetchSamples(), fetchTests()]);
+        setLastUpdated(new Date());
+      } finally {
+        setLoading(false);
+        setIsRefreshing(false);
+      }
+    },
+    [fetchAlerts, fetchSamples, fetchTests],
+  );
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   // ── SSE subscriptions — timer captured per subscription ──────────────────
   useEffect(() => {
     const makeDebounced = (fn: () => void, delay = 800) => {
       let timer: ReturnType<typeof setTimeout>;
-      return () => { clearTimeout(timer); timer = setTimeout(fn, delay); };
+      return () => {
+        clearTimeout(timer);
+        timer = setTimeout(fn, delay);
+      };
     };
 
     const refreshSamples = makeDebounced(() => fetchSamples());
-    const refreshAlerts  = makeDebounced(() => fetchAlerts());
-    const refreshAll     = makeDebounced(() => fetchAll(true));
+    const refreshAlerts = makeDebounced(() => fetchAlerts());
+    const refreshAll = makeDebounced(() => fetchAll(true));
 
     const unsubs = [
-      on("SAMPLE_CREATED",        () => { refreshSamples(); setLastUpdated(new Date()); }),
-      on("SAMPLE_UPDATED",        () => { refreshSamples(); setLastUpdated(new Date()); }),
-      on("SAMPLE_STATUS_CHANGED", () => { refreshSamples(); setLastUpdated(new Date()); }),
-      on("TEST_SUBMITTED",        () => { refreshAll(); }),
-      on("TEST_REVIEWED",         () => { refreshAll(); }),
-      on("NOTIFICATION_PUSHED",   () => { refreshAlerts(); }),
+      on("SAMPLE_CREATED", () => {
+        refreshSamples();
+        setLastUpdated(new Date());
+      }),
+      on("SAMPLE_UPDATED", () => {
+        refreshSamples();
+        setLastUpdated(new Date());
+      }),
+      on("SAMPLE_STATUS_CHANGED", () => {
+        refreshSamples();
+        setLastUpdated(new Date());
+      }),
+      on("TEST_SUBMITTED", () => {
+        refreshAll();
+      }),
+      on("TEST_REVIEWED", () => {
+        refreshAll();
+      }),
+      on("NOTIFICATION_PUSHED", () => {
+        refreshAlerts();
+      }),
     ];
 
     return () => unsubs.forEach((u) => u());
@@ -186,10 +246,12 @@ export const DashboardFeature: React.FC = memo(() => {
             <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
               Real-time · {isConnected ? "Live" : "Polling"}
             </p>
-            <div className={clsx(
-              "flex items-center gap-1.5 text-[9px] font-bold uppercase",
-              isConnected ? "text-emerald-400" : "text-amber-400"
-            )}>
+            <div
+              className={clsx(
+                "flex items-center gap-1.5 text-[9px] font-bold uppercase",
+                isConnected ? "text-emerald-400" : "text-amber-400",
+              )}
+            >
               <Wifi size={10} />
               {isConnected ? "Connected" : "Reconnecting"}
             </div>
@@ -212,22 +274,32 @@ export const DashboardFeature: React.FC = memo(() => {
             onClick={() => fetchAll(true)}
             className="p-2 rounded-xl border border-brand-sage/20 bg-(--color-zenthar-graphite) hover:bg-(--color-zenthar-graphite)/80 transition-colors group"
           >
-            <RefreshCw className={clsx("w-4 h-4 text-brand-sage group-hover:text-brand-primary", isRefreshing && "animate-spin")} />
+            <RefreshCw
+              className={clsx(
+                "w-4 h-4 text-brand-sage group-hover:text-brand-primary",
+                isRefreshing && "animate-spin",
+              )}
+            />
           </button>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
-
         {/* Metric cards — clickable to navigate */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {loading ? (
-            Array.from({ length: 4 }).map((_, i) => <MetricCardSkeleton key={i} />)
+            Array.from({ length: 4 }).map((_, i) => (
+              <MetricCardSkeleton key={i} />
+            ))
           ) : (
             <>
               <MetricCard
                 label="Active Samples"
-                value={data.samples.filter((s) => !["COMPLETED", "ARCHIVED"].includes(s.status)).length}
+                value={
+                  data.samples.filter(
+                    (s) => !["COMPLETED", "ARCHIVED"].includes(s.status),
+                  ).length
+                }
                 trend={trends.active}
                 icon={FlaskConical}
                 variant="primary"
@@ -359,12 +431,29 @@ export const DashboardFeature: React.FC = memo(() => {
 // ─────────────────────────────────────────────
 
 const AlertItem = ({ alert }: { alert: Notification }) => {
-  const isCritical = alert.type.includes("FAILURE") || alert.type.includes("CRITICAL");
+  const isCritical =
+    alert.type.includes("FAILURE") || alert.type.includes("CRITICAL");
   return (
     <div className="flex gap-4 p-4 rounded-xl border border-brand-sage/5 hover:border-brand-primary/20 hover:bg-(--color-zenthar-graphite)/50 transition-all group relative overflow-hidden cursor-default">
-      <div className={clsx("absolute left-0 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity", isCritical ? "bg-lab-laser" : "bg-brand-primary")} />
-      <div className={clsx("mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center shrink-0", isCritical ? "bg-lab-laser/10 text-lab-laser" : "bg-(--color-zenthar-graphite) text-brand-primary")}>
-        {isCritical ? <XCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+      <div
+        className={clsx(
+          "absolute left-0 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity",
+          isCritical ? "bg-lab-laser" : "bg-brand-primary",
+        )}
+      />
+      <div
+        className={clsx(
+          "mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+          isCritical
+            ? "bg-lab-laser/10 text-lab-laser"
+            : "bg-(--color-zenthar-graphite) text-brand-primary",
+        )}
+      >
+        {isCritical ? (
+          <XCircle className="w-4 h-4" />
+        ) : (
+          <AlertCircle className="w-4 h-4" />
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex justify-between items-start mb-1">
@@ -372,10 +461,15 @@ const AlertItem = ({ alert }: { alert: Notification }) => {
             {alert.message}
           </p>
           <span className="text-[8px] font-mono text-brand-sage/60 shrink-0">
-            {new Date(alert.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            {new Date(alert.created_at).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </span>
         </div>
-        <p className="text-[8px] font-mono text-brand-sage uppercase tracking-wider">{alert.type.replace(/_/g, " ")}</p>
+        <p className="text-[8px] font-mono text-brand-sage uppercase tracking-wider">
+          {alert.type.replace(/_/g, " ")}
+        </p>
       </div>
     </div>
   );
@@ -390,7 +484,9 @@ const EmptyAlertsState = () => (
     <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
       <CheckCircle2 className="w-6 h-6" />
     </div>
-    <p className="text-[10px] font-black text-(--color-zenthar-text-primary) uppercase tracking-widest">All Systems Nominal</p>
+    <p className="text-[10px] font-black text-(--color-zenthar-text-primary) uppercase tracking-widest">
+      All Systems Nominal
+    </p>
     <p className="text-[9px] text-brand-sage mt-1">No pending alerts.</p>
   </motion.div>
 );
@@ -415,14 +511,16 @@ function computeTrends(samples: Sample[], tests: TestResult[]) {
     return `${d > 0 ? "+" : ""}${d}%`;
   };
 
-  const active = samples.filter((s) => !["COMPLETED", "ARCHIVED"].includes(s.status));
-  const pend   = tests.filter((t) => t.status === "PENDING");
-  const stat   = samples.filter((s) => s.priority === "STAT");
+  const active = samples.filter(
+    (s) => !["COMPLETED", "ARCHIVED"].includes(s.status),
+  );
+  const pend = tests.filter((t) => t.status === "PENDING");
+  const stat = samples.filter((s) => s.priority === "STAT");
 
   return {
-    active:  diff(inWindow(active, 1, 0), inWindow(active, 2, 1)),
-    pending: diff(inWindow(pend,   1, 0), inWindow(pend,   2, 1)),
-    stat:    diff(inWindow(stat,   1, 0), inWindow(stat,   2, 1)),
+    active: diff(inWindow(active, 1, 0), inWindow(active, 2, 1)),
+    pending: diff(inWindow(pend, 1, 0), inWindow(pend, 2, 1)),
+    stat: diff(inWindow(stat, 1, 0), inWindow(stat, 2, 1)),
   };
 }
 

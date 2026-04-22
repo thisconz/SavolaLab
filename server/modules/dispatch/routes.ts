@@ -1,8 +1,8 @@
-import { Hono }              from "hono";
-import type { Variables }    from "../../core/types";
-import { DispatchService }   from "./service";
+import { Hono } from "hono";
+import type { Variables } from "../../core/types";
+import { DispatchService } from "./service";
 import { authenticateToken } from "../../core/middleware";
-import { logger }            from "../../core/logger";
+import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 

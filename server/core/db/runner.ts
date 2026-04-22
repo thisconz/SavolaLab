@@ -37,7 +37,9 @@ async function tryAcquireAdvisoryLock(lockId: number): Promise<boolean> {
   } catch {
     // PGlite or older Postgres versions don't support advisory locks.
     // Migrations are still safe in single-process dev mode.
-    logger.warn("pg_advisory_lock unavailable — running migrations without distributed lock");
+    logger.warn(
+      "pg_advisory_lock unavailable — running migrations without distributed lock",
+    );
     return false;
   }
 }
@@ -55,8 +57,8 @@ async function tryReleaseAdvisoryLock(lockId: number): Promise<void> {
  * Safe to call multiple times (idempotent).
  */
 export async function runMigrations(): Promise<void> {
-  const LOCK_ID   = 1_000_789; // Arbitrary unique integer for this app
-  const lockHeld  = await tryAcquireAdvisoryLock(LOCK_ID);
+  const LOCK_ID = 1_000_789; // Arbitrary unique integer for this app
+  const lockHeld = await tryAcquireAdvisoryLock(LOCK_ID);
 
   try {
     await initMeta();
@@ -71,7 +73,9 @@ export async function runMigrations(): Promise<void> {
       return;
     }
 
-    logger.info(`Running ${pending.length} pending migration(s) from v${current}`);
+    logger.info(
+      `Running ${pending.length} pending migration(s) from v${current}`,
+    );
 
     for (const migration of pending) {
       const start = Date.now();
@@ -83,7 +87,9 @@ export async function runMigrations(): Promise<void> {
           [migration.version, elapsed],
         );
       });
-      logger.info(`Migration v${migration.version} applied in ${Date.now() - start}ms`);
+      logger.info(
+        `Migration v${migration.version} applied in ${Date.now() - start}ms`,
+      );
     }
   } finally {
     if (lockHeld) await tryReleaseAdvisoryLock(LOCK_ID);

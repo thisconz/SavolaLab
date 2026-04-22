@@ -1,64 +1,97 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  Beaker, BookOpen, Wrench, Users, Factory, Bell,
-  Settings as SettingsIcon, Plus, Edit2, ChevronRight,
-  Database, ShieldCheck, Search, X, Save, ToggleLeft,
-  ToggleRight, AlertCircle, Package, Trash2, Check,
-  RefreshCw, ChevronLeft,
+  Beaker,
+  BookOpen,
+  Wrench,
+  Users,
+  Factory,
+  Bell,
+  Settings as SettingsIcon,
+  Plus,
+  Edit2,
+  ChevronRight,
+  Database,
+  ShieldCheck,
+  Search,
+  X,
+  Save,
+  ToggleLeft,
+  ToggleRight,
+  AlertCircle,
+  Package,
+  Trash2,
+  Check,
+  RefreshCw,
+  ChevronLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { SettingsApi }             from "../api/settings.api";
-import { Modal }                   from "../../../shared/components/Modal";
-import { toast }                   from "sonner";
-import clsx                        from "@/src/lib/clsx";
-import { LabButton }               from "../../../shared/components/LabButton";
+import { SettingsApi } from "../api/settings.api";
+import { Modal } from "../../../shared/components/Modal";
+import { toast } from "sonner";
+import clsx from "@/src/lib/clsx";
+import { LabButton } from "../../../shared/components/LabButton";
 
 // ─────────────────────────────────────────────
 // Field + Column definitions (unchanged from original — keeping compact)
 // ─────────────────────────────────────────────
 
-type FieldType = "text" | "textarea" | "number" | "select" | "date" | "toggle" | "email" | "tel" | "readonly";
+type FieldType =
+  | "text"
+  | "textarea"
+  | "number"
+  | "select"
+  | "date"
+  | "toggle"
+  | "email"
+  | "tel"
+  | "readonly";
 
 interface FieldDef {
-  key:           string;
-  label:         string;
-  type:          FieldType;
-  options?:      { value: string; label: string }[];
-  required?:     boolean;
-  placeholder?:  string;
+  key: string;
+  label: string;
+  type: FieldType;
+  options?: { value: string; label: string }[];
+  required?: boolean;
+  placeholder?: string;
   readonlyOnEdit?: boolean;
-  hint?:         string;
+  hint?: string;
 }
 
 interface ColumnDef {
-  key:     string;
-  label:   string;
+  key: string;
+  label: string;
   render?: (val: any, row: any) => React.ReactNode;
 }
 
 interface TableConfig {
-  fields:      FieldDef[];
-  columns:     ColumnDef[];
-  pk:          string;
+  fields: FieldDef[];
+  columns: ColumnDef[];
+  pk: string;
   displayName: string;
-  deletable?:  boolean;
+  deletable?: boolean;
 }
 
 const ROLE_OPTIONS = [
-  { value: "ADMIN",             label: "Admin"             },
-  { value: "CHEMIST",           label: "Chemist"           },
-  { value: "SHIFT_CHEMIST",     label: "Shift Chemist"     },
+  { value: "ADMIN", label: "Admin" },
+  { value: "CHEMIST", label: "Chemist" },
+  { value: "SHIFT_CHEMIST", label: "Shift Chemist" },
   { value: "ASSISTING_MANAGER", label: "Assisting Manager" },
-  { value: "HEAD_MANAGER",      label: "Head Manager"      },
-  { value: "ENGINEER",          label: "Engineer"          },
-  { value: "DISPATCH",          label: "Dispatch"          },
+  { value: "HEAD_MANAGER", label: "Head Manager" },
+  { value: "ENGINEER", label: "Engineer" },
+  { value: "DISPATCH", label: "Dispatch" },
 ];
 
 const STATUS_BADGE = (val: any) => {
   const active = val === "ACTIVE" || val === 1 || val === true;
   return (
-    <span className={clsx("px-2 py-0.5 rounded-md text-[9px] font-black uppercase border",
-      active ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-slate-50 border-slate-200 text-slate-500")}>
+    <span
+      className={clsx(
+        "px-2 py-0.5 rounded-md text-[9px] font-black uppercase border",
+        active
+          ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+          : "bg-slate-50 border-slate-200 text-slate-500",
+      )}
+    >
       {active ? "Active" : "Inactive"}
     </span>
   );
@@ -66,222 +99,611 @@ const STATUS_BADGE = (val: any) => {
 
 const TABLE_CONFIG: Record<string, TableConfig> = {
   sample_types: {
-    pk: "id", displayName: "Sample Types", deletable: true,
+    pk: "id",
+    displayName: "Sample Types",
+    deletable: true,
     fields: [
-      { key: "name",        label: "Type Name",    type: "text",     required: true  },
-      { key: "description", label: "Description",  type: "textarea"                  },
+      { key: "name", label: "Type Name", type: "text", required: true },
+      { key: "description", label: "Description", type: "textarea" },
     ],
     columns: [
-      { key: "id",          label: "ID",          render: (v) => <span className="font-mono text-[10px] text-brand-sage">#{v}</span> },
-      { key: "name",        label: "Name",        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span> },
-      { key: "description", label: "Description", render: (v) => <span className="text-xs text-zenthar-text-secondary truncate block max-w-[240px]">{v || "—"}</span> },
+      {
+        key: "id",
+        label: "ID",
+        render: (v) => (
+          <span className="font-mono text-[10px] text-brand-sage">#{v}</span>
+        ),
+      },
+      {
+        key: "name",
+        label: "Name",
+        render: (v) => (
+          <span className="font-bold text-zenthar-text-primary">{v}</span>
+        ),
+      },
+      {
+        key: "description",
+        label: "Description",
+        render: (v) => (
+          <span className="text-xs text-zenthar-text-secondary truncate block max-w-[240px]">
+            {v || "—"}
+          </span>
+        ),
+      },
     ],
   },
   test_methods: {
-    pk: "id", displayName: "Test Methods",
+    pk: "id",
+    displayName: "Test Methods",
     fields: [
-      { key: "name",      label: "Method Name", type: "text",   required: true },
-      { key: "sop_steps", label: "SOP Steps",   type: "textarea" },
-      { key: "formula",   label: "Formula",     type: "text",   placeholder: "(A × 1000) / (b × c)" },
-      { key: "min_range", label: "Min Range",   type: "number"  },
-      { key: "max_range", label: "Max Range",   type: "number"  },
-      { key: "version",   label: "Version",     type: "number"  },
-      { key: "is_active", label: "Active",      type: "toggle"  },
+      { key: "name", label: "Method Name", type: "text", required: true },
+      { key: "sop_steps", label: "SOP Steps", type: "textarea" },
+      {
+        key: "formula",
+        label: "Formula",
+        type: "text",
+        placeholder: "(A × 1000) / (b × c)",
+      },
+      { key: "min_range", label: "Min Range", type: "number" },
+      { key: "max_range", label: "Max Range", type: "number" },
+      { key: "version", label: "Version", type: "number" },
+      { key: "is_active", label: "Active", type: "toggle" },
     ],
     columns: [
-      { key: "name",      label: "Method",  render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span> },
-      { key: "formula",   label: "Formula", render: (v) => <span className="font-mono text-[10px] text-brand-sage">{v || "—"}</span> },
-      { key: "min_range", label: "Range",   render: (v, r) => <span className="text-xs text-zenthar-text-secondary">{v ?? "—"} – {r.max_range ?? "—"}</span> },
-      { key: "is_active", label: "Status",  render: STATUS_BADGE },
+      {
+        key: "name",
+        label: "Method",
+        render: (v) => (
+          <span className="font-bold text-zenthar-text-primary">{v}</span>
+        ),
+      },
+      {
+        key: "formula",
+        label: "Formula",
+        render: (v) => (
+          <span className="font-mono text-[10px] text-brand-sage">
+            {v || "—"}
+          </span>
+        ),
+      },
+      {
+        key: "min_range",
+        label: "Range",
+        render: (v, r) => (
+          <span className="text-xs text-zenthar-text-secondary">
+            {v ?? "—"} – {r.max_range ?? "—"}
+          </span>
+        ),
+      },
+      { key: "is_active", label: "Status", render: STATUS_BADGE },
     ],
   },
   instruments: {
-    pk: "id", displayName: "Instruments",
+    pk: "id",
+    displayName: "Instruments",
     fields: [
-      { key: "name",             label: "Name",             type: "text",   required: true },
-      { key: "model",            label: "Model",            type: "text"   },
-      { key: "serial_number",    label: "Serial Number",    type: "text"   },
-      { key: "status",           label: "Status",           type: "select",
-        options: [{ value: "ACTIVE", label: "Active" }, { value: "CALIBRATION_DUE", label: "Calibration Due" }, { value: "INACTIVE", label: "Inactive" }] },
-      { key: "last_calibration", label: "Last Calibration", type: "date"   },
-      { key: "next_calibration", label: "Next Calibration", type: "date"   },
+      { key: "name", label: "Name", type: "text", required: true },
+      { key: "model", label: "Model", type: "text" },
+      { key: "serial_number", label: "Serial Number", type: "text" },
+      {
+        key: "status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "ACTIVE", label: "Active" },
+          { value: "CALIBRATION_DUE", label: "Calibration Due" },
+          { value: "INACTIVE", label: "Inactive" },
+        ],
+      },
+      { key: "last_calibration", label: "Last Calibration", type: "date" },
+      { key: "next_calibration", label: "Next Calibration", type: "date" },
     ],
     columns: [
-      { key: "name",          label: "Name",    render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span> },
-      { key: "model",         label: "Model",   render: (v) => <span className="text-xs text-zenthar-text-secondary">{v || "—"}</span> },
-      { key: "serial_number", label: "Serial",  render: (v) => <span className="font-mono text-[10px] text-brand-sage">{v || "—"}</span> },
-      { key: "status",        label: "Status",  render: (v) => {
-          const map: Record<string, string> = { ACTIVE: "text-emerald-700 bg-emerald-50 border-emerald-200", CALIBRATION_DUE: "text-amber-700 bg-amber-50 border-amber-200", INACTIVE: "text-slate-500 bg-slate-50 border-slate-200" };
-          return <span className={clsx("px-2 py-0.5 rounded border text-[9px] font-black uppercase", map[v] || map.INACTIVE)}>{v}</span>;
-        }
+      {
+        key: "name",
+        label: "Name",
+        render: (v) => (
+          <span className="font-bold text-zenthar-text-primary">{v}</span>
+        ),
       },
-      { key: "next_calibration", label: "Next Cal.", render: (v) => {
+      {
+        key: "model",
+        label: "Model",
+        render: (v) => (
+          <span className="text-xs text-zenthar-text-secondary">
+            {v || "—"}
+          </span>
+        ),
+      },
+      {
+        key: "serial_number",
+        label: "Serial",
+        render: (v) => (
+          <span className="font-mono text-[10px] text-brand-sage">
+            {v || "—"}
+          </span>
+        ),
+      },
+      {
+        key: "status",
+        label: "Status",
+        render: (v) => {
+          const map: Record<string, string> = {
+            ACTIVE: "text-emerald-700 bg-emerald-50 border-emerald-200",
+            CALIBRATION_DUE: "text-amber-700 bg-amber-50 border-amber-200",
+            INACTIVE: "text-slate-500 bg-slate-50 border-slate-200",
+          };
+          return (
+            <span
+              className={clsx(
+                "px-2 py-0.5 rounded border text-[9px] font-black uppercase",
+                map[v] || map.INACTIVE,
+              )}
+            >
+              {v}
+            </span>
+          );
+        },
+      },
+      {
+        key: "next_calibration",
+        label: "Next Cal.",
+        render: (v) => {
           if (!v) return <span className="text-xs text-brand-sage/60">—</span>;
           const overdue = new Date(v) < new Date();
-          return <span className={clsx("text-[10px] font-mono", overdue ? "text-red-600 font-bold" : "text-zenthar-text-secondary")}>{new Date(v).toLocaleDateString()}</span>;
-        }
+          return (
+            <span
+              className={clsx(
+                "text-[10px] font-mono",
+                overdue
+                  ? "text-red-600 font-bold"
+                  : "text-zenthar-text-secondary",
+              )}
+            >
+              {new Date(v).toLocaleDateString()}
+            </span>
+          );
+        },
       },
     ],
   },
   clients: {
-    pk: "id", displayName: "Clients", deletable: true,
+    pk: "id",
+    displayName: "Clients",
+    deletable: true,
     fields: [
-      { key: "name",    label: "Client Name", type: "text",  required: true },
-      { key: "email",   label: "Email",        type: "email" },
-      { key: "phone",   label: "Phone",        type: "tel"   },
-      { key: "address", label: "Address",      type: "textarea" },
+      { key: "name", label: "Client Name", type: "text", required: true },
+      { key: "email", label: "Email", type: "email" },
+      { key: "phone", label: "Phone", type: "tel" },
+      { key: "address", label: "Address", type: "textarea" },
     ],
     columns: [
-      { key: "name",    label: "Client", render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span> },
-      { key: "email",   label: "Email",  render: (v) => <span className="text-xs text-zenthar-text-secondary">{v || "—"}</span> },
-      { key: "phone",   label: "Phone",  render: (v) => <span className="font-mono text-[10px] text-brand-sage">{v || "—"}</span> },
+      {
+        key: "name",
+        label: "Client",
+        render: (v) => (
+          <span className="font-bold text-zenthar-text-primary">{v}</span>
+        ),
+      },
+      {
+        key: "email",
+        label: "Email",
+        render: (v) => (
+          <span className="text-xs text-zenthar-text-secondary">
+            {v || "—"}
+          </span>
+        ),
+      },
+      {
+        key: "phone",
+        label: "Phone",
+        render: (v) => (
+          <span className="font-mono text-[10px] text-brand-sage">
+            {v || "—"}
+          </span>
+        ),
+      },
     ],
   },
   employees: {
-    pk: "employee_number", displayName: "Employees",
+    pk: "employee_number",
+    displayName: "Employees",
     fields: [
-      { key: "employee_number", label: "Employee #",   type: "text",   required: true, readonlyOnEdit: true },
-      { key: "name",            label: "Full Name",    type: "text",   required: true },
-      { key: "national_id",     label: "National ID",  type: "text",   required: true },
-      { key: "dob",             label: "Date of Birth",type: "date",   required: true },
-      { key: "role",            label: "Role",         type: "select", required: true, options: ROLE_OPTIONS },
-      { key: "department",      label: "Department",   type: "text"   },
-      { key: "email",           label: "Email",        type: "email"  },
-      { key: "status",          label: "Status",       type: "select",
-        options: [{ value: "ACTIVE", label: "Active" }, { value: "INACTIVE", label: "Inactive" }] },
+      {
+        key: "employee_number",
+        label: "Employee #",
+        type: "text",
+        required: true,
+        readonlyOnEdit: true,
+      },
+      { key: "name", label: "Full Name", type: "text", required: true },
+      {
+        key: "national_id",
+        label: "National ID",
+        type: "text",
+        required: true,
+      },
+      { key: "dob", label: "Date of Birth", type: "date", required: true },
+      {
+        key: "role",
+        label: "Role",
+        type: "select",
+        required: true,
+        options: ROLE_OPTIONS,
+      },
+      { key: "department", label: "Department", type: "text" },
+      { key: "email", label: "Email", type: "email" },
+      {
+        key: "status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "ACTIVE", label: "Active" },
+          { value: "INACTIVE", label: "Inactive" },
+        ],
+      },
     ],
     columns: [
-      { key: "employee_number", label: "Emp. #", render: (v) => <span className="font-mono text-[10px] font-bold text-brand-primary">{v}</span> },
-      { key: "name",            label: "Name",   render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span> },
-      { key: "role",            label: "Role",   render: (v) => <span className="text-xs font-bold text-zenthar-text-secondary uppercase">{v}</span> },
-      { key: "status",          label: "Status", render: STATUS_BADGE },
+      {
+        key: "employee_number",
+        label: "Emp. #",
+        render: (v) => (
+          <span className="font-mono text-[10px] font-bold text-brand-primary">
+            {v}
+          </span>
+        ),
+      },
+      {
+        key: "name",
+        label: "Name",
+        render: (v) => (
+          <span className="font-bold text-zenthar-text-primary">{v}</span>
+        ),
+      },
+      {
+        key: "role",
+        label: "Role",
+        render: (v) => (
+          <span className="text-xs font-bold text-zenthar-text-secondary uppercase">
+            {v}
+          </span>
+        ),
+      },
+      { key: "status", label: "Status", render: STATUS_BADGE },
     ],
   },
   production_lines: {
-    pk: "id", displayName: "Production Lines",
+    pk: "id",
+    displayName: "Production Lines",
     fields: [
-      { key: "name",     label: "Line Name", type: "text", required: true },
-      { key: "plant_id", label: "Plant ID",  type: "text" },
+      { key: "name", label: "Line Name", type: "text", required: true },
+      { key: "plant_id", label: "Plant ID", type: "text" },
     ],
     columns: [
-      { key: "id",       label: "ID",        render: (v) => <span className="font-mono text-[10px] text-brand-sage">#{v}</span> },
-      { key: "name",     label: "Line",      render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span> },
-      { key: "plant_id", label: "Plant",     render: (v) => <span className="text-xs text-zenthar-text-secondary">{v || "—"}</span> },
+      {
+        key: "id",
+        label: "ID",
+        render: (v) => (
+          <span className="font-mono text-[10px] text-brand-sage">#{v}</span>
+        ),
+      },
+      {
+        key: "name",
+        label: "Line",
+        render: (v) => (
+          <span className="font-bold text-zenthar-text-primary">{v}</span>
+        ),
+      },
+      {
+        key: "plant_id",
+        label: "Plant",
+        render: (v) => (
+          <span className="text-xs text-zenthar-text-secondary">
+            {v || "—"}
+          </span>
+        ),
+      },
     ],
   },
   inventory: {
-    pk: "id", displayName: "Inventory", deletable: true,
+    pk: "id",
+    displayName: "Inventory",
+    deletable: true,
     fields: [
-      { key: "name",        label: "Item Name",       type: "text",   required: true },
-      { key: "type",        label: "Type",            type: "text"   },
-      { key: "quantity",    label: "Quantity",        type: "number" },
-      { key: "unit",        label: "Unit",            type: "text",   placeholder: "mL, g, pcs" },
-      { key: "min_stock",   label: "Min Stock",       type: "number", hint: "Alert threshold" },
-      { key: "expiry_date", label: "Expiry Date",     type: "date"   },
+      { key: "name", label: "Item Name", type: "text", required: true },
+      { key: "type", label: "Type", type: "text" },
+      { key: "quantity", label: "Quantity", type: "number" },
+      { key: "unit", label: "Unit", type: "text", placeholder: "mL, g, pcs" },
+      {
+        key: "min_stock",
+        label: "Min Stock",
+        type: "number",
+        hint: "Alert threshold",
+      },
+      { key: "expiry_date", label: "Expiry Date", type: "date" },
     ],
     columns: [
-      { key: "name",     label: "Item",      render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span> },
-      { key: "quantity", label: "Qty / Unit",render: (v, r) => {
-          const low = v != null && r.min_stock != null && v <= r.min_stock;
-          return <span className={clsx("font-mono text-xs font-bold", low ? "text-red-600" : "text-zenthar-text-primary")}>{v ?? "—"} {r.unit || ""}{low ? " ⚠" : ""}</span>;
-        }
+      {
+        key: "name",
+        label: "Item",
+        render: (v) => (
+          <span className="font-bold text-zenthar-text-primary">{v}</span>
+        ),
       },
-      { key: "expiry_date", label: "Expiry", render: (v) => {
+      {
+        key: "quantity",
+        label: "Qty / Unit",
+        render: (v, r) => {
+          const low = v != null && r.min_stock != null && v <= r.min_stock;
+          return (
+            <span
+              className={clsx(
+                "font-mono text-xs font-bold",
+                low ? "text-red-600" : "text-zenthar-text-primary",
+              )}
+            >
+              {v ?? "—"} {r.unit || ""}
+              {low ? " ⚠" : ""}
+            </span>
+          );
+        },
+      },
+      {
+        key: "expiry_date",
+        label: "Expiry",
+        render: (v) => {
           if (!v) return <span className="text-xs text-brand-sage/60">—</span>;
           const expired = new Date(v) < new Date();
-          return <span className={clsx("text-[10px] font-mono", expired ? "text-red-600 font-bold" : "text-zenthar-text-secondary")}>{new Date(v).toLocaleDateString()}</span>;
-        }
+          return (
+            <span
+              className={clsx(
+                "text-[10px] font-mono",
+                expired
+                  ? "text-red-600 font-bold"
+                  : "text-zenthar-text-secondary",
+              )}
+            >
+              {new Date(v).toLocaleDateString()}
+            </span>
+          );
+        },
       },
     ],
   },
   notification_rules: {
-    pk: "id", displayName: "Alert Rules",
+    pk: "id",
+    displayName: "Alert Rules",
     fields: [
-      { key: "name",      label: "Rule Name",  type: "text",    required: true },
-      { key: "condition", label: "Condition",  type: "textarea", hint: "Trigger expression" },
-      { key: "action",    label: "Action",     type: "select",
-        options: [
-          { value: "OVERDUE_TEST",     label: "Overdue Test"      },
-          { value: "WORKFLOW_FAILURE", label: "Workflow Failure"  },
-          { value: "SAMPLE_COMPLETED", label: "Sample Completed"  },
-        ]
+      { key: "name", label: "Rule Name", type: "text", required: true },
+      {
+        key: "condition",
+        label: "Condition",
+        type: "textarea",
+        hint: "Trigger expression",
       },
-      { key: "is_active", label: "Active",     type: "toggle" },
+      {
+        key: "action",
+        label: "Action",
+        type: "select",
+        options: [
+          { value: "OVERDUE_TEST", label: "Overdue Test" },
+          { value: "WORKFLOW_FAILURE", label: "Workflow Failure" },
+          { value: "SAMPLE_COMPLETED", label: "Sample Completed" },
+        ],
+      },
+      { key: "is_active", label: "Active", type: "toggle" },
     ],
     columns: [
-      { key: "name",      label: "Rule",   render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span> },
-      { key: "action",    label: "Action", render: (v) => <span className="text-xs font-bold text-brand-primary uppercase">{v?.replace(/_/g, " ") || "—"}</span> },
+      {
+        key: "name",
+        label: "Rule",
+        render: (v) => (
+          <span className="font-bold text-zenthar-text-primary">{v}</span>
+        ),
+      },
+      {
+        key: "action",
+        label: "Action",
+        render: (v) => (
+          <span className="text-xs font-bold text-brand-primary uppercase">
+            {v?.replace(/_/g, " ") || "—"}
+          </span>
+        ),
+      },
       { key: "is_active", label: "Active", render: STATUS_BADGE },
     ],
   },
   system_preferences: {
-    pk: "key", displayName: "System Preferences",
+    pk: "key",
+    displayName: "System Preferences",
     fields: [
-      { key: "key",   label: "Key",   type: "text", required: true, readonlyOnEdit: true },
+      {
+        key: "key",
+        label: "Key",
+        type: "text",
+        required: true,
+        readonlyOnEdit: true,
+      },
       { key: "value", label: "Value", type: "text", required: true },
     ],
     columns: [
-      { key: "key",   label: "Key",   render: (v) => <span className="font-mono text-sm font-bold text-brand-primary">{v}</span> },
-      { key: "value", label: "Value", render: (v) => <span className="font-mono text-sm text-zenthar-text-secondary">{v}</span> },
+      {
+        key: "key",
+        label: "Key",
+        render: (v) => (
+          <span className="font-mono text-sm font-bold text-brand-primary">
+            {v}
+          </span>
+        ),
+      },
+      {
+        key: "value",
+        label: "Value",
+        render: (v) => (
+          <span className="font-mono text-sm text-zenthar-text-secondary">
+            {v}
+          </span>
+        ),
+      },
     ],
   },
 };
 
 type ModuleId = keyof typeof TABLE_CONFIG;
 
-const MODULES: { id: ModuleId; label: string; icon: React.ElementType; hint: string }[] = [
-  { id: "sample_types",       label: "Sample Types",    icon: Beaker,       hint: "Registered classifications" },
-  { id: "test_methods",       label: "Test Methods",    icon: BookOpen,     hint: "Analytical procedure library" },
-  { id: "instruments",        label: "Instruments",     icon: Wrench,       hint: "Calibration tracker" },
-  { id: "clients",            label: "Clients",         icon: ShieldCheck,  hint: "Certificate recipients" },
-  { id: "employees",          label: "Employees",       icon: Users,        hint: "Staff directory" },
-  { id: "production_lines",   label: "Prod. Lines",     icon: Factory,      hint: "Plant line registry" },
-  { id: "inventory",          label: "Inventory",       icon: Package,      hint: "Reagents and materials" },
-  { id: "notification_rules", label: "Alert Rules",     icon: Bell,         hint: "Notification logic" },
-  { id: "system_preferences", label: "Preferences",     icon: SettingsIcon, hint: "Global settings" },
+const MODULES: {
+  id: ModuleId;
+  label: string;
+  icon: React.ElementType;
+  hint: string;
+}[] = [
+  {
+    id: "sample_types",
+    label: "Sample Types",
+    icon: Beaker,
+    hint: "Registered classifications",
+  },
+  {
+    id: "test_methods",
+    label: "Test Methods",
+    icon: BookOpen,
+    hint: "Analytical procedure library",
+  },
+  {
+    id: "instruments",
+    label: "Instruments",
+    icon: Wrench,
+    hint: "Calibration tracker",
+  },
+  {
+    id: "clients",
+    label: "Clients",
+    icon: ShieldCheck,
+    hint: "Certificate recipients",
+  },
+  { id: "employees", label: "Employees", icon: Users, hint: "Staff directory" },
+  {
+    id: "production_lines",
+    label: "Prod. Lines",
+    icon: Factory,
+    hint: "Plant line registry",
+  },
+  {
+    id: "inventory",
+    label: "Inventory",
+    icon: Package,
+    hint: "Reagents and materials",
+  },
+  {
+    id: "notification_rules",
+    label: "Alert Rules",
+    icon: Bell,
+    hint: "Notification logic",
+  },
+  {
+    id: "system_preferences",
+    label: "Preferences",
+    icon: SettingsIcon,
+    hint: "Global settings",
+  },
 ];
 
 // ─────────────────────────────────────────────
 // Field renderer
 // ─────────────────────────────────────────────
 
-const inputBase = "w-full bg-zenthar-void border border-zenthar-steel rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 text-zenthar-text-primary transition-all placeholder:text-brand-sage/40";
+const inputBase =
+  "w-full bg-zenthar-void border border-zenthar-steel rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10 text-zenthar-text-primary transition-all placeholder:text-brand-sage/40";
 
 const FieldRenderer: React.FC<{
-  field:     FieldDef;
-  value:     any;
-  onChange:  (val: any) => void;
+  field: FieldDef;
+  value: any;
+  onChange: (val: any) => void;
   isEditing: boolean;
 }> = ({ field, value, onChange, isEditing }) => {
-  const isReadonly = field.type === "readonly" || (isEditing && field.readonlyOnEdit);
-  if (isReadonly) return <div className={clsx(inputBase, "bg-zenthar-graphite/30 cursor-not-allowed text-brand-sage/80")}>{value || "—"}</div>;
+  const isReadonly =
+    field.type === "readonly" || (isEditing && field.readonlyOnEdit);
+  if (isReadonly)
+    return (
+      <div
+        className={clsx(
+          inputBase,
+          "bg-zenthar-graphite/30 cursor-not-allowed text-brand-sage/80",
+        )}
+      >
+        {value || "—"}
+      </div>
+    );
   if (field.type === "toggle") {
     const checked = value === 1 || value === true || value === "1";
     return (
-      <button type="button" onClick={() => onChange(checked ? 0 : 1)}
-        className={clsx("flex items-center gap-3 px-4 py-3 rounded-xl border transition-all",
-          checked ? "bg-brand-primary/10 border-brand-primary/30 text-brand-primary" : "bg-zenthar-void border-zenthar-steel text-brand-sage")}>
-        {checked ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
-        <span className="text-sm font-bold uppercase tracking-wider">{checked ? "Enabled" : "Disabled"}</span>
+      <button
+        type="button"
+        onClick={() => onChange(checked ? 0 : 1)}
+        className={clsx(
+          "flex items-center gap-3 px-4 py-3 rounded-xl border transition-all",
+          checked
+            ? "bg-brand-primary/10 border-brand-primary/30 text-brand-primary"
+            : "bg-zenthar-void border-zenthar-steel text-brand-sage",
+        )}
+      >
+        {checked ? (
+          <ToggleRight className="w-5 h-5" />
+        ) : (
+          <ToggleLeft className="w-5 h-5" />
+        )}
+        <span className="text-sm font-bold uppercase tracking-wider">
+          {checked ? "Enabled" : "Disabled"}
+        </span>
       </button>
     );
   }
   if (field.type === "select" && field.options) {
     return (
-      <select value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={inputBase} required={field.required}>
+      <select
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputBase}
+        required={field.required}
+      >
         <option value="">Select {field.label}...</option>
-        {field.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        {field.options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
       </select>
     );
   }
   if (field.type === "textarea") {
-    return <textarea value={value ?? ""} onChange={(e) => onChange(e.target.value)} placeholder={field.placeholder} required={field.required} rows={3} className={clsx(inputBase, "resize-none")} />;
+    return (
+      <textarea
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={field.placeholder}
+        required={field.required}
+        rows={3}
+        className={clsx(inputBase, "resize-none")}
+      />
+    );
   }
   return (
-    <input type={field.type === "number" ? "text" : field.type}
+    <input
+      type={field.type === "number" ? "text" : field.type}
       value={value ?? ""}
-      onChange={(e) => onChange(field.type === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value)}
-      placeholder={field.placeholder} required={field.required} className={inputBase} />
+      onChange={(e) =>
+        onChange(
+          field.type === "number"
+            ? e.target.value === ""
+              ? ""
+              : Number(e.target.value)
+            : e.target.value,
+        )
+      }
+      placeholder={field.placeholder}
+      required={field.required}
+      className={inputBase}
+    />
   );
 };
 
@@ -291,19 +713,19 @@ const FieldRenderer: React.FC<{
 
 export const SettingsPage: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ModuleId>("sample_types");
-  const [data,         setData]         = useState<any[]>([]);
-  const [loading,      setLoading]      = useState(false);
-  const [saving,       setSaving]       = useState(false);
-  const [search,       setSearch]       = useState("");
-  const [isFormOpen,   setIsFormOpen]   = useState(false);
-  const [editingItem,  setEditingItem]  = useState<any>(null);
-  const [formData,     setFormData]     = useState<Record<string, any>>({});
-  const [deleteItem,   setDeleteItem]   = useState<any>(null);
-  const [sidebarOpen,  setSidebarOpen]  = useState(false); // mobile sidebar
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [deleteItem, setDeleteItem] = useState<any>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar
 
-  const config     = TABLE_CONFIG[activeModule];
+  const config = TABLE_CONFIG[activeModule];
   const moduleInfo = MODULES.find((m) => m.id === activeModule)!;
-  const isEditing  = editingItem !== null;
+  const isEditing = editingItem !== null;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -317,12 +739,21 @@ export const SettingsPage: React.FC = () => {
     }
   }, [activeModule]);
 
-  useEffect(() => { fetchData(); setSearch(""); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+    setSearch("");
+  }, [fetchData]);
 
   const filteredData = useMemo(() => {
     if (!search) return data;
     const q = search.toLowerCase();
-    return data.filter((row) => Object.values(row).some((v) => String(v ?? "").toLowerCase().includes(q)));
+    return data.filter((row) =>
+      Object.values(row).some((v) =>
+        String(v ?? "")
+          .toLowerCase()
+          .includes(q),
+      ),
+    );
   }, [data, search]);
 
   const openAdd = () => {
@@ -338,19 +769,29 @@ export const SettingsPage: React.FC = () => {
   const openEdit = (item: any) => {
     setEditingItem(item);
     const values: Record<string, any> = {};
-    config.fields.forEach((f) => { values[f.key] = item[f.key] ?? ""; });
+    config.fields.forEach((f) => {
+      values[f.key] = item[f.key] ?? "";
+    });
     setFormData(values);
     setIsFormOpen(true);
   };
 
-  const closeForm = () => { setIsFormOpen(false); setEditingItem(null); setFormData({}); };
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setEditingItem(null);
+    setFormData({});
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
       if (isEditing) {
-        await SettingsApi.updateSetting(activeModule as any, editingItem[config.pk], formData);
+        await SettingsApi.updateSetting(
+          activeModule as any,
+          editingItem[config.pk],
+          formData,
+        );
         toast.success("Entry updated");
       } else {
         await SettingsApi.addSetting(activeModule as any, formData);
@@ -378,7 +819,6 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <div className="flex h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl gap-6">
-
       {/* ── MOBILE SIDEBAR TOGGLE ── */}
       <button
         onClick={() => setSidebarOpen((v) => !v)}
@@ -389,35 +829,61 @@ export const SettingsPage: React.FC = () => {
 
       {/* ── SIDEBAR ── */}
       <AnimatePresence>
-        <aside className={clsx(
-          "flex-col gap-3 shrink-0 transition-opacity",
-          !sidebarOpen && "hidden lg:flex",
-          sidebarOpen && "flex fixed inset-y-4 left-4 z-40 w-[240px] lg:static lg:w-auto"
-        )}>
+        <aside
+          className={clsx(
+            "flex-col gap-3 shrink-0 transition-opacity",
+            !sidebarOpen && "hidden lg:flex",
+            sidebarOpen &&
+              "flex fixed inset-y-4 left-4 z-40 w-[240px] lg:static lg:w-auto",
+          )}
+        >
           <div className="glass-panel p-5 flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar min-w-[220px] shadow-2xl lg:shadow-none border border-transparent lg:border-(--color-soft-apricot)/30">
             <div className="flex items-center gap-4 px-3 pb-6 pt-2 border-b border-zenthar-steel/50 mb-4">
               <div className="w-12 h-12 flex items-center justify-center bg-brand-primary/10 rounded-2xl shadow-inner border border-white/50">
                 <SettingsIcon className="w-6 h-6 text-brand-primary" />
               </div>
               <div>
-                <h2 className="text-[12px] font-black text-zenthar-text-primary uppercase tracking-[0.15em] leading-tight">Control Panel</h2>
-                <p className="text-[10px] text-brand-sage font-mono uppercase tracking-widest opacity-80 mt-1">Registry</p>
+                <h2 className="text-[12px] font-black text-zenthar-text-primary uppercase tracking-[0.15em] leading-tight">
+                  Control Panel
+                </h2>
+                <p className="text-[10px] text-brand-sage font-mono uppercase tracking-widest opacity-80 mt-1">
+                  Registry
+                </p>
               </div>
             </div>
             {MODULES.map((m) => (
-              <button key={m.id} onClick={() => { setActiveModule(m.id); setSidebarOpen(false); }}
-                className={clsx("w-full flex items-center gap-4 px-4 py-3.5 rounded-[16px] transition-all duration-300 text-left group overflow-hidden relative",
+              <button
+                key={m.id}
+                onClick={() => {
+                  setActiveModule(m.id);
+                  setSidebarOpen(false);
+                }}
+                className={clsx(
+                  "w-full flex items-center gap-4 px-4 py-3.5 rounded-[16px] transition-all duration-300 text-left group overflow-hidden relative",
                   activeModule === m.id
                     ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/30 border border-brand-primary/20 scale-[1.02] z-10"
-                    : "text-brand-sage hover:bg-zenthar-graphite/60 hover:text-zenthar-text-primary border border-transparent")}>
-                
-                {activeModule === m.id && (
-                  <motion.div layoutId="sidebar-active" className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent animate-[scanline_2.5s_linear_infinite]" />
+                    : "text-brand-sage hover:bg-zenthar-graphite/60 hover:text-zenthar-text-primary border border-transparent",
                 )}
-                
-                <m.icon className={clsx("w-5 h-5 shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110", activeModule === m.id ? "text-white" : "opacity-60")} />
-                <span className="text-[12px] font-bold tracking-wide leading-none relative z-10">{m.label}</span>
-                {activeModule === m.id && <ChevronRight className="w-4 h-4 ml-auto text-white/80 relative z-10" />}
+              >
+                {activeModule === m.id && (
+                  <motion.div
+                    layoutId="sidebar-active"
+                    className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent animate-[scanline_2.5s_linear_infinite]"
+                  />
+                )}
+
+                <m.icon
+                  className={clsx(
+                    "w-5 h-5 shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110",
+                    activeModule === m.id ? "text-white" : "opacity-60",
+                  )}
+                />
+                <span className="text-[12px] font-bold tracking-wide leading-none relative z-10">
+                  {m.label}
+                </span>
+                {activeModule === m.id && (
+                  <ChevronRight className="w-4 h-4 ml-auto text-white/80 relative z-10" />
+                )}
               </button>
             ))}
           </div>
@@ -429,33 +895,61 @@ export const SettingsPage: React.FC = () => {
         {/* Header */}
         <div className="glass-panel px-8 py-7 flex items-center justify-between shrink-0 flex-wrap gap-5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-72 h-72 bg-brand-primary/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-          
+
           <div className="flex items-center gap-5 relative z-10">
             <div className="w-16 h-16 bg-white border border-zenthar-steel rounded-[20px] flex items-center justify-center text-brand-primary shadow-lg shadow-brand-primary/5">
               <moduleInfo.icon className="w-7 h-7" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-zenthar-text-primary tracking-tight leading-none mb-2">{moduleInfo.label}</h2>
-              <p className="text-xs text-brand-sage uppercase tracking-[0.2em] font-mono opacity-80">{moduleInfo.hint}</p>
+              <h2 className="text-2xl font-black text-zenthar-text-primary tracking-tight leading-none mb-2">
+                {moduleInfo.label}
+              </h2>
+              <p className="text-xs text-brand-sage uppercase tracking-[0.2em] font-mono opacity-80">
+                {moduleInfo.hint}
+              </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto mt-2 sm:mt-0">
             <div className="relative flex-1 sm:flex-none">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage/50" />
-              <input type="text" placeholder="Search registry..." value={search} onChange={(e) => setSearch(e.target.value)}
-                className="w-full sm:w-64 bg-white/50 backdrop-blur-sm border border-zenthar-steel rounded-[16px] pl-11 pr-8 py-3.5 text-sm focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-zenthar-text-primary transition-all placeholder:text-brand-sage/40 font-medium" />
+              <input
+                type="text"
+                placeholder="Search registry..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full sm:w-64 bg-white/50 backdrop-blur-sm border border-zenthar-steel rounded-[16px] pl-11 pr-8 py-3.5 text-sm focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-zenthar-text-primary transition-all placeholder:text-brand-sage/40 font-medium"
+              />
               {search && (
-                <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-sage hover:text-zenthar-text-primary">
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-sage hover:text-zenthar-text-primary"
+                >
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
-            
-            <button onClick={fetchData} className="p-3.5 bg-white/50 backdrop-blur-sm border border-zenthar-steel rounded-[16px] hover:bg-white transition-all shadow-sm" title="Refresh">
-              <RefreshCw className={clsx("w-5 h-5 text-brand-primary", loading && "animate-spin")} />
+
+            <button
+              onClick={fetchData}
+              className="p-3.5 bg-white/50 backdrop-blur-sm border border-zenthar-steel rounded-[16px] hover:bg-white transition-all shadow-sm"
+              title="Refresh"
+            >
+              <RefreshCw
+                className={clsx(
+                  "w-5 h-5 text-brand-primary",
+                  loading && "animate-spin",
+                )}
+              />
             </button>
-            <LabButton variant="primary" onClick={openAdd} icon={Plus} className="px-6 py-4 rounded-[16px] text-[10px]">Add Entry</LabButton>
+            <LabButton
+              variant="primary"
+              onClick={openAdd}
+              icon={Plus}
+              className="px-6 py-4 rounded-[16px] text-[10px]"
+            >
+              Add Entry
+            </LabButton>
           </div>
         </div>
 
@@ -463,7 +957,7 @@ export const SettingsPage: React.FC = () => {
         <div className="flex-1 glass-panel border border-white/50 shadow-sm overflow-hidden flex flex-col min-h-0 relative">
           {/* subtle background details */}
           <div className="absolute inset-0 instrument-grid opacity-30 pointer-events-none" />
-          
+
           {loading ? (
             <div className="flex-1 flex items-center justify-center relative z-10">
               <div className="w-8 h-8 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin" />
@@ -474,9 +968,18 @@ export const SettingsPage: React.FC = () => {
                 <moduleInfo.icon className="w-12 h-12 text-brand-primary/30" />
               </div>
               <p className="text-[13px] font-black text-zenthar-text-primary uppercase tracking-widest mt-2">
-                {search ? "No results match your search" : `No ${moduleInfo.label} yet`}
+                {search
+                  ? "No results match your search"
+                  : `No ${moduleInfo.label} yet`}
               </p>
-              {!search && <button onClick={openAdd} className="text-[11px] font-bold text-brand-primary/80 hover:text-brand-primary hover:underline transition-colors uppercase tracking-widest">Add the first entry →</button>}
+              {!search && (
+                <button
+                  onClick={openAdd}
+                  className="text-[11px] font-bold text-brand-primary/80 hover:text-brand-primary hover:underline transition-colors uppercase tracking-widest"
+                >
+                  Add the first entry →
+                </button>
+              )}
             </div>
           ) : (
             <div className="flex-1 overflow-auto custom-scrollbar relative z-10">
@@ -484,26 +987,48 @@ export const SettingsPage: React.FC = () => {
                 <thead className="sticky top-0 bg-white/80 backdrop-blur-xl z-20">
                   <tr className="border-b border-zenthar-steel/40 shadow-sm">
                     {config.columns.map((col) => (
-                      <th key={col.key} className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-brand-sage bg-gradient-to-r from-white to-white/50">{col.label}</th>
+                      <th
+                        key={col.key}
+                        className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-brand-sage bg-gradient-to-r from-white to-white/50"
+                      >
+                        {col.label}
+                      </th>
                     ))}
-                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-brand-sage text-right">Actions</th>
+                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-brand-sage text-right">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zenthar-steel/20">
                   {filteredData.map((item, idx) => (
-                    <tr key={item[config.pk] ?? idx} className="hover:bg-brand-primary/[0.02] transition-colors group">
+                    <tr
+                      key={item[config.pk] ?? idx}
+                      className="hover:bg-brand-primary/[0.02] transition-colors group"
+                    >
                       {config.columns.map((col) => (
                         <td key={col.key} className="px-6 py-4">
-                          {col.render ? col.render(item[col.key], item) : <span className="text-[13px] font-medium text-zenthar-text-primary/80">{String(item[col.key] ?? "—")}</span>}
+                          {col.render ? (
+                            col.render(item[col.key], item)
+                          ) : (
+                            <span className="text-[13px] font-medium text-zenthar-text-primary/80">
+                              {String(item[col.key] ?? "—")}
+                            </span>
+                          )}
                         </td>
                       ))}
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openEdit(item)} className="w-8 h-8 flex items-center justify-center rounded-[10px] border border-transparent group-hover:border-zenthar-steel hover:bg-white hover:text-brand-primary text-brand-sage transition-all shadow-sm">
+                          <button
+                            onClick={() => openEdit(item)}
+                            className="w-8 h-8 flex items-center justify-center rounded-[10px] border border-transparent group-hover:border-zenthar-steel hover:bg-white hover:text-brand-primary text-brand-sage transition-all shadow-sm"
+                          >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           {config.deletable && (
-                            <button onClick={() => setDeleteItem(item)} className="w-8 h-8 flex items-center justify-center rounded-[10px] border border-transparent group-hover:border-red-200 hover:bg-red-50 hover:text-red-500 text-brand-sage transition-all shadow-sm">
+                            <button
+                              onClick={() => setDeleteItem(item)}
+                              className="w-8 h-8 flex items-center justify-center rounded-[10px] border border-transparent group-hover:border-red-200 hover:bg-red-50 hover:text-red-500 text-brand-sage transition-all shadow-sm"
+                            >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           )}
@@ -516,10 +1041,14 @@ export const SettingsPage: React.FC = () => {
             </div>
           )}
           <div className="px-8 py-3.5 border-t border-zenthar-steel/40 bg-white/60 backdrop-blur-md shrink-0 flex items-center justify-between relative z-20">
-            <span className="text-[10px] font-mono font-medium tracking-tight text-brand-sage/80 uppercase">{filteredData.length}{search ? ` of ${data.length}` : ""} records</span>
+            <span className="text-[10px] font-mono font-medium tracking-tight text-brand-sage/80 uppercase">
+              {filteredData.length}
+              {search ? ` of ${data.length}` : ""} records
+            </span>
             {data.length > 0 && (
               <span className="flex items-center gap-2 text-[10px] font-bold text-emerald-600/90 tracking-widest uppercase">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> Live connection
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />{" "}
+                Live connection
               </span>
             )}
           </div>
@@ -527,43 +1056,107 @@ export const SettingsPage: React.FC = () => {
       </main>
 
       {/* ── Form modal ── */}
-      <Modal isOpen={isFormOpen} onClose={closeForm} title={isEditing ? `Edit ${moduleInfo.label}` : `Add ${moduleInfo.label}`} subtitle={moduleInfo.hint} maxWidth="max-w-2xl">
+      <Modal
+        isOpen={isFormOpen}
+        onClose={closeForm}
+        title={
+          isEditing ? `Edit ${moduleInfo.label}` : `Add ${moduleInfo.label}`
+        }
+        subtitle={moduleInfo.hint}
+        maxWidth="max-w-2xl"
+      >
         <form onSubmit={handleSave} className="space-y-6 pt-2">
           {config.fields.map((field) => (
             <div key={field.key} className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black text-zenthar-text-primary uppercase tracking-widest flex items-center gap-1.5">
-                  {field.label}{field.required && <span className="text-brand-primary text-[12px] leading-none mt-0.5">*</span>}
+                  {field.label}
+                  {field.required && (
+                    <span className="text-brand-primary text-[12px] leading-none mt-0.5">
+                      *
+                    </span>
+                  )}
                 </label>
-                {field.hint && <span className="text-[10px] text-brand-sage/60 font-mono italic">{field.hint}</span>}
+                {field.hint && (
+                  <span className="text-[10px] text-brand-sage/60 font-mono italic">
+                    {field.hint}
+                  </span>
+                )}
               </div>
-              <FieldRenderer field={field} value={formData[field.key]} onChange={(val) => setFormData((p) => ({ ...p, [field.key]: val }))} isEditing={isEditing} />
+              <FieldRenderer
+                field={field}
+                value={formData[field.key]}
+                onChange={(val) =>
+                  setFormData((p) => ({ ...p, [field.key]: val }))
+                }
+                isEditing={isEditing}
+              />
             </div>
           ))}
           <div className="flex gap-4 pt-6 border-t border-zenthar-steel mt-6">
-            <LabButton variant="ghost" type="button" onClick={closeForm} className="flex-1 py-4 text-[11px]">Cancel</LabButton>
-            <LabButton variant="primary" type="submit" disabled={saving} className="flex-1 py-4 text-[11px]" icon={saving ? undefined : Save}>
-              {saving ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" /> : null}
-              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create Entry"}
+            <LabButton
+              variant="ghost"
+              type="button"
+              onClick={closeForm}
+              className="flex-1 py-4 text-[11px]"
+            >
+              Cancel
+            </LabButton>
+            <LabButton
+              variant="primary"
+              type="submit"
+              disabled={saving}
+              className="flex-1 py-4 text-[11px]"
+              icon={saving ? undefined : Save}
+            >
+              {saving ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+              ) : null}
+              {saving
+                ? "Saving..."
+                : isEditing
+                  ? "Save Changes"
+                  : "Create Entry"}
             </LabButton>
           </div>
         </form>
       </Modal>
 
       {/* ── Delete confirm ── */}
-      <Modal isOpen={!!deleteItem} onClose={() => setDeleteItem(null)} title="Confirm Action" maxWidth="max-w-sm">
+      <Modal
+        isOpen={!!deleteItem}
+        onClose={() => setDeleteItem(null)}
+        title="Confirm Action"
+        maxWidth="max-w-sm"
+      >
         <div className="space-y-6">
           <div className="flex items-center gap-4 p-5 bg-red-500/5 border border-red-500/20 rounded-[20px]">
             <div className="w-10 h-10 shrink-0 bg-red-500/10 rounded-full flex items-center justify-center">
               <AlertCircle className="w-5 h-5 text-red-500" />
             </div>
             <p className="text-sm text-zenthar-text-primary font-medium leading-relaxed">
-              Delete <span className="font-bold text-red-600">"{deleteItem?.[config.pk]}"</span>? This action cannot be undone and will permanently remove this record.
+              Delete{" "}
+              <span className="font-bold text-red-600">
+                "{deleteItem?.[config.pk]}"
+              </span>
+              ? This action cannot be undone and will permanently remove this
+              record.
             </p>
           </div>
           <div className="flex gap-4">
-            <LabButton variant="ghost" onClick={() => setDeleteItem(null)} className="flex-1 py-3 text-[11px]">Cancel</LabButton>
-            <button onClick={() => handleDelete(deleteItem)} className="flex-1 py-3 bg-red-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 shadow-md shadow-red-500/20 text-center">Delete Record</button>
+            <LabButton
+              variant="ghost"
+              onClick={() => setDeleteItem(null)}
+              className="flex-1 py-3 text-[11px]"
+            >
+              Cancel
+            </LabButton>
+            <button
+              onClick={() => handleDelete(deleteItem)}
+              className="flex-1 py-3 bg-red-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 shadow-md shadow-red-500/20 text-center"
+            >
+              Delete Record
+            </button>
           </div>
         </div>
       </Modal>

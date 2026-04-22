@@ -52,6 +52,9 @@ export const AuthApi = {
     pin: string;
     password?: string;
   }) => {
-    return api.post<{ success: boolean }>("/v1/directory/setup-credentials", payload);
+    return api.post<{ success: boolean }>(
+      "/v1/directory/setup-credentials",
+      payload,
+    );
   },
 };

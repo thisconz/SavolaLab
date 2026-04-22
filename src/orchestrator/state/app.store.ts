@@ -7,7 +7,7 @@ interface AppState {
   // State
   activeTab: AppTab;
   isSidebarOpen: boolean;
-  
+
   // Actions - Grouped for better organization
   actions: {
     setActiveTab: (tab: AppTab) => void;
@@ -27,20 +27,21 @@ export const useAppStore = create<AppState>()(
     persist(
       (set) => ({
         ...initialState,
-        
+
         actions: {
-          setActiveTab: (tab) => set({ activeTab: tab }, false, "app/setActiveTab"),
-          
+          setActiveTab: (tab) =>
+            set({ activeTab: tab }, false, "app/setActiveTab"),
+
           toggleSidebar: () =>
             set(
               (state) => ({ isSidebarOpen: !state.isSidebarOpen }),
               false,
-              "app/toggleSidebar"
+              "app/toggleSidebar",
             ),
-            
-          setSidebarOpen: (open) => 
+
+          setSidebarOpen: (open) =>
             set({ isSidebarOpen: open }, false, "app/setSidebarOpen"),
-            
+
           resetStore: () => set(initialState, false, "app/reset"),
         },
       }),
@@ -54,17 +55,18 @@ export const useAppStore = create<AppState>()(
         }),
       },
     ),
-    { name: "AppStore" }
-  )
+    { name: "AppStore" },
+  ),
 );
 
 /**
  * SELECTORS
- * Using custom hooks as selectors improves performance by preventing 
+ * Using custom hooks as selectors improves performance by preventing
  * components from re-rendering when unrelated state changes.
  */
 export const useAppActions = () => useAppStore((state) => state.actions);
 export const useActiveTab = () => useAppStore((state) => state.activeTab);
-export const useIsSidebarOpen = () => useAppStore((state) => state.isSidebarOpen);
+export const useIsSidebarOpen = () =>
+  useAppStore((state) => state.isSidebarOpen);
 
 export type { AppTab };

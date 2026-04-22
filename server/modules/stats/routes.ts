@@ -1,12 +1,12 @@
-import { Hono }              from "hono";
-import type { Variables }    from "../../core/types";
-import { StatService }       from "./service";
+import { Hono } from "hono";
+import type { Variables } from "../../core/types";
+import { StatService } from "./service";
 import { authenticateToken } from "../../core/middleware";
 import {
   CreateStatRequestSchema,
   UpdateStatStatusRequestSchema,
 } from "../../../src/shared/schemas/stat.schema";
-import { logger }            from "../../core/logger";
+import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -57,7 +57,12 @@ app.put("/:id/status", authenticateToken, async (c) => {
     const employeeNumber = user?.employee_number || "system";
     const ip = c.req.header("x-forwarded-for") || "127.0.0.1";
 
-    await StatService.updateStatStatus(id as string, parsedBody.status, employeeNumber, ip);
+    await StatService.updateStatStatus(
+      id as string,
+      parsedBody.status,
+      employeeNumber,
+      ip,
+    );
     return c.json({ success: true });
   } catch (err: any) {
     logger.error({ reqId, err }, "Error updating stat status");

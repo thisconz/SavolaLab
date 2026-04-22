@@ -1,5 +1,5 @@
-import { db }                  from "../../core/database";
-import { logger }              from "../../core/logger";
+import { db } from "../../core/database";
+import { logger } from "../../core/logger";
 import { analyticsCache, TTL } from "../../core/cache";
 
 // ─────────────────────────────────────────────
@@ -7,40 +7,40 @@ import { analyticsCache, TTL } from "../../core/cache";
 // ─────────────────────────────────────────────
 
 export interface HourlyQualityPoint {
-  time:   string;
-  brix:   number | null;
+  time: string;
+  brix: number | null;
   purity: number | null;
-  color:  number | null;
+  color: number | null;
 }
 
 export interface DailyVolumePoint {
-  day:    string;
+  day: string;
   volume: number;
   target: number;
 }
 
 export interface CpkResult {
-  brixCpk:   number;
+  brixCpk: number;
   purityCpk: number;
-  colorCpk:  number;
+  colorCpk: number;
 }
 
 export interface SampleStatusBreakdown {
   status: string;
-  count:  number;
+  count: number;
 }
 
 export interface StageEfficiency {
-  stage:     string;
+  stage: string;
   avg_tests: number;
-  total:     number;
+  total: number;
 }
 
 export interface TestPassRate {
-  test_type:    string;
-  pass_rate:    number;
+  test_type: string;
+  pass_rate: number;
   total_tested: number;
-  approved:     number;
+  approved: number;
 }
 
 // ─────────────────────────────────────────────
@@ -48,14 +48,19 @@ export interface TestPassRate {
 // ─────────────────────────────────────────────
 
 const SPECS: Record<string, { usl: number; lsl: number }> = {
-  Brix:   { lsl: 60,  usl: 70  },
-  Purity: { lsl: 95,  usl: 100 },
-  Color:  { lsl: 0,   usl: 60  },
-  Pol:    { lsl: 95,  usl: 100 },
-  pH:     { lsl: 6.5, usl: 8.5 },
+  Brix: { lsl: 60, usl: 70 },
+  Purity: { lsl: 95, usl: 100 },
+  Color: { lsl: 0, usl: 60 },
+  Pol: { lsl: 95, usl: 100 },
+  pH: { lsl: 6.5, usl: 8.5 },
 };
 
-function calcCpk(mean: number, stddev: number, usl: number, lsl: number): number {
+function calcCpk(
+  mean: number,
+  stddev: number,
+  usl: number,
+  lsl: number,
+): number {
   if (stddev <= 0) return 0;
   const cpu = (usl - mean) / (3 * stddev);
   const cpl = (mean - lsl) / (3 * stddev);
@@ -77,9 +82,9 @@ export const AnalyticsService = {
       async () => {
         try {
           const rows = await db.query<{
-            hour:       string;
-            test_type:  string;
-            avg_value:  number;
+            hour: string;
+            test_type: string;
+            avg_value: number;
           }>(`
             SELECT
               date_trunc('hour', performed_at)         AS hour,
@@ -98,19 +103,24 @@ export const AnalyticsService = {
 
           for (const row of rows) {
             const time = new Date(row.hour).toLocaleTimeString([], {
-              hour:   "2-digit",
+              hour: "2-digit",
               minute: "2-digit",
             });
 
             if (!buckets.has(time)) {
-              buckets.set(time, { time, brix: null, purity: null, color: null });
+              buckets.set(time, {
+                time,
+                brix: null,
+                purity: null,
+                color: null,
+              });
             }
 
             const pt = buckets.get(time)!;
-            const v  = Number(row.avg_value);
-            if (row.test_type === "Brix")   pt.brix   = v;
+            const v = Number(row.avg_value);
+            if (row.test_type === "Brix") pt.brix = v;
             if (row.test_type === "Purity") pt.purity = v;
-            if (row.test_type === "Colour") pt.color  = v;
+            if (row.test_type === "Colour") pt.color = v;
           }
 
           return Array.from(buckets.values());
@@ -133,7 +143,7 @@ export const AnalyticsService = {
       async () => {
         try {
           const rows = await db.query<{
-            date:   string;
+            date: string;
             volume: string;
           }>(`
             SELECT
@@ -148,7 +158,7 @@ export const AnalyticsService = {
           const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
           return rows.map((r) => ({
-            day:    days[new Date(r.date).getDay()],
+            day: days[new Date(r.date).getDay()],
             volume: Number(r.volume),
             target: 100, // configurable in system_preferences
           }));
@@ -173,9 +183,9 @@ export const AnalyticsService = {
         try {
           const rows = await db.query<{
             test_type: string;
-            mean:      number;
-            stddev:    number;
-            n:         string;
+            mean: number;
+            stddev: number;
+            n: string;
           }>(`
             SELECT
               test_type,
@@ -189,22 +199,26 @@ export const AnalyticsService = {
             GROUP BY test_type
           `);
 
-          const cpk: CpkResult = { brixCpk: 1.33, purityCpk: 1.33, colorCpk: 1.33 };
+          const cpk: CpkResult = {
+            brixCpk: 1.33,
+            purityCpk: 1.33,
+            colorCpk: 1.33,
+          };
 
           for (const row of rows) {
-            const mean   = Number(row.mean);
+            const mean = Number(row.mean);
             const stddev = Number(row.stddev);
-            const n      = Number(row.n);
+            const n = Number(row.n);
 
             if (stddev <= 0 || n < 10) continue; // need at least 10 pts
 
             const type = row.test_type;
             const spec = SPECS[type] ?? SPECS["Brix"];
-            const val  = calcCpk(mean, stddev, spec.usl, spec.lsl);
+            const val = calcCpk(mean, stddev, spec.usl, spec.lsl);
 
-            if (type === "Brix")   cpk.brixCpk   = Number(val.toFixed(2));
+            if (type === "Brix") cpk.brixCpk = Number(val.toFixed(2));
             if (type === "Purity") cpk.purityCpk = Number(val.toFixed(2));
-            if (type === "Colour") cpk.colorCpk  = Number(val.toFixed(2));
+            if (type === "Colour") cpk.colorCpk = Number(val.toFixed(2));
           }
 
           return cpk;

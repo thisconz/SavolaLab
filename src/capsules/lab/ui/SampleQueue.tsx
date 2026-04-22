@@ -1,35 +1,47 @@
 import React, {
-  memo, useState, useMemo, useRef, useCallback,
-  useEffect, useLayoutEffect,
+  memo,
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
 } from "react";
 import {
-  Search, RotateCcw, SlidersHorizontal, Beaker, ChevronUp, ChevronDown,
+  Search,
+  RotateCcw,
+  SlidersHorizontal,
+  Beaker,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { SampleCard } from "./SampleCard";
 import { Sample, SampleStatus } from "../../../core/types";
 
 interface SampleQueueProps {
-  samples:           Sample[];
+  samples: Sample[];
   selectedSampleId?: number | null;
-  onSampleSelect:    (sample: Sample) => void;
+  onSampleSelect: (sample: Sample) => void;
 }
 
 const DEFAULT_CARD_HEIGHT = 132;
-const OVERSCAN            = 3;
+const OVERSCAN = 3;
 
 export const SampleQueue: React.FC<SampleQueueProps> = memo(
   ({ samples, selectedSampleId, onSampleSelect }) => {
-    const [searchQuery,    setSearchQuery]    = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
     const [priorityFilter, setPriorityFilter] = useState("ALL");
-    const [statusFilter,   setStatusFilter]   = useState("ALL");
-    const [scrollTop,      setScrollTop]      = useState(0);
+    const [statusFilter, setStatusFilter] = useState("ALL");
+    const [scrollTop, setScrollTop] = useState(0);
 
     // FIX: measured values instead of hardcoded
-    const [containerHeight, setContainerHeight] = useState(DEFAULT_CARD_HEIGHT * 4);
-    const [cardHeight,      setCardHeight]      = useState(DEFAULT_CARD_HEIGHT);
+    const [containerHeight, setContainerHeight] = useState(
+      DEFAULT_CARD_HEIGHT * 4,
+    );
+    const [cardHeight, setCardHeight] = useState(DEFAULT_CARD_HEIGHT);
 
-    const containerRef  = useRef<HTMLDivElement>(null);
-    const firstCardRef  = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const firstCardRef = useRef<HTMLDivElement>(null);
     const resizeObserver = useRef<ResizeObserver | null>(null);
 
     // ── Measure container height with ResizeObserver ──────────────────────
@@ -59,18 +71,25 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
     const filtered = useMemo(() => {
       const q = searchQuery.toLowerCase().trim();
       return samples.filter((s) => {
-        const matchSearch = !q || [s.batch_id, s.source_stage, s.sample_type, String(s.id)]
-          .some((v) => (v ?? "").toLowerCase().includes(q));
-        const matchPriority = priorityFilter === "ALL" || s.priority === priorityFilter;
-        const matchStatus   = statusFilter   === "ALL" || s.status   === statusFilter;
+        const matchSearch =
+          !q ||
+          [s.batch_id, s.source_stage, s.sample_type, String(s.id)].some((v) =>
+            (v ?? "").toLowerCase().includes(q),
+          );
+        const matchPriority =
+          priorityFilter === "ALL" || s.priority === priorityFilter;
+        const matchStatus = statusFilter === "ALL" || s.status === statusFilter;
         return matchSearch && matchPriority && matchStatus;
       });
     }, [samples, searchQuery, priorityFilter, statusFilter]);
 
     // ── Virtual scroll calculation ────────────────────────────────────────
-    const totalHeight  = filtered.length * cardHeight;
-    const startIndex   = Math.max(0, Math.floor(scrollTop / cardHeight) - OVERSCAN);
-    const endIndex     = Math.min(
+    const totalHeight = filtered.length * cardHeight;
+    const startIndex = Math.max(
+      0,
+      Math.floor(scrollTop / cardHeight) - OVERSCAN,
+    );
+    const endIndex = Math.min(
       filtered.length - 1,
       Math.floor((scrollTop + containerHeight) / cardHeight) + OVERSCAN,
     );
@@ -90,24 +109,30 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
       const viewTop = scrollTop;
       const viewBot = scrollTop + containerHeight;
       if (itemTop < viewTop || itemBot > viewBot) {
-        containerRef.current.scrollTo({ top: itemTop - cardHeight, behavior: "smooth" });
+        containerRef.current.scrollTo({
+          top: itemTop - cardHeight,
+          behavior: "smooth",
+        });
       }
     }, [selectedSampleId]); // only run when selection changes
 
     // ── Keyboard navigation ───────────────────────────────────────────────
-    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-      if (!filtered.length) return;
-      const currentIdx = filtered.findIndex((s) => s.id === selectedSampleId);
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        const next = filtered[Math.min(currentIdx + 1, filtered.length - 1)];
-        if (next) onSampleSelect(next);
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        const prev = filtered[Math.max(currentIdx - 1, 0)];
-        if (prev) onSampleSelect(prev);
-      }
-    }, [filtered, selectedSampleId, onSampleSelect]);
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent) => {
+        if (!filtered.length) return;
+        const currentIdx = filtered.findIndex((s) => s.id === selectedSampleId);
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          const next = filtered[Math.min(currentIdx + 1, filtered.length - 1)];
+          if (next) onSampleSelect(next);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          const prev = filtered[Math.max(currentIdx - 1, 0)];
+          if (prev) onSampleSelect(prev);
+        }
+      },
+      [filtered, selectedSampleId, onSampleSelect],
+    );
 
     const activeFilterCount =
       (priorityFilter !== "ALL" ? 1 : 0) + (statusFilter !== "ALL" ? 1 : 0);
@@ -128,7 +153,9 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-1 h-3 bg-brand-primary rounded-full" />
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white">Live_Queue</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white">
+                Live_Queue
+              </span>
               <span className="px-2 py-0.5 bg-(--color-zenthar-void) text-white rounded text-[9px] font-mono font-bold">
                 {filtered.length.toString().padStart(3, "0")}
               </span>
@@ -181,7 +208,9 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
               >
                 <option value="ALL">All Status</option>
                 {Object.values(SampleStatus).map((s) => (
-                  <option key={s} value={s}>{s}</option>
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
                 ))}
               </select>
               <SlidersHorizontal className="absolute right-2 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-brand-sage pointer-events-none" />
@@ -191,7 +220,8 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
           {/* Keyboard hint */}
           {selectedSampleId != null && (
             <div className="flex items-center gap-2 text-[8px] font-mono text-brand-sage/40">
-              <ChevronUp size={10} /><ChevronDown size={10} />
+              <ChevronUp size={10} />
+              <ChevronDown size={10} />
               <span>Navigate with arrow keys</span>
             </div>
           )}
@@ -211,9 +241,14 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
               <div className="p-4 bg-(--color-zenthar-carbon)/20 rounded-full mb-3">
                 <Beaker className="w-7 h-7 text-brand-sage/20" />
               </div>
-              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-brand-sage/40">No Samples Found</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-brand-sage/40">
+                No Samples Found
+              </p>
               {activeFilterCount > 0 && (
-                <button onClick={resetFilters} className="mt-3 text-[9px] text-brand-primary hover:underline">
+                <button
+                  onClick={resetFilters}
+                  className="mt-3 text-[9px] text-brand-primary hover:underline"
+                >
                   Clear filters
                 </button>
               )}
@@ -228,10 +263,10 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
                     key={sample.id}
                     ref={absoluteIdx === 0 ? firstCardRef : undefined}
                     style={{
-                      position:      "absolute",
-                      top:           absoluteIdx * cardHeight,
-                      left:          0,
-                      right:         0,
+                      position: "absolute",
+                      top: absoluteIdx * cardHeight,
+                      left: 0,
+                      right: 0,
                       paddingBottom: 12,
                     }}
                     role="option"
