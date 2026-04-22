@@ -11,6 +11,7 @@ import { SettingsApi }             from "../api/settings.api";
 import { Modal }                   from "../../../shared/components/Modal";
 import { toast }                   from "sonner";
 import clsx                        from "@/src/lib/clsx";
+import { LabButton }               from "../../../shared/components/LabButton";
 
 // ─────────────────────────────────────────────
 // Field + Column definitions (unchanged from original — keeping compact)
@@ -381,123 +382,128 @@ export const SettingsPage: React.FC = () => {
       {/* ── MOBILE SIDEBAR TOGGLE ── */}
       <button
         onClick={() => setSidebarOpen((v) => !v)}
-        className="fixed bottom-6 left-6 z-50 lg:hidden w-12 h-12 bg-brand-primary text-white rounded-2xl shadow-xl shadow-brand-primary/30 flex items-center justify-center"
+        className="fixed bottom-6 right-6 z-50 lg:hidden w-14 h-14 bg-brand-primary text-white rounded-full shadow-2xl shadow-brand-primary/40 flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
       >
-        {sidebarOpen ? <X size={18} /> : <SettingsIcon size={18} />}
+        {sidebarOpen ? <X size={20} /> : <SettingsIcon size={20} />}
       </button>
 
       {/* ── SIDEBAR ── */}
       <AnimatePresence>
-        {(sidebarOpen) && (
-          <aside className={clsx(
-            "flex-col gap-3 shrink-0",
-            // Desktop: always visible
-            "hidden lg:flex",
-            // Mobile: fixed overlay
-            sidebarOpen && "flex fixed left-4 top-20 bottom-20 z-40 bg-white/90 backdrop-blur-xl rounded-3xl p-4 w-56 shadow-2xl lg:relative lg:top-auto lg:bottom-auto lg:left-auto lg:shadow-none lg:p-0 lg:w-auto"
-          )}>
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white shadow-sm p-4 flex-1 flex flex-col gap-1 overflow-y-auto custom-scrollbar min-w-[200px]">
-              <div className="flex items-center gap-3 px-3 pb-4 border-b border-zenthar-steel mb-2">
-                <div className="p-2 bg-brand-primary/10 rounded-xl">
-                  <SettingsIcon className="w-4 h-4 text-brand-primary" />
-                </div>
-                <div>
-                  <h2 className="text-[11px] font-black text-zenthar-text-primary uppercase tracking-wider">Control Panel</h2>
-                  <p className="text-[9px] text-brand-sage font-mono">System Registry</p>
-                </div>
+        <aside className={clsx(
+          "flex-col gap-3 shrink-0 transition-opacity",
+          !sidebarOpen && "hidden lg:flex",
+          sidebarOpen && "flex fixed inset-y-4 left-4 z-40 w-[240px] lg:static lg:w-auto"
+        )}>
+          <div className="glass-panel p-5 flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar min-w-[220px] shadow-2xl lg:shadow-none border border-transparent lg:border-(--color-soft-apricot)/30">
+            <div className="flex items-center gap-4 px-3 pb-6 pt-2 border-b border-zenthar-steel/50 mb-4">
+              <div className="w-12 h-12 flex items-center justify-center bg-brand-primary/10 rounded-2xl shadow-inner border border-white/50">
+                <SettingsIcon className="w-6 h-6 text-brand-primary" />
               </div>
-              {MODULES.map((m) => (
-                <button key={m.id} onClick={() => { setActiveModule(m.id); setSidebarOpen(false); }}
-                  className={clsx("w-full flex items-center gap-3 px-3 py-3 rounded-2xl transition-all duration-200 text-left group",
-                    activeModule === m.id
-                      ? "bg-brand-primary text-white shadow-md shadow-brand-primary/20"
-                      : "text-brand-sage hover:bg-zenthar-graphite/40 hover:text-zenthar-text-primary")}>
-                  <m.icon className={clsx("w-4 h-4 shrink-0", activeModule === m.id ? "text-white" : "opacity-70")} />
-                  <span className="text-[11px] font-bold tracking-tight leading-none">{m.label}</span>
-                  {activeModule === m.id && <ChevronRight className="w-3 h-3 ml-auto text-white/70" />}
-                </button>
-              ))}
+              <div>
+                <h2 className="text-[12px] font-black text-zenthar-text-primary uppercase tracking-[0.15em] leading-tight">Control Panel</h2>
+                <p className="text-[10px] text-brand-sage font-mono uppercase tracking-widest opacity-80 mt-1">Registry</p>
+              </div>
             </div>
-          </aside>
-        )}
+            {MODULES.map((m) => (
+              <button key={m.id} onClick={() => { setActiveModule(m.id); setSidebarOpen(false); }}
+                className={clsx("w-full flex items-center gap-4 px-4 py-3.5 rounded-[16px] transition-all duration-300 text-left group overflow-hidden relative",
+                  activeModule === m.id
+                    ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/30 border border-brand-primary/20 scale-[1.02] z-10"
+                    : "text-brand-sage hover:bg-zenthar-graphite/60 hover:text-zenthar-text-primary border border-transparent")}>
+                
+                {activeModule === m.id && (
+                  <motion.div layoutId="sidebar-active" className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent animate-[scanline_2.5s_linear_infinite]" />
+                )}
+                
+                <m.icon className={clsx("w-5 h-5 shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110", activeModule === m.id ? "text-white" : "opacity-60")} />
+                <span className="text-[12px] font-bold tracking-wide leading-none relative z-10">{m.label}</span>
+                {activeModule === m.id && <ChevronRight className="w-4 h-4 ml-auto text-white/80 relative z-10" />}
+              </button>
+            ))}
+          </div>
+        </aside>
       </AnimatePresence>
 
       {/* ── MAIN ── */}
-      <main className="flex-1 flex flex-col gap-4 overflow-hidden min-w-0">
+      <main className="flex-1 flex flex-col gap-6 overflow-hidden min-w-0">
         {/* Header */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white shadow-sm px-6 py-5 flex items-center justify-between shrink-0 flex-wrap gap-3">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-brand-primary/10 border border-brand-primary/20 rounded-2xl flex items-center justify-center text-brand-primary">
-              <moduleInfo.icon className="w-5 h-5" />
+        <div className="glass-panel px-8 py-7 flex items-center justify-between shrink-0 flex-wrap gap-5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-72 h-72 bg-brand-primary/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          
+          <div className="flex items-center gap-5 relative z-10">
+            <div className="w-16 h-16 bg-white border border-zenthar-steel rounded-[20px] flex items-center justify-center text-brand-primary shadow-lg shadow-brand-primary/5">
+              <moduleInfo.icon className="w-7 h-7" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-zenthar-text-primary tracking-tight">{moduleInfo.label}</h2>
-              <p className="text-[11px] text-brand-sage">{moduleInfo.hint}</p>
+              <h2 className="text-2xl font-black text-zenthar-text-primary tracking-tight leading-none mb-2">{moduleInfo.label}</h2>
+              <p className="text-xs text-brand-sage uppercase tracking-[0.2em] font-mono opacity-80">{moduleInfo.hint}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage/50" />
-              <input type="text" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)}
-                className="bg-zenthar-void border border-zenthar-steel rounded-xl pl-9 pr-8 py-2.5 text-xs focus:outline-none focus:border-brand-primary text-zenthar-text-primary w-44 transition-all" />
+          
+          <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto mt-2 sm:mt-0">
+            <div className="relative flex-1 sm:flex-none">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage/50" />
+              <input type="text" placeholder="Search registry..." value={search} onChange={(e) => setSearch(e.target.value)}
+                className="w-full sm:w-64 bg-white/50 backdrop-blur-sm border border-zenthar-steel rounded-[16px] pl-11 pr-8 py-3.5 text-sm focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-zenthar-text-primary transition-all placeholder:text-brand-sage/40 font-medium" />
               {search && (
-                <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-sage hover:text-zenthar-text-primary">
-                  <X className="w-3.5 h-3.5" />
+                <button onClick={() => setSearch("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-sage hover:text-zenthar-text-primary">
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
-            <button onClick={fetchData} className="p-2.5 border border-zenthar-steel rounded-xl hover:bg-zenthar-void transition-all" title="Refresh">
-              <RefreshCw className={clsx("w-4 h-4 text-brand-sage", loading && "animate-spin")} />
+            
+            <button onClick={fetchData} className="p-3.5 bg-white/50 backdrop-blur-sm border border-zenthar-steel rounded-[16px] hover:bg-white transition-all shadow-sm" title="Refresh">
+              <RefreshCw className={clsx("w-5 h-5 text-brand-primary", loading && "animate-spin")} />
             </button>
-            <button onClick={openAdd}
-              className="flex items-center gap-2 px-5 py-2.5 bg-brand-primary text-white text-xs font-black uppercase tracking-wider rounded-2xl hover:bg-brand-primary/90 shadow-md shadow-brand-primary/20 transition-all active:scale-95">
-              <Plus className="w-4 h-4" /> Add
-            </button>
+            <LabButton variant="primary" onClick={openAdd} icon={Plus} className="px-6 py-4 rounded-[16px] text-[10px]">Add Entry</LabButton>
           </div>
         </div>
 
         {/* Table */}
-        <div className="flex-1 bg-white/80 backdrop-blur-xl rounded-3xl border border-white shadow-sm overflow-hidden flex flex-col min-h-0">
+        <div className="flex-1 glass-panel border border-white/50 shadow-sm overflow-hidden flex flex-col min-h-0 relative">
+          {/* subtle background details */}
+          <div className="absolute inset-0 instrument-grid opacity-30 pointer-events-none" />
+          
           {loading ? (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-center relative z-10">
               <div className="w-8 h-8 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin" />
             </div>
           ) : filteredData.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-4 py-16">
-              <div className="p-6 bg-zenthar-graphite/30 rounded-full border border-zenthar-steel">
-                <moduleInfo.icon className="w-10 h-10 text-brand-sage/30" />
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 py-16 relative z-10">
+              <div className="p-6 bg-white/40 backdrop-blur-md rounded-[24px] border border-zenthar-steel shadow-inner">
+                <moduleInfo.icon className="w-12 h-12 text-brand-primary/30" />
               </div>
-              <p className="text-sm font-black text-zenthar-text-primary uppercase tracking-widest">
+              <p className="text-[13px] font-black text-zenthar-text-primary uppercase tracking-widest mt-2">
                 {search ? "No results match your search" : `No ${moduleInfo.label} yet`}
               </p>
-              {!search && <button onClick={openAdd} className="text-xs font-bold text-brand-primary hover:underline">Add the first entry →</button>}
+              {!search && <button onClick={openAdd} className="text-[11px] font-bold text-brand-primary/80 hover:text-brand-primary hover:underline transition-colors uppercase tracking-widest">Add the first entry →</button>}
             </div>
           ) : (
-            <div className="flex-1 overflow-auto custom-scrollbar">
+            <div className="flex-1 overflow-auto custom-scrollbar relative z-10">
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-white/95 backdrop-blur-sm z-10">
-                  <tr className="border-b border-zenthar-steel">
+                <thead className="sticky top-0 bg-white/80 backdrop-blur-xl z-20">
+                  <tr className="border-b border-zenthar-steel/40 shadow-sm">
                     {config.columns.map((col) => (
-                      <th key={col.key} className="px-6 py-4 text-[9px] font-black uppercase tracking-widest text-brand-sage">{col.label}</th>
+                      <th key={col.key} className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-brand-sage bg-gradient-to-r from-white to-white/50">{col.label}</th>
                     ))}
-                    <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest text-brand-sage text-right">Actions</th>
+                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-brand-sage text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zenthar-steel/40">
+                <tbody className="divide-y divide-zenthar-steel/20">
                   {filteredData.map((item, idx) => (
-                    <tr key={item[config.pk] ?? idx} className="hover:bg-zenthar-graphite/20 transition-colors group">
+                    <tr key={item[config.pk] ?? idx} className="hover:bg-brand-primary/[0.02] transition-colors group">
                       {config.columns.map((col) => (
                         <td key={col.key} className="px-6 py-4">
-                          {col.render ? col.render(item[col.key], item) : <span className="text-sm text-zenthar-text-secondary">{String(item[col.key] ?? "—")}</span>}
+                          {col.render ? col.render(item[col.key], item) : <span className="text-[13px] font-medium text-zenthar-text-primary/80">{String(item[col.key] ?? "—")}</span>}
                         </td>
                       ))}
                       <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openEdit(item)} className="p-2 rounded-xl border border-transparent group-hover:border-zenthar-steel hover:bg-brand-primary/10 hover:text-brand-primary text-brand-sage transition-all">
+                        <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openEdit(item)} className="w-8 h-8 flex items-center justify-center rounded-[10px] border border-transparent group-hover:border-zenthar-steel hover:bg-white hover:text-brand-primary text-brand-sage transition-all shadow-sm">
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           {config.deletable && (
-                            <button onClick={() => setDeleteItem(item)} className="p-2 rounded-xl border border-transparent group-hover:border-red-200 hover:bg-red-50 hover:text-red-600 text-brand-sage transition-all">
+                            <button onClick={() => setDeleteItem(item)} className="w-8 h-8 flex items-center justify-center rounded-[10px] border border-transparent group-hover:border-red-200 hover:bg-red-50 hover:text-red-500 text-brand-sage transition-all shadow-sm">
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           )}
@@ -509,11 +515,11 @@ export const SettingsPage: React.FC = () => {
               </table>
             </div>
           )}
-          <div className="px-8 py-3 border-t border-zenthar-steel bg-white/50 shrink-0 flex items-center justify-between">
-            <span className="text-[10px] font-mono text-brand-sage">{filteredData.length}{search ? ` of ${data.length}` : ""} records</span>
+          <div className="px-8 py-3.5 border-t border-zenthar-steel/40 bg-white/60 backdrop-blur-md shrink-0 flex items-center justify-between relative z-20">
+            <span className="text-[10px] font-mono font-medium tracking-tight text-brand-sage/80 uppercase">{filteredData.length}{search ? ` of ${data.length}` : ""} records</span>
             {data.length > 0 && (
-              <span className="flex items-center gap-1.5 text-[9px] font-bold text-emerald-600">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Live connection
+              <span className="flex items-center gap-2 text-[10px] font-bold text-emerald-600/90 tracking-widest uppercase">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> Live connection
               </span>
             )}
           </div>
@@ -522,40 +528,42 @@ export const SettingsPage: React.FC = () => {
 
       {/* ── Form modal ── */}
       <Modal isOpen={isFormOpen} onClose={closeForm} title={isEditing ? `Edit ${moduleInfo.label}` : `Add ${moduleInfo.label}`} subtitle={moduleInfo.hint} maxWidth="max-w-2xl">
-        <form onSubmit={handleSave} className="space-y-5">
+        <form onSubmit={handleSave} className="space-y-6 pt-2">
           {config.fields.map((field) => (
             <div key={field.key} className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black text-brand-sage uppercase tracking-widest">
-                  {field.label}{field.required && <span className="text-brand-primary ml-1">*</span>}
+                <label className="text-[10px] font-black text-zenthar-text-primary uppercase tracking-widest flex items-center gap-1.5">
+                  {field.label}{field.required && <span className="text-brand-primary text-[12px] leading-none mt-0.5">*</span>}
                 </label>
-                {field.hint && <span className="text-[9px] text-brand-sage/60 font-mono italic">{field.hint}</span>}
+                {field.hint && <span className="text-[10px] text-brand-sage/60 font-mono italic">{field.hint}</span>}
               </div>
               <FieldRenderer field={field} value={formData[field.key]} onChange={(val) => setFormData((p) => ({ ...p, [field.key]: val }))} isEditing={isEditing} />
             </div>
           ))}
-          <div className="flex gap-3 pt-4 border-t border-zenthar-steel mt-4">
-            <button type="button" onClick={closeForm} className="flex-1 py-3.5 text-xs font-black text-brand-sage border border-zenthar-steel rounded-2xl hover:bg-zenthar-void transition-all uppercase tracking-widest">Cancel</button>
-            <button type="submit" disabled={saving} className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-brand-primary text-white text-xs font-black rounded-2xl hover:bg-brand-primary/90 shadow-lg transition-all active:scale-95 disabled:opacity-50 uppercase tracking-widest">
-              {saving ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
+          <div className="flex gap-4 pt-6 border-t border-zenthar-steel mt-6">
+            <LabButton variant="ghost" type="button" onClick={closeForm} className="flex-1 py-4 text-[11px]">Cancel</LabButton>
+            <LabButton variant="primary" type="submit" disabled={saving} className="flex-1 py-4 text-[11px]" icon={saving ? undefined : Save}>
+              {saving ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" /> : null}
               {saving ? "Saving..." : isEditing ? "Save Changes" : "Create Entry"}
-            </button>
+            </LabButton>
           </div>
         </form>
       </Modal>
 
       {/* ── Delete confirm ── */}
-      <Modal isOpen={!!deleteItem} onClose={() => setDeleteItem(null)} title="Confirm Delete" maxWidth="max-w-sm">
+      <Modal isOpen={!!deleteItem} onClose={() => setDeleteItem(null)} title="Confirm Action" maxWidth="max-w-sm">
         <div className="space-y-6">
-          <div className="flex items-center gap-4 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
-            <AlertCircle className="w-6 h-6 text-red-500 shrink-0" />
-            <p className="text-sm text-zenthar-text-primary">
-              Delete <span className="font-bold">{deleteItem?.[config.pk]}</span>? This cannot be undone.
+          <div className="flex items-center gap-4 p-5 bg-red-500/5 border border-red-500/20 rounded-[20px]">
+            <div className="w-10 h-10 shrink-0 bg-red-500/10 rounded-full flex items-center justify-center">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+            </div>
+            <p className="text-sm text-zenthar-text-primary font-medium leading-relaxed">
+              Delete <span className="font-bold text-red-600">"{deleteItem?.[config.pk]}"</span>? This action cannot be undone and will permanently remove this record.
             </p>
           </div>
-          <div className="flex gap-3">
-            <button onClick={() => setDeleteItem(null)} className="flex-1 py-3 text-xs font-black text-brand-sage border border-zenthar-steel rounded-2xl hover:bg-zenthar-void uppercase tracking-widest">Cancel</button>
-            <button onClick={() => handleDelete(deleteItem)} className="flex-1 py-3 bg-red-600 text-white text-xs font-black rounded-2xl hover:bg-red-500 uppercase tracking-widest active:scale-95">Delete</button>
+          <div className="flex gap-4">
+            <LabButton variant="ghost" onClick={() => setDeleteItem(null)} className="flex-1 py-3 text-[11px]">Cancel</LabButton>
+            <button onClick={() => handleDelete(deleteItem)} className="flex-1 py-3 bg-red-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 shadow-md shadow-red-500/20 text-center">Delete Record</button>
           </div>
         </div>
       </Modal>

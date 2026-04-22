@@ -26,7 +26,7 @@ class TelemetryService {
   private eventBuffer: TelemetryEvent[] = [];
   private readonly BUFFER_LIMIT = 50;
   private globalMetadata: Record<string, any> = {
-    version: "1.0.0",
+    version: process.env.VITE_ZENTHAR_VERSION || "unknown",
     environment: process.env.NODE_ENV || "development",
   };
 
