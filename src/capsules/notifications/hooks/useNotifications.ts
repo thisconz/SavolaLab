@@ -1,21 +1,77 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { NotificationApi } from "../api/notification.api";
-import { Notification }    from "../../../core/types";
-import { useRealtime }     from "../../../core/providers/RealtimeProvider";
-import { useAuthStore }    from "../../../orchestrator/state/auth.store";
+import { create }                from "zustand";
+import { useEffect, useCallback } from "react";
+import { NotificationApi }       from "../api/notification.api";
+import { Notification }          from "../../../core/types";
+import { useRealtime }           from "../../../core/providers/RealtimeProvider";
+import { useAuthStore }          from "../../../orchestrator/state/auth.store";
 
 // ─────────────────────────────────────────────
-// Shared state — all hook instances stay in sync
+// Zustand store — single source of truth
 // ─────────────────────────────────────────────
 
-type Listener = (n: Notification[]) => void;
+interface NotificationStore {
+  notifications:   Notification[];
+  isFetching:      boolean;
+  lastFetchedAt:   number | null;
 
-let _global: Notification[] = [];
-let _listeners: Set<Listener> = new Set();
+  setNotifications: (n: Notification[]) => void;
+  setFetching:      (v: boolean) => void;
+  markOneAsRead:    (id: number) => void;
+  markAllAsRead:    () => void;
+}
 
-function broadcast(data: Notification[]) {
-  _global = data;
-  _listeners.forEach((l) => l(data));
+const useNotificationStore = create<NotificationStore>((set) => ({
+  notifications:   [],
+  isFetching:      false,
+  lastFetchedAt:   null,
+
+  setNotifications: (notifications) =>
+    set({ notifications, lastFetchedAt: Date.now() }),
+
+  setFetching: (isFetching) => set({ isFetching }),
+
+  // Optimistic updates — UI changes immediately, server call is fire-and-forget
+  markOneAsRead: (id) =>
+    set((state) => ({
+      notifications: state.notifications.map((n) =>
+        n.id === id ? { ...n, is_read: true } : n
+      ),
+    })),
+
+  markAllAsRead: () =>
+    set((state) => ({
+      notifications: state.notifications.map((n) => ({ ...n, is_read: true })),
+    })),
+}));
+
+// ─────────────────────────────────────────────
+// Shared fetch function (deduplicates concurrent calls)
+// ─────────────────────────────────────────────
+
+let _fetchInFlight: Promise<void> | null = null;
+
+async function fetchNotifications(): Promise<void> {
+  if (_fetchInFlight) return _fetchInFlight;
+
+  _fetchInFlight = (async () => {
+    const { setNotifications, setFetching } = useNotificationStore.getState();
+    setFetching(true);
+    try {
+      // Trigger overdue check (fire-and-forget)
+      NotificationApi.checkOverdue().catch(() => {});
+      const data = await NotificationApi.getNotifications();
+      setNotifications(data as Notification[]);
+    } catch (err: any) {
+      if (err?.status !== 401 && err?.status !== 403) {
+        console.error("[Notifications] fetch failed:", err);
+      }
+    } finally {
+      setFetching(false);
+      _fetchInFlight = null;
+    }
+  })();
+
+  return _fetchInFlight;
 }
 
 // ─────────────────────────────────────────────
@@ -23,68 +79,61 @@ function broadcast(data: Notification[]) {
 // ─────────────────────────────────────────────
 
 export const useNotifications = () => {
-  const [notifications, setNotifications] = useState<Notification[]>(_global);
-  const { on }          = useRealtime();
   const { isAuthenticated } = useAuthStore();
-  const mountedRef      = useRef(true);
+  const { on }              = useRealtime();
 
-  const fetch = useCallback(async () => {
-    if (!isAuthenticated || !mountedRef.current) return;
-    try {
-      // Trigger overdue check (fire-and-forget, ignore failure)
-      NotificationApi.checkOverdue().catch(() => {});
-      const data = await NotificationApi.getNotifications();
-      if (!mountedRef.current) return;
-      broadcast(data as Notification[]);
-    } catch (err: any) {
-      if (err?.status !== 401 && err?.status !== 403) {
-        console.error("[Notifications] fetch failed:", err);
-      }
-    }
+  const notifications = useNotificationStore((s) => s.notifications);
+  const isFetching    = useNotificationStore((s) => s.isFetching);
+  const store         = useNotificationStore();
+
+  // ── Initial fetch ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    fetchNotifications();
   }, [isAuthenticated]);
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
+  // ── SSE subscription — refetch on push ─────────────────────────────────
+  // FIX: Zustand removes the double-registration problem entirely.
+  //      The store is a stable singleton; each hook instance just reads from it.
   useEffect(() => {
-    mountedRef.current = true;
-
-    const listener: Listener = (data) => {
-      if (mountedRef.current) setNotifications(data);
-    };
-
-    _listeners.add(listener);
-
-    // Initial fetch only if this is the first subscriber
-    if (_listeners.size === 1) fetch();
-
-    return () => {
-      mountedRef.current = false;
-      _listeners.delete(listener);
-    };
-  }, [fetch]);
-
-  // ── SSE — re-fetch when a notification is pushed ─────────────────────────
-  useEffect(() => {
-    const unsub = on("NOTIFICATION_PUSHED", () => fetch());
+    const unsub = on("NOTIFICATION_PUSHED", () => fetchNotifications());
     return unsub;
-  }, [on, fetch]);
+  }, [on]);
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // ── Derived values ──────────────────────────────────────────────────────
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
+  const unreadByType = notifications.reduce<Record<string, number>>((acc, n) => {
+    if (!n.is_read) acc[n.type] = (acc[n.type] || 0) + 1;
+    return acc;
+  }, {});
+
+  // ── Actions ─────────────────────────────────────────────────────────────
   const markAsRead = useCallback(async (id: number) => {
-    await NotificationApi.markAsRead(id);
-    broadcast(_global.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
+    store.markOneAsRead(id); // optimistic
+    try {
+      await NotificationApi.markAsRead(id);
+    } catch {
+      // Revert on failure by re-fetching
+      fetchNotifications();
+    }
   }, []);
 
   const markAllAsRead = useCallback(async () => {
-    await NotificationApi.markAllAsRead();
-    broadcast(_global.map((n) => ({ ...n, is_read: true })));
+    store.markAllAsRead(); // optimistic
+    try {
+      await NotificationApi.markAllAsRead();
+    } catch {
+      fetchNotifications();
+    }
   }, []);
 
   return {
     notifications,
     unreadCount,
-    fetchNotifications: fetch,
+    unreadByType,
+    isFetching,
+    fetchNotifications,
     markAsRead,
     markAllAsRead,
   };

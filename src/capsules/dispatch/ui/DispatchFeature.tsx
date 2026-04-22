@@ -22,7 +22,7 @@ export const DispatchFeature: React.FC = memo(() => {
   const [loading,      setLoading]     = useState(true);
   const [isRefreshing, setIsRefreshing]= useState(false);
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { on }        = useRealtime();
 
   const fetchDispatch = useCallback(async (silent = false) => {

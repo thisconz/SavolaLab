@@ -21,7 +21,7 @@ export const StatFeature: React.FC = memo(() => {
   const [selectedStat,  setSelectedStat]  = useState<StatRequest | null>(null);
   const [newStatIds,    setNewStatIds]    = useState<Set<number>>(new Set()); // highlight newly arrived
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { on }        = useRealtime();
 
   const fetchStats = async (silent = false) => {

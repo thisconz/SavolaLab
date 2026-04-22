@@ -5,7 +5,7 @@ import { api } from "../../../core/http/client";
  */
 export type ArchiveSection = 
   | "samples" 
-  | "test" 
+  | "tests" 
   | "certificates" 
   | "instruments"
   | "audit"

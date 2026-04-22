@@ -26,6 +26,7 @@ import { initDatabase } from "./core/database";
 import { logger } from "./core/logger";
 import { auth } from "./core/auth";
 import { requestId } from "./core/middleware/requestId";
+import os from "os";
 
 // Route imports
 import { authRoutes }         from "./modules/auth";
@@ -41,7 +42,7 @@ import archiveRoutes          from "./modules/archive/routes";
 import settingsRoutes         from "./modules/settings/routes";
 import analyticsRoutes        from "./modules/analytics/routes";
 import dispatchRoutes         from "./modules/dispatch/routes";
-import realtimeRoutes         from "./modules/realtime/router";
+import realtimeRoutes         from "./modules/realtime/routes";
 import exportRoutes           from "./modules/export/routes";
 
 
@@ -118,7 +119,7 @@ async function startServer(): Promise<void> {
   try {
     await initDatabase();
   } catch (err) {
-    logger.error({ err }, "DATABASE BOOT FAILURE — continuing without database");
+    logger.error({ err }, "DATABASE BOOT FAILURE - continuing without database");
   }
 
   // ── API Routes ────────────────────────────────────────────────────────────
@@ -184,8 +185,15 @@ async function startServer(): Promise<void> {
   // ── HTTP Server ───────────────────────────────────────────────────────────
   const server = serve({ fetch: app.fetch, port: PORT, hostname: "0.0.0.0" }, (info) => {
     logger.info(`Server running at http://localhost:${info.port} [${NODE_ENV}]`);
-    // Local Network
-    
+    // Local Network Access
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name] ?? []) {
+        if (iface.family === "IPv4" && !iface.internal) {
+          logger.info(`Accessible on local network at http://${iface.address}:${info.port}`);
+        }
+      }
+    }
   });
 
   if (!IS_PROD) {

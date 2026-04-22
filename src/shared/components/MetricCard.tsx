@@ -85,4 +85,8 @@ export const MetricCard: FC<MetricCardProps> = memo(({
   );
 });
 
+export const MetricCardSkeleton = () => (
+  <div className="animate-pulse h-20 rounded-xl bg-gray-800/40" />
+);
+
 MetricCard.displayName = "MetricCard";

@@ -39,7 +39,7 @@ export const useLab = () => {
 
   const updateSample = async (id: number, data: UpdateSampleRequest) => {
     try {
-      await LabApi.updateSample(id, data);
+      await LabApi.updateSample(id, {...data, batch_id: data.batch_id ?? undefined});
       updateStoreSample(id, data);
     } catch (err: any) {
       setError(err.message || "Failed to update sample");

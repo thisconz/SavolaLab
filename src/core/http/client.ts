@@ -70,10 +70,14 @@ class ApiClient {
         throw this.makeError(response, data);
       }
 
-      const text = await response.text();
-      try { return JSON.parse(text); } catch {
-        return text as unknown as T;
+      const contentType = response.headers.get("content-type");
+      
+      if (contentType?.includes("application/json")) {
+        return await response.json();
       }
+
+      return (await response.text()) as unknown as T;
+
     } catch (err: any) {
       clearTimeout(timer);
 

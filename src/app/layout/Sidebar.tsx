@@ -110,7 +110,7 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
         </LogoRoot>
         <div className="mt-4 flex items-center gap-2 overflow-hidden">
           <div className="h-px flex-1 bg-linear-to-r from-brand-primary/40 to-transparent" />
-          <span className="text-[7px] font-mono text-(--color-zenthar-text-muted) tracking-[0.5em] uppercase">V2.0.9_SYS</span>
+          <span className="text-[7px] font-mono text-(--color-zenthar-text-muted) tracking-[0.5em]">{import.meta.env.VITE_ZENTHAR_VERSION}_SYS</span>
         </div>
       </div>
 

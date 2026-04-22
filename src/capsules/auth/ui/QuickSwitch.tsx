@@ -23,11 +23,7 @@ interface QuickSwitchProps {
 export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => {
   const { currentUser, logout } = useAuthStore();
   const { users, handleUserSelect } = useAuthFlow();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const isBrowser = typeof window !== "undefined";
 
   // Filter out current user from the list if you want a "Switch To" focus, 
   // or keep them to show status. Here we keep them but highlight differently.
@@ -35,7 +31,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
     return [...users].sort((a, b) => (String(a.id) === String(currentUser?.id) ? -1 : 1));
   }, [users, currentUser]);
 
-  if (!mounted) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
   return createPortal(
     <AnimatePresence>

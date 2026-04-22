@@ -8,6 +8,7 @@ import clsx   from "@/src/lib/clsx";
 interface SkeletonProps {
   className?: string;
   rounded?:   "sm" | "md" | "lg" | "xl" | "2xl" | "full";
+  style?: React.CSSProperties;
 }
 
 export const Skeleton: React.FC<SkeletonProps> = ({ className, rounded = "lg" }) => (

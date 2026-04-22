@@ -8,7 +8,12 @@ type BaseFilters = {
   offset?:     number | string;
 };
 
-type FilterCallback = (value: any) => { clause: string; param: any };
+type FilterResult = {
+  clause: string;
+  params: any[];
+};
+
+type FilterCallback = (value: any) => FilterResult;
 
 type QueryConfig = {
   baseSql:       string;
@@ -18,9 +23,17 @@ type QueryConfig = {
 };
 
 function normalizePagination(filters: BaseFilters, maxLimit = 100) {
+  const rawLimit  = Number(filters.limit);
+  const rawOffset = Number(filters.offset);
+  
   return {
-    limit:  Math.min(Math.max(Number(filters.limit)  || 50, 1), maxLimit),
-    offset: Math.max(Number(filters.offset) || 0, 0),
+    limit:  Number.isFinite(rawLimit)
+      ? Math.min(Math.max(rawLimit, 1), maxLimit)
+      : 50,
+
+    offset: Number.isFinite(rawOffset)
+      ? Math.max(rawOffset, 0)
+      : 0,
   };
 }
 
@@ -34,41 +47,68 @@ function normalizePagination(filters: BaseFilters, maxLimit = 100) {
  * sequentially and push params in the same pass.
  */
 export function buildQuery(config: QueryConfig, filters: Record<string, any>) {
-  let sql    = config.baseSql;
+  let sql = config.baseSql;
   const params: any[] = [];
-  let idx = 1;
 
-  for (const key of Object.keys(config.filters)) {
+  for (const [key, filterFn] of Object.entries(config.filters)) {
     const value = filters[key];
     if (value === undefined || value === null || value === "") continue;
 
-    let clause: string;
-    let param: any;
+    let result: FilterResult;
 
     try {
-      const result = config.filters[key](value);
-      if (!result || typeof result.clause !== "string") {
-        throw new Error(`Filter '${key}' must return { clause: string, param: any }`);
+      result = config.filters[key](value);
+
+      if (!result || typeof result.clause !== "string" || !Array.isArray(result.params)) {
+        throw new Error(`Filter '${key}' must return { clause: string, params: any[] }`);
       }
-      clause = result.clause;
-      param  = result.param;
+
+      const expected = (result.clause.match(/\?/g) || []).length;
+      if (expected !== result.params.length) {
+        throw new Error(
+          `Placeholder mismatch in filter '${key}': expected ${expected}, got ${result.params.length}`
+        );
+      }
+
     } catch (err: any) {
       logger.error({ err, key }, `[Archive] Filter '${key}' failed`);
       throw new Error(`Invalid search criteria for '${key}'.`);
     }
 
-    // Replace ALL ? in this clause with sequential $N placeholders
-    const pgClause = clause.replace(/\?/g, () => `$${idx++}`);
+    // Replace ? with correct positional params
+    let localIdx = params.length + 1;
+
+    const pgClause = result.clause.replace(/\?/g, () => `$${localIdx++}`);
+
     sql += ` AND ${pgClause}`;
-    params.push(param);
+    params.push(...result.params);
   }
 
   const { limit, offset } = normalizePagination(filters, config.maxLimit);
 
-  if (config.defaultOrder) sql += ` ${config.defaultOrder}`;
+  if (config.defaultOrder) {
+    sql += ` ${config.defaultOrder}`;
+  }
 
-  sql += ` LIMIT $${idx++} OFFSET $${idx}`;
+  // pagination bound AFTER params are final
+  const limitIdx  = params.length + 1;
+  const offsetIdx = params.length + 2;
+
+  sql += ` LIMIT $${limitIdx} OFFSET $${offsetIdx}`;
   params.push(limit, offset);
+
+  const totalPlaceholders = (sql.match(/\$\d+/g) || []).length;
+
+  if (totalPlaceholders !== params.length) {
+    throw new Error(
+      `Query invariant violated: placeholders (${totalPlaceholders}) != params (${params.length})`
+    );
+  }
+
+  logger.debug(
+    { sql, params },
+    "[Archive] Built query"
+  );
 
   return { sql, params };
 }
@@ -86,13 +126,13 @@ export const ArchiveService = {
         defaultOrder: "ORDER BY s.created_at DESC",
         maxLimit: 200,
         filters: {
-          sample_id:  (v) => ({ clause: "s.id = ?",                param: Number(v) }),
-          batch_id:   (v) => ({ clause: "s.batch_id ILIKE ?",      param: `${v}%`   }),
-          start_date: (v) => ({ clause: "s.created_at >= ?",       param: v         }),
-          end_date:   (v) => ({ clause: "s.created_at <= ?",       param: v         }),
-          status:     (v) => ({ clause: "s.status = ?",            param: v         }),
-          technician: (v) => ({ clause: "e.name ILIKE ?",          param: `%${v}%`  }),
-          stage:      (v) => ({ clause: "s.source_stage ILIKE ?",  param: `%${v}%`  }),
+          sample_id:  (v) => ({ clause: "s.id = ?",                params: [Number(v)] }),
+          batch_id:   (v) => ({ clause: "s.batch_id ILIKE ?",      params: [`${v}%`] }),
+          start_date: (v) => ({ clause: "s.created_at >= ?",       params: [v] }),
+          end_date:   (v) => ({ clause: "s.created_at <= ?",       params: [v] }),
+          status:     (v) => ({ clause: "s.status = ?",            params: [v] }),
+          technician: (v) => ({ clause: "e.name ILIKE ?",          params: [`%${v}%`] }),
+          stage:      (v) => ({ clause: "s.source_stage ILIKE ?",  params: [`%${v}%`] }),
         },
       },
       filters,
@@ -119,13 +159,13 @@ export const ArchiveService = {
         defaultOrder: "ORDER BY t.performed_at DESC",
         maxLimit: 200,
         filters: {
-          sample_id:  (v) => ({ clause: "t.sample_id = ?",        param: Number(v) }),
-          batch_id:   (v) => ({ clause: "s.batch_id ILIKE ?",     param: `${v}%`   }),
-          start_date: (v) => ({ clause: "t.performed_at >= ?",    param: v         }),
-          end_date:   (v) => ({ clause: "t.performed_at <= ?",    param: v         }),
-          test_type:  (v) => ({ clause: "t.test_type = ?",        param: v         }),
-          technician: (v) => ({ clause: "e.name ILIKE ?",         param: `%${v}%`  }),
-          status:     (v) => ({ clause: "t.status = ?",           param: v         }),
+          sample_id:  (v) => ({ clause: "t.sample_id = ?",        params: [Number(v)] }),
+          batch_id:   (v) => ({ clause: "s.batch_id ILIKE ?",     params: [`${v}%`] }),
+          start_date: (v) => ({ clause: "t.performed_at >= ?",    params: [v] }),
+          end_date:   (v) => ({ clause: "t.performed_at <= ?",    params: [v] }),
+          test_type:  (v) => ({ clause: "t.test_type = ?",        params: [v] }),
+          technician: (v) => ({ clause: "e.name ILIKE ?",         params: [`%${v}%`] }),
+          status:     (v) => ({ clause: "t.status = ?",           params: [v] }),
         },
       },
       filters,
@@ -151,10 +191,10 @@ export const ArchiveService = {
         defaultOrder: "ORDER BY c.created_at DESC",
         maxLimit: 200,
         filters: {
-          batch_id:   (v) => ({ clause: "c.batch_id ILIKE ?",  param: `${v}%` }),
-          start_date: (v) => ({ clause: "c.created_at >= ?",   param: v       }),
-          end_date:   (v) => ({ clause: "c.created_at <= ?",   param: v       }),
-          status:     (v) => ({ clause: "c.status = ?",        param: v       }),
+          batch_id:   (v) => ({ clause: "c.batch_id ILIKE ?",  params: [`${v}%`] }),
+          start_date: (v) => ({ clause: "c.created_at >= ?",   params: [v] }),
+          end_date:   (v) => ({ clause: "c.created_at <= ?",   params: [v] }),
+          status:     (v) => ({ clause: "c.status = ?",        params: [v] }),
         },
       },
       filters,
@@ -175,9 +215,9 @@ export const ArchiveService = {
         defaultOrder: "ORDER BY i.name ASC",
         maxLimit: 200,
         filters: {
-          start_date: (v) => ({ clause: "i.last_calibration >= ?",  param: v }),
-          end_date:   (v) => ({ clause: "i.next_calibration <= ?",  param: v }),
-          status:     (v) => ({ clause: "i.status = ?",             param: v }),
+          start_date: (v) => ({ clause: "i.last_calibration >= ?",  params: [v] }),
+          end_date:   (v) => ({ clause: "i.next_calibration <= ?",  params: [v] }),
+          status:     (v) => ({ clause: "i.status = ?",             params: [v] }),
         },
       },
       filters,
@@ -203,10 +243,10 @@ export const ArchiveService = {
         defaultOrder: "ORDER BY a.created_at DESC",
         maxLimit: 1000,
         filters: {
-          start_date: (v) => ({ clause: "a.created_at >= ?",  param: v         }),
-          end_date:   (v) => ({ clause: "a.created_at <= ?",  param: v         }),
-          technician: (v) => ({ clause: "e.name ILIKE ?",     param: `%${v}%`  }),
-          action:     (v) => ({ clause: "a.action = ?",       param: v         }),
+          start_date: (v) => ({ clause: "a.created_at >= ?",  params: [v] }),
+          end_date:   (v) => ({ clause: "a.created_at <= ?",  params: [v] }),
+          technician: (v) => ({ clause: "e.name ILIKE ?",     params: [`%${v}%`] }),
+          action:     (v) => ({ clause: "a.action = ?",       params: [v] }),
         },
       },
       filters,

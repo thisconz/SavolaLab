@@ -19,7 +19,7 @@ const CustomTick = (props: any) => {
   const { x, y, payload } = props;
   const config = PRIORITY_CONFIG[payload.value as keyof typeof PRIORITY_CONFIG] ?? { color: "#94a3b8", label: payload.value };
   return (
-    <text x={x} y={y + 14} textAnchor="middle" fontSize={9} fontWeight={900} fontFamily="inherit" fill={config.color} textTransform="uppercase">
+    <text x={x} y={y + 14} textAnchor="middle" fontSize={9} fontWeight={900} fontFamily="inherit" fill={config.color} style={{ textTransform: "uppercase" }}>
       {config.label}
     </text>
   );

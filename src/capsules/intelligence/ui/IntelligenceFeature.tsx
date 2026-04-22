@@ -21,7 +21,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
   const [loading,     setLoading]     = useState(true);
   const [isRefreshing,setIsRefreshing]= useState(false);
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { on }        = useRealtime();
 
   const fetchIntel = useCallback(async (silent = false) => {
@@ -37,9 +37,9 @@ export const IntelligenceFeature: React.FC = memo(() => {
 
   // Refresh alarm count when audit events fire
   useEffect(() => {
-    const refresh = () => { clearTimeout(debounceTimer.current); debounceTimer.current = setTimeout(() => fetchIntel(true), 1200); };
+    const refresh = () => { if (debounceTimer.current) clearTimeout(debounceTimer.current); debounceTimer.current = setTimeout(() => fetchIntel(true), 1200); };
     const unsub   = on("SYSTEM_ALERT", refresh);
-    return () => { unsub(); clearTimeout(debounceTimer.current); };
+    return () => { unsub(); if (debounceTimer.current) clearTimeout(debounceTimer.current); };
   }, [on, fetchIntel]);
 
   const statusVariant = (s: string): "success" | "warning" | "error" | "info" => (

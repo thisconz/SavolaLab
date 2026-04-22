@@ -1,7 +1,7 @@
 import { Hono }             from "hono";
-import type { Variables }   from "../../core/types";
+import type { Variables, ExportType }   from "../../core/types";
 import { authenticateToken, requireRoles } from "../../core/middleware";
-import { buildExcelExport, ExportType }    from "./service";
+import { buildExcelExport } from "./service";
 import { logger }           from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
@@ -36,7 +36,7 @@ app.get(
       c.header("Content-Length",      String(buffer.byteLength));
       c.header("Cache-Control",       "no-store");
 
-      return c.body(buffer);
+      return c.body(new Uint8Array(buffer));
     } catch (err: any) {
       logger.error({ err, type, reqId }, "Export failed");
       return c.json({ success: false, error: err.message || "Export failed" }, 500);

@@ -18,8 +18,7 @@ export const LabApi = {
 
     if (!validated.success) {
       console.warn("[LabApi.getSamples] Zod validation failed:", validated.error.flatten());
-      // Gracefully return raw data if schema is stale
-      return (res?.data ?? []) as Sample[];
+      throw new Error("Invalid API response schema");
     }
     return validated.data.data;
   },

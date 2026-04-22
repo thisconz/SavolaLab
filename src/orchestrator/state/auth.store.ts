@@ -1,7 +1,7 @@
-import { create }                                  from "zustand";
-import { createJSONStorage, devtools, persist }    from "zustand/middleware";
-import { User }                                    from "../../core/types/";
-import { safeLocalStorage }                        from "../../core/utils/storage";
+import { create }                               from "zustand";
+import { createJSONStorage, devtools, persist } from "zustand/middleware";
+import { User }                                 from "../../core/types/";
+import { safeLocalStorage }                     from "../../core/utils/storage";
 
 export interface AuthUser extends User {
   pin?:      string;
@@ -12,11 +12,11 @@ export interface AuthUser extends User {
 interface AuthState {
   currentUser:     AuthUser | null;
   isAuthenticated: boolean;
+  /** In-memory only — NOT persisted to localStorage */
   token:           string | null;
 
   login:    (user: AuthUser, token?: string) => void;
   logout:   () => void;
-  /** Updates access token without changing user (used by auto-refresh) */
   setToken: (token: string) => void;
 }
 
@@ -29,7 +29,7 @@ export const useAuthStore = create<AuthState>()(
         token:           null,
 
         login: (user, token) =>
-          set({ currentUser: user, isAuthenticated: true, token }),
+          set({ currentUser: user, isAuthenticated: true, token: token ?? null }),
 
         logout: () =>
           set({ currentUser: null, isAuthenticated: false, token: null }),
@@ -38,13 +38,14 @@ export const useAuthStore = create<AuthState>()(
           set({ token }),
       }),
       {
-        name:       "savola-auth-storage",
-        storage:    createJSONStorage(() => safeLocalStorage),
-        partialize: (state) => ({
-          currentUser:     state.currentUser,
-          isAuthenticated: state.isAuthenticated,
-          token:           state.token,
-        }) as AuthState,
+        name:    "zenthar-auth-storage",
+        storage: createJSONStorage(() => safeLocalStorage),
+        // ─── FIX S2: persist only the user identity, never the token ──────
+        // token is excluded — the httpOnly cookie handles session continuity.
+        // isAuthenticated is excluded — derived from a real API call on load.
+        partialize: (state): Pick<AuthState, "currentUser"> => ({
+          currentUser: state.currentUser,
+        }),
       },
     ),
   ),

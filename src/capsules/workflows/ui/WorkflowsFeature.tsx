@@ -47,7 +47,7 @@ export const WorkflowsFeature: React.FC = memo(() => {
   const [statusFilter,   setStatusFilter]  = useState("ALL");
   const [liveExIds,      setLiveExIds]     = useState<Set<number>>(new Set()); // pulsing active executions
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { on }        = useRealtime();
 
   useEffect(() => {

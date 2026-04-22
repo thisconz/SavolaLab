@@ -1,21 +1,21 @@
-import { createHash, timingSafeEqual, randomBytes } from "crypto";
+import { createHmac, timingSafeEqual, randomBytes } from "crypto";
 import { db, generateOtp, storeOtp, verifyOtp }     from "../../core/database";
 import { AuditService }                             from "../audit/service";
 import argon2                                       from "argon2";
-
+ 
 // ─────────────────────────────────────────────
-// Password helpers (argon2id)
+// Password helpers (argon2id) — unchanged
 // ─────────────────────────────────────────────
-
+ 
 export async function hashPassword(password: string): Promise<string> {
   return argon2.hash(password, {
     type:        argon2.argon2id,
-    memoryCost:  65536,  // 64 MB
+    memoryCost:  65536,
     timeCost:    3,
     parallelism: 4,
   });
 }
-
+ 
 export async function verifyPassword(hash: string, password: string): Promise<boolean> {
   try {
     return await argon2.verify(hash, password);
@@ -23,11 +23,11 @@ export async function verifyPassword(hash: string, password: string): Promise<bo
     return false;
   }
 }
-
+ 
 // ─────────────────────────────────────────────
-// JWT — HMAC-SHA256 with timing-safe verification
+// JWT — HMAC-SHA256 (FIXED: was createHash, now createHmac)
 // ─────────────────────────────────────────────
-
+ 
 function getSecret(): string {
   const s = process.env.JWT_SECRET;
   if (!s || s === "insecure-dev-secret") {
@@ -37,21 +37,32 @@ function getSecret(): string {
   }
   return s ?? "insecure-dev-secret";
 }
-
+ 
 interface JWTPayload {
-  sub:          string;
+  sub:             string;
   employee_number: string;
-  name:         string;
-  role:         string;
-  dept:         string;
-  permissions:  PermissionFlags;
-  iat:          number;
-  exp:          number;
-  jti:          string; // JWT ID (for revocation support)
-  type:         "access" | "refresh";
+  name:            string;
+  role:            string;
+  dept:            string;
+  permissions:     PermissionFlags;
+  iat:             number;
+  exp:             number;
+  jti:             string;
+  type:            "access" | "refresh";
 }
-
-function buildJWT(payload: Omit<JWTPayload, "iat" | "exp" | "jti">, expiresInSec: number): string {
+ 
+// ─── FIX S1: use createHmac instead of createHash ──────────────────────────
+ 
+function signPayload(header: string, body: string): string {
+  return createHmac("sha256", getSecret())
+    .update(`${header}.${body}`)
+    .digest("base64url");
+}
+ 
+function buildJWT(
+  payload: Omit<JWTPayload, "iat" | "exp" | "jti">,
+  expiresInSec: number,
+): string {
   const header  = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
   const body    = Buffer.from(JSON.stringify({
     ...payload,
@@ -59,116 +70,112 @@ function buildJWT(payload: Omit<JWTPayload, "iat" | "exp" | "jti">, expiresInSec
     exp: Math.floor(Date.now() / 1000) + expiresInSec,
     jti: randomBytes(16).toString("hex"),
   })).toString("base64url");
-
-  const secret = getSecret();
-  const sig    = createHash("sha256").update(`${header}.${body}.${secret}`).digest("base64url");
+ 
+  const sig = signPayload(header, body);
   return `${header}.${body}.${sig}`;
 }
-
+ 
+// ─── FIX #01: defaults come FIRST, ...payload comes LAST so it wins ────────
+ 
 export function signToken(payload: Record<string, any>): string {
   return buildJWT(
     {
-      ...payload, type: "access",
-      sub: "",
-      employee_number: "",
-      name: "",
-      role: "",
-      dept: "",
-      permissions: {
-        view_results: 0,
-        input_data: 0,
-        edit_formulas: 0,
-        change_specs: 0
-      }
+      // Structural defaults — payload values override these
+      sub:             payload.employee_number ?? "",
+      employee_number: payload.employee_number ?? "",
+      name:            payload.name            ?? "",
+      role:            payload.role            ?? "",
+      dept:            payload.dept            ?? "",
+      permissions:     payload.permissions     ?? {
+        view_results: 0, input_data: 0, edit_formulas: 0, change_specs: 0,
+      },
+      // Spread payload last so every caller-provided value wins
+      ...payload,
+      // type must always be forced to "access" regardless of payload
+      type: "access" as const,
     },
-    8 * 3600, // 8 hours
+    8 * 3600,
   );
 }
-
+ 
 export function signRefreshToken(payload: Record<string, any>): string {
   return buildJWT(
     {
-      ...payload, type: "refresh",
-      sub: "",
-      employee_number: "",
-      name: "",
-      role: "",
-      dept: "",
-      permissions: {
-        view_results: 0,
-        input_data: 0,
-        edit_formulas: 0,
-        change_specs: 0
-      }
+      sub:             payload.employee_number ?? "",
+      employee_number: payload.employee_number ?? "",
+      name:            payload.name            ?? "",
+      role:            payload.role            ?? "",
+      dept:            payload.dept            ?? "",
+      permissions:     payload.permissions     ?? {
+        view_results: 0, input_data: 0, edit_formulas: 0, change_specs: 0,
+      },
+      ...payload,
+      // type must always be "refresh"
+      type: "refresh" as const,
     },
-    30 * 24 * 3600, // 30 days
+    30 * 24 * 3600,
   );
 }
-
+ 
+// ─── FIX S1: verify also uses HMAC ─────────────────────────────────────────
+ 
+function verifySignature(header: string, body: string, sig: string): boolean {
+  const expected = signPayload(header, body);
+  const sigBuf   = Buffer.from(sig,      "base64url");
+  const expBuf   = Buffer.from(expected, "base64url");
+  if (sigBuf.length !== expBuf.length) return false;
+  return timingSafeEqual(sigBuf, expBuf);
+}
+ 
 export function verifyToken(token: string): Record<string, any> | null {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return null;
-
+ 
     const [header, body, sig] = parts;
-    const secret   = getSecret();
-    const expected = createHash("sha256").update(`${header}.${body}.${secret}`).digest("base64url");
-
-    // Timing-safe comparison
-    const sigBuf = Buffer.from(sig,      "base64url");
-    const expBuf = Buffer.from(expected, "base64url");
-
-    if (sigBuf.length !== expBuf.length) return null;
-    if (!timingSafeEqual(sigBuf, expBuf)) return null;
-
+    if (!verifySignature(header, body, sig)) return null;
+ 
     const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as JWTPayload;
-
+ 
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
     if (payload.type !== "access") return null;
-
+ 
     return payload;
   } catch {
     return null;
   }
 }
-
+ 
 export function verifyRefreshToken(token: string): JWTPayload | null {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return null;
-
+ 
     const [header, body, sig] = parts;
-    const secret   = getSecret();
-    const expected = createHash("sha256").update(`${header}.${body}.${secret}`).digest("base64url");
-
-    const sigBuf = Buffer.from(sig,      "base64url");
-    const expBuf = Buffer.from(expected, "base64url");
-
-    if (sigBuf.length !== expBuf.length) return null;
-    if (!timingSafeEqual(sigBuf, expBuf)) return null;
-
+    if (!verifySignature(header, body, sig)) return null;
+ 
     const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as JWTPayload;
-
+ 
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
     if (payload.type !== "refresh") return null;
-
+ 
     return payload;
   } catch {
     return null;
   }
 }
-
+ 
 // ─────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────
-
+ 
 export type PermissionFlags = {
   view_results:  number;
   input_data:    number;
   edit_formulas: number;
   change_specs:  number;
 };
-
+ 
 export type UserPayload = {
   id:              string;
   employee_number: string;
@@ -178,11 +185,11 @@ export type UserPayload = {
   permissions:     PermissionFlags;
   initials:        string;
 };
-
+ 
 // ─────────────────────────────────────────────
-// Service
+// Service — unchanged except where noted
 // ─────────────────────────────────────────────
-
+ 
 export const AuthService = {
   getUsers: async (): Promise<UserPayload[]> => {
     try {
@@ -209,7 +216,7 @@ export const AuthService = {
       return mockUsers();
     }
   },
-
+ 
   getMe: async (employeeNumber: string): Promise<UserPayload> => {
     try {
       const row = await db.queryOne(`
@@ -220,7 +227,7 @@ export const AuthService = {
         JOIN user_permissions p ON e.role = p.role
         WHERE e.employee_number = $1
       `, [employeeNumber]);
-
+ 
       if (!row) throw new Error("User not found");
       return mapToPayload(row);
     } catch (err: any) {
@@ -228,14 +235,14 @@ export const AuthService = {
       throw err;
     }
   },
-
+ 
   getInitials: (fullName: string): string => {
     const parts = fullName.trim().split(/\s+/);
     const first = parts[0]?.[0] ?? "";
     const last  = parts.length > 1 ? parts[parts.length - 1][0] : "";
     return (first + last).toUpperCase();
   },
-
+ 
   verifyEmployee: async (
     employeeNumber: string,
     nationalId:     string,
@@ -246,31 +253,29 @@ export const AuthService = {
        WHERE employee_number = $1 AND national_id = $2 AND dob = $3`,
       [employeeNumber, nationalId, dob],
     );
-
+ 
     if (!employee) {
       await AuditService.createLog(employeeNumber, "VERIFICATION_FAILED", "Invalid identity credentials", "127.0.0.1");
       return null;
     }
-
+ 
     const existingUser = await db.queryOne(
       "SELECT * FROM users WHERE employee_number = $1",
       [employeeNumber],
     );
-
+ 
     if (existingUser?.status === "ACTIVE") {
       throw new Error("Account already active. Please login.");
     }
-
+ 
     const otp = generateOtp();
     await storeOtp(employeeNumber, otp, 5);
-
     console.log(`[OTP for ${employeeNumber}]: ${otp}`);
-
     await AuditService.createLog(employeeNumber, "OTP_SENT", "OTP generated for identity verification", "127.0.0.1");
-
+ 
     return { employee_number: employeeNumber };
   },
-
+ 
   confirmOtp: async (employeeNumber: string, code: string): Promise<boolean> => {
     const valid = await verifyOtp(employeeNumber, code);
     await AuditService.createLog(
@@ -281,7 +286,7 @@ export const AuthService = {
     );
     return valid;
   },
-
+ 
   setupCredentials: async (
     employeeNumber: string,
     password:       string,
@@ -289,7 +294,7 @@ export const AuthService = {
   ): Promise<boolean> => {
     const passwordHash = await hashPassword(password);
     const pinHash      = pin ? await hashPassword(pin) : null;
-
+ 
     await db.execute(
       `INSERT INTO users (employee_number, password_hash, pin_hash, status)
        VALUES ($1, $2, $3, 'ACTIVE')
@@ -299,11 +304,11 @@ export const AuthService = {
              status        = 'ACTIVE'`,
       [employeeNumber, passwordHash, pinHash],
     );
-
+ 
     await AuditService.createLog(employeeNumber, "ACCOUNT_ACTIVATED", "User completed credential setup", "127.0.0.1");
     return true;
   },
-
+ 
   login: async (
     employeeNumber: string,
     password?:      string,
@@ -320,24 +325,22 @@ export const AuthService = {
         JOIN user_permissions p ON e.role = p.role
         WHERE u.employee_number = $1
       `, [employeeNumber]);
-
+ 
       if (!row || row.status !== "ACTIVE") return null;
-
-      // Check lock
+ 
       const now = new Date();
       if (row.locked_until && new Date(row.locked_until) > now) {
         const mins = Math.ceil((new Date(row.locked_until).getTime() - now.getTime()) / 60_000);
         throw new Error(`Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`);
       }
-
-      // Validate credentials
+ 
       let isValid = false;
       if (password) {
         isValid = await verifyPassword(row.password_hash, password);
       } else if (pin && row.pin_hash) {
         isValid = await verifyPassword(row.pin_hash, pin);
       }
-
+ 
       if (!isValid) {
         const attempts = (row.failed_attempts || 0) + 1;
         if (attempts >= 5) {
@@ -356,23 +359,23 @@ export const AuthService = {
         await AuditService.createLog(employeeNumber, "LOGIN_FAILED", "Incorrect credentials", "127.0.0.1");
         return null;
       }
-
-      // Reset on success
+ 
       await db.execute(
         "UPDATE users SET failed_attempts=0, locked_until=NULL, last_login=CURRENT_TIMESTAMP WHERE employee_number=$1",
         [employeeNumber],
       );
-
-      const payload  = mapToPayload(row);
-      const token    = signToken(payload as any);
-      const refresh  = signRefreshToken({ sub: employeeNumber, employee_number: employeeNumber });
-
+ 
+      const payload = mapToPayload(row);
+      // FIX #01 is in signToken itself — payload now correctly overrides defaults
+      const token   = signToken(payload as any);
+      const refresh = signRefreshToken({ sub: employeeNumber, employee_number: employeeNumber });
+ 
       await AuditService.createLog(employeeNumber, "LOGIN_SUCCESS", "User logged in", "127.0.0.1");
       return { token, refreshToken: refresh, user: payload };
-
+ 
     } catch (err: any) {
       if (err.message.includes("locked") || err.message.includes("Invalid")) throw err;
-
+ 
       if (err.message === "Database not connected") {
         const mockUser = mockUsers().find((u) => u.employee_number === employeeNumber) ?? mockUsers()[0];
         const token   = signToken(mockUser as any);
@@ -382,17 +385,13 @@ export const AuthService = {
       throw err;
     }
   },
-
-  /**
-   * Exchange a valid refresh token for a new access token.
-   * This prevents session expiry without requiring re-login.
-   */
+ 
   refreshAccess: async (
     refreshToken: string,
   ): Promise<{ token: string } | null> => {
     const payload = verifyRefreshToken(refreshToken);
     if (!payload) return null;
-
+ 
     try {
       const row = await db.queryOne(`
         SELECT
@@ -403,9 +402,9 @@ export const AuthService = {
         JOIN user_permissions p ON e.role = p.role
         WHERE u.employee_number = $1 AND u.status = 'ACTIVE'
       `, [payload.employee_number]);
-
+ 
       if (!row) return null;
-
+ 
       const user  = mapToPayload(row);
       const token = signToken(user as any);
       return { token };
@@ -414,11 +413,11 @@ export const AuthService = {
     }
   },
 };
-
+ 
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
-
+ 
 function mapToPayload(row: any): UserPayload {
   return {
     id:              row.employee_number,
@@ -435,7 +434,7 @@ function mapToPayload(row: any): UserPayload {
     initials: AuthService.getInitials(row.name ?? ""),
   };
 }
-
+ 
 function mockUsers(): UserPayload[] {
   return [
     {
@@ -452,3 +451,4 @@ function mockUsers(): UserPayload[] {
     },
   ];
 }
+ 

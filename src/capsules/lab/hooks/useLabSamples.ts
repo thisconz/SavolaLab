@@ -28,7 +28,7 @@ export function useLabSamples(): UseLiveSamplesReturn {
   const [error,        setError]        = useState<string | null>(null);
   const [lastUpdated,  setLastUpdated]  = useState<Date | null>(null);
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef    = useRef(true);
 
   const { on } = useRealtime();

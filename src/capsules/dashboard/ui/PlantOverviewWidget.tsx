@@ -17,7 +17,7 @@ const CustomXTick = (props: any) => {
   const { x, y, payload } = props;
   const label = payload.value.length > 8 ? `${payload.value.slice(0, 7)}..` : payload.value;
   return (
-    <text x={x} y={y + 14} textAnchor="middle" fontSize={8} fontWeight={900} fontFamily="inherit" fill="rgba(148,163,184,0.45)" textTransform="uppercase">
+    <text x={x} y={y + 14} textAnchor="middle" fontSize={8} fontWeight={900} fontFamily="inherit" fill="rgba(148,163,184,0.45)" style={{ textTransform: "uppercase" }}>
       {label}
     </text>
   );

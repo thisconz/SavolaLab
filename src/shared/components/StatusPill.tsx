@@ -3,7 +3,7 @@ import { AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import clsx from "@/src/lib/clsx";
  
-type StatusVariant = "success" | "warning" | "error" | "info" | "primary" | "muted";
+type StatusVariant = "success" | "warning" | "error" | "info" | "primary" | "muted" | "critical";
  
 interface StatusPillProps {
   label:     string;
@@ -19,11 +19,13 @@ const PILL_STYLES: Record<StatusVariant, string> = {
   info:    "bg-sky-50     border-sky-200     text-sky-700",
   primary: "bg-brand-primary/10 border-brand-primary/20 text-brand-primary",
   muted:   "bg-slate-50   border-slate-200   text-slate-500",
+  critical:"bg-red-50     border-red-300     text-red-800",
 };
  
 const DOT_COLORS: Record<StatusVariant, string> = {
   success: "bg-emerald-500", warning: "bg-amber-500", error: "bg-red-500",
   info:    "bg-sky-500",     primary: "bg-brand-primary", muted: "bg-slate-400",
+  critical: "bg-red-600",
 };
  
 export const StatusPill: FC<StatusPillProps> = memo(({ label, variant = "muted", dot = true, className }) => (

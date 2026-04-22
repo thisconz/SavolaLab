@@ -11,15 +11,15 @@ import { ErrorBoundary as GlobalErrorBoundary } from "../../shared/components/Er
  * Using a map for O(1) lookup and cleaner scalability.
  */
 const FEATURE_REGISTRY: Record<AppTab, React.LazyExoticComponent<React.FC>> = {
-  dashboard: lazy(() => import("../../capsules/dashboard")),
+  dashboard: lazy(() => import("../../capsules/dashboard/ui/DashboardFeature")),
   lab: lazy(() => import("../../capsules/lab")),
-  stat: lazy(() => import("../../capsules/stat")),
-  analytics: lazy(() => import("../../capsules/analytics")),
-  dispatch: lazy(() => import("../../capsules/dispatch")),
-  workflows: lazy(() => import("../../capsules/workflows")),
-  intelligence: lazy(() => import("../../capsules/intelligence")),
-  assets: lazy(() => import("../../capsules/assets")),
-  audit: lazy(() => import("../../capsules/audit")),
+  stat: lazy(() => import("../../capsules/stat/ui/StatFeature")),
+  analytics: lazy(() => import("../../capsules/analytics/ui/AnalyticsFeature")),
+  dispatch: lazy(() => import("../../capsules/dispatch/ui/DispatchFeature")),
+  workflows: lazy(() => import("../../capsules/workflows/ui/WorkflowsFeature")),
+  intelligence: lazy(() => import("../../capsules/intelligence/ui/IntelligenceFeature")),
+  assets: lazy(() => import("../../capsules/assets/ui/AssetsFeature")),
+  audit: lazy(() => import("../../capsules/audit/ui/AuditFeature")),
   settings: lazy(() => import("../../capsules/settings")),
   archive: lazy(() => import("../../capsules/archive")),
 };

@@ -259,7 +259,7 @@ export const LoginPage: React.FC = () => {
               <span className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-[0.2em]">Network_Stable</span>
             </div>
             <div className="h-4 w-px bg-brand-sage/20" />
-            <p className="text-[9px] text-brand-sage/60 font-mono font-bold uppercase tracking-widest">Zenthar_OS v1.0</p>
+            <p className="text-[9px] text-brand-sage/60 font-mono font-bold uppercase tracking-widest">Zenthar_OS {import.meta.env.VITE_ZENTHAR_VERSION}</p>
           </footer>
         </main>
       </motion.div>

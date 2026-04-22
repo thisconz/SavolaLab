@@ -388,7 +388,7 @@ export const SettingsPage: React.FC = () => {
 
       {/* ── SIDEBAR ── */}
       <AnimatePresence>
-        {(sidebarOpen || true) && (
+        {(sidebarOpen) && (
           <aside className={clsx(
             "flex-col gap-3 shrink-0",
             // Desktop: always visible

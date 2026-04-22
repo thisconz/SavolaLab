@@ -49,6 +49,7 @@ pnpm-debug.log*
 *.sqlite
 *.sqlite-journal
 postgres-data/
+pgdata/
 
 # --- Testing & Coverage
 coverage/
@@ -70,4 +71,14 @@ core.*
 tmp/
 temp/
 .temp/
+
+# --- FIX: Generated script output (was being committed — bloats git history)
+scripts/output/
+
+# --- FIX: Issue tracking files (use GitHub Issues instead)
+issues/
 *issues/
+
+# --- Firebase config files should never be in source if they contain real API keys
+# Uncomment if you have real credentials in these:
+# src/core/config/firebase/firebase-applet-config.json

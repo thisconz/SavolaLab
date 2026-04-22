@@ -65,6 +65,7 @@ export type Variables = {
   requestId: string;
 };
 
+// --- Export ---
 export type ExportType =
   | "samples"
   | "tests"

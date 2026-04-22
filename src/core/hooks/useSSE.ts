@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../../orchestrator/state/auth.store";
 
 // ─────────────────────────────────────────────
-// Types
+// Types (unchanged from original)
 // ─────────────────────────────────────────────
 
 export type SSEEventType =
@@ -22,38 +22,34 @@ export type SSEEventType =
   | "connected";
 
 export type SSECallback<T = any> = (data: T) => void;
-
 export type SSEStatus = "connecting" | "connected" | "reconnecting" | "disconnected";
 
 interface UseSSEOptions {
-  /** Called when connection is first established */
-  onConnect?: (info: { connectionId: string }) => void;
-  /** Called on every reconnect attempt */
+  onConnect?:   (info: { connectionId: string }) => void;
   onReconnect?: (attempt: number) => void;
-  /** Called when max attempts exceeded */
-  onGiveUp?: () => void;
-  /** Max reconnection attempts (default: 8) */
-  maxRetries?: number;
-  /** Whether to auto-connect on mount (default: true) */
+  onGiveUp?:    () => void;
+  maxRetries?:  number;
   autoConnect?: boolean;
 }
 
 interface UseSSEReturn {
-  status: SSEStatus;
+  status:      SSEStatus;
   isConnected: boolean;
-  /** Register a handler for a specific event type. Returns an unsubscribe fn. */
-  on: <T = any>(event: SSEEventType, callback: SSECallback<T>) => () => void;
-  /** Last received event (any type) */
-  lastEvent: { type: SSEEventType; data: any } | null;
-  /** Manually close the connection */
-  disconnect: () => void;
-  /** Manually reconnect */
-  reconnect: () => void;
+  on:          <T = any>(event: SSEEventType, callback: SSECallback<T>) => () => void;
+  lastEvent:   { type: SSEEventType; data: any } | null;
+  disconnect:  () => void;
+  reconnect:   () => void;
 }
 
-const SSE_URL = "/api/realtime/stream";
-const BASE_DELAY_MS = 1_000;
-const MAX_DELAY_MS = 30_000;
+const SSE_URL      = "/api/realtime/stream";
+const BASE_DELAY   = 1_000;
+const MAX_DELAY    = 30_000;
+
+// ─── FIX: add ±10% jitter to spread reconnection load ───────────────────────
+function jitteredDelay(baseMs: number): number {
+  const jitter = baseMs * 0.1 * (Math.random() * 2 - 1); // ±10%
+  return Math.min(baseMs + jitter, MAX_DELAY);
+}
 
 // ─────────────────────────────────────────────
 // Hook
@@ -64,29 +60,27 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     onConnect,
     onReconnect,
     onGiveUp,
-    maxRetries = 8,
+    maxRetries  = 8,
     autoConnect = true,
   } = options;
 
   const { isAuthenticated } = useAuthStore();
 
-  const [status, setStatus] = useState<SSEStatus>("disconnected");
+  const [status,    setStatus]    = useState<SSEStatus>("disconnected");
   const [lastEvent, setLastEvent] = useState<{ type: SSEEventType; data: any } | null>(null);
 
-  const esRef = useRef<EventSource | null>(null);
-  const listenersRef = useRef<Map<SSEEventType, Set<SSECallback>>>(new Map());
-  const retryRef = useRef(0);
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout>>();
-  const mountedRef = useRef(true);
+  const esRef          = useRef<EventSource | null>(null);
+  const listenersRef   = useRef<Map<SSEEventType, Set<SSECallback>>>(new Map());
+  const retryRef       = useRef(0);
+  const retryTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef     = useRef(true);
 
-  // ── Emit to registered listeners ─────────────────────────
   const emit = useCallback((type: SSEEventType, data: any) => {
     if (!mountedRef.current) return;
     setLastEvent({ type, data });
     listenersRef.current.get(type)?.forEach((cb) => cb(data));
   }, []);
 
-  // ── Build and open EventSource ────────────────────────────
   const connect = useCallback(() => {
     if (!mountedRef.current || !isAuthenticated) return;
     if (esRef.current?.readyState === EventSource.OPEN) return;
@@ -102,7 +96,6 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
       retryRef.current = 0;
     };
 
-    // ── Typed event listeners ─────────────────────────────
     const EVENTS: SSEEventType[] = [
       "SAMPLE_CREATED", "SAMPLE_UPDATED", "SAMPLE_STATUS_CHANGED",
       "TEST_SUBMITTED", "TEST_REVIEWED", "TEST_UPDATED",
@@ -116,10 +109,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
       es.addEventListener(type, (e: MessageEvent) => {
         let parsed: any;
         try { parsed = JSON.parse(e.data); } catch { parsed = e.data; }
-
-        if (type === "connected" && parsed?.connectionId) {
-          onConnect?.(parsed);
-        }
+        if (type === "connected" && parsed?.connectionId) onConnect?.(parsed);
         emit(type, parsed);
       });
     });
@@ -134,7 +124,9 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
         return;
       }
 
-      const delay = Math.min(BASE_DELAY_MS * 2 ** retryRef.current, MAX_DELAY_MS);
+      // FIX: jitter prevents thundering herd
+      const baseDelay = Math.min(BASE_DELAY * 2 ** retryRef.current, MAX_DELAY);
+      const delay     = jitteredDelay(baseDelay);
       retryRef.current++;
       onReconnect?.(retryRef.current);
 
@@ -142,29 +134,22 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     };
   }, [isAuthenticated, emit, onConnect, onReconnect, onGiveUp, maxRetries]);
 
-  // ── Lifecycle ─────────────────────────────────────────────
   useEffect(() => {
     mountedRef.current = true;
-
     if (autoConnect && isAuthenticated) connect();
-
     return () => {
       mountedRef.current = false;
       clearTimeout(retryTimerRef.current);
       esRef.current?.close();
     };
-  }, [isAuthenticated, autoConnect]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, autoConnect]); // eslint-disable-line
 
-  // ── Public API ────────────────────────────────────────────
   const on = useCallback(<T = any>(event: SSEEventType, callback: SSECallback<T>) => {
     if (!listenersRef.current.has(event)) {
       listenersRef.current.set(event, new Set());
     }
     listenersRef.current.get(event)!.add(callback as SSECallback);
-
-    return () => {
-      listenersRef.current.get(event)?.delete(callback as SSECallback);
-    };
+    return () => { listenersRef.current.get(event)?.delete(callback as SSECallback); };
   }, []);
 
   const disconnect = useCallback(() => {
@@ -179,12 +164,5 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     setTimeout(connect, 100);
   }, [connect, disconnect]);
 
-  return {
-    status,
-    isConnected: status === "connected",
-    on,
-    lastEvent,
-    disconnect,
-    reconnect,
-  };
+  return { status, isConnected: status === "connected", on, lastEvent, disconnect, reconnect };
 }
