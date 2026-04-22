@@ -4,7 +4,7 @@ import { seedDatabase } from "./db/seeds";
 import { initSecurityTriggers } from "./db/security";
 import { logger } from "./logger";
 
-let initialized = false;
+let initialized  = false;
 let initializing = false;
 
 type InitStage = "instrumentation" | "migrations" | "security" | "seeding";
@@ -14,28 +14,25 @@ function logError(stage: InitStage, error: unknown) {
 }
 
 /**
- * Initialize database (idempotent, production-grade, safe for concurrent calls)
+ * Initialise the database (idempotent, safe for concurrent calls).
+ * Call once at server startup; subsequent calls are no-ops.
  */
 export async function initDatabase(): Promise<void> {
   if (initialized) return;
-
-  if (initializing) {
-    throw new Error("Database initialization already in progress");
-  }
+  if (initializing) throw new Error("Database initialization already in progress");
 
   initializing = true;
 
   try {
-    /** 1️⃣ Observability instrumentation */
+    // 1. Instrumentation (no-op for now — placeholder for metrics)
     try {
-      // instrumentDb(); // Removed for now as it was better-sqlite3 specific
       logger.info("DB instrumentation applied");
     } catch (err) {
       logError("instrumentation", err);
       throw err;
     }
 
-    /** 2️⃣ Migrations */
+    // 2. Migrations
     try {
       await runMigrations();
       logger.info("DB migrations completed");
@@ -44,7 +41,7 @@ export async function initDatabase(): Promise<void> {
       throw err;
     }
 
-    /** 3️⃣ Security triggers */
+    // 3. Security triggers
     try {
       await initSecurityTriggers();
       logger.info("Security triggers initialized");
@@ -53,7 +50,7 @@ export async function initDatabase(): Promise<void> {
       throw err;
     }
 
-    /** 4️⃣ Seed database (transaction-safe) */
+    // 4. Seed initial data
     try {
       await seedDatabase();
       logger.info("Initial seed applied");
@@ -65,8 +62,8 @@ export async function initDatabase(): Promise<void> {
     initialized = true;
     logger.info("Database fully initialized");
   } catch (err) {
-    // Reset state for retry
-    initialized = false;
+    initialized  = false;
+    initializing = false;
     logger.error({ err }, "DATABASE INITIALIZATION FAILED");
     throw err;
   } finally {
@@ -74,9 +71,7 @@ export async function initDatabase(): Promise<void> {
   }
 }
 
-// Export DB client
+// Re-export the db client and helper utilities
 export { db };
-
-// Public API surface
 export * from "./db/security";
 export * from "./db/events";

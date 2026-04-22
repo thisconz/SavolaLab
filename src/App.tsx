@@ -1,15 +1,15 @@
 import React, { Suspense } from "react";
-import { Toaster } from "sonner";
-import { AppShell } from "./app/AppShell";
-import { FeatureRouter } from "./app/router/router";
-import { ErrorBoundary } from "./app/components/GlobalErrorBoundary";
+import { Toaster }         from "sonner";
+import { AppShell }        from "./app/AppShell";
+import { FeatureRouter }   from "./app/router/router";
+import { ErrorBoundary }   from "./shared/components/ErrorBoundary";
 import { RealtimeProvider } from "./core/providers/RealtimeProvider";
-import { motion } from "@/src/lib/motion";
-import { Terminal } from "lucide-react";
+import { motion }          from "@/src/lib/motion";
+import { Terminal }        from "lucide-react";
 
 export default function App() {
   return (
-    <ErrorBoundary>
+    <ErrorBoundary name="App Root">
       {/* Global toast notifications */}
       <Toaster
         position="top-right"
@@ -18,19 +18,19 @@ export default function App() {
         theme="dark"
         toastOptions={{
           style: {
-            background: "var(--color-zenthar-carbon)",
-            border: "1px solid rgba(255, 255, 255, 0.05)",
-            borderRadius: "1.25rem",
-            color: "#fff",
-            fontSize: "11px",
+            background:    "var(--color-zenthar-carbon)",
+            border:        "1px solid rgba(255, 255, 255, 0.06)",
+            borderRadius:  "1.25rem",
+            color:         "var(--color-zenthar-text-primary)",
+            fontSize:      "11px",
             textTransform: "uppercase",
-            letterSpacing: "0.1em",
-            fontFamily: "var(--font-mono)",
+            letterSpacing: "0.08em",
+            fontFamily:    "var(--font-mono)",
           },
         }}
       />
 
-      {/* Real-time event bus — must wrap AppShell so all children can subscribe */}
+      {/* Real-time event bus — wraps AppShell so all children can subscribe */}
       <RealtimeProvider>
         <AppShell>
           <Suspense fallback={<KernelLoadingSequence />}>
@@ -41,6 +41,8 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
+// ─── Splash / lazy-load skeleton ─────────────────────────────────────────────
 
 const KernelLoadingSequence = () => (
   <div className="fixed inset-0 bg-(--color-zenthar-void) flex flex-col items-center justify-center z-50">
@@ -60,11 +62,11 @@ const KernelLoadingSequence = () => (
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white">
+      <div className="flex flex-col items-center gap-1.5">
+        <span className="text-[10px] font-black uppercase tracking-[0.5em] text-(--color-zenthar-text-primary)">
           Initializing_Zenthar
         </span>
-        <span className="text-[8px] font-mono font-bold text-brand-sage opacity-40 uppercase">
+        <span className="text-[8px] font-mono font-bold text-(--color-zenthar-text-muted) uppercase tracking-widest">
           Hydrating_Secure_Modules...
         </span>
       </div>

@@ -10,10 +10,12 @@ export interface AuthUser extends User {
 }
 
 interface AuthState {
-  currentUser:     AuthUser | null;
-  isAuthenticated: boolean;
-  /** In-memory only — NOT persisted to localStorage */
-  token:           string | null;
+  currentUser: AuthUser | null;
+  /** In-memory only — NOT persisted; httpOnly cookie handles continuity. */
+  token: string | null;
+
+  /** Derived at runtime — never persisted independently to avoid desync. */
+  readonly isAuthenticated: boolean;
 
   login:    (user: AuthUser, token?: string) => void;
   logout:   () => void;
@@ -23,30 +25,45 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
-      (set) => ({
+      (set, get) => ({
         currentUser:     null,
-        isAuthenticated: false,
         token:           null,
 
+        // Derived — computed lazily so it's always consistent with currentUser
+        get isAuthenticated() {
+          return get().currentUser !== null;
+        },
+
         login: (user, token) =>
-          set({ currentUser: user, isAuthenticated: true, token: token ?? null }),
+          set(
+            { currentUser: user, token: token ?? null },
+            false,
+            "auth/login",
+          ),
 
         logout: () =>
-          set({ currentUser: null, isAuthenticated: false, token: null }),
+          set(
+            { currentUser: null, token: null },
+            false,
+            "auth/logout",
+          ),
 
         setToken: (token) =>
-          set({ token }),
+          set({ token }, false, "auth/setToken"),
       }),
       {
         name:    "zenthar-auth-storage",
         storage: createJSONStorage(() => safeLocalStorage),
-        // ─── FIX S2: persist only the user identity, never the token ──────
-        // token is excluded — the httpOnly cookie handles session continuity.
-        // isAuthenticated is excluded — derived from a real API call on load.
+        /**
+         * Only persist the user identity, never the access token.
+         * isAuthenticated is intentionally excluded — it's derived from currentUser.
+         * The httpOnly refresh-token cookie handles silent session revival.
+         */
         partialize: (state): Pick<AuthState, "currentUser"> => ({
           currentUser: state.currentUser,
         }),
       },
     ),
+    { name: "AuthStore" },
   ),
 );
