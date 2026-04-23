@@ -7,14 +7,7 @@ import React, {
   useEffect,
   useLayoutEffect,
 } from "react";
-import {
-  Search,
-  RotateCcw,
-  SlidersHorizontal,
-  Beaker,
-  ChevronUp,
-  ChevronDown,
-} from "lucide-react";
+import { Search, RotateCcw, SlidersHorizontal, Beaker, ChevronUp, ChevronDown } from "lucide-react";
 import { SampleCard } from "./SampleCard";
 import { Sample, SampleStatus } from "../../../core/types";
 
@@ -35,9 +28,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
     const [scrollTop, setScrollTop] = useState(0);
 
     // FIX: measured values instead of hardcoded
-    const [containerHeight, setContainerHeight] = useState(
-      DEFAULT_CARD_HEIGHT * 4,
-    );
+    const [containerHeight, setContainerHeight] = useState(DEFAULT_CARD_HEIGHT * 4);
     const [cardHeight, setCardHeight] = useState(DEFAULT_CARD_HEIGHT);
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -76,8 +67,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
           [s.batch_id, s.source_stage, s.sample_type, String(s.id)].some((v) =>
             (v ?? "").toLowerCase().includes(q),
           );
-        const matchPriority =
-          priorityFilter === "ALL" || s.priority === priorityFilter;
+        const matchPriority = priorityFilter === "ALL" || s.priority === priorityFilter;
         const matchStatus = statusFilter === "ALL" || s.status === statusFilter;
         return matchSearch && matchPriority && matchStatus;
       });
@@ -85,10 +75,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
 
     // ── Virtual scroll calculation ────────────────────────────────────────
     const totalHeight = filtered.length * cardHeight;
-    const startIndex = Math.max(
-      0,
-      Math.floor(scrollTop / cardHeight) - OVERSCAN,
-    );
+    const startIndex = Math.max(0, Math.floor(scrollTop / cardHeight) - OVERSCAN);
     const endIndex = Math.min(
       filtered.length - 1,
       Math.floor((scrollTop + containerHeight) / cardHeight) + OVERSCAN,
@@ -134,8 +121,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
       [filtered, selectedSampleId, onSampleSelect],
     );
 
-    const activeFilterCount =
-      (priorityFilter !== "ALL" ? 1 : 0) + (statusFilter !== "ALL" ? 1 : 0);
+    const activeFilterCount = (priorityFilter !== "ALL" ? 1 : 0) + (statusFilter !== "ALL" ? 1 : 0);
 
     const resetFilters = () => {
       setSearchQuery("");

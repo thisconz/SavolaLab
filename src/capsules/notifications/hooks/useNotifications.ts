@@ -25,17 +25,14 @@ const useNotificationStore = create<NotificationStore>((set) => ({
   isFetching: false,
   lastFetchedAt: null,
 
-  setNotifications: (notifications) =>
-    set({ notifications, lastFetchedAt: Date.now() }),
+  setNotifications: (notifications) => set({ notifications, lastFetchedAt: Date.now() }),
 
   setFetching: (isFetching) => set({ isFetching }),
 
   // Optimistic updates — UI changes immediately, server call is fire-and-forget
   markOneAsRead: (id) =>
     set((state) => ({
-      notifications: state.notifications.map((n) =>
-        n.id === id ? { ...n, is_read: true } : n,
-      ),
+      notifications: state.notifications.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
     })),
 
   markAllAsRead: () =>
@@ -79,7 +76,7 @@ async function fetchNotifications(): Promise<void> {
 // ─────────────────────────────────────────────
 
 export const useNotifications = () => {
-  const { isAuthenticated } = useAuthStore();
+  const isAuthenticated = useAuthStore((s) => !!s.currentUser);
   const { on } = useRealtime();
 
   const notifications = useNotificationStore((s) => s.notifications);
@@ -103,13 +100,10 @@ export const useNotifications = () => {
   // ── Derived values ──────────────────────────────────────────────────────
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  const unreadByType = notifications.reduce<Record<string, number>>(
-    (acc, n) => {
-      if (!n.is_read) acc[n.type] = (acc[n.type] || 0) + 1;
-      return acc;
-    },
-    {},
-  );
+  const unreadByType = notifications.reduce<Record<string, number>>((acc, n) => {
+    if (!n.is_read) acc[n.type] = (acc[n.type] || 0) + 1;
+    return acc;
+  }, {});
 
   // ── Actions ─────────────────────────────────────────────────────────────
   const markAsRead = useCallback(async (id: number) => {

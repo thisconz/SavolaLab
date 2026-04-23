@@ -6,11 +6,7 @@ import { Sample } from "../../../shared/schemas/sample.schema";
 import type { TestResult, TestType } from "../../../core/types";
 import { calculateICUMSA } from "../../../core/utils/calculations.util";
 import { TEST_VALIDATION_RULES } from "../constants/validation.constants";
-import {
-  SampleStatus,
-  SamplePriority,
-  WorkflowStepExecutionStatus,
-} from "../../../core/types";
+import { SampleStatus, SamplePriority, WorkflowStepExecutionStatus } from "../../../core/types";
 
 export const useLabBench = (sample: Sample, onComplete?: () => void) => {
   const [tests, setTests] = useState<TestResult[]>([]);
@@ -21,9 +17,7 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
   const [colourParams, setColourParams] = useState<
     Record<number, { absorbance: string; brix: string; cellLength: string }>
   >({});
-  const [previousResults, setPreviousResults] = useState<Record<string, any[]>>(
-    {},
-  );
+  const [previousResults, setPreviousResults] = useState<Record<string, any[]>>({});
   const [isSaving, setIsSaving] = useState(false);
 
   // ─── Load tests ──────────────────────────────────────────────────────────
@@ -46,8 +40,7 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
           let p = { absorbance: "", brix: "50", cellLength: "1" };
           if (t.params) {
             try {
-              const parsed =
-                typeof t.params === "string" ? JSON.parse(t.params) : t.params;
+              const parsed = typeof t.params === "string" ? JSON.parse(t.params) : t.params;
               p = { ...p, ...parsed };
             } catch {
               /* ignore malformed params */
@@ -67,9 +60,7 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
         if (seen.has(t.test_type)) continue;
         seen.add(t.test_type);
         LabApi.getPreviousResults(sample.source_stage ?? "", t.test_type, 3)
-          .then((res) =>
-            setPreviousResults((prev) => ({ ...prev, [t.test_type]: res })),
-          )
+          .then((res) => setPreviousResults((prev) => ({ ...prev, [t.test_type]: res })))
           .catch(() => {
             /* best-effort */
           });
@@ -121,11 +112,7 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
     }
   };
 
-  const handleValueChange = (
-    testId: number,
-    value: string,
-    testType: string,
-  ) => {
+  const handleValueChange = (testId: number, value: string, testType: string) => {
     setValues((p) => ({ ...p, [testId]: value }));
     validateField(testId, value, testType);
   };
@@ -169,9 +156,7 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
     try {
       const executions = await WorkflowApi.getWorkflowExecutions(sample.id);
       const activeExec = executions.find((e) => e.status === "IN_PROGRESS");
-      const localSteps = activeExec?.step_executions
-        ? [...activeExec.step_executions]
-        : [];
+      const localSteps = activeExec?.step_executions ? [...activeExec.step_executions] : [];
 
       // ── Pass 1: persist test data ─────────────────────────────────────────
       const savedTests: { id: number; type: string; value: number }[] = [];
@@ -185,12 +170,10 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
           test_type: test.test_type as any,
           raw_value: rawValue,
           calculated_value: rawValue,
-          unit:
-            TEST_VALIDATION_RULES[test.test_type as TestType]?.unit ?? "N/A",
+          unit: TEST_VALIDATION_RULES[test.test_type as TestType]?.unit ?? "N/A",
           status: "VALIDATING" as any,
           notes: notes[test.id] || undefined,
-          params:
-            test.test_type === "Colour" ? colourParams[test.id] : undefined,
+          params: test.test_type === "Colour" ? colourParams[test.id] : undefined,
         };
 
         let savedId = test.id;
@@ -211,8 +194,7 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
         for (const result of savedTests) {
           const stepIdx = localSteps.findIndex(
             (s) =>
-              s.test_type === result.type &&
-              (s.status === "IN_PROGRESS" || s.status === "PENDING"),
+              s.test_type === result.type && (s.status === "IN_PROGRESS" || s.status === "PENDING"),
           );
           if (stepIdx === -1) continue;
 

@@ -1,10 +1,4 @@
-import React, {
-  Component,
-  ErrorInfo,
-  ReactNode,
-  useState,
-  useEffect,
-} from "react";
+import React, { Component, ErrorInfo, ReactNode, useState, useEffect } from "react";
 import {
   ShieldAlert,
   RefreshCcw,
@@ -85,9 +79,7 @@ const DiagnosticsSidebar = ({
         <div className="flex items-center justify-between pb-6 border-b border-white/5">
           <div className="flex items-center gap-3 text-cyan-500">
             <Activity size={18} className="animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em]">
-              Node_Monitor
-            </span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Node_Monitor</span>
           </div>
           <DiagnosticGraph />
         </div>
@@ -215,8 +207,7 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   public render() {
-    const { hasError, error, faultId, timestamp, recoveryAttempts, resetKey } =
-      this.state;
+    const { hasError, error, faultId, timestamp, recoveryAttempts, resetKey } = this.state;
 
     if (hasError) {
       if (this.props.fallback) return this.props.fallback;
@@ -271,9 +262,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     </div>
                     <div className="max-h-48 overflow-y-auto no-scrollbar rounded-lg bg-rose-500/5 border border-rose-500/10 p-4">
                       <code className="text-xs text-rose-400/80 leading-relaxed break-all">
-                        {error?.stack ||
-                          error?.message ||
-                          "SYSTEM_TREE_COLLAPSE"}
+                        {error?.stack || error?.message || "SYSTEM_TREE_COLLAPSE"}
                       </code>
                     </div>
                   </div>
@@ -285,26 +274,10 @@ export class ErrorBoundary extends Component<Props, State> {
                     Matrix_Status
                   </div>
                   <div className="space-y-3">
-                    <StatusItem
-                      label="Buffer"
-                      value="Overflow"
-                      color="text-rose-500"
-                    />
-                    <StatusItem
-                      label="I/O Link"
-                      value="Timeout"
-                      color="text-amber-500"
-                    />
-                    <StatusItem
-                      label="Encrypted"
-                      value="True"
-                      color="text-emerald-500"
-                    />
-                    <StatusItem
-                      label="Safe_Mode"
-                      value="Active"
-                      color="text-cyan-500"
-                    />
+                    <StatusItem label="Buffer" value="Overflow" color="text-rose-500" />
+                    <StatusItem label="I/O Link" value="Timeout" color="text-amber-500" />
+                    <StatusItem label="Encrypted" value="True" color="text-emerald-500" />
+                    <StatusItem label="Safe_Mode" value="Active" color="text-cyan-500" />
                   </div>
                   <div className="mt-6 pt-6 border-t border-white/5 text-[9px] text-zinc-500 italic">
                     Attempting to maintain state integrity...
@@ -352,9 +325,7 @@ export class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return (
-      <React.Fragment key={resetKey}>{this.props.children}</React.Fragment>
-    );
+    return <React.Fragment key={resetKey}>{this.props.children}</React.Fragment>;
   }
 
   private downloadFaultReport = () => {
@@ -375,24 +346,10 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 }
 
-const StatusItem = ({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: string;
-  color: string;
-}) => (
+const StatusItem = ({ label, value, color }: { label: string; value: string; color: string }) => (
   <div className="flex justify-between items-center py-2 border-b border-white/5">
-    <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">
-      {label}
-    </span>
-    <span
-      className={clsx("text-[10px] font-black italic tracking-widest", color)}
-    >
-      {value}
-    </span>
+    <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-tighter">{label}</span>
+    <span className={clsx("text-[10px] font-black italic tracking-widest", color)}>{value}</span>
   </div>
 );
 
@@ -401,8 +358,7 @@ const TacticalButton = ({ icon, label, variant = "default", onClick }: any) => (
     onClick={onClick}
     className={clsx(
       "flex flex-col items-center justify-center p-6 border transition-all rounded-2xl gap-3 group active:scale-95",
-      variant === "default" &&
-        "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10",
+      variant === "default" && "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10",
       variant === "active" &&
         "bg-cyan-500/10 border-cyan-500/30 text-cyan-500 hover:bg-cyan-500 hover:text-black",
       variant === "danger" &&
@@ -410,8 +366,6 @@ const TacticalButton = ({ icon, label, variant = "default", onClick }: any) => (
     )}
   >
     {icon}
-    <span className="text-[10px] font-black uppercase tracking-widest">
-      {label}
-    </span>
+    <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
   </button>
 );

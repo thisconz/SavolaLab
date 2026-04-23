@@ -41,102 +41,83 @@ const CHART = {
   },
 };
 
-export const QCTrendsWidget: React.FC<Props> = memo(
-  ({ tests, loading = false }) => {
-    const data = useMemo(() => {
-      if (!tests?.length) return [];
-      const daily: Record<string, { sum: number; count: number }> = {};
-      tests.forEach((t) => {
-        if (!t.performed_at || t.calculated_value == null) return;
-        const date = new Date(t.performed_at).toLocaleDateString(undefined, {
-          month: "numeric",
-          day: "numeric",
-        });
-        if (!daily[date]) daily[date] = { sum: 0, count: 0 };
-        daily[date].sum += t.calculated_value;
-        daily[date].count += 1;
+export const QCTrendsWidget: React.FC<Props> = memo(({ tests, loading = false }) => {
+  const data = useMemo(() => {
+    if (!tests?.length) return [];
+    const daily: Record<string, { sum: number; count: number }> = {};
+    tests.forEach((t) => {
+      if (!t.performed_at || t.calculated_value == null) return;
+      const date = new Date(t.performed_at).toLocaleDateString(undefined, {
+        month: "numeric",
+        day: "numeric",
       });
-      return Object.entries(daily)
-        .map(([date, { sum, count }]) => ({
-          date,
-          avg: parseFloat((sum / count).toFixed(2)),
-        }))
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .slice(-10);
-    }, [tests]);
+      if (!daily[date]) daily[date] = { sum: 0, count: 0 };
+      daily[date].sum += t.calculated_value;
+      daily[date].count += 1;
+    });
+    return Object.entries(daily)
+      .map(([date, { sum, count }]) => ({
+        date,
+        avg: parseFloat((sum / count).toFixed(2)),
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-10);
+  }, [tests]);
 
-    if (loading) return <TrendLoading />;
-    if (!data.length) return <TrendEmpty />;
+  if (loading) return <TrendLoading />;
+  if (!data.length) return <TrendEmpty />;
 
-    return (
-      <div className="h-60 w-full">
-        <svg style={{ height: 0, width: 0, position: "absolute" }}>
-          <defs>
-            <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop
-                offset="5%"
-                stopColor="var(--color-brand-primary)"
-                stopOpacity={0.25}
-              />
-              <stop
-                offset="95%"
-                stopColor="var(--color-brand-primary)"
-                stopOpacity={0}
-              />
-            </linearGradient>
-          </defs>
-        </svg>
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={data}
-            margin={{ top: 20, right: 8, left: -24, bottom: 0 }}
-          >
-            <CartesianGrid {...CHART.grid} vertical={false} />
-            <XAxis
-              dataKey="date"
-              {...CHART.text}
-              axisLine={false}
-              tickLine={false}
-              dy={10}
-            />
-            <YAxis {...CHART.text} axisLine={false} tickLine={false} />
-            <Tooltip {...CHART.tooltip} />
-            <Legend
-              verticalAlign="top"
-              align="right"
-              wrapperStyle={{
-                fontSize: 9,
-                fontWeight: 800,
-                textTransform: "uppercase",
-                paddingBottom: 12,
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="avg"
-              name="Quality Index"
-              stroke="var(--color-brand-primary)"
-              strokeWidth={2.5}
-              fill="url(#trendGrad)"
-              dot={{
-                r: 3,
-                fill: "var(--color-zenthar-carbon)",
-                stroke: "var(--color-brand-primary)",
-                strokeWidth: 2,
-              }}
-              activeDot={{
-                r: 5,
-                strokeWidth: 0,
-                fill: "var(--color-brand-primary)",
-              }}
-              animationDuration={1600}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    );
-  },
-);
+  return (
+    <div className="h-60 w-full">
+      <svg style={{ height: 0, width: 0, position: "absolute" }}>
+        <defs>
+          <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="var(--color-brand-primary)" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="var(--color-brand-primary)" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+      </svg>
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 20, right: 8, left: -24, bottom: 0 }}>
+          <CartesianGrid {...CHART.grid} vertical={false} />
+          <XAxis dataKey="date" {...CHART.text} axisLine={false} tickLine={false} dy={10} />
+          <YAxis {...CHART.text} axisLine={false} tickLine={false} />
+          <Tooltip {...CHART.tooltip} />
+          <Legend
+            verticalAlign="top"
+            align="right"
+            wrapperStyle={{
+              fontSize: 9,
+              fontWeight: 800,
+              textTransform: "uppercase",
+              paddingBottom: 12,
+            }}
+          />
+          <Area
+            type="monotone"
+            dataKey="avg"
+            name="Quality Index"
+            stroke="var(--color-brand-primary)"
+            strokeWidth={2.5}
+            fill="url(#trendGrad)"
+            dot={{
+              r: 3,
+              fill: "var(--color-zenthar-carbon)",
+              stroke: "var(--color-brand-primary)",
+              strokeWidth: 2,
+            }}
+            activeDot={{
+              r: 5,
+              strokeWidth: 0,
+              fill: "var(--color-brand-primary)",
+            }}
+            animationDuration={1600}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+});
 
 const TrendLoading = () => (
   <div className="h-60 w-full bg-(--color-zenthar-graphite)/50 animate-pulse rounded-2xl flex items-center justify-center">

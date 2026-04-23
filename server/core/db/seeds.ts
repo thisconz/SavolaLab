@@ -106,22 +106,14 @@ async function seedPermissions(client: TransactionClient) {
     await client.execute(
       `INSERT INTO user_permissions (role, view_results, input_data, edit_formulas, change_specs)
        VALUES ($1, $2, $3, $4, $5)`,
-      [
-        perm.role,
-        perm.view_results,
-        perm.input_data,
-        perm.edit_formulas,
-        perm.change_specs,
-      ],
+      [perm.role, perm.view_results, perm.input_data, perm.edit_formulas, perm.change_specs],
     );
   }
   logger.info("Seeded: Permissions");
 }
 
 async function seedAccounts(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>(
-    "SELECT COUNT(*) FROM employees",
-  );
+  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM employees");
   if (Number(count) > 0) return;
 
   // IMPORTANT: passwords are hashed with argon2id — never store plaintext
@@ -199,10 +191,10 @@ async function seedInfrastructure(client: TransactionClient) {
   if (Number(count) > 0) return;
 
   for (const line of PRODUCTION_LINES) {
-    await client.execute(
-      "INSERT INTO production_lines (name, plant_id) VALUES ($1, $2)",
-      [line.name, line.plant_id],
-    );
+    await client.execute("INSERT INTO production_lines (name, plant_id) VALUES ($1, $2)", [
+      line.name,
+      line.plant_id,
+    ]);
   }
 
   const equipmentSpecs = [
@@ -217,19 +209,18 @@ async function seedInfrastructure(client: TransactionClient) {
       [eq.lineName],
     );
     if (line) {
-      await client.execute(
-        "INSERT INTO equipment (name, line_id, type) VALUES ($1, $2, $3)",
-        [eq.name, line.id, eq.type],
-      );
+      await client.execute("INSERT INTO equipment (name, line_id, type) VALUES ($1, $2, $3)", [
+        eq.name,
+        line.id,
+        eq.type,
+      ]);
     }
   }
   logger.info("Seeded: Production Lines & Equipment");
 }
 
 async function seedShifts(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>(
-    "SELECT COUNT(*) FROM shifts",
-  );
+  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM shifts");
   if (Number(count) > 0) return;
 
   const today = new Date().toISOString().split("T")[0];
@@ -240,10 +231,11 @@ async function seedShifts(client: TransactionClient) {
   ];
 
   for (const s of shifts) {
-    await client.execute(
-      "INSERT INTO shifts (name, start_time, end_time) VALUES ($1, $2, $3)",
-      [s.name, `${today} ${s.start}`, `${today} ${s.end}`],
-    );
+    await client.execute("INSERT INTO shifts (name, start_time, end_time) VALUES ($1, $2, $3)", [
+      s.name,
+      `${today} ${s.start}`,
+      `${today} ${s.end}`,
+    ]);
   }
   logger.info("Seeded: Shifts");
 }
@@ -262,44 +254,34 @@ async function seedSystemPreferences(client: TransactionClient) {
   ];
 
   for (const p of prefs) {
-    await client.execute(
-      "INSERT INTO system_preferences (key, value) VALUES ($1, $2)",
-      [p.key, p.value],
-    );
+    await client.execute("INSERT INTO system_preferences (key, value) VALUES ($1, $2)", [
+      p.key,
+      p.value,
+    ]);
   }
   logger.info("Seeded: System Preferences");
 }
 
 async function seedSampleTypes(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>(
-    "SELECT COUNT(*) FROM sample_types",
-  );
+  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM sample_types");
   if (Number(count) > 0) return;
 
   for (const st of SAMPLE_TYPES) {
-    await client.execute(
-      "INSERT INTO sample_types (name, category) VALUES ($1, $2)",
-      [st.name, st.category],
-    );
+    await client.execute("INSERT INTO sample_types (name, category) VALUES ($1, $2)", [
+      st.name,
+      st.category,
+    ]);
   }
   logger.info("Seeded: Sample Types");
 }
 
 async function seedSamples(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>(
-    "SELECT COUNT(*) FROM samples",
-  );
+  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM samples");
   if (Number(count) > 0) return;
 
-  const line = await client.queryOne<{ id: number }>(
-    "SELECT id FROM production_lines LIMIT 1",
-  );
-  const equip = await client.queryOne<{ id: number }>(
-    "SELECT id FROM equipment LIMIT 1",
-  );
-  const shift = await client.queryOne<{ id: number }>(
-    "SELECT id FROM shifts LIMIT 1",
-  );
+  const line = await client.queryOne<{ id: number }>("SELECT id FROM production_lines LIMIT 1");
+  const equip = await client.queryOne<{ id: number }>("SELECT id FROM equipment LIMIT 1");
+  const shift = await client.queryOne<{ id: number }>("SELECT id FROM shifts LIMIT 1");
 
   if (line && equip && shift) {
     await client.execute(
@@ -341,9 +323,7 @@ export async function seedDatabase() {
     });
     logger.info("Database seeding completed successfully");
   } catch (err) {
-    logger.error(
-      `DB SEED FAILED: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    logger.error(`DB SEED FAILED: ${err instanceof Error ? err.message : String(err)}`);
     throw err;
   }
 }

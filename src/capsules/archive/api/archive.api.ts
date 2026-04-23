@@ -3,12 +3,7 @@ import { api } from "../../../core/http/client";
 /**
  * Registry sections available in the Zenthar Archive.
  */
-export type ArchiveSection =
-  | "samples"
-  | "tests"
-  | "certificates"
-  | "instruments"
-  | "audit";
+export type ArchiveSection = "samples" | "tests" | "certificates" | "instruments" | "audit";
 
 interface ArchiveResponse<T> {
   success: boolean;
@@ -26,10 +21,7 @@ export const ArchiveApi = {
    * * @param section - The archive category (e.g., 'samples').
    * @param filters - Key-value pairs for filtering (dates, batch numbers, analysts).
    */
-  search: async <T = any>(
-    section: ArchiveSection,
-    filters: Record<string, any>,
-  ): Promise<T[]> => {
+  search: async <T = any>(section: ArchiveSection, filters: Record<string, any>): Promise<T[]> => {
     // Clean up empty filters to keep the URL concise
     const cleanFilters = Object.fromEntries(
       Object.entries(filters).filter(([_, v]) => v != null && v !== ""),

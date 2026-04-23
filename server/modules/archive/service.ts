@@ -27,9 +27,7 @@ function normalizePagination(filters: BaseFilters, maxLimit = 100) {
   const rawOffset = Number(filters.offset);
 
   return {
-    limit: Number.isFinite(rawLimit)
-      ? Math.min(Math.max(rawLimit, 1), maxLimit)
-      : 50,
+    limit: Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), maxLimit) : 50,
 
     offset: Number.isFinite(rawOffset) ? Math.max(rawOffset, 0) : 0,
   };
@@ -57,14 +55,8 @@ export function buildQuery(config: QueryConfig, filters: Record<string, any>) {
     try {
       result = config.filters[key](value);
 
-      if (
-        !result ||
-        typeof result.clause !== "string" ||
-        !Array.isArray(result.params)
-      ) {
-        throw new Error(
-          `Filter '${key}' must return { clause: string, params: any[] }`,
-        );
+      if (!result || typeof result.clause !== "string" || !Array.isArray(result.params)) {
+        throw new Error(`Filter '${key}' must return { clause: string, params: any[] }`);
       }
 
       const expected = (result.clause.match(/\?/g) || []).length;

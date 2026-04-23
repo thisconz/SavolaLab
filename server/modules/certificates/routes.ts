@@ -45,8 +45,7 @@ app.get("/:id", authenticateToken, async (c) => {
       [id],
     );
 
-    if (!cert)
-      return c.json({ success: false, error: "Certificate not found" }, 404);
+    if (!cert) return c.json({ success: false, error: "Certificate not found" }, 404);
 
     // Find samples matching this batch
     const samples = await db.query(
@@ -104,8 +103,7 @@ app.get("/:id/pdf", authenticateToken, async (c) => {
       [id],
     );
 
-    if (!cert)
-      return c.json({ success: false, error: "Certificate not found" }, 404);
+    if (!cert) return c.json({ success: false, error: "Certificate not found" }, 404);
 
     const tests = await db.query<any>(
       `
@@ -167,18 +165,11 @@ app.put(
     if (!id) return c.json({ success: false, error: "Invalid ID" }, 400);
 
     try {
-      const cert = await db.queryOne(
-        "SELECT * FROM certificates WHERE id = $1",
-        [id],
-      );
-      if (!cert)
-        return c.json({ success: false, error: "Certificate not found" }, 404);
+      const cert = await db.queryOne("SELECT * FROM certificates WHERE id = $1", [id]);
+      if (!cert) return c.json({ success: false, error: "Certificate not found" }, 404);
 
       if ((cert as any).status === "RELEASED") {
-        return c.json(
-          { success: false, error: "Certificate already released" },
-          400,
-        );
+        return c.json({ success: false, error: "Certificate already released" }, 400);
       }
 
       await db.execute(

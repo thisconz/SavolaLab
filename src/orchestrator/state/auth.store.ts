@@ -11,46 +11,53 @@ export interface AuthUser extends User {
 
 interface AuthState {
   currentUser: AuthUser | null;
-  /** In-memory only — NOT persisted; httpOnly cookie handles continuity. */
   token: string | null;
-
-  /** Derived at runtime — never persisted independently to avoid desync. */
-  readonly isAuthenticated: boolean;
 
   login: (user: AuthUser, token?: string) => void;
   logout: () => void;
   setToken: (token: string) => void;
 }
 
+/**
+ * Derived state should NEVER live inside Zustand store.
+ * Compute it at usage site:
+ *   const isAuthenticated = useAuthStore(s => !!s.currentUser)
+ */
 export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
-      (set, get) => ({
+      (set) => ({
         currentUser: null,
         token: null,
 
-        // Derived — computed lazily so it's always consistent with currentUser
-        get isAuthenticated() {
-          return get().currentUser !== null;
-        },
-
         login: (user, token) =>
-          set({ currentUser: user, token: token ?? null }, false, "auth/login"),
+          set(
+            {
+              currentUser: user,
+              token: token ?? null,
+            },
+            false,
+            "auth/login",
+          ),
 
         logout: () =>
-          set({ currentUser: null, token: null }, false, "auth/logout"),
+          set(
+            {
+              currentUser: null,
+              token: null,
+            },
+            false,
+            "auth/logout",
+          ),
 
         setToken: (token) => set({ token }, false, "auth/setToken"),
       }),
       {
         name: "zenthar-auth-storage",
         storage: createJSONStorage(() => safeLocalStorage),
-        /**
-         * Only persist the user identity, never the access token.
-         * isAuthenticated is intentionally excluded — it's derived from currentUser.
-         * The httpOnly refresh-token cookie handles silent session revival.
-         */
-        partialize: (state): Pick<AuthState, "currentUser"> => ({
+
+        // Only persist identity, not sensitive session tokens
+        partialize: (state) => ({
           currentUser: state.currentUser,
         }),
       },

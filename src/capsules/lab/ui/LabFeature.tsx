@@ -24,13 +24,10 @@ import { PriorityWidget } from "../../dashboard/ui/PriorityWidget";
 import clsx from "@/src/lib/clsx";
 
 export const LabFeature: React.FC = memo(() => {
-  const { samples, loading, error, refresh, lastUpdated, isRefreshing } =
-    useLabSamples();
+  const { samples, loading, error, refresh, lastUpdated, isRefreshing } = useLabSamples();
 
   const [selectedSampleId, setSelectedSampleId] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<"queue" | "details" | "bench">(
-    "queue",
-  );
+  const [viewMode, setViewMode] = useState<"queue" | "details" | "bench">("queue");
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
   const selectedSample = useMemo(
@@ -39,9 +36,7 @@ export const LabFeature: React.FC = memo(() => {
   );
 
   const activeCount = useMemo(
-    () =>
-      samples?.filter((s) => s.status === ("TESTING" as SampleStatus)).length ||
-      0,
+    () => samples?.filter((s) => s.status === ("TESTING" as SampleStatus)).length || 0,
     [samples],
   );
 
@@ -97,11 +92,7 @@ export const LabFeature: React.FC = memo(() => {
               color="text-brand-primary"
             />
           </div>
-          <LabButton
-            variant="primary"
-            icon={Plus}
-            onClick={() => setIsRegisterModalOpen(true)}
-          >
+          <LabButton variant="primary" icon={Plus} onClick={() => setIsRegisterModalOpen(true)}>
             Register Sample
           </LabButton>
         </div>
@@ -173,9 +164,7 @@ export const LabFeature: React.FC = memo(() => {
 // Micro-components
 // ─────────────────────────────────────────────
 
-const WorkspaceTransition: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
+const WorkspaceTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.99, y: 10 }}
     animate={{ opacity: 1, scale: 1, y: 0 }}

@@ -1,16 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import {
-  X,
-  LogOut,
-  ChevronRight,
-  Fingerprint,
-  ShieldCheck,
-  Globe,
-  Radio,
-  Zap,
-} from "lucide-react";
+import { X, LogOut, ChevronRight, Fingerprint, ShieldCheck, Globe, Radio, Zap } from "lucide-react";
 import { useAuthStore } from "../../../orchestrator/state/auth.store";
 import { useAuthFlow } from "../hooks/useAuthFlow";
 import clsx from "@/src/lib/clsx";
@@ -20,10 +11,7 @@ interface QuickSwitchProps {
   onClose: () => void;
 }
 
-export const QuickSwitch: React.FC<QuickSwitchProps> = ({
-  isOpen,
-  onClose,
-}) => {
+export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => {
   const { currentUser, logout } = useAuthStore();
   const { users, handleUserSelect } = useAuthFlow();
   const isBrowser = typeof window !== "undefined";
@@ -31,9 +19,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({
   // Filter out current user from the list if you want a "Switch To" focus,
   // or keep them to show status. Here we keep them but highlight differently.
   const sortedUsers = useMemo(() => {
-    return [...users].sort((a, b) =>
-      String(a.id) === String(currentUser?.id) ? -1 : 1,
-    );
+    return [...users].sort((a, b) => (String(a.id) === String(currentUser?.id) ? -1 : 1));
   }, [users, currentUser]);
 
   if (!isOpen || typeof document === "undefined") return null;
@@ -103,9 +89,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({
                 {sortedUsers.map((user, index) => {
                   const isActive = String(currentUser?.id) === String(user.id);
                   const userRole =
-                    typeof user.role === "string"
-                      ? user.role
-                      : (user.role as any)?.name;
+                    typeof user.role === "string" ? user.role : (user.role as any)?.name;
 
                   return (
                     <motion.button

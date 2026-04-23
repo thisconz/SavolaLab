@@ -1,4 +1,6 @@
 /**
+ * server/modules/auth/service.ts
+ *
  * Handles password hashing, JWT generation/verification,
  * OTP lifecycle, and user authentication flow.
  *
@@ -26,10 +28,7 @@ export async function hashPassword(password: string): Promise<string> {
   });
 }
 
-export async function verifyPassword(
-  hash: string,
-  password: string,
-): Promise<boolean> {
+export async function verifyPassword(hash: string, password: string): Promise<boolean> {
   try {
     return await argon2.verify(hash, password);
   } catch {
@@ -65,18 +64,11 @@ export interface JWTPayload {
 }
 
 function signPayload(header: string, body: string): string {
-  return createHmac("sha256", getSecret())
-    .update(`${header}.${body}`)
-    .digest("base64url");
+  return createHmac("sha256", getSecret()).update(`${header}.${body}`).digest("base64url");
 }
 
-function buildJWT(
-  payload: Omit<JWTPayload, "iat" | "exp" | "jti">,
-  expiresInSec: number,
-): string {
-  const header = Buffer.from(
-    JSON.stringify({ alg: "HS256", typ: "JWT" }),
-  ).toString("base64url");
+function buildJWT(payload: Omit<JWTPayload, "iat" | "exp" | "jti">, expiresInSec: number): string {
+  const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
   const body = Buffer.from(
     JSON.stringify({
       ...payload,
@@ -148,9 +140,7 @@ export function verifyToken(token: string): Record<string, any> | null {
     if (parts.length !== 3) return null;
     const [header, body, sig] = parts;
     if (!verifySignature(header, body, sig)) return null;
-    const payload = JSON.parse(
-      Buffer.from(body, "base64url").toString(),
-    ) as JWTPayload;
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as JWTPayload;
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
     if (payload.type !== "access") return null;
     return payload;
@@ -165,9 +155,7 @@ export function verifyRefreshToken(token: string): JWTPayload | null {
     if (parts.length !== 3) return null;
     const [header, body, sig] = parts;
     if (!verifySignature(header, body, sig)) return null;
-    const payload = JSON.parse(
-      Buffer.from(body, "base64url").toString(),
-    ) as JWTPayload;
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as JWTPayload;
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
     if (payload.type !== "refresh") return null;
     return payload;
@@ -248,11 +236,7 @@ export const AuthService = {
     return (first + last).toUpperCase();
   },
 
-  verifyEmployee: async (
-    employeeNumber: string,
-    nationalId: string,
-    dob: string,
-  ) => {
+  verifyEmployee: async (employeeNumber: string, nationalId: string, dob: string) => {
     const employee = await db.queryOne(
       `SELECT * FROM employees WHERE employee_number = $1 AND national_id = $2 AND dob = $3`,
       [employeeNumber, nationalId, dob],
@@ -266,12 +250,10 @@ export const AuthService = {
       );
       return null;
     }
-    const existingUser = await db.queryOne(
-      "SELECT * FROM users WHERE employee_number = $1",
-      [employeeNumber],
-    );
-    if (existingUser?.status === "ACTIVE")
-      throw new Error("Account already active. Please login.");
+    const existingUser = await db.queryOne("SELECT * FROM users WHERE employee_number = $1", [
+      employeeNumber,
+    ]);
+    if (existingUser?.status === "ACTIVE") throw new Error("Account already active. Please login.");
 
     const otp = generateOtp();
     await storeOtp(employeeNumber, otp, 5);
@@ -285,10 +267,7 @@ export const AuthService = {
     return { employee_number: employeeNumber };
   },
 
-  confirmOtp: async (
-    employeeNumber: string,
-    code: string,
-  ): Promise<boolean> => {
+  confirmOtp: async (employeeNumber: string, code: string): Promise<boolean> => {
     const valid = await verifyOtp(employeeNumber, code);
     await AuditService.createLog(
       employeeNumber,
@@ -328,11 +307,7 @@ export const AuthService = {
     employeeNumber: string,
     password?: string,
     pin?: string,
-  ): Promise<{
-    token: string;
-    refreshToken: string;
-    user: UserPayload;
-  } | null> => {
+  ): Promise<{ token: string; refreshToken: string; user: UserPayload } | null> => {
     try {
       const row = await db.queryOne(
         `
@@ -350,18 +325,13 @@ export const AuthService = {
 
       const now = new Date();
       if (row.locked_until && new Date(row.locked_until) > now) {
-        const mins = Math.ceil(
-          (new Date(row.locked_until).getTime() - now.getTime()) / 60_000,
-        );
-        throw new Error(
-          `Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`,
-        );
+        const mins = Math.ceil((new Date(row.locked_until).getTime() - now.getTime()) / 60_000);
+        throw new Error(`Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`);
       }
 
       let isValid = false;
       if (password) isValid = await verifyPassword(row.password_hash, password);
-      else if (pin && row.pin_hash)
-        isValid = await verifyPassword(row.pin_hash, pin);
+      else if (pin && row.pin_hash) isValid = await verifyPassword(row.pin_hash, pin);
 
       if (!isValid) {
         const attempts = (row.failed_attempts || 0) + 1;
@@ -377,14 +347,12 @@ export const AuthService = {
             "Locked after 5 failed attempts",
             "127.0.0.1",
           );
-          throw new Error(
-            "Account locked for 30 minutes after 5 failed attempts.",
-          );
+          throw new Error("Account locked for 30 minutes after 5 failed attempts.");
         }
-        await db.execute(
-          "UPDATE users SET failed_attempts=$1 WHERE employee_number=$2",
-          [attempts, employeeNumber],
-        );
+        await db.execute("UPDATE users SET failed_attempts=$1 WHERE employee_number=$2", [
+          attempts,
+          employeeNumber,
+        ]);
         await AuditService.createLog(
           employeeNumber,
           "LOGIN_FAILED",
@@ -401,24 +369,14 @@ export const AuthService = {
 
       const payload = mapToPayload(row);
       const token = signToken(payload as any);
-      const refresh = signRefreshToken({
-        sub: employeeNumber,
-        employee_number: employeeNumber,
-      });
-      await AuditService.createLog(
-        employeeNumber,
-        "LOGIN_SUCCESS",
-        "User logged in",
-        "127.0.0.1",
-      );
+      const refresh = signRefreshToken({ sub: employeeNumber, employee_number: employeeNumber });
+      await AuditService.createLog(employeeNumber, "LOGIN_SUCCESS", "User logged in", "127.0.0.1");
       return { token, refreshToken: refresh, user: payload };
     } catch (err: any) {
-      if (err.message?.includes("locked") || err.message?.includes("Invalid"))
-        throw err;
+      if (err.message?.includes("locked") || err.message?.includes("Invalid")) throw err;
       if (err.message === "Database not connected") {
         const mockUser =
-          mockUsers().find((u) => u.employee_number === employeeNumber) ??
-          mockUsers()[0];
+          mockUsers().find((u) => u.employee_number === employeeNumber) ?? mockUsers()[0];
         const token = signToken(mockUser as any);
         const refresh = signRefreshToken({
           sub: mockUser.employee_number,
@@ -430,9 +388,7 @@ export const AuthService = {
     }
   },
 
-  refreshAccess: async (
-    refreshToken: string,
-  ): Promise<{ token: string } | null> => {
+  refreshAccess: async (refreshToken: string): Promise<{ token: string } | null> => {
     const payload = verifyRefreshToken(refreshToken);
     if (!payload) return null;
     try {
@@ -484,12 +440,7 @@ function mockUsers(): UserPayload[] {
       name: "Administrator",
       role: "ADMIN",
       dept: "IT",
-      permissions: {
-        view_results: 1,
-        input_data: 1,
-        edit_formulas: 1,
-        change_specs: 1,
-      },
+      permissions: { view_results: 1, input_data: 1, edit_formulas: 1, change_specs: 1 },
       initials: "AD",
     },
     {
@@ -498,12 +449,7 @@ function mockUsers(): UserPayload[] {
       name: "Lab Chemist",
       role: "CHEMIST",
       dept: "Quality Control",
-      permissions: {
-        view_results: 1,
-        input_data: 1,
-        edit_formulas: 0,
-        change_specs: 0,
-      },
+      permissions: { view_results: 1, input_data: 1, edit_formulas: 0, change_specs: 0 },
       initials: "LC",
     },
   ];

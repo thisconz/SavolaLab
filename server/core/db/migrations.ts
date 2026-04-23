@@ -395,7 +395,7 @@ export const migrations: Migration[] = [
         -- Performance index for unread count queries
         CREATE INDEX IF NOT EXISTS idx_notifications_unread
           ON notifications(employee_number, is_read)
-          WHERE is_read = FALSE;
+          WHERE is_read = 0;
       `);
     },
   },

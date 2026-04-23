@@ -19,9 +19,7 @@ let useMock =
   connectionString.includes("placeholder");
 
 if (useMock) {
-  logger.warn(
-    "⚠️  DATABASE_URL not set or invalid — using local PGlite database",
-  );
+  logger.warn("⚠️  DATABASE_URL not set or invalid — using local PGlite database");
   logger.warn(`    PGlite data dir: ${PGLITE_DATA_DIR}`);
 }
 
@@ -44,8 +42,7 @@ class MockPool {
   }
   async connect() {
     return {
-      query: (text: string, params?: any[]) =>
-        getPGLiteInstance().query(text, params),
+      query: (text: string, params?: any[]) => getPGLiteInstance().query(text, params),
       release: () => {},
     };
   }
@@ -98,8 +95,7 @@ function isConnectionError(err: any): boolean {
     "database",
   ];
   return (
-    connectionCodes.includes(err?.code) ||
-    connectionMessages.some((m) => err?.message?.includes(m))
+    connectionCodes.includes(err?.code) || connectionMessages.some((m) => err?.message?.includes(m))
   );
 }
 
@@ -117,21 +113,15 @@ export const db: DatabaseClient = {
       const start = performance.now();
       const { rows } = await pool.query(sql, params);
       const duration = performance.now() - start;
-      if (duration > 50)
-        logger.warn(`Slow query: ${sql.trim()} (${duration.toFixed(2)}ms)`);
+      if (duration > 50) logger.warn(`Slow query: ${sql.trim()} (${duration.toFixed(2)}ms)`);
       return rows as T[];
     } catch (err: any) {
       if (isConnectionError(err)) {
-        logger.warn(
-          "Postgres unavailable, falling back to PGlite for this query",
-        );
+        logger.warn("Postgres unavailable, falling back to PGlite for this query");
         const { rows } = await getPGLiteInstance().query(sql, params);
         return rows as T[];
       }
-      logger.error(
-        { errCode: err?.code, errMsg: err?.message, sql },
-        "DB Query Error",
-      );
+      logger.error({ errCode: err?.code, errMsg: err?.message, sql }, "DB Query Error");
       throw err;
     }
   },
@@ -155,9 +145,7 @@ export const db: DatabaseClient = {
       await pool.query(sql, params);
     } catch (err: any) {
       if (isConnectionError(err)) {
-        logger.warn(
-          "Postgres unavailable, falling back to PGlite for this execute",
-        );
+        logger.warn("Postgres unavailable, falling back to PGlite for this execute");
         const pglite = getPGLiteInstance();
         if (params.length > 0) {
           await pglite.query(sql, params);
@@ -166,17 +154,12 @@ export const db: DatabaseClient = {
         }
         return;
       }
-      logger.error(
-        { errCode: err?.code, errMsg: err?.message, query: sql },
-        "DB Execute Error",
-      );
+      logger.error({ errCode: err?.code, errMsg: err?.message, query: sql }, "DB Execute Error");
       throw err;
     }
   },
 
-  async transaction<T>(
-    fn: (client: TransactionClient) => Promise<T>,
-  ): Promise<T> {
+  async transaction<T>(fn: (client: TransactionClient) => Promise<T>): Promise<T> {
     if (useMock) {
       const pglite = getPGLiteInstance();
       return pglite.transaction(async (tx) => {
@@ -185,10 +168,7 @@ export const db: DatabaseClient = {
             const { rows } = await tx.query(sql, params);
             return rows as T[];
           },
-          async queryOne<T = any>(
-            sql: string,
-            params: any[] = [],
-          ): Promise<T | null> {
+          async queryOne<T = any>(sql: string, params: any[] = []): Promise<T | null> {
             const { rows } = await tx.query(sql, params);
             return (rows[0] as T) || null;
           },
@@ -214,17 +194,11 @@ export const db: DatabaseClient = {
         const pglite = getPGLiteInstance();
         return pglite.transaction(async (tx) => {
           const wrappedClient: TransactionClient = {
-            async query<T = any>(
-              sql: string,
-              params: any[] = [],
-            ): Promise<T[]> {
+            async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
               const { rows } = await tx.query(sql, params);
               return rows as T[];
             },
-            async queryOne<T = any>(
-              sql: string,
-              params: any[] = [],
-            ): Promise<T | null> {
+            async queryOne<T = any>(sql: string, params: any[] = []): Promise<T | null> {
               const { rows } = await tx.query(sql, params);
               return (rows[0] as T) || null;
             },
@@ -239,10 +213,7 @@ export const db: DatabaseClient = {
           return fn(wrappedClient);
         });
       }
-      logger.error(
-        { errCode: err?.code, errMsg: err?.message },
-        "DB Transaction Connect Error",
-      );
+      logger.error({ errCode: err?.code, errMsg: err?.message }, "DB Transaction Connect Error");
       throw err;
     }
 
@@ -251,10 +222,7 @@ export const db: DatabaseClient = {
         const { rows } = await client.query(sql, params);
         return rows;
       },
-      async queryOne<T = any>(
-        sql: string,
-        params: any[] = [],
-      ): Promise<T | null> {
+      async queryOne<T = any>(sql: string, params: any[] = []): Promise<T | null> {
         const { rows } = await client.query(sql, params);
         return rows[0] || null;
       },
@@ -277,6 +245,4 @@ export const db: DatabaseClient = {
   },
 };
 
-logger.info(
-  `PostgreSQL client initialised (mode: ${useMock ? "PGlite" : "PostgreSQL"})`,
-);
+logger.info(`PostgreSQL client initialised (mode: ${useMock ? "PGlite" : "PostgreSQL"})`);

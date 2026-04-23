@@ -15,13 +15,11 @@ interface CacheEntry<T> {
 }
 
 export class TTLCache {
-  private store = new Map<string, CacheEntry<any>>();
-  private cleanupInterval: ReturnType<typeof setInterval>;
+  private readonly store = new Map<string, CacheEntry<any>>();
+  private readonly cleanupInterval: ReturnType<typeof setInterval>;
 
   constructor(cleanupIntervalMs = 60_000) {
-    // Periodic sweep to free memory from stale keys
     this.cleanupInterval = setInterval(() => this.sweep(), cleanupIntervalMs);
-    // Don't block process exit
     if (this.cleanupInterval.unref) this.cleanupInterval.unref();
   }
 
@@ -41,47 +39,32 @@ export class TTLCache {
     return entry.value as T;
   }
 
-  /** Check existence without returning value */
   has(key: string): boolean {
     return this.get(key) !== undefined;
   }
 
-  /** Remove a key immediately */
   invalidate(key: string): void {
     this.store.delete(key);
   }
 
-  /** Remove all keys matching a prefix */
   invalidatePrefix(prefix: string): void {
     for (const key of this.store.keys()) {
       if (key.startsWith(prefix)) this.store.delete(key);
     }
   }
 
-  /** Clear everything */
   flush(): void {
     this.store.clear();
   }
 
-  /** Number of live (non-expired) entries */
   get size(): number {
     this.sweep();
     return this.store.size;
   }
 
-  /**
-   * Cache-aside helper.
-   * Returns cached value if present, otherwise calls `fn`, caches the
-   * result for `ttlMs` ms, and returns it.
-   */
-  async getOrSet<T>(
-    key: string,
-    fn: () => Promise<T>,
-    ttlMs: number,
-  ): Promise<T> {
+  async getOrSet<T>(key: string, fn: () => Promise<T>, ttlMs: number): Promise<T> {
     const cached = this.get<T>(key);
     if (cached !== undefined) return cached;
-
     const value = await fn();
     this.set(key, value, ttlMs);
     return value;
@@ -100,20 +83,13 @@ export class TTLCache {
   }
 }
 
-// ─────────────────────────────────────────────
-// Module-level singletons — one per domain
-// ─────────────────────────────────────────────
+// ─── Module-level singletons ─────────────────────────────────────────────────
 
-/** Cache for analytics aggregations (15-min TTL default) */
 export const analyticsCache = new TTLCache();
-
-/** Cache for telemetry metrics (30-sec TTL default) */
 export const telemetryCache = new TTLCache();
-
-/** Cache for slow operational queries (5-min TTL) */
 export const operationalCache = new TTLCache();
 
-// Named TTLs (ms)
+/** Named TTL durations (milliseconds) */
 export const TTL = {
   SECONDS_30: 30_000,
   MINUTES_1: 60_000,

@@ -18,9 +18,7 @@ export const NotificationApi = {
   },
 
   checkOverdue: async (): Promise<{ count: number }> => {
-    const res = await api.get<{ success: boolean; count: number }>(
-      "/notifications/overdue",
-    );
+    const res = await api.get<{ success: boolean; count: number }>("/notifications/overdue");
     return { count: res.count };
   },
 };

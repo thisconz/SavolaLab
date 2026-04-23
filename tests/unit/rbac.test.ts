@@ -19,9 +19,7 @@ d3("isTabAllowed — RBAC matrix", () => {
       "archive",
     ];
     allTabs.forEach((tab) => {
-      e3(isTabAllowed(Role.ADMIN, tab), `ADMIN should access ${tab}`).toBe(
-        true,
-      );
+      e3(isTabAllowed(Role.ADMIN, tab), `ADMIN should access ${tab}`).toBe(true);
     });
   });
 

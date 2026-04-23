@@ -6,7 +6,6 @@ export default defineConfig({
     environment: "happy-dom",
     globals: true,
     setupFiles: ["./tests/setup.ts"],
-    // Isolate each test file to prevent global state leaks
     isolate: true,
 
     coverage: {
@@ -14,12 +13,14 @@ export default defineConfig({
       reporter: ["text", "lcov", "html"],
       include: ["src/**/*.{ts,tsx}", "server/**/*.ts"],
       exclude: [
-        "src/lib/**", // thin re-exports only
-        "src/main.tsx", // bootstrap — no logic to test
+        "src/lib/**",
+        "src/main.tsx",
         "**/*.d.ts",
         "**/node_modules/**",
         "**/*.config.*",
-        "src/core/types/**", // type-only files
+        "src/core/types/**",
+        "**/tests/e2e/**",
+        "**/*.spec.ts",
       ],
       thresholds: {
         lines: 60,
@@ -29,6 +30,7 @@ export default defineConfig({
       },
     },
   },
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),

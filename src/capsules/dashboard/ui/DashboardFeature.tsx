@@ -1,11 +1,4 @@
-import React, {
-  memo,
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-} from "react";
+import React, { memo, useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   LayoutDashboard,
   Bell,
@@ -39,14 +32,8 @@ import { QCTrendsWidget } from "./QCTrendsWidget";
 import { PriorityWidget } from "./PriorityWidget";
 import { EfficiencyWidget } from "./EfficiencyWidget";
 import { PlantOverviewWidget } from "./PlantOverviewWidget";
-import {
-  MetricCard,
-  MetricCardSkeleton,
-} from "../../../shared/components/MetricCard";
-import {
-  ChartSkeleton,
-  SampleQueueSkeleton,
-} from "../../../shared/components/Skeletons";
+import { MetricCard, MetricCardSkeleton } from "../../../shared/components/MetricCard";
+import { ChartSkeleton, SampleQueueSkeleton } from "../../../shared/components/Skeletons";
 
 // ─────────────────────────────────────────────
 // Date range selector
@@ -73,10 +60,7 @@ const DateRangeSelector: React.FC<{
       >
         <Calendar size={12} />
         {DATE_RANGE_LABELS[value]}
-        <ChevronDown
-          size={10}
-          className={clsx("transition-transform", open && "rotate-180")}
-        />
+        <ChevronDown size={10} className={clsx("transition-transform", open && "rotate-180")} />
       </button>
       <AnimatePresence>
         {open && (
@@ -288,17 +272,13 @@ export const DashboardFeature: React.FC = memo(() => {
         {/* Metric cards — clickable to navigate */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {loading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <MetricCardSkeleton key={i} />
-            ))
+            Array.from({ length: 4 }).map((_, i) => <MetricCardSkeleton key={i} />)
           ) : (
             <>
               <MetricCard
                 label="Active Samples"
                 value={
-                  data.samples.filter(
-                    (s) => !["COMPLETED", "ARCHIVED"].includes(s.status),
-                  ).length
+                  data.samples.filter((s) => !["COMPLETED", "ARCHIVED"].includes(s.status)).length
                 }
                 trend={trends.active}
                 icon={FlaskConical}
@@ -431,8 +411,7 @@ export const DashboardFeature: React.FC = memo(() => {
 // ─────────────────────────────────────────────
 
 const AlertItem = ({ alert }: { alert: Notification }) => {
-  const isCritical =
-    alert.type.includes("FAILURE") || alert.type.includes("CRITICAL");
+  const isCritical = alert.type.includes("FAILURE") || alert.type.includes("CRITICAL");
   return (
     <div className="flex gap-4 p-4 rounded-xl border border-brand-sage/5 hover:border-brand-primary/20 hover:bg-(--color-zenthar-graphite)/50 transition-all group relative overflow-hidden cursor-default">
       <div
@@ -449,11 +428,7 @@ const AlertItem = ({ alert }: { alert: Notification }) => {
             : "bg-(--color-zenthar-graphite) text-brand-primary",
         )}
       >
-        {isCritical ? (
-          <XCircle className="w-4 h-4" />
-        ) : (
-          <AlertCircle className="w-4 h-4" />
-        )}
+        {isCritical ? <XCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex justify-between items-start mb-1">
@@ -511,9 +486,7 @@ function computeTrends(samples: Sample[], tests: TestResult[]) {
     return `${d > 0 ? "+" : ""}${d}%`;
   };
 
-  const active = samples.filter(
-    (s) => !["COMPLETED", "ARCHIVED"].includes(s.status),
-  );
+  const active = samples.filter((s) => !["COMPLETED", "ARCHIVED"].includes(s.status));
   const pend = tests.filter((t) => t.status === "PENDING");
   const stat = samples.filter((s) => s.priority === "STAT");
 

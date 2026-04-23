@@ -62,8 +62,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
   }, [on, fetchIntel]);
 
   const statusVariant = (s: string): "success" | "warning" | "error" | "info" =>
-    (({ Running: "success", Warning: "warning", Stopped: "error" })[s] ??
-      "info") as any;
+    (({ Running: "success", Warning: "warning", Stopped: "error" })[s] ?? "info") as any;
 
   if (loading || !data) {
     return (
@@ -78,8 +77,7 @@ export const IntelligenceFeature: React.FC = memo(() => {
       <div className="flex items-center justify-between px-4 mb-4 shrink-0">
         <div>
           <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
-            <Factory className="w-5 h-5 text-brand-primary" /> Plant
-            Intelligence
+            <Factory className="w-5 h-5 text-brand-primary" /> Plant Intelligence
           </h2>
           <div className="flex items-center gap-2 mt-0.5">
             <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">

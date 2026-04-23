@@ -76,12 +76,7 @@ app.post("/:id/review", authenticateToken, async (c) => {
     const performerId = user.employee_number;
     const role = user.role;
 
-    await TestService.reviewTest(
-      testId as string,
-      parsedBody,
-      performerId,
-      role,
-    );
+    await TestService.reviewTest(testId as string, parsedBody, performerId, role);
     return c.json({ success: true });
   } catch (err: any) {
     logger.error({ reqId, err }, "Error reviewing test");
@@ -103,8 +98,7 @@ app.delete("/:id", authenticateToken, async (c) => {
     return c.json(
       {
         success: false,
-        error:
-          "Test results cannot be deleted. Append-only behavior is enforced.",
+        error: "Test results cannot be deleted. Append-only behavior is enforced.",
       },
       403,
     );

@@ -60,12 +60,7 @@ export const AuditService = {
   },
 
   // Create a new audit log
-  createLog: async (
-    employeeNumber: string,
-    action: string,
-    details: string,
-    ip: string,
-  ) => {
+  createLog: async (employeeNumber: string, action: string, details: string, ip: string) => {
     if (!employeeNumber || !action) {
       throw new Error("Audit log requires employeeNumber and action");
     }

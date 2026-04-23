@@ -47,8 +47,7 @@ export const RightRail: FC = memo(() => {
       const data = (res as any)?.data ?? res;
       setTelemetry(data);
     } catch (err: any) {
-      if (err.name !== "AbortError")
-        console.error("Telemetry fetch failed", err);
+      if (err.name !== "AbortError") console.error("Telemetry fetch failed", err);
     } finally {
       setTimeout(() => setIsSyncing(false), 600);
     }
@@ -57,10 +56,7 @@ export const RightRail: FC = memo(() => {
   useEffect(() => {
     const controller = new AbortController();
     fetchTelemetry(controller.signal);
-    const interval = setInterval(
-      () => fetchTelemetry(controller.signal),
-      30_000,
-    );
+    const interval = setInterval(() => fetchTelemetry(controller.signal), 30_000);
     return () => {
       controller.abort();
       clearInterval(interval);
@@ -77,13 +73,7 @@ export const RightRail: FC = memo(() => {
         {/* ── SECTION 1: REALTIME STATUS ── */}
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-3">
-            <Radio
-              size={14}
-              className={clsx(
-                "text-brand-primary",
-                isSyncing && "animate-pulse",
-              )}
-            />
+            <Radio size={14} className={clsx("text-brand-primary", isSyncing && "animate-pulse")} />
             <div>
               <h3 className="text-[10px] font-display font-bold text-(--color-zenthar-text-primary) uppercase tracking-[0.3em]">
                 Live_Channel
@@ -126,9 +116,7 @@ export const RightRail: FC = memo(() => {
               ) : (
                 notifications
                   .slice(0, 8)
-                  .map((notif: any) => (
-                    <NotificationItem key={notif.id} {...notif} />
-                  ))
+                  .map((notif: any) => <NotificationItem key={notif.id} {...notif} />)
               )}
             </AnimatePresence>
           </div>
@@ -138,10 +126,7 @@ export const RightRail: FC = memo(() => {
         <div className="flex flex-col gap-6 pt-6 border-t border-(--color-zenthar-steel)">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-3">
-              <Activity
-                size={14}
-                className="text-(--color-zenthar-text-muted)"
-              />
+              <Activity size={14} className="text-(--color-zenthar-text-muted)" />
               <span className="text-[10px] font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.3em]">
                 Diagnostics
               </span>
@@ -153,10 +138,7 @@ export const RightRail: FC = memo(() => {
             >
               <RefreshCw
                 size={12}
-                className={clsx(
-                  "text-(--color-zenthar-text-muted)",
-                  isSyncing && "animate-spin",
-                )}
+                className={clsx("text-(--color-zenthar-text-muted)", isSyncing && "animate-spin")}
               />
             </button>
           </div>
@@ -168,11 +150,7 @@ export const RightRail: FC = memo(() => {
                 <div className="flex items-center gap-2">
                   <Database
                     size={12}
-                    className={
-                      telemetry.dbSync === "ACTIVE"
-                        ? "text-emerald-400"
-                        : "text-red-400"
-                    }
+                    className={telemetry.dbSync === "ACTIVE" ? "text-emerald-400" : "text-red-400"}
                   />
                   <span className="text-[9px] font-black text-(--color-zenthar-text-muted) uppercase tracking-widest">
                     Database
@@ -181,9 +159,7 @@ export const RightRail: FC = memo(() => {
                 <span
                   className={clsx(
                     "text-[9px] font-black uppercase",
-                    telemetry.dbSync === "ACTIVE"
-                      ? "text-emerald-400"
-                      : "text-red-400",
+                    telemetry.dbSync === "ACTIVE" ? "text-emerald-400" : "text-red-400",
                   )}
                 >
                   {telemetry.dbSync}
@@ -229,19 +205,14 @@ export const RightRail: FC = memo(() => {
                       {telemetry.stats.samples.toLocaleString()}
                     </motion.h4>
                   </div>
-                  <Fingerprint
-                    size={18}
-                    className="text-(--color-zenthar-text-muted)"
-                  />
+                  <Fingerprint size={18} className="text-(--color-zenthar-text-muted)" />
                 </div>
                 <div className="grid grid-cols-2 gap-4 pt-3 border-t border-(--color-zenthar-steel) font-mono text-[10px]">
                   <div>
                     <p className="text-[6px] text-(--color-zenthar-text-muted) uppercase font-black">
                       Pending
                     </p>
-                    <p className="text-brand-primary font-bold">
-                      {telemetry.stats.pending} REQ
-                    </p>
+                    <p className="text-brand-primary font-bold">{telemetry.stats.pending} REQ</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[6px] text-(--color-zenthar-text-muted) uppercase font-black">
@@ -250,9 +221,7 @@ export const RightRail: FC = memo(() => {
                     <p
                       className={clsx(
                         "font-black",
-                        parseFloat(telemetry.errorRate) > 5
-                          ? "text-red-400"
-                          : "text-emerald-500",
+                        parseFloat(telemetry.errorRate) > 5 ? "text-red-400" : "text-emerald-500",
                       )}
                     >
                       {telemetry.errorRate}
@@ -264,11 +233,7 @@ export const RightRail: FC = memo(() => {
               {/* Status badges */}
               <div className="grid grid-cols-2 gap-3">
                 <StatusBadge icon={Lock} label="Cipher" value="AES_256" />
-                <StatusBadge
-                  icon={ShieldCheck}
-                  label="Uptime"
-                  value={telemetry.uptime}
-                />
+                <StatusBadge icon={ShieldCheck} label="Uptime" value={telemetry.uptime} />
               </div>
             </div>
           ) : (
@@ -304,12 +269,7 @@ const NotificationItem = memo(({ type, message }: any) => {
       )}
     >
       <div className="flex items-center gap-2 mb-1.5">
-        <div
-          className={clsx(
-            "w-1 h-1 rounded-full",
-            isErr ? "bg-red-500" : "bg-brand-primary",
-          )}
-        />
+        <div className={clsx("w-1 h-1 rounded-full", isErr ? "bg-red-500" : "bg-brand-primary")} />
         <span
           className={clsx(
             "text-[9px] font-black uppercase tracking-widest",
@@ -373,20 +333,14 @@ const StatusBadge = ({
       <p className="text-[7px] text-(--color-zenthar-text-secondary) font-black uppercase leading-none mb-0.5">
         {label}
       </p>
-      <p className="text-[9px] text-(--color-zenthar-text-primary) font-mono truncate">
-        {value}
-      </p>
+      <p className="text-[9px] text-(--color-zenthar-text-primary) font-mono truncate">{value}</p>
     </div>
   </div>
 );
 
 const EmptyState = () => (
   <div className="flex flex-col items-center py-16">
-    <ShieldCheck
-      size={36}
-      strokeWidth={1}
-      className="text-(--color-zenthar-steel) mb-3"
-    />
+    <ShieldCheck size={36} strokeWidth={1} className="text-(--color-zenthar-steel) mb-3" />
     <span className="text-[8px] font-black text-(--color-zenthar-text-muted) opacity-50 uppercase tracking-[.5em]">
       All_Clear
     </span>

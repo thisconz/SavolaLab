@@ -17,10 +17,7 @@ export const LabApi = {
     const validated = GetSamplesResponseSchema.safeParse(res);
 
     if (!validated.success) {
-      console.warn(
-        "[LabApi.getSamples] Zod validation failed:",
-        validated.error.flatten(),
-      );
+      console.warn("[LabApi.getSamples] Zod validation failed:", validated.error.flatten());
       throw new Error("Invalid API response schema");
     }
     return validated.data.data;
@@ -41,10 +38,7 @@ export const LabApi = {
     return api.post<{ id: number }>("/samples", sample);
   },
 
-  updateSample: async (
-    sampleId: number,
-    data: Partial<Sample>,
-  ): Promise<void> => {
+  updateSample: async (sampleId: number, data: Partial<Sample>): Promise<void> => {
     return api.put(`/samples/${sampleId}`, data);
   },
 
@@ -53,9 +47,7 @@ export const LabApi = {
   // ─────────────────────────────────────────────
 
   getTests: async (): Promise<TestResult[]> => {
-    const res = await api.get<{ success: boolean; data: TestResult[] }>(
-      `/tests?t=${Date.now()}`,
-    );
+    const res = await api.get<{ success: boolean; data: TestResult[] }>(`/tests?t=${Date.now()}`);
     return res.data ?? [];
   },
 
@@ -66,11 +58,7 @@ export const LabApi = {
     return res.data ?? [];
   },
 
-  getPreviousResults: async (
-    stage: string,
-    testType: string,
-    limit = 5,
-  ): Promise<TestResult[]> => {
+  getPreviousResults: async (stage: string, testType: string, limit = 5): Promise<TestResult[]> => {
     const res = await api.get<{ success: boolean; data: TestResult[] }>(
       `/samples/previous-results?stage=${encodeURIComponent(stage)}&testType=${encodeURIComponent(testType)}&limit=${limit}`,
     );
@@ -81,10 +69,7 @@ export const LabApi = {
     return api.post<{ id: number }>("/tests", data);
   },
 
-  updateTest: async (
-    testId: number,
-    data: Partial<TestResult>,
-  ): Promise<void> => {
+  updateTest: async (testId: number, data: Partial<TestResult>): Promise<void> => {
     return api.put(`/tests/${testId}`, data);
   },
 

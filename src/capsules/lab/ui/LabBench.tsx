@@ -43,10 +43,7 @@ interface TestCardProps {
   reviewComment: string;
   onValueChange: (val: string) => void;
   onNoteChange: (val: string) => void;
-  onColourParam: (
-    param: "absorbance" | "brix" | "cellLength",
-    val: string,
-  ) => void;
+  onColourParam: (param: "absorbance" | "brix" | "cellLength", val: string) => void;
   onReviewStart: () => void;
   onReviewCancel: () => void;
   onReviewComment: (val: string) => void;
@@ -77,21 +74,16 @@ const TestCard: React.FC<TestCardProps> = ({
   const [showHistory, setShowHistory] = useState(false);
   const rule = TEST_VALIDATION_RULES[test.test_type as TestType];
 
-  const canInput =
-    test.status === "PENDING" || test.status === "VALIDATING" || test.id < 0;
+  const canInput = test.status === "PENDING" || test.status === "VALIDATING" || test.id < 0;
   const canReview = test.status === "VALIDATING" && test.id > 0;
 
   const numVal = parseFloat(value);
   const hasValue = !isNaN(numVal) && value !== "";
   const rangePercent =
     rule && hasValue
-      ? Math.min(
-          100,
-          Math.max(0, ((numVal - rule.min) / (rule.max - rule.min)) * 100),
-        )
+      ? Math.min(100, Math.max(0, ((numVal - rule.min) / (rule.max - rule.min)) * 100))
       : null;
-  const isOutOfRange =
-    rule && hasValue && (numVal < rule.min || numVal > rule.max);
+  const isOutOfRange = rule && hasValue && (numVal < rule.min || numVal > rule.max);
 
   const statusConfig = {
     PENDING: { variant: "info" as const, label: "Pending" },
@@ -157,18 +149,10 @@ const TestCard: React.FC<TestCardProps> = ({
               onClick={() => setShowHistory((v) => !v)}
               className="text-[8px] font-bold text-brand-sage/60 hover:text-brand-primary uppercase tracking-widest flex items-center gap-1 transition-colors"
             >
-              History{" "}
-              {showHistory ? (
-                <ChevronUp size={10} />
-              ) : (
-                <ChevronDown size={10} />
-              )}
+              History {showHistory ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
             </button>
           )}
-          <StatusPill
-            label={statusConfig.label}
-            variant={statusConfig.variant}
-          />
+          <StatusPill label={statusConfig.label} variant={statusConfig.variant} />
         </div>
       </div>
 
@@ -186,13 +170,8 @@ const TestCard: React.FC<TestCardProps> = ({
                 Previous results for this stage:
               </span>
               {previousResults.slice(0, 5).map((r: any, i: number) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 text-[10px] font-mono"
-                >
-                  <span className="text-brand-primary font-bold">
-                    {r.raw_value}
-                  </span>
+                <div key={i} className="flex items-center gap-2 text-[10px] font-mono">
+                  <span className="text-brand-primary font-bold">{r.raw_value}</span>
                   <span className="text-brand-sage/50">{rule?.unit}</span>
                   <span className="text-brand-sage/30 text-[8px]">
                     {new Date(r.performed_at).toLocaleDateString()}
@@ -257,9 +236,7 @@ const TestCard: React.FC<TestCardProps> = ({
                   ) : (
                     <CheckCircle2 size={14} className="text-emerald-400" />
                   )}
-                  <span className="text-[9px] font-mono text-brand-sage/60">
-                    {rule?.unit}
-                  </span>
+                  <span className="text-[9px] font-mono text-brand-sage/60">{rule?.unit}</span>
                 </div>
               )}
             </div>
@@ -290,9 +267,7 @@ const TestCard: React.FC<TestCardProps> = ({
                 {hasValue ? value : "—"}
               </span>
               {rule && hasValue && (
-                <span className="text-[9px] font-mono text-brand-sage/50 ml-1">
-                  {rule.unit}
-                </span>
+                <span className="text-[9px] font-mono text-brand-sage/50 ml-1">{rule.unit}</span>
               )}
             </div>
             {rule && (
@@ -381,217 +356,201 @@ const TestCard: React.FC<TestCardProps> = ({
 // Main LabBench — keyboard fix applied
 // ─────────────────────────────────────────────
 
-export const LabBench: React.FC<LabBenchProps> = memo(
-  ({ sample, onComplete }) => {
-    const {
-      tests,
-      loading,
-      values,
-      notes,
-      errors,
-      colourParams,
-      previousResults,
-      isSaving,
-      handleValueChange,
-      handleNoteChange,
-      handleColourParamChange,
-      handleSave,
-      handleReview,
-    } = useLabBench(sample, onComplete);
+export const LabBench: React.FC<LabBenchProps> = memo(({ sample, onComplete }) => {
+  const {
+    tests,
+    loading,
+    values,
+    notes,
+    errors,
+    colourParams,
+    previousResults,
+    isSaving,
+    handleValueChange,
+    handleNoteChange,
+    handleColourParamChange,
+    handleSave,
+    handleReview,
+  } = useLabBench(sample, onComplete);
 
-    const [reviewState, setReviewState] = useState<{
-      id: number | null;
-      comment: string;
-    }>({ id: null, comment: "" });
-    const [showShortcuts, setShowShortcuts] = useState(false);
+  const [reviewState, setReviewState] = useState<{
+    id: number | null;
+    comment: string;
+  }>({ id: null, comment: "" });
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
-    const firstInputRef = useRef<HTMLInputElement>(null);
-    useEffect(() => {
-      if (!loading && tests.length > 0) {
-        setTimeout(() => firstInputRef.current?.focus(), 150);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!loading && tests.length > 0) {
+      setTimeout(() => firstInputRef.current?.focus(), 150);
+    }
+  }, [loading, tests.length]);
+
+  const hasErrors = Object.values(errors).some(Boolean);
+  const filledCount = tests.filter((t) => {
+    if (t.test_type === "Colour") {
+      const p = colourParams[t.id];
+      return p?.absorbance && p?.brix && p?.cellLength;
+    }
+    return (values[t.id] ?? "") !== "";
+  }).length;
+  const allFilled = tests.length > 0 && filledCount === tests.length;
+  const progress = tests.length > 0 ? (filledCount / tests.length) * 100 : 0;
+
+  // ─── FIX #04: proper dependency array prevents listener accumulation ─────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        if (!hasErrors && allFilled && !isSaving) handleSave();
       }
-    }, [loading, tests.length]);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [hasErrors, allFilled, isSaving, handleSave]); // ← FIX: was missing
 
-    const hasErrors = Object.values(errors).some(Boolean);
-    const filledCount = tests.filter((t) => {
-      if (t.test_type === "Colour") {
-        const p = colourParams[t.id];
-        return p?.absorbance && p?.brix && p?.cellLength;
+  return (
+    <LabPanel
+      title="Lab Bench"
+      icon={FlaskConical}
+      loading={loading}
+      actions={
+        <button
+          onClick={() => setShowShortcuts((v) => !v)}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-(--color-zenthar-steel) text-brand-sage hover:text-brand-primary text-[9px] font-bold uppercase tracking-widest transition-colors"
+        >
+          <Keyboard size={12} /> Shortcuts
+        </button>
       }
-      return (values[t.id] ?? "") !== "";
-    }).length;
-    const allFilled = tests.length > 0 && filledCount === tests.length;
-    const progress = tests.length > 0 ? (filledCount / tests.length) * 100 : 0;
-
-    // ─── FIX #04: proper dependency array prevents listener accumulation ─────
-    useEffect(() => {
-      const handler = (e: KeyboardEvent) => {
-        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-          if (!hasErrors && allFilled && !isSaving) handleSave();
-        }
-      };
-      window.addEventListener("keydown", handler);
-      return () => window.removeEventListener("keydown", handler);
-    }, [hasErrors, allFilled, isSaving, handleSave]); // ← FIX: was missing
-
-    return (
-      <LabPanel
-        title="Lab Bench"
-        icon={FlaskConical}
-        loading={loading}
-        actions={
-          <button
-            onClick={() => setShowShortcuts((v) => !v)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-(--color-zenthar-steel) text-brand-sage hover:text-brand-primary text-[9px] font-bold uppercase tracking-widest transition-colors"
-          >
-            <Keyboard size={12} /> Shortcuts
-          </button>
-        }
-      >
-        <div className="flex flex-col h-full gap-5">
-          <AnimatePresence>
-            {showShortcuts && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="p-4 bg-(--color-zenthar-void) border border-brand-primary/20 rounded-2xl text-[10px] font-mono grid grid-cols-2 gap-2"
-              >
-                <div className="flex justify-between gap-4">
-                  <span className="text-brand-sage/60">Save analysis</span>
-                  <kbd className="px-2 py-0.5 bg-(--color-zenthar-steel) rounded text-brand-primary">
-                    ⌘ + Enter
-                  </kbd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <span className="text-brand-sage/60">Next field</span>
-                  <kbd className="px-2 py-0.5 bg-(--color-zenthar-steel) rounded text-brand-primary">
-                    Tab
-                  </kbd>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Sample info banner */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 bg-linear-to-r from-brand-primary/10 via-brand-primary/5 to-transparent rounded-3xl border border-brand-primary/20">
-            <div className="p-3 bg-(--color-zenthar-void) rounded-2xl border border-brand-primary/20 shrink-0">
-              <Activity className="w-6 h-6 text-brand-primary animate-pulse" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="text-base font-black text-(--color-zenthar-text-primary) uppercase tracking-tight">
-                {sample.batch_id ?? `Sample #${sample.id}`}
-              </h4>
-              <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px] font-mono text-brand-sage uppercase">
-                <span className="bg-(--color-zenthar-void) px-2 py-0.5 rounded border border-brand-primary/10 text-brand-primary">
-                  {sample.source_stage ?? sample.sample_type ?? "—"}
-                </span>
-                <span className="bg-(--color-zenthar-void) px-2 py-0.5 rounded border border-(--color-zenthar-steel)">
-                  {tests.length} tests
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-col items-end gap-1.5 shrink-0">
-              <span className="text-[9px] font-black text-brand-sage/60 uppercase tracking-widest">
-                {filledCount}/{tests.length} filled
-              </span>
-              <div className="w-32 h-1.5 bg-(--color-zenthar-steel) rounded-full overflow-hidden">
-                <motion.div
-                  animate={{ width: `${progress}%` }}
-                  transition={{ type: "spring", stiffness: 80 }}
-                  className={clsx(
-                    "h-full rounded-full",
-                    progress === 100 ? "bg-emerald-400" : "bg-brand-primary",
-                  )}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Test cards */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-1">
-            {tests.map((test, idx) => (
-              <TestCard
-                key={test.id}
-                test={test}
-                value={values[test.id] ?? ""}
-                note={notes[test.id] ?? ""}
-                error={errors[test.id]}
-                colourParams={colourParams[test.id]}
-                previousResults={previousResults[test.test_type] ?? []}
-                isReviewing={reviewState.id === test.id}
-                reviewComment={reviewState.comment}
-                onValueChange={(v) =>
-                  handleValueChange(test.id, v, test.test_type)
-                }
-                onNoteChange={(v) => handleNoteChange(test.id, v)}
-                onColourParam={(p, v) => handleColourParamChange(test.id, p, v)}
-                onReviewStart={() =>
-                  setReviewState({ id: test.id, comment: "" })
-                }
-                onReviewCancel={() => setReviewState({ id: null, comment: "" })}
-                onReviewComment={(v) =>
-                  setReviewState((s) => ({ ...s, comment: v }))
-                }
-                onApprove={() => {
-                  handleReview(
-                    test.id,
-                    "APPROVED",
-                    reviewState.comment || undefined,
-                  );
-                  setReviewState({ id: null, comment: "" });
-                }}
-                onDisapprove={() => {
-                  handleReview(
-                    test.id,
-                    "DISAPPROVED",
-                    reviewState.comment || undefined,
-                  );
-                  setReviewState({ id: null, comment: "" });
-                }}
-                inputRef={idx === 0 ? firstInputRef : undefined}
-              />
-            ))}
-          </div>
-
-          {/* Save footer */}
-          <div className="pt-5 border-t border-(--color-zenthar-steel)/40 space-y-3">
-            {hasErrors && (
-              <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-                <AlertTriangle size={14} className="text-red-400 shrink-0" />
-                <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">
-                  Fix validation errors before finalising
-                </p>
-              </div>
-            )}
-            <button
-              onClick={handleSave}
-              disabled={hasErrors || !allFilled || isSaving}
-              className={clsx(
-                "w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all",
-                "flex items-center justify-center gap-3 shadow-xl",
-                hasErrors || !allFilled || isSaving
-                  ? "bg-(--color-zenthar-carbon) text-brand-sage/40 cursor-not-allowed border border-(--color-zenthar-steel) shadow-none"
-                  : "bg-brand-primary text-(--color-zenthar-void) shadow-brand-primary/30 hover:bg-brand-primary/90 active:scale-[0.98]",
-              )}
+    >
+      <div className="flex flex-col h-full gap-5">
+        <AnimatePresence>
+          {showShortcuts && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="p-4 bg-(--color-zenthar-void) border border-brand-primary/20 rounded-2xl text-[10px] font-mono grid grid-cols-2 gap-2"
             >
-              {isSaving ? (
-                <div className="w-5 h-5 border-2 border-(--color-zenthar-void)/30 border-t-(--color-zenthar-void) rounded-full animate-spin" />
-              ) : (
-                <>
-                  <Save className="w-5 h-5" /> Finalise Analysis{" "}
-                  <kbd className="text-[8px] opacity-60">⌘+Enter</kbd>
-                </>
-              )}
-            </button>
-            <p className="text-[9px] text-brand-sage/40 font-mono text-center uppercase tracking-widest">
-              Results are immutable once submitted — double-check before saving
-            </p>
+              <div className="flex justify-between gap-4">
+                <span className="text-brand-sage/60">Save analysis</span>
+                <kbd className="px-2 py-0.5 bg-(--color-zenthar-steel) rounded text-brand-primary">
+                  ⌘ + Enter
+                </kbd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-brand-sage/60">Next field</span>
+                <kbd className="px-2 py-0.5 bg-(--color-zenthar-steel) rounded text-brand-primary">
+                  Tab
+                </kbd>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Sample info banner */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 bg-linear-to-r from-brand-primary/10 via-brand-primary/5 to-transparent rounded-3xl border border-brand-primary/20">
+          <div className="p-3 bg-(--color-zenthar-void) rounded-2xl border border-brand-primary/20 shrink-0">
+            <Activity className="w-6 h-6 text-brand-primary animate-pulse" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-base font-black text-(--color-zenthar-text-primary) uppercase tracking-tight">
+              {sample.batch_id ?? `Sample #${sample.id}`}
+            </h4>
+            <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px] font-mono text-brand-sage uppercase">
+              <span className="bg-(--color-zenthar-void) px-2 py-0.5 rounded border border-brand-primary/10 text-brand-primary">
+                {sample.source_stage ?? sample.sample_type ?? "—"}
+              </span>
+              <span className="bg-(--color-zenthar-void) px-2 py-0.5 rounded border border-(--color-zenthar-steel)">
+                {tests.length} tests
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            <span className="text-[9px] font-black text-brand-sage/60 uppercase tracking-widest">
+              {filledCount}/{tests.length} filled
+            </span>
+            <div className="w-32 h-1.5 bg-(--color-zenthar-steel) rounded-full overflow-hidden">
+              <motion.div
+                animate={{ width: `${progress}%` }}
+                transition={{ type: "spring", stiffness: 80 }}
+                className={clsx(
+                  "h-full rounded-full",
+                  progress === 100 ? "bg-emerald-400" : "bg-brand-primary",
+                )}
+              />
+            </div>
           </div>
         </div>
-      </LabPanel>
-    );
-  },
-);
+
+        {/* Test cards */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-1">
+          {tests.map((test, idx) => (
+            <TestCard
+              key={test.id}
+              test={test}
+              value={values[test.id] ?? ""}
+              note={notes[test.id] ?? ""}
+              error={errors[test.id]}
+              colourParams={colourParams[test.id]}
+              previousResults={previousResults[test.test_type] ?? []}
+              isReviewing={reviewState.id === test.id}
+              reviewComment={reviewState.comment}
+              onValueChange={(v) => handleValueChange(test.id, v, test.test_type)}
+              onNoteChange={(v) => handleNoteChange(test.id, v)}
+              onColourParam={(p, v) => handleColourParamChange(test.id, p, v)}
+              onReviewStart={() => setReviewState({ id: test.id, comment: "" })}
+              onReviewCancel={() => setReviewState({ id: null, comment: "" })}
+              onReviewComment={(v) => setReviewState((s) => ({ ...s, comment: v }))}
+              onApprove={() => {
+                handleReview(test.id, "APPROVED", reviewState.comment || undefined);
+                setReviewState({ id: null, comment: "" });
+              }}
+              onDisapprove={() => {
+                handleReview(test.id, "DISAPPROVED", reviewState.comment || undefined);
+                setReviewState({ id: null, comment: "" });
+              }}
+              inputRef={idx === 0 ? firstInputRef : undefined}
+            />
+          ))}
+        </div>
+
+        {/* Save footer */}
+        <div className="pt-5 border-t border-(--color-zenthar-steel)/40 space-y-3">
+          {hasErrors && (
+            <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+              <AlertTriangle size={14} className="text-red-400 shrink-0" />
+              <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">
+                Fix validation errors before finalising
+              </p>
+            </div>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={hasErrors || !allFilled || isSaving}
+            className={clsx(
+              "w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all",
+              "flex items-center justify-center gap-3 shadow-xl",
+              hasErrors || !allFilled || isSaving
+                ? "bg-(--color-zenthar-carbon) text-brand-sage/40 cursor-not-allowed border border-(--color-zenthar-steel) shadow-none"
+                : "bg-brand-primary text-(--color-zenthar-void) shadow-brand-primary/30 hover:bg-brand-primary/90 active:scale-[0.98]",
+            )}
+          >
+            {isSaving ? (
+              <div className="w-5 h-5 border-2 border-(--color-zenthar-void)/30 border-t-(--color-zenthar-void) rounded-full animate-spin" />
+            ) : (
+              <>
+                <Save className="w-5 h-5" /> Finalise Analysis{" "}
+                <kbd className="text-[8px] opacity-60">⌘+Enter</kbd>
+              </>
+            )}
+          </button>
+          <p className="text-[9px] text-brand-sage/40 font-mono text-center uppercase tracking-widest">
+            Results are immutable once submitted — double-check before saving
+          </p>
+        </div>
+      </div>
+    </LabPanel>
+  );
+});
 
 LabBench.displayName = "LabBench";

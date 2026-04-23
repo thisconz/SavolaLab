@@ -183,9 +183,7 @@ export const LoginPage: React.FC = () => {
                                 {user.name}
                               </div>
                               <div className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-tight opacity-70">
-                                {typeof user.role === "string"
-                                  ? user.role
-                                  : "Staff"}
+                                {typeof user.role === "string" ? user.role : "Staff"}
                               </div>
                             </div>
                           </div>

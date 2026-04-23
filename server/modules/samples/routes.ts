@@ -26,9 +26,7 @@ app.get("/", authenticateToken, async (c) => {
   const requestId = c.get("requestId");
   try {
     const samples = await SampleService.getSamples();
-    return c.json(
-      GetSamplesResponseSchema.parse({ success: true, data: samples }),
-    );
+    return c.json(GetSamplesResponseSchema.parse({ success: true, data: samples }));
   } catch (err: unknown) {
     logger.error({ err, requestId }, "Failed to fetch samples");
     return c.json({ success: false, error: toMsg(err) }, 500);
@@ -43,10 +41,7 @@ app.post("/", authenticateToken, requirePermission("input_data"), async (c) => {
     const body = await c.req.json();
     const validated = CreateSampleRequestSchema.parse(body);
 
-    const id = await SampleService.createSample(
-      validated,
-      user.employee_number,
-    );
+    const id = await SampleService.createSample(validated, user.employee_number);
     return c.json({ success: true, id }, 201);
   } catch (err: unknown) {
     logger.error({ err, requestId }, "Failed to create sample");
@@ -55,34 +50,24 @@ app.post("/", authenticateToken, requirePermission("input_data"), async (c) => {
 });
 
 // PUT /samples/:id
-app.put(
-  "/:id",
-  authenticateToken,
-  requirePermission("input_data"),
-  async (c) => {
-    const requestId = c.get("requestId");
-    try {
-      const sampleId = Number(c.req.param("id"));
-      if (!Number.isInteger(sampleId) || sampleId < 1) {
-        return c.json({ success: false, error: "Invalid sample ID." }, 400);
-      }
-      const user = c.get("user");
-      const body = await c.req.json();
-      const validated = UpdateSampleRequestSchema.parse(body);
-
-      await SampleService.updateSample(
-        sampleId,
-        validated,
-        user.employee_number,
-        getIp(c),
-      );
-      return c.json({ success: true });
-    } catch (err: unknown) {
-      logger.error({ err, requestId }, "Failed to update sample");
-      return c.json({ success: false, error: toMsg(err) }, 400);
+app.put("/:id", authenticateToken, requirePermission("input_data"), async (c) => {
+  const requestId = c.get("requestId");
+  try {
+    const sampleId = Number(c.req.param("id"));
+    if (!Number.isInteger(sampleId) || sampleId < 1) {
+      return c.json({ success: false, error: "Invalid sample ID." }, 400);
     }
-  },
-);
+    const user = c.get("user");
+    const body = await c.req.json();
+    const validated = UpdateSampleRequestSchema.parse(body);
+
+    await SampleService.updateSample(sampleId, validated, user.employee_number, getIp(c));
+    return c.json({ success: true });
+  } catch (err: unknown) {
+    logger.error({ err, requestId }, "Failed to update sample");
+    return c.json({ success: false, error: toMsg(err) }, 400);
+  }
+});
 
 // GET /samples/previous-results
 app.get("/previous-results", authenticateToken, async (c) => {
@@ -93,10 +78,7 @@ app.get("/previous-results", authenticateToken, async (c) => {
     const limit = Math.min(Number(c.req.query("limit") ?? 5), 50);
 
     if (!stage || !testType) {
-      return c.json(
-        { success: false, error: "stage and testType are required." },
-        400,
-      );
+      return c.json({ success: false, error: "stage and testType are required." }, 400);
     }
 
     const data = await SampleService.getPreviousResults(stage, testType, limit);

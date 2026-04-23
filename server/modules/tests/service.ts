@@ -64,12 +64,7 @@ const updateWorkflowStep = async (
 export const TestService = {
   getTests: async () => TestRepository.findAll(),
 
-  createTestResult: async (
-    sampleId: number,
-    data: any,
-    performerId: string,
-    ip = "127.0.0.1",
-  ) => {
+  createTestResult: async (sampleId: number, data: any, performerId: string, ip = "127.0.0.1") => {
     const {
       test_type,
       raw_value,
@@ -86,18 +81,11 @@ export const TestService = {
 
     const timestamp = performed_at ?? new Date().toISOString();
     const paramsStr =
-      params != null
-        ? typeof params === "string"
-          ? params
-          : JSON.stringify(params)
-        : null;
+      params != null ? (typeof params === "string" ? params : JSON.stringify(params)) : null;
 
     try {
       return await db.transaction(async (client) => {
-        const sample = await client.queryOne(
-          "SELECT id FROM samples WHERE id = $1",
-          [sampleId],
-        );
+        const sample = await client.queryOne("SELECT id FROM samples WHERE id = $1", [sampleId]);
         if (!sample) throw new Error(`Sample ${sampleId} not found`);
 
         const testId = await TestRepository.create(client, {
@@ -146,22 +134,13 @@ export const TestService = {
       db.execute(
         `INSERT INTO audit_logs (employee_number, action, details, ip_address)
          VALUES ($1, 'TEST_CREATE_FAILED', $2, $3)`,
-        [
-          performerId,
-          `Failed to create '${test_type}' for sample ${sampleId}: ${err.message}`,
-          ip,
-        ],
+        [performerId, `Failed to create '${test_type}' for sample ${sampleId}: ${err.message}`, ip],
       ).catch(() => {});
       throw err;
     }
   },
 
-  updateTest: async (
-    id: string,
-    data: any,
-    performerId: string,
-    ip = "127.0.0.1",
-  ) => {
+  updateTest: async (id: string, data: any, performerId: string, ip = "127.0.0.1") => {
     const numId = Number(id);
     if (!numId || numId < 1) throw new Error("Invalid test ID");
 
@@ -179,22 +158,13 @@ export const TestService = {
         });
 
         if (data.raw_value != null) {
-          await updateWorkflowStep(
-            test.sample_id,
-            test.test_type,
-            numId,
-            data.raw_value,
-          );
+          await updateWorkflowStep(test.sample_id, test.test_type, numId, data.raw_value);
         }
 
         await client.query(
           `INSERT INTO audit_logs (employee_number, action, details, ip_address)
            VALUES ($1, 'TEST_UPDATED', $2, $3)`,
-          [
-            performerId,
-            `Updated test ${numId} (sample: ${test.sample_id})`,
-            ip,
-          ],
+          [performerId, `Updated test ${numId} (sample: ${test.sample_id})`, ip],
         );
 
         sseBus.broadcast("TEST_UPDATED", {
@@ -213,11 +183,7 @@ export const TestService = {
     }
   },
 
-  logDeletionAttempt: async (
-    id: string,
-    performerId: string,
-    ip = "127.0.0.1",
-  ) => {
+  logDeletionAttempt: async (id: string, performerId: string, ip = "127.0.0.1") => {
     try {
       await db.execute(
         `INSERT INTO audit_logs (employee_number, action, details, ip_address)
@@ -236,9 +202,7 @@ export const TestService = {
     role: string,
   ) => {
     if (!["SHIFT_CHEMIST", "HEAD_MANAGER", "ADMIN"].includes(role)) {
-      throw new Error(
-        "Only Shift Chemists, Managers, or Admins can review tests",
-      );
+      throw new Error("Only Shift Chemists, Managers, or Admins can review tests");
     }
 
     const numId = Number(id);

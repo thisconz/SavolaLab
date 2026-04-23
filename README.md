@@ -41,23 +41,23 @@ Zenthar is an enterprise-grade **Laboratory Information Management System (LIMS)
 ## Architecture
 
 ```
-┌───────────────────────────────────────────────────────┐
-│                   React 19 SPA                        │
-│  ┌──────────┐ ┌──────────┐ ┌───────────────────────┐  │
-│  │ Capsules │ │  Shared  │ │  Core (types/hooks/   │  │
-│  │ (features│ │Components│ │   http/rbac/SSE)      │  │
-│  └──────────┘ └──────────┘ └───────────────────────┘  │
-└─────────────────────────┬─────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                   React 19 SPA                      │
+│  ┌──────────┐ ┌──────────┐ ┌───────────────────────┐ │
+│  │ Capsules │ │  Shared  │ │  Core (types/hooks/   │ │
+│  │ (features│ │Components│ │   http/rbac/SSE)       │ │
+│  └──────────┘ └──────────┘ └───────────────────────┘ │
+└─────────────────────────┬───────────────────────────┘
                           │ HTTP + SSE
-┌─────────────────────────▼──────────────────────────┐
-│              Hono v4 API Server (Node.js)          │
-│  /api/samples  /api/tests  /api/analytics  …       │
-│  ┌──────────────────────────────────────────────┐  │
-│  │  Modules: auth · samples · tests · workflows │  │
-│  │           analytics · archive · telemetry    │  │
-│  │           notifications · settings · export  │  │
-│  └──────────────────────────────────────────────┘  │
-└─────────────────────────┬──────────────────────────┘
+┌─────────────────────────▼───────────────────────────┐
+│              Hono v4 API Server (Node.js)            │
+│  /api/samples  /api/tests  /api/analytics  …        │
+│  ┌──────────────────────────────────────────────┐   │
+│  │  Modules: auth · samples · tests · workflows │   │
+│  │           analytics · archive · telemetry    │   │
+│  │           notifications · settings · export  │   │
+│  └──────────────────────────────────────────────┘   │
+└─────────────────────────┬───────────────────────────┘
                           │ Pool / PGlite
             ┌─────────────▼──────────────┐
             │  PostgreSQL 15+ / PGlite   │

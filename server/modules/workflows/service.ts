@@ -63,13 +63,7 @@ export const WorkflowService = {
           `INSERT INTO workflow_steps
            (workflow_id, test_type, sequence_order, min_value, max_value)
            VALUES ($1, $2, $3, $4, $5)`,
-          [
-            workflowId,
-            step.test_type,
-            i + 1,
-            step.min_value ?? null,
-            step.max_value ?? null,
-          ],
+          [workflowId, step.test_type, i + 1, step.min_value ?? null, step.max_value ?? null],
         );
       }
 
@@ -77,19 +71,12 @@ export const WorkflowService = {
     });
   },
 
-  executeWorkflow: async (
-    workflowId: string | number,
-    sampleId: string | number,
-  ) => {
-    const workflow = await db.queryOne(
-      "SELECT id, name FROM workflows WHERE id = $1",
-      [workflowId],
-    );
+  executeWorkflow: async (workflowId: string | number, sampleId: string | number) => {
+    const workflow = await db.queryOne("SELECT id, name FROM workflows WHERE id = $1", [
+      workflowId,
+    ]);
 
-    const sample = await db.queryOne(
-      "SELECT id, batch_id FROM samples WHERE id = $1",
-      [sampleId],
-    );
+    const sample = await db.queryOne("SELECT id, batch_id FROM samples WHERE id = $1", [sampleId]);
 
     if (!workflow) throw new Error(`Workflow ${workflowId} not found`);
 
@@ -237,10 +224,7 @@ export const WorkflowService = {
     }
   },
 
-  autoExecuteForSample: async (
-    sampleId: number,
-    stage: string,
-  ): Promise<void> => {
+  autoExecuteForSample: async (sampleId: number, stage: string): Promise<void> => {
     try {
       const workflow = await db.queryOne<{ id: number }>(
         `SELECT id

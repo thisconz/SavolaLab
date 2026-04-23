@@ -44,10 +44,7 @@ const Field = ({ label, icon, ...props }: any) => (
   </div>
 );
 
-export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
-  onBack,
-  onSuccess,
-}) => {
+export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSuccess }) => {
   const [step, setStep] = useState<Step>("verify");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -126,8 +123,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
 
   const handleCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword)
-      return setError("Passwords do not match.");
+    if (password !== confirmPassword) return setError("Passwords do not match.");
     if (pin.length !== 4) return setError("PIN must be exactly 4 digits.");
 
     setLoading(true);
@@ -245,11 +241,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
         >
           <form
             onSubmit={
-              step === "verify"
-                ? handleVerify
-                : step === "otp"
-                  ? handleOtp
-                  : handleCredentials
+              step === "verify" ? handleVerify : step === "otp" ? handleOtp : handleCredentials
             }
             className="space-y-6"
           >
@@ -290,8 +282,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                   <div className="relative z-10">
                     <KeyRound className="w-6 h-6 text-brand-primary mx-auto mb-3 animate-pulse" />
                     <p className="text-[9px] text-brand-sage font-mono uppercase tracking-widest leading-relaxed px-4 opacity-80">
-                      Transmission successful. Enter the 6-digit decryption
-                      token.
+                      Transmission successful. Enter the 6-digit decryption token.
                     </p>
                   </div>
                   <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -379,11 +370,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  <span>
-                    {step === "credentials"
-                      ? "Seal Registry"
-                      : "Proceed to Next Node"}
-                  </span>
+                  <span>{step === "credentials" ? "Seal Registry" : "Proceed to Next Node"}</span>
                   <ChevronRight className="w-4 h-4 opacity-50" />
                 </>
               )}

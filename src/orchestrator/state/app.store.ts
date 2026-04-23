@@ -29,18 +29,12 @@ export const useAppStore = create<AppState>()(
         ...initialState,
 
         actions: {
-          setActiveTab: (tab) =>
-            set({ activeTab: tab }, false, "app/setActiveTab"),
+          setActiveTab: (tab) => set({ activeTab: tab }, false, "app/setActiveTab"),
 
           toggleSidebar: () =>
-            set(
-              (state) => ({ isSidebarOpen: !state.isSidebarOpen }),
-              false,
-              "app/toggleSidebar",
-            ),
+            set((state) => ({ isSidebarOpen: !state.isSidebarOpen }), false, "app/toggleSidebar"),
 
-          setSidebarOpen: (open) =>
-            set({ isSidebarOpen: open }, false, "app/setSidebarOpen"),
+          setSidebarOpen: (open) => set({ isSidebarOpen: open }, false, "app/setSidebarOpen"),
 
           resetStore: () => set(initialState, false, "app/reset"),
         },
@@ -66,7 +60,6 @@ export const useAppStore = create<AppState>()(
  */
 export const useAppActions = () => useAppStore((state) => state.actions);
 export const useActiveTab = () => useAppStore((state) => state.activeTab);
-export const useIsSidebarOpen = () =>
-  useAppStore((state) => state.isSidebarOpen);
+export const useIsSidebarOpen = () => useAppStore((state) => state.isSidebarOpen);
 
 export type { AppTab };

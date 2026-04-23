@@ -204,26 +204,21 @@ export const AuditFeature: React.FC = memo(() => {
       else setIsRefreshing(true);
       try {
         const params = new URLSearchParams();
-        if (filters.employee_number)
-          params.set("employee_number", filters.employee_number);
+        if (filters.employee_number) params.set("employee_number", filters.employee_number);
         if (filters.action) params.set("action", filters.action);
         if (filters.start_date) params.set("start_date", filters.start_date);
         if (filters.end_date) params.set("end_date", filters.end_date);
         params.set("limit", "500");
         params.set("offset", "0");
 
-        const res = await api.get<{ success: boolean; data: AuditLog[] }>(
-          `/audit-logs?${params}`,
-        );
+        const res = await api.get<{ success: boolean; data: AuditLog[] }>(`/audit-logs?${params}`);
         const data = res.data || [];
         setLogs(data);
 
         const today = new Date().toDateString();
         setStats({
           total: data.length,
-          today: data.filter(
-            (l) => new Date(l.created_at).toDateString() === today,
-          ).length,
+          today: data.filter((l) => new Date(l.created_at).toDateString() === today).length,
           uniqueUsers: new Set(data.map((l) => l.employee_number)).size,
           anomalies: data.filter((l) => ANOMALY_ACTIONS.has(l.action)).length,
         });
@@ -234,12 +229,7 @@ export const AuditFeature: React.FC = memo(() => {
         setIsRefreshing(false);
       }
     },
-    [
-      filters.employee_number,
-      filters.action,
-      filters.start_date,
-      filters.end_date,
-    ],
+    [filters.employee_number, filters.action, filters.start_date, filters.end_date],
   );
 
   useEffect(() => {
@@ -255,9 +245,7 @@ export const AuditFeature: React.FC = memo(() => {
       "STAT_CREATED",
       "STAT_UPDATED",
     ] as const;
-    const unsubs = events.map((e) =>
-      on(e, () => setTimeout(() => fetchLogs(true), 800)),
-    );
+    const unsubs = events.map((e) => on(e, () => setTimeout(() => fetchLogs(true), 800)));
     return () => unsubs.forEach((u) => u());
   }, [on, fetchLogs]);
 
@@ -276,10 +264,7 @@ export const AuditFeature: React.FC = memo(() => {
 
   const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const uniqueActions = useMemo(
-    () => [...new Set(logs.map((l) => l.action))].sort(),
-    [logs],
-  );
+  const uniqueActions = useMemo(() => [...new Set(logs.map((l) => l.action))].sort(), [logs]);
   const hasFilters = Object.values(filters).some(Boolean);
 
   // ── Export CSV ──────────────────────────────────────────────────────────────
@@ -368,9 +353,7 @@ export const AuditFeature: React.FC = memo(() => {
                 type="text"
                 placeholder="Action, employee, IP..."
                 value={filters.search}
-                onChange={(e) =>
-                  setFilters((f) => ({ ...f, search: e.target.value }))
-                }
+                onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
                 className="w-full bg-zenthar-void border border-zenthar-steel rounded-xl pl-9 pr-3 py-2.5 text-xs focus:outline-none focus:border-brand-primary text-zenthar-text-primary"
               />
             </div>
@@ -475,10 +458,7 @@ export const AuditFeature: React.FC = memo(() => {
               className="p-2.5 border border-zenthar-steel rounded-xl hover:bg-zenthar-void transition-all"
             >
               <RefreshCw
-                className={clsx(
-                  "w-4 h-4 text-brand-sage",
-                  isRefreshing && "animate-spin",
-                )}
+                className={clsx("w-4 h-4 text-brand-sage", isRefreshing && "animate-spin")}
               />
             </button>
           </div>
@@ -501,8 +481,7 @@ export const AuditFeature: React.FC = memo(() => {
               </span>
             )}
             <span className="text-[10px] font-mono text-brand-sage">
-              {filtered.length.toLocaleString()} records · showing{" "}
-              {page * PAGE_SIZE + 1}–
+              {filtered.length.toLocaleString()} records · showing {page * PAGE_SIZE + 1}–
               {Math.min((page + 1) * PAGE_SIZE, filtered.length)}
             </span>
           </div>
@@ -515,16 +494,14 @@ export const AuditFeature: React.FC = memo(() => {
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 bg-white/95 backdrop-blur-sm z-10">
                 <tr className="border-b border-zenthar-steel">
-                  {["Employee", "Action", "Details", "IP", "Timestamp", ""].map(
-                    (h) => (
-                      <th
-                        key={h}
-                        className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-brand-sage"
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
+                  {["Employee", "Action", "Details", "IP", "Timestamp", ""].map((h) => (
+                    <th
+                      key={h}
+                      className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-brand-sage"
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-zenthar-steel/40">

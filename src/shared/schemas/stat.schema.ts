@@ -1,10 +1,6 @@
 import { z } from "zod";
 
-export const StatRequestStatusSchema = z.enum([
-  "OPEN",
-  "IN_PROGRESS",
-  "CLOSED",
-]);
+export const StatRequestStatusSchema = z.enum(["OPEN", "IN_PROGRESS", "CLOSED"]);
 export const StatRequestUrgencySchema = z.enum(["NORMAL", "HIGH", "CRITICAL"]);
 
 export const StatRequestSchema = z.object({

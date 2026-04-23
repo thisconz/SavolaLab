@@ -23,28 +23,18 @@ app.get("/stream", sseRateLimit, authenticateToken, async (c) => {
 
   return stream(c, async (writer) => {
     // Send initial connection confirmation
-    await writer.write(
-      `event: CONNECTED\ndata: ${JSON.stringify({ userId, ts: Date.now() })}\n\n`,
-    );
+    await writer.write(`event: CONNECTED\ndata: ${JSON.stringify({ userId, ts: Date.now() })}\n\n`);
 
     let closed = false;
 
     // Register on the bus
     const connectionId = uuidv4();
-    const unsubscribe = sseBus.subscribe(
-      connectionId,
-      userId,
-      (event: ZentharEvent) => {
-        if (closed) return;
-        writer
-          .write(
-            `event: ${event.type}\ndata: ${JSON.stringify(event.data)}\n\n`,
-          )
-          .catch(() => {
-            closed = true;
-          });
-      },
-    );
+    const unsubscribe = sseBus.subscribe(connectionId, userId, (event: ZentharEvent) => {
+      if (closed) return;
+      writer.write(`event: ${event.type}\ndata: ${JSON.stringify(event.data)}\n\n`).catch(() => {
+        closed = true;
+      });
+    });
 
     // Heartbeat every 20s to keep connection alive through proxies
     const heartbeat = setInterval(async () => {

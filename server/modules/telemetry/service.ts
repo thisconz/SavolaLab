@@ -27,11 +27,7 @@ export const TelemetryService = {
       const hours = Math.floor((sec % 86400) / 3600);
       const mins = Math.floor((sec % 3600) / 60);
       const uptime =
-        days > 0
-          ? `${days}d ${hours}h`
-          : hours > 0
-            ? `${hours}h ${mins}m`
-            : `${mins}m`;
+        days > 0 ? `${days}d ${hours}h` : hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 
       // ── DB metrics ─────────────────────────────────────────────────────
       const timeConstraint = hasFilter
@@ -93,10 +89,7 @@ export const TelemetryService = {
         // DB unavailable — return OS metrics only
       }
 
-      const errorRate =
-        totalLogs > 0
-          ? `${((errorLogs / totalLogs) * 100).toFixed(1)}%`
-          : "0.0%";
+      const errorRate = totalLogs > 0 ? `${((errorLogs / totalLogs) * 100).toFixed(1)}%` : "0.0%";
 
       const latency = `${Date.now() - dbStart}ms`;
 

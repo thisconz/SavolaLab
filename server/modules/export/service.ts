@@ -197,10 +197,7 @@ export async function buildExcelExport(opts: ExportOptions): Promise<Buffer> {
           : (undefined as any);
 
       // Status colouring
-      if (
-        field.toLowerCase().includes("status") ||
-        field.toLowerCase().includes("priority")
-      ) {
+      if (field.toLowerCase().includes("status") || field.toLowerCase().includes("priority")) {
         const s = String(raw ?? "").toUpperCase();
         cell.font = { bold: true };
         cell.alignment = { horizontal: "center" };

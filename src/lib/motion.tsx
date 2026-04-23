@@ -30,4 +30,5 @@ export type {
   Transition,
   MotionProps,
   AnimationControls,
+  HTMLMotionProps,
 } from "framer-motion";

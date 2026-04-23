@@ -19,12 +19,7 @@ import { Modal } from "../../../shared/components/Modal";
 import { TableSkeleton } from "../../../shared/components/Skeletons";
 import { toast } from "sonner";
 
-type ArchiveSection =
-  | "samples"
-  | "tests"
-  | "certificates"
-  | "instruments"
-  | "audit";
+type ArchiveSection = "samples" | "tests" | "certificates" | "instruments" | "audit";
 
 const SECTIONS = [
   { id: "samples", label: "Sample Archive", icon: Database },
@@ -80,11 +75,7 @@ export const ArchivePage: React.FC = () => {
     setExporting(true);
     try {
       const exportType =
-        activeSection === "tests"
-          ? "tests"
-          : activeSection === "audit"
-            ? "audit"
-            : activeSection;
+        activeSection === "tests" ? "tests" : activeSection === "audit" ? "audit" : activeSection;
       const response = await fetch(`/api/export/${exportType}?limit=5000`, {
         credentials: "include",
       });
@@ -131,10 +122,7 @@ export const ArchivePage: React.FC = () => {
     <div className="h-full flex flex-col gap-5 overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
       {/* ── Filter bar ── */}
       <div className="bg-(--color-zenthar-carbon) p-6 rounded-3xl border border-brand-sage/10 shrink-0">
-        <form
-          onSubmit={handleSearch}
-          className="flex flex-wrap gap-3 items-end"
-        >
+        <form onSubmit={handleSearch} className="flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[180px]">
             <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-2">
               Search
@@ -157,9 +145,7 @@ export const ArchivePage: React.FC = () => {
             <select
               className="w-full bg-(--color-zenthar-void) border border-brand-sage/10 rounded-xl px-3 py-3 text-sm outline-none text-white"
               value={filters.status}
-              onChange={(e) =>
-                setFilters({ ...filters, status: e.target.value })
-              }
+              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
             >
               <option value="">All</option>
               <option value="COMPLETED">Completed</option>
@@ -177,9 +163,7 @@ export const ArchivePage: React.FC = () => {
                 type="date"
                 className="w-full bg-(--color-zenthar-void) border border-brand-sage/10 rounded-xl pl-10 pr-3 py-3 text-sm outline-none text-white"
                 value={filters.start_date}
-                onChange={(e) =>
-                  setFilters({ ...filters, start_date: e.target.value })
-                }
+                onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
               />
             </div>
           </div>
@@ -252,9 +236,7 @@ export const ArchivePage: React.FC = () => {
               disabled={exporting || data.length === 0}
               className="flex items-center gap-2 px-5 py-2.5 bg-(--color-zenthar-graphite) text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-brand-primary transition-all disabled:opacity-40 border border-brand-sage/10"
             >
-              <Download
-                className={`w-4 h-4 ${exporting ? "animate-bounce" : ""}`}
-              />
+              <Download className={`w-4 h-4 ${exporting ? "animate-bounce" : ""}`} />
               {exporting ? "Exporting..." : "Export XLSX"}
             </button>
           </div>
@@ -265,24 +247,20 @@ export const ArchivePage: React.FC = () => {
             ) : data.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-48 gap-3 text-brand-sage/40">
                 <Database className="w-10 h-10" />
-                <p className="text-xs font-black uppercase tracking-widest">
-                  No records found
-                </p>
+                <p className="text-xs font-black uppercase tracking-widest">No records found</p>
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 bg-(--color-zenthar-carbon) z-10">
                   <tr className="border-b border-brand-sage/10">
-                    {["ID / Batch", "Details", "Status", "Timestamp", ""].map(
-                      (h) => (
-                        <th
-                          key={h}
-                          className="p-4 text-[9px] font-black text-brand-sage uppercase tracking-widest"
-                        >
-                          {h}
-                        </th>
-                      ),
-                    )}
+                    {["ID / Batch", "Details", "Status", "Timestamp", ""].map((h) => (
+                      <th
+                        key={h}
+                        className="p-4 text-[9px] font-black text-brand-sage uppercase tracking-widest"
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-brand-sage/5">
@@ -308,11 +286,7 @@ export const ArchivePage: React.FC = () => {
                       </td>
                       <td className="p-4 max-w-xs">
                         <div className="text-xs text-white truncate">
-                          {item.details ||
-                            item.message ||
-                            item.reason ||
-                            item.action ||
-                            "—"}
+                          {item.details || item.message || item.reason || item.action || "—"}
                         </div>
                         <div className="flex items-center gap-1.5 mt-1">
                           <User className="w-3 h-3 text-brand-sage/40" />
@@ -327,9 +301,7 @@ export const ArchivePage: React.FC = () => {
                       <td className="p-4">
                         <span
                           className={`px-2 py-1 rounded text-[9px] font-bold uppercase ${
-                            ["COMPLETED", "APPROVED", "ACTIVE"].includes(
-                              item.status,
-                            )
+                            ["COMPLETED", "APPROVED", "ACTIVE"].includes(item.status)
                               ? "bg-emerald-900/30 text-emerald-400 border border-emerald-500/20"
                               : "bg-(--color-zenthar-void) text-brand-sage border border-brand-sage/10"
                           }`}
@@ -340,9 +312,7 @@ export const ArchivePage: React.FC = () => {
                       <td className="p-4">
                         <div className="flex items-center gap-1.5 text-[10px] text-brand-sage font-mono">
                           <Clock className="w-3 h-3" />
-                          {new Date(
-                            item.created_at || item.performed_at,
-                          ).toLocaleString()}
+                          {new Date(item.created_at || item.performed_at).toLocaleString()}
                         </div>
                       </td>
                       <td className="p-4">

@@ -13,11 +13,7 @@ export interface StatRequestInput {
 export const StatService = {
   getStats: async () => StatRepository.findAll(),
 
-  createStat: async (
-    data: StatRequestInput,
-    employeeNumber?: string,
-    ip?: string,
-  ) => {
+  createStat: async (data: StatRequestInput, employeeNumber?: string, ip?: string) => {
     const statId = await StatRepository.create({
       department: data.department,
       reason: data.reason,
@@ -64,11 +60,7 @@ export const StatService = {
       await db.execute(
         `INSERT INTO audit_logs (employee_number, action, details, ip_address)
          VALUES ($1, 'STAT_REQUEST_UPDATED', $2, $3)`,
-        [
-          employeeNumber,
-          `Updated STAT request #${statId} → ${status}`,
-          ip ?? "127.0.0.1",
-        ],
+        [employeeNumber, `Updated STAT request #${statId} → ${status}`, ip ?? "127.0.0.1"],
       );
     }
 

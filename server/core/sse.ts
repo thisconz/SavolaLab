@@ -100,10 +100,7 @@ class SSEBus extends EventEmitter {
 
     this.clients.set(connectionId, client);
 
-    logger.info(
-      { connectionId, employeeNumber, total: this.clients.size },
-      "SSE client connected",
-    );
+    logger.info({ connectionId, employeeNumber, total: this.clients.size }, "SSE client connected");
 
     return () => {
       this.clients.delete(connectionId);
@@ -134,10 +131,7 @@ class SSEBus extends EventEmitter {
         client.handler(payload);
         delivered++;
       } catch (err) {
-        logger.error(
-          { err, connectionId: client.connectionId },
-          "SSE delivery error",
-        );
+        logger.error({ err, connectionId: client.connectionId }, "SSE delivery error");
       }
     }
 
@@ -152,11 +146,7 @@ class SSEBus extends EventEmitter {
     this.publish({ type, data, ts: new Date().toISOString() });
   }
 
-  sendTo(
-    employeeNumber: string,
-    type: ZentharEventType,
-    data: Record<string, any>,
-  ): void {
+  sendTo(employeeNumber: string, type: ZentharEventType, data: Record<string, any>): void {
     this.publish({
       type,
       data,

@@ -17,9 +17,7 @@ const FEATURE_REGISTRY: Record<AppTab, React.LazyExoticComponent<React.FC>> = {
   analytics: lazy(() => import("../../capsules/analytics/ui/AnalyticsFeature")),
   dispatch: lazy(() => import("../../capsules/dispatch/ui/DispatchFeature")),
   workflows: lazy(() => import("../../capsules/workflows/ui/WorkflowsFeature")),
-  intelligence: lazy(
-    () => import("../../capsules/intelligence/ui/IntelligenceFeature"),
-  ),
+  intelligence: lazy(() => import("../../capsules/intelligence/ui/IntelligenceFeature")),
   assets: lazy(() => import("../../capsules/assets/ui/AssetsFeature")),
   audit: lazy(() => import("../../capsules/audit/ui/AuditFeature")),
   settings: lazy(() => import("../../capsules/settings")),
@@ -56,8 +54,7 @@ export const FeatureRouter: React.FC = () => {
     );
   }
 
-  const ActiveFeature =
-    FEATURE_REGISTRY[activeTab] || FEATURE_REGISTRY.dashboard;
+  const ActiveFeature = FEATURE_REGISTRY[activeTab] || FEATURE_REGISTRY.dashboard;
 
   return (
     <GlobalErrorBoundary key={activeTab}>
@@ -107,8 +104,8 @@ const AccessDeniedView: React.FC<{ tab: string }> = ({ tab }) => (
       </div>
 
       <p className="text-[11px] text-(--color-zenthar-text-muted) uppercase font-bold tracking-widest leading-relaxed opacity-60">
-        Authentication level insufficient for requested node. Please verify
-        credentials with system oversight or QA leadership.
+        Authentication level insufficient for requested node. Please verify credentials with system
+        oversight or QA leadership.
       </p>
 
       <div className="mt-10 flex items-center gap-2 text-[9px] font-black text-(--color-zenthar-text-muted) uppercase tracking-widest">

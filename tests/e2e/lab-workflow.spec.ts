@@ -7,10 +7,9 @@ import { test, expect, type Page } from "@playwright/test";
 async function loginAs(page: Page, employeeNumber: string, pin: string) {
   await page.goto("/");
   // Wait for the user list to load
-  await page.waitForSelector(
-    '[aria-label="Filter samples"], .font-black.uppercase',
-    { timeout: 10_000 },
-  );
+  await page.waitForSelector('[aria-label="Filter samples"], .font-black.uppercase', {
+    timeout: 10_000,
+  });
 
   // Click the correct user card
   const userCard = page.locator(`button:has-text("${employeeNumber}")`).first();
@@ -147,9 +146,7 @@ test.describe("RBAC — access control", () => {
   test("DISPATCH user can see Dispatch tab", async ({ page }) => {
     await loginAs(page, "DISPATCH", "1111");
     await expect(
-      page.locator(
-        '[aria-label="Navigate to Dispatch"], button:has-text("Dispatch")',
-      ),
+      page.locator('[aria-label="Navigate to Dispatch"], button:has-text("Dispatch")'),
     ).toBeVisible();
   });
 });
@@ -169,10 +166,7 @@ test.describe("Real-time updates", () => {
     await loginAs(chemistPage, "CHEMIST", "1111");
     await chemistPage.click('[aria-label="Navigate to Lab"]').catch(() => {});
     await chemistPage.click('button:has-text("Register Sample")');
-    await chemistPage.fill(
-      'input[placeholder*="BT-"]',
-      `REALTIME-${Date.now()}`,
-    );
+    await chemistPage.fill('input[placeholder*="BT-"]', `REALTIME-${Date.now()}`);
     await chemistPage.click('button:has-text("Register_Sample")');
 
     // Verify the original page updates via SSE

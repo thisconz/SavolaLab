@@ -1,16 +1,7 @@
 import React, { useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import {
-  X,
-  Hexagon,
-  Terminal,
-  Activity,
-  ShieldCheck,
-  Zap,
-  Radar,
-  Fingerprint,
-} from "lucide-react";
+import { X, Hexagon, Terminal, Activity, ShieldCheck, Zap, Radar, Fingerprint } from "lucide-react";
 import clsx from "@/src/lib/clsx";
 
 interface ModalProps {
@@ -164,29 +155,18 @@ export const Modal: React.FC<ModalProps> = ({
               <footer className="relative z-10 px-10 py-5 bg-black/40 border-t border-white/3 flex items-center justify-between">
                 <div className="flex items-center gap-8">
                   <div className="flex items-center gap-3 opacity-40 hover:opacity-100 transition-opacity">
-                    <Activity
-                      size={14}
-                      className="text-brand-primary animate-pulse"
-                    />
+                    <Activity size={14} className="text-brand-primary animate-pulse" />
                     <div className="flex flex-col">
-                      <span className="text-[7px] font-black text-zinc-600 uppercase">
-                        Stream
-                      </span>
-                      <span className="text-[9px] font-bold text-zinc-300">
-                        ACTIVE_TX
-                      </span>
+                      <span className="text-[7px] font-black text-zinc-600 uppercase">Stream</span>
+                      <span className="text-[9px] font-bold text-zinc-300">ACTIVE_TX</span>
                     </div>
                   </div>
                   <div className="h-6 w-px bg-white/5" />
                   <div className="flex items-center gap-3 opacity-40 hover:opacity-100 transition-opacity">
                     <Zap size={12} className="text-orange-400" />
                     <div className="flex flex-col">
-                      <span className="text-[7px] font-black text-zinc-600 uppercase">
-                        Latency
-                      </span>
-                      <span className="text-[9px] font-bold text-zinc-300">
-                        0.02ms
-                      </span>
+                      <span className="text-[7px] font-black text-zinc-600 uppercase">Latency</span>
+                      <span className="text-[9px] font-bold text-zinc-300">0.02ms</span>
                     </div>
                   </div>
                 </div>
@@ -206,9 +186,7 @@ export const Modal: React.FC<ModalProps> = ({
                   </span>
                 </div>
                 {/* Side Panel Content */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                  {sidePanel}
-                </div>
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">{sidePanel}</div>
                 {/* Side Panel Decorative Vents */}
                 <div className="p-4 flex gap-1 justify-center opacity-20">
                   {[1, 2, 3, 4].map((i) => (

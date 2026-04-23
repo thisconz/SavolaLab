@@ -114,11 +114,7 @@
 
   /* Brand gradient (rose → cotton candy) */
   .brand-gradient {
-    background: linear-gradient(
-      135deg,
-      var(--color-blush-rose) 0%,
-      var(--color-cotton-candy) 100%
-    );
+    background: linear-gradient(135deg, var(--color-blush-rose) 0%, var(--color-cotton-candy) 100%);
   }
 
   /* Subtle grid dot pattern */

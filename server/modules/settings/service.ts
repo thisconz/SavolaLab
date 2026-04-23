@@ -89,11 +89,7 @@ export const SettingsService = {
   },
 
   // --- Update an existing record ---
-  update: async (
-    table: string,
-    id: string | number,
-    data: Record<string, any>,
-  ) => {
+  update: async (table: string, id: string | number, data: Record<string, any>) => {
     assertAllowedTable(table);
     if (!data || Object.keys(data).length === 0) {
       throw new Error("No data provided for update");
@@ -117,11 +113,7 @@ export const SettingsService = {
 
     // Optional: notify admin on critical table changes
     if (["system_preferences", "notification_rules"].includes(table)) {
-      await createNotification(
-        "ADMIN",
-        "WORKFLOW_FAILURE",
-        `Record ${id} updated in ${table}`,
-      );
+      await createNotification("ADMIN", "WORKFLOW_FAILURE", `Record ${id} updated in ${table}`);
     }
 
     return { success: true };

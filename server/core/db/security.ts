@@ -28,9 +28,7 @@ export async function storeOtp(
   const hashed = hashCode(code);
 
   // Remove any existing OTPs for this employee (single-use enforcement)
-  await db.execute("DELETE FROM otp_codes WHERE employee_number = $1", [
-    employeeNumber,
-  ]);
+  await db.execute("DELETE FROM otp_codes WHERE employee_number = $1", [employeeNumber]);
 
   await db.execute(
     `INSERT INTO otp_codes (employee_number, code, expires_at)
@@ -42,10 +40,7 @@ export async function storeOtp(
 /**
  * Verify OTP — consumes it on success (prevents replay attacks)
  */
-export async function verifyOtp(
-  employeeNumber: string,
-  input: string,
-): Promise<boolean> {
+export async function verifyOtp(employeeNumber: string, input: string): Promise<boolean> {
   const row = await db.queryOne<{ id: number; code: string }>(
     `SELECT id, code FROM otp_codes
      WHERE employee_number = $1
@@ -69,9 +64,7 @@ export async function verifyOtp(
  * Explicitly remove all OTPs for an employee
  */
 export async function removeOtp(employeeNumber: string): Promise<void> {
-  await db.execute("DELETE FROM otp_codes WHERE employee_number = $1", [
-    employeeNumber,
-  ]);
+  await db.execute("DELETE FROM otp_codes WHERE employee_number = $1", [employeeNumber]);
 }
 
 /**

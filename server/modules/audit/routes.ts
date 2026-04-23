@@ -80,10 +80,7 @@ app.post("/", authenticateToken, async (c) => {
     return c.json({ success: true });
   } catch (err: any) {
     logger.error({ reqId, err }, "Failed to create audit log");
-    return c.json(
-      { success: false, error: err.message || "Failed to create audit log" },
-      400,
-    );
+    return c.json({ success: false, error: err.message || "Failed to create audit log" }, 400);
   }
 });
 

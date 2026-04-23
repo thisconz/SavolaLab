@@ -15,9 +15,7 @@ const validateEnvironment = () => {
   const missing = required.filter((key) => !import.meta.env[key]);
 
   if (missing.length > 0 && import.meta.env.PROD) {
-    console.warn(
-      `[ZENTHAR_SYSTEM]: Missing Environment Keys: ${missing.join(", ")}`,
-    );
+    console.warn(`[ZENTHAR_SYSTEM]: Missing Environment Keys: ${missing.join(", ")}`);
   }
 };
 
@@ -27,8 +25,7 @@ const validateEnvironment = () => {
  */
 const initializeAssets = () => {
   const faviconUrl = "/favicon.ico"; // Prefer public folder for static assets
-  let link: HTMLLinkElement | null =
-    document.querySelector("link[rel~='icon']");
+  let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
 
   if (!link) {
     link = document.createElement("link");
@@ -63,9 +60,7 @@ const boot = () => {
   const container = document.getElementById("root");
 
   if (!container) {
-    throw new Error(
-      "[ZENTHAR_KERNEL]: Root container mounting point not found.",
-    );
+    throw new Error("[ZENTHAR_KERNEL]: Root container mounting point not found.");
   }
 
   // Execute Boot Tasks

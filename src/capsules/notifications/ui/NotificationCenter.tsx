@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Bell,
-  Check,
-  Trash2,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-  Clock,
-} from "lucide-react";
+import { Bell, Check, Trash2, AlertCircle, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { NotificationApi } from "../api/notification.api";
 import { Notification } from "../../../core/types";
 import { useNotifications } from "../hooks/useNotifications";
@@ -15,8 +7,7 @@ import { motion, AnimatePresence } from "@/src/lib/motion";
 
 export const NotificationCenter: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { notifications, unreadCount, markAsRead, markAllAsRead } =
-    useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -62,10 +53,7 @@ export const NotificationCenter: React.FC = () => {
       <AnimatePresence>
         {isOpen && (
           <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setIsOpen(false)}
-            />
+            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}

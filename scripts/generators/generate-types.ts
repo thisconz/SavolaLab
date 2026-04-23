@@ -20,9 +20,7 @@ type TypeFile = {
 
 // Recursively collect type files
 function collectTypeFiles(dir: string): TypeFile[] {
-  const entries = fs
-    .readdirSync(dir, { withFileTypes: true })
-    .filter((e) => !IGNORE.has(e.name));
+  const entries = fs.readdirSync(dir, { withFileTypes: true }).filter((e) => !IGNORE.has(e.name));
   let results: TypeFile[] = [];
 
   for (const entry of entries) {

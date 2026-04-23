@@ -26,7 +26,7 @@ class TelemetryService {
   private eventBuffer: TelemetryEvent[] = [];
   private readonly BUFFER_LIMIT = 50;
   private globalMetadata: Record<string, any> = {
-    version: process.env.VITE_ZENTHAR_VERSION || "unknown",
+    version: "1.0.0",
     environment: process.env.NODE_ENV || "development",
   };
 
@@ -74,10 +74,7 @@ class TelemetryService {
     // 2. Buffer for production (prevents API spam)
     this.eventBuffer.push(telemetryEvent);
 
-    if (
-      this.eventBuffer.length >= this.BUFFER_LIMIT ||
-      level >= LogLevel.ERROR
-    ) {
+    if (this.eventBuffer.length >= this.BUFFER_LIMIT || level >= LogLevel.ERROR) {
       this.flush();
     }
   }
@@ -113,10 +110,8 @@ class TelemetryService {
   /* Helper Methods */
   public debug = (msg: string, data?: any, mod?: string) =>
     this.log(msg, LogLevel.DEBUG, data, mod);
-  public info = (msg: string, data?: any, mod?: string) =>
-    this.log(msg, LogLevel.INFO, data, mod);
-  public warn = (msg: string, data?: any, mod?: string) =>
-    this.log(msg, LogLevel.WARN, data, mod);
+  public info = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.INFO, data, mod);
+  public warn = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.WARN, data, mod);
   public error = (msg: string, data?: any, mod?: string) =>
     this.log(msg, LogLevel.ERROR, data, mod);
   public critical = (msg: string, data?: any, mod?: string) =>

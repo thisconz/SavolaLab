@@ -46,7 +46,7 @@ export const DispatchFeature: React.FC = memo(() => {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const { on } = useRealtime();
 
   const fetchDispatch = useCallback(async (silent = false) => {
@@ -70,16 +70,19 @@ export const DispatchFeature: React.FC = memo(() => {
   // Refresh QC queue when samples/tests update via SSE
   useEffect(() => {
     const refresh = () => {
-      clearTimeout(debounceTimer.current);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = undefined;
+      }
       debounceTimer.current = setTimeout(() => fetchDispatch(true), 800);
     };
-    const unsubs = [
-      on("SAMPLE_STATUS_CHANGED", refresh),
-      on("TEST_REVIEWED", refresh),
-    ];
+    const unsubs = [on("SAMPLE_STATUS_CHANGED", refresh), on("TEST_REVIEWED", refresh)];
     return () => {
       unsubs.forEach((u) => u());
-      clearTimeout(debounceTimer.current);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = undefined;
+      }
     };
   }, [on, fetchDispatch]);
 
@@ -92,8 +95,7 @@ export const DispatchFeature: React.FC = memo(() => {
   }
 
   const statusVariant = (s: string): "success" | "warning" | "error" | "info" =>
-    (({ "In Transit": "success", Delayed: "warning", Critical: "error" })[s] ??
-      "info") as any;
+    (({ "In Transit": "success", Delayed: "warning", Critical: "error" })[s] ?? "info") as any;
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
@@ -262,9 +264,7 @@ const EmptyState: React.FC<{
     <div className="p-6 bg-(--color-zenthar-void) rounded-full border border-brand-sage/20 relative z-10">
       <Icon className="w-10 h-10 opacity-30 text-brand-primary" />
     </div>
-    <p className="text-sm font-black text-white uppercase tracking-widest">
-      {title}
-    </p>
+    <p className="text-sm font-black text-white uppercase tracking-widest">{title}</p>
     <p className="text-[9px] font-mono text-brand-sage/60">{subtitle}</p>
   </div>
 );

@@ -31,10 +31,7 @@ export const useSampleDetails = (sample: Sample, onUpdate: () => void) => {
   useEffect(() => {
     setTestResults([]);
 
-    if (
-      sample.status === SampleStatus.PENDING ||
-      sample.status === SampleStatus.REGISTERED
-    ) {
+    if (sample.status === SampleStatus.PENDING || sample.status === SampleStatus.REGISTERED) {
       return;
     }
 

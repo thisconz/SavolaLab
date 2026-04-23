@@ -101,8 +101,7 @@ export const SampleRepository = {
       );
       return rows[0].id;
     } catch (error: any) {
-      if (error.message === "Database not connected")
-        return Math.floor(Math.random() * 1000) + 100;
+      if (error.message === "Database not connected") return Math.floor(Math.random() * 1000) + 100;
       throw error;
     }
   },
@@ -123,10 +122,7 @@ export const SampleRepository = {
 
     values.push(id);
     try {
-      await db.execute(
-        `UPDATE samples SET ${fields.join(", ")} WHERE id = $${i}`,
-        values,
-      );
+      await db.execute(`UPDATE samples SET ${fields.join(", ")} WHERE id = $${i}`, values);
     } catch (error: any) {
       if (error.message === "Database not connected") return;
       throw error;
@@ -158,10 +154,7 @@ export const SampleRepository = {
 
   async findTestsBySampleId(sampleId: number): Promise<SampleTest[]> {
     try {
-      return await db.query(
-        "SELECT * FROM tests WHERE sample_id = $1 ORDER BY id ASC",
-        [sampleId],
-      );
+      return await db.query("SELECT * FROM tests WHERE sample_id = $1 ORDER BY id ASC", [sampleId]);
     } catch (error: any) {
       if (error.message === "Database not connected") {
         return [

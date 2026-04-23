@@ -38,16 +38,10 @@ export const authenticateToken = async (
 };
 
 export function requireRoles(...roles: UserRole[]) {
-  return async (
-    c: Context<{ Variables: Variables }>,
-    next: Next,
-  ): Promise<Response | void> => {
+  return async (c: Context<{ Variables: Variables }>, next: Next): Promise<Response | void> => {
     const user = c.get("user");
     if (!roles.includes(user.role)) {
-      return c.json(
-        { error: `Access denied. Required: ${roles.join(", ")}` },
-        403,
-      );
+      return c.json({ error: `Access denied. Required: ${roles.join(", ")}` }, 403);
     }
     await next();
   };
@@ -58,10 +52,7 @@ export function requireRoles(...roles: UserRole[]) {
  * Use String(perm) to make the template literal coercion explicit.
  */
 export function requirePermission(perm: keyof PermissionFlags) {
-  return async (
-    c: Context<{ Variables: Variables }>,
-    next: Next,
-  ): Promise<Response | void> => {
+  return async (c: Context<{ Variables: Variables }>, next: Next): Promise<Response | void> => {
     const user = c.get("user");
     if (!user.permissions[perm]) {
       return c.json({ error: `Permission '${String(perm)}' required` }, 403);

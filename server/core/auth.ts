@@ -20,10 +20,7 @@ let auth: { handler: (req: Request) => Promise<Response> };
 if (isRealPool(pool)) {
   auth = betterAuth({
     database: pool,
-    secret:
-      process.env.JWT_SECRET ??
-      process.env.BETTER_AUTH_SECRET ??
-      "insecure-dev-secret",
+    secret: process.env.JWT_SECRET ?? process.env.BETTER_AUTH_SECRET ?? "insecure-dev-secret",
     emailAndPassword: { enabled: true },
   });
 } else {
@@ -32,8 +29,7 @@ if (isRealPool(pool)) {
     handler: async (_req: Request) => {
       return new Response(
         JSON.stringify({
-          error:
-            "Auth service not available in demo/PGlite mode. Set DATABASE_URL.",
+          error: "Auth service not available in demo/PGlite mode. Set DATABASE_URL.",
         }),
         { status: 503, headers: { "Content-Type": "application/json" } },
       );

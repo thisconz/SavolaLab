@@ -8,11 +8,7 @@ import { db } from "./client";
  * @param type notification type (OVERDUE_TEST, INFO, ALERT, etc.)
  * @param message descriptive message
  */
-export async function createNotification(
-  employeeNumber: string,
-  type: string,
-  message: string,
-) {
+export async function createNotification(employeeNumber: string, type: string, message: string) {
   await db.execute(
     `
     INSERT INTO notifications (employee_number, type, message)

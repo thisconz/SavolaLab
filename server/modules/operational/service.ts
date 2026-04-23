@@ -33,11 +33,7 @@ export const OperationalService = {
     );
   },
 
-  getEquipment: async ({
-    lineId,
-    limit = 100,
-    offset = 0,
-  }: EquipmentFilter = {}) => {
+  getEquipment: async ({ lineId, limit = 100, offset = 0 }: EquipmentFilter = {}) => {
     const cacheKey = `op:equipment:${lineId ?? "all"}`;
     return operationalCache.getOrSet(
       cacheKey,
@@ -159,8 +155,7 @@ export const OperationalService = {
 
         const lineStatuses = linesResult.map((line: any) => {
           const hash = line.name.length;
-          const status =
-            hash % 7 === 0 ? "Stopped" : hash % 5 === 0 ? "Warning" : "Running";
+          const status = hash % 7 === 0 ? "Stopped" : hash % 5 === 0 ? "Warning" : "Running";
           const uptime =
             status === "Running"
               ? `${(98 + (hash % 2)).toFixed(1)}%`

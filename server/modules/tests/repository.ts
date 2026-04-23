@@ -3,9 +3,7 @@ import { db } from "../../core/database";
 export const TestRepository = {
   findAll: async () => {
     try {
-      return await db.query(
-        "SELECT * FROM tests ORDER BY COALESCE(performed_at, updated_at) DESC",
-      );
+      return await db.query("SELECT * FROM tests ORDER BY COALESCE(performed_at, updated_at) DESC");
     } catch (err: any) {
       if (err.message === "Database not connected") {
         return [
@@ -91,11 +89,7 @@ export const TestRepository = {
     return rows[0].id;
   },
 
-  update: async (
-    client: any,
-    id: string | number,
-    data: any,
-  ): Promise<void> => {
+  update: async (client: any, id: string | number, data: any): Promise<void> => {
     await client.query(
       `UPDATE tests
        SET raw_value        = $1,
@@ -126,13 +120,7 @@ export const TestRepository = {
        SET status = $1, reviewer_id = $2, review_at = $3,
            review_comment = $4, updated_at = CURRENT_TIMESTAMP
        WHERE id = $5`,
-      [
-        data.status,
-        data.reviewer_id,
-        data.review_at,
-        data.review_comment ?? null,
-        id,
-      ],
+      [data.status, data.reviewer_id, data.review_at, data.review_comment ?? null, id],
     );
   },
 };

@@ -19,10 +19,7 @@ app.get("/production-lines", authenticateToken, async (c) => {
     return sendResponse(c, lines, "Production lines retrieved");
   } catch (err) {
     logger.error({ reqId, err }, "Error fetching production lines");
-    return c.json(
-      { success: false, error: "Failed to fetch production lines" },
-      500,
-    );
+    return c.json({ success: false, error: "Failed to fetch production lines" }, 500);
   }
 });
 
@@ -43,11 +40,7 @@ app.get("/equipment", authenticateToken, async (c) => {
     const equipment = await OperationalService.getEquipment({
       lineId: line_id,
     });
-    return sendResponse(
-      c,
-      equipment,
-      `Equipment for line ${line_id} retrieved`,
-    );
+    return sendResponse(c, equipment, `Equipment for line ${line_id} retrieved`);
   } catch (err) {
     logger.error({ reqId, err }, "Error fetching equipment");
     return c.json({ success: false, error: "Failed to fetch equipment" }, 500);
@@ -62,10 +55,7 @@ app.get("/instruments", authenticateToken, async (c) => {
     return sendResponse(c, instruments, "Instruments retrieved");
   } catch (err) {
     logger.error({ reqId, err }, "Error fetching instruments");
-    return c.json(
-      { success: false, error: "Failed to fetch instruments" },
-      500,
-    );
+    return c.json({ success: false, error: "Failed to fetch instruments" }, 500);
   }
 });
 
@@ -89,10 +79,7 @@ app.get("/certificates", authenticateToken, async (c) => {
     return sendResponse(c, certificates, "Certificates retrieved");
   } catch (err) {
     logger.error({ reqId, err }, "Error fetching certificates");
-    return c.json(
-      { success: false, error: "Failed to fetch certificates" },
-      500,
-    );
+    return c.json({ success: false, error: "Failed to fetch certificates" }, 500);
   }
 });
 
@@ -104,10 +91,7 @@ app.get("/plant-intel", authenticateToken, async (c) => {
     return sendResponse(c, data, "Plant intelligence retrieved");
   } catch (err) {
     logger.error({ reqId, err }, "Error fetching plant intel");
-    return c.json(
-      { success: false, error: "Failed to fetch plant intel" },
-      500,
-    );
+    return c.json({ success: false, error: "Failed to fetch plant intel" }, 500);
   }
 });
 

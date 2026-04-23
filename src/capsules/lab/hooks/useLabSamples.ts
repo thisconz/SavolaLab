@@ -28,7 +28,7 @@ export function useLabSamples(): UseLiveSamplesReturn {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const mountedRef = useRef(true);
 
   const { on } = useRealtime();
@@ -60,14 +60,20 @@ export function useLabSamples(): UseLiveSamplesReturn {
     fetchSamples(false);
     return () => {
       mountedRef.current = false;
-      clearTimeout(debounceTimer.current);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = undefined;
+      }
     };
   }, [fetchSamples]);
 
   // ── SSE subscriptions ─────────────────────────────────────────────────────
   useEffect(() => {
     const scheduleRefresh = (label: string) => {
-      clearTimeout(debounceTimer.current);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = undefined;
+      }
       debounceTimer.current = setTimeout(() => {
         fetchSamples(true);
       }, 600); // 600 ms debounce
@@ -88,9 +94,7 @@ export function useLabSamples(): UseLiveSamplesReturn {
         // Optimistically update the status in the local array so the card
         // updates instantly without waiting for the full re-fetch
         setSamples((prev) =>
-          prev.map((s) =>
-            s.id === data.id ? { ...s, status: data.new_status as any } : s,
-          ),
+          prev.map((s) => (s.id === data.id ? { ...s, status: data.new_status as any } : s)),
         );
         scheduleRefresh("SAMPLE_STATUS_CHANGED");
       }),

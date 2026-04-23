@@ -44,16 +44,8 @@ const ROLE_PERMISSIONS: Record<Role, AppTab[]> = {
     "assets",
   ],
 
-  SHIFT_CHEMIST: [
-    ...ROLE_GROUPS.STAFF,
-    ...ROLE_GROUPS.LAB_CORE,
-    ...ROLE_GROUPS.FIELD,
-  ],
-  CHEMIST: [
-    ...ROLE_GROUPS.STAFF,
-    ...ROLE_GROUPS.LAB_CORE,
-    ...ROLE_GROUPS.FIELD,
-  ],
+  SHIFT_CHEMIST: [...ROLE_GROUPS.STAFF, ...ROLE_GROUPS.LAB_CORE, ...ROLE_GROUPS.FIELD],
+  CHEMIST: [...ROLE_GROUPS.STAFF, ...ROLE_GROUPS.LAB_CORE, ...ROLE_GROUPS.FIELD],
 
   ENGINEER: [...ROLE_GROUPS.STAFF, ...ROLE_GROUPS.INTELLIGENCE, "assets"],
   DISPATCH: [...ROLE_GROUPS.STAFF, ...ROLE_GROUPS.FIELD],
@@ -67,10 +59,7 @@ const ROLE_PERMISSIONS: Record<Role, AppTab[]> = {
  * Checks if a specific tab is allowed for a given role.
  * Includes a fallback to ensure the app doesn't crash on undefined roles.
  */
-export const isTabAllowed = (
-  role: Role | undefined | null,
-  tab: AppTab,
-): boolean => {
+export const isTabAllowed = (role: Role | undefined | null, tab: AppTab): boolean => {
   if (!role) return false;
   const allowedTabs = ROLE_PERMISSIONS[role] || BASE_TABS;
   return allowedTabs.includes(tab);

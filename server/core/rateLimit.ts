@@ -52,17 +52,11 @@ export function rateLimit(opts: RateLimitOptions): MiddlewareHandler {
 
     // Set standard headers
     c.header("X-RateLimit-Limit", String(opts.limit));
-    c.header(
-      "X-RateLimit-Remaining",
-      String(Math.max(0, opts.limit - entry.count)),
-    );
+    c.header("X-RateLimit-Remaining", String(Math.max(0, opts.limit - entry.count)));
     c.header("X-RateLimit-Reset", String(Math.ceil(entry.resetAt / 1000)));
 
     if (entry.count > opts.limit) {
-      logger.warn(
-        { ip, path: c.req.path, count: entry.count },
-        "Rate limit exceeded",
-      );
+      logger.warn({ ip, path: c.req.path, count: entry.count }, "Rate limit exceeded");
       c.header("Retry-After", String(Math.ceil((entry.resetAt - now) / 1000)));
       return c.json(
         {

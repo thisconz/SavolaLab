@@ -30,15 +30,11 @@ export const DataListRow: React.FC<DataListRowProps> = ({
   className,
 }) => {
   const statusVariants = {
-    success:
-      "text-zenthar-success bg-zenthar-success/10 border-zenthar-success/20",
-    warning:
-      "text-zenthar-warning bg-zenthar-warning/10 border-zenthar-warning/20",
-    error:
-      "text-zenthar-critical bg-zenthar-critical/10 border-zenthar-critical/20",
+    success: "text-zenthar-success bg-zenthar-success/10 border-zenthar-success/20",
+    warning: "text-zenthar-warning bg-zenthar-warning/10 border-zenthar-warning/20",
+    error: "text-zenthar-critical bg-zenthar-critical/10 border-zenthar-critical/20",
     info: "text-zenthar-info bg-zenthar-info/10 border-zenthar-info/20",
-    neutral:
-      "text-zenthar-text-secondary bg-zenthar-graphite/50 border-white/[0.06]",
+    neutral: "text-zenthar-text-secondary bg-zenthar-graphite/50 border-white/[0.06]",
   };
 
   return (

@@ -9,6 +9,12 @@ export const TestStatusSchema = z.enum([
   "VALIDATING",
 ]);
 
+const nullableToOptional = <T extends z.ZodTypeAny>(schema: T) =>
+  schema
+    .nullable()
+    .optional()
+    .transform((v) => v ?? undefined);
+
 export const TestResultSchema = z.object({
   id: z.number(),
   sample_id: z.number(),
@@ -20,16 +26,15 @@ export const TestResultSchema = z.object({
   performed_at: z
     .union([z.string(), z.date()])
     .transform((d) => (typeof d === "string" ? d : d.toISOString())),
-  performer_id: z.string().nullish(),
-  reviewer_id: z.string().nullish(),
+  performer_id: nullableToOptional(z.string()),
+  reviewer_id: nullableToOptional(z.string()),
   review_at: z
     .union([z.string(), z.date()])
-    .nullish()
-    .transform((d) =>
-      d ? (typeof d === "string" ? d : d.toISOString()) : null,
-    ),
-  review_comment: z.string().nullish(),
-  notes: z.string().nullish(),
+    .nullable()
+    .optional()
+    .transform((d) => (d ? (typeof d === "string" ? d : d.toISOString()) : undefined)),
+  review_comment: nullableToOptional(z.string()),
+  notes: nullableToOptional(z.string()),
   params: z.record(z.string(), z.any()).optional().nullable(),
 });
 
@@ -40,7 +45,7 @@ export const CreateTestRequestSchema = z.object({
   calculated_value: z.number(),
   unit: z.string(),
   status: TestStatusSchema.optional(),
-  notes: z.string().nullish(),
+  notes: nullableToOptional(z.string()),
   params: z.record(z.string(), z.any()).optional().nullable(),
 });
 
@@ -49,13 +54,13 @@ export const UpdateTestRequestSchema = z.object({
   calculated_value: z.number().nullish(),
   unit: z.string().nullish(),
   status: TestStatusSchema.optional(),
-  notes: z.string().nullish(),
+  notes: nullableToOptional(z.string()),
   params: z.record(z.string(), z.any()).optional().nullable(),
 });
 
 export const ReviewTestRequestSchema = z.object({
   status: z.enum(["APPROVED", "DISAPPROVED"]),
-  comment: z.string().nullish(),
+  comment: nullableToOptional(z.string()),
 });
 
 export const GetTestsResponseSchema = z.object({

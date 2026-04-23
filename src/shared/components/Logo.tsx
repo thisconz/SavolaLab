@@ -55,14 +55,7 @@ interface LogoRootProps {
 }
 
 export const LogoRoot: React.FC<LogoRootProps> = memo(
-  ({
-    children,
-    className,
-    size = "md",
-    variant = "dark",
-    direction = "row",
-    align = "center",
-  }) => {
+  ({ children, className, size = "md", variant = "dark", direction = "row", align = "center" }) => {
     const config = sizeConfig[size];
 
     return (
@@ -107,8 +100,7 @@ export const LogoIcon: React.FC<LogoIconProps> = memo(
         className={clsx(
           "relative flex items-center justify-center text-brand-primary transition-all duration-500 ease-out",
           "isolation-auto will-change-transform", // Performance optimization
-          interactive &&
-            "cursor-pointer hover:scale-110 active:scale-95 hover:rotate-3",
+          interactive && "cursor-pointer hover:scale-110 active:scale-95 hover:rotate-3",
           className,
         )}
       >
@@ -180,19 +172,11 @@ export const LogoText: React.FC<LogoTextProps> = memo(
     return (
       <div className={clsx("flex flex-col leading-none", className)}>
         {/* Title */}
-        <span
-          className={clsx(
-            "font-black uppercase tracking-tight",
-            config.title,
-            textColor,
-          )}
-        >
+        <span className={clsx("font-black uppercase tracking-tight", config.title, textColor)}>
           {primary}
           <span className="text-brand-primary relative">
             {accent}
-            <span className="absolute inset-0 blur-sm opacity-30">
-              {accent}
-            </span>
+            <span className="absolute inset-0 blur-sm opacity-30">{accent}</span>
           </span>
         </span>
 

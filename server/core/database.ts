@@ -19,8 +19,7 @@ function logError(stage: InitStage, error: unknown) {
  */
 export async function initDatabase(): Promise<void> {
   if (initialized) return;
-  if (initializing)
-    throw new Error("Database initialization already in progress");
+  if (initializing) throw new Error("Database initialization already in progress");
 
   initializing = true;
 

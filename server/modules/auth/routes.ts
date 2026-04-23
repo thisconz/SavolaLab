@@ -102,12 +102,8 @@ app.post("/confirm-otp", async (c) => {
   try {
     const body = await c.req.json();
     const parsed = ConfirmOtpSchema.parse(body);
-    const valid = await AuthService.confirmOtp(
-      parsed.employee_number,
-      parsed.code,
-    );
-    if (!valid)
-      return c.json({ success: false, error: "Invalid or expired OTP" });
+    const valid = await AuthService.confirmOtp(parsed.employee_number, parsed.code);
+    if (!valid) return c.json({ success: false, error: "Invalid or expired OTP" });
     return c.json({ success: true, message: "Identity confirmed" });
   } catch (err) {
     logger.error({ err, requestId }, "confirm-otp failed");
@@ -120,11 +116,7 @@ app.post("/setup-credentials", async (c) => {
   try {
     const body = await c.req.json();
     const parsed = SetupCredentialsSchema.parse(body);
-    await AuthService.setupCredentials(
-      parsed.employee_number,
-      parsed.password,
-      parsed.pin,
-    );
+    await AuthService.setupCredentials(parsed.employee_number, parsed.password, parsed.pin);
     return c.json({ success: true, message: "Account activated successfully" });
   } catch (err) {
     logger.error({ err, requestId }, "setup-credentials failed");
@@ -137,14 +129,9 @@ app.post("/login", async (c) => {
   try {
     const body = await c.req.json();
     const parsed = LoginSchema.parse(body);
-    const result = await AuthService.login(
-      parsed.employee_number,
-      parsed.password,
-      parsed.pin,
-    );
+    const result = await AuthService.login(parsed.employee_number, parsed.password, parsed.pin);
 
-    if (!result)
-      return c.json({ success: false, error: "Invalid credentials" }, 401);
+    if (!result) return c.json({ success: false, error: "Invalid credentials" }, 401);
 
     const isProd = process.env.NODE_ENV === "production";
 
@@ -177,15 +164,10 @@ app.post("/login", async (c) => {
  */
 app.post("/refresh", async (c) => {
   const refresh = getCookie(c, "refresh_token");
-  if (!refresh)
-    return c.json({ success: false, error: "No refresh token" }, 401);
+  if (!refresh) return c.json({ success: false, error: "No refresh token" }, 401);
 
   const result = await AuthService.refreshAccess(refresh);
-  if (!result)
-    return c.json(
-      { success: false, error: "Invalid or expired refresh token" },
-      401,
-    );
+  if (!result) return c.json({ success: false, error: "Invalid or expired refresh token" }, 401);
 
   const isProd = process.env.NODE_ENV === "production";
   setCookie(c, "token", result.token, {

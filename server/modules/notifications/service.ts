@@ -48,21 +48,14 @@ export const NotificationService = {
       }
     });
 
-    logger.info(
-      { count: overdueTests.length },
-      "Overdue test notifications generated",
-    );
+    logger.info({ count: overdueTests.length }, "Overdue test notifications generated");
     return overdueTests.length;
   },
 
   /**
    * Create a targeted notification and immediately push SSE.
    */
-  pushNotification: async (
-    employeeNumber: string,
-    type: string,
-    message: string,
-  ) => {
+  pushNotification: async (employeeNumber: string, type: string, message: string) => {
     await NotificationRepository.create(employeeNumber, type, message);
     sseBus.sendTo(employeeNumber, "NOTIFICATION_PUSHED", { type, message });
   },

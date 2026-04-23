@@ -33,10 +33,7 @@ export const SettingsApi = {
     id: string | number,
     payload: Partial<T>,
   ): Promise<T> => {
-    const res = await api.put<ApiResponse<T>>(
-      `/settings/${table}/${id}`,
-      payload,
-    );
+    const res = await api.put<ApiResponse<T>>(`/settings/${table}/${id}`, payload);
     return res.data;
   },
 
@@ -45,10 +42,7 @@ export const SettingsApi = {
    * Note: the server must have a DELETE route for the given table.
    * Currently only "deletable" tables (sample_types, clients, inventory) expose this.
    */
-  deleteSetting: async (
-    table: RegistryTable,
-    id: string | number,
-  ): Promise<void> => {
+  deleteSetting: async (table: RegistryTable, id: string | number): Promise<void> => {
     await api.delete(`/settings/${table}/${id}`);
   },
 };

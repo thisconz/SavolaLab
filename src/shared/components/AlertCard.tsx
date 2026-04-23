@@ -20,13 +20,10 @@ export const AlertCard: React.FC<AlertCardProps> = ({
   className,
 }) => {
   const variants = {
-    warning:
-      "bg-zenthar-warning/10 border-zenthar-warning/20 text-zenthar-warning",
-    error:
-      "bg-zenthar-critical/10 border-zenthar-critical/20 text-zenthar-critical",
+    warning: "bg-zenthar-warning/10 border-zenthar-warning/20 text-zenthar-warning",
+    error: "bg-zenthar-critical/10 border-zenthar-critical/20 text-zenthar-critical",
     info: "bg-zenthar-info/10 border-zenthar-info/20 text-zenthar-info",
-    success:
-      "bg-zenthar-success/10 border-zenthar-success/20 text-zenthar-success",
+    success: "bg-zenthar-success/10 border-zenthar-success/20 text-zenthar-success",
   };
 
   return (
@@ -48,13 +45,9 @@ export const AlertCard: React.FC<AlertCardProps> = ({
           <div className={clsx("p-2 rounded-lg bg-current/10")}>
             <Icon size={16} />
           </div>
-          <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">
-            {type}
-          </h4>
+          <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">{type}</h4>
         </div>
-        {timestamp && (
-          <span className="text-[8px] font-mono opacity-60">{timestamp}</span>
-        )}
+        {timestamp && <span className="text-[8px] font-mono opacity-60">{timestamp}</span>}
       </div>
 
       <p className="text-sm text-white font-black mb-1 relative z-10 uppercase tracking-tight">

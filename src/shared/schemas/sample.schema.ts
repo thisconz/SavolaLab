@@ -17,27 +17,33 @@ export const SampleStatusSchema = z.enum([
 
 export const SamplePrioritySchema = z.enum(["NORMAL", "HIGH", "STAT"]);
 
+const nullableToOptional = <T extends z.ZodTypeAny>(schema: T) =>
+  schema
+    .nullable()
+    .optional()
+    .transform((v) => v ?? undefined);
+
 // ─────────────────────────────────────────────
 // Domain Schema — mirrors the DB `samples` table
 // ─────────────────────────────────────────────
 
 export const SampleSchema = z.object({
   id: z.number(),
-  batch_id: z.string().nullable().optional(),
+  batch_id: nullableToOptional(z.string()),
   /** Type/classification of the sample (e.g. "Raw sugar") */
-  sample_type: z.string().nullable().optional(),
+  sample_type: nullableToOptional(z.string()),
   /** Stage within the production process (e.g. "Evaporation") */
-  source_stage: z.string().nullable().optional(),
-  line_id: z.union([z.string(), z.number()]).nullable().optional(),
-  equipment_id: z.union([z.string(), z.number()]).nullable().optional(),
-  shift_id: z.union([z.string(), z.number()]).nullable().optional(),
+  source_stage: nullableToOptional(z.string()),
+  line_id: nullableToOptional(z.union([z.string(), z.number()])),
+  equipment_id: nullableToOptional(z.union([z.string(), z.number()])),
+  shift_id: nullableToOptional(z.union([z.string(), z.number()])),
   status: SampleStatusSchema,
   priority: SamplePrioritySchema,
   created_at: z
     .union([z.string(), z.date()])
     .transform((d) => (typeof d === "string" ? d : d.toISOString())),
-  technician_id: z.string().nullable().optional(),
-  test_count: z.number().nullable().optional().default(0),
+  technician_id: nullableToOptional(z.string()),
+  test_count: nullableToOptional(z.number()).default(0),
 });
 
 // ─────────────────────────────────────────────

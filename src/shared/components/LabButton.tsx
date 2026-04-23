@@ -6,18 +6,12 @@ import {
   useMotionTemplate,
   useMotionValue,
   useSpring,
+  HTMLMotionProps,
 } from "@/src/lib/motion";
 import clsx from "@/src/lib/clsx";
 
-interface LabButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?:
-    | "primary"
-    | "secondary"
-    | "danger"
-    | "ghost"
-    | "laser"
-    | "neon"
-    | "cyber";
+interface LabButtonProps extends HTMLMotionProps<"button"> {
+  variant?: "primary" | "secondary" | "danger" | "ghost" | "laser" | "neon" | "cyber";
   fullWidth?: boolean;
   loading?: boolean;
   icon?: LucideIcon;
@@ -48,19 +42,11 @@ export const LabButton: React.FC<LabButtonProps> = memo(
 
     const springConfig = { damping: 20, stiffness: 150 };
 
-    // Initialize MotionValues first, then pass to useSpring separately to satisfy TS
-    const mX = useMotionValue(0);
-    const mY = useMotionValue(0);
-    const tx = useSpring(mX, springConfig);
-    const ty = useSpring(mY, springConfig);
+    const tx = useSpring(mouseX, springConfig);
+    const ty = useSpring(mouseY, springConfig);
 
-    function handleMouseMove({
-      currentTarget,
-      clientX,
-      clientY,
-    }: React.MouseEvent) {
-      const { left, top, width, height } =
-        currentTarget.getBoundingClientRect();
+    function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
+      const { left, top, width, height } = currentTarget.getBoundingClientRect();
       const x = clientX - left;
       const y = clientY - top;
 
@@ -69,13 +55,18 @@ export const LabButton: React.FC<LabButtonProps> = memo(
 
       const centerX = width / 2;
       const centerY = height / 2;
-      mX.set((x - centerX) / 8);
-      mY.set((y - centerY) / 8);
+      mouseX.set((x - centerX) / 8);
+      mouseY.set((y - centerY) / 8);
     }
 
-    function handleMouseLeave() {
-      mX.set(0);
-      mY.set(0);
+    function handleMouseLeave(e: React.MouseEvent) {
+      const rect = e.currentTarget.getBoundingClientRect();
+
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+
+      mouseX.set(x / 8);
+      mouseY.set(y / 8);
     }
 
     const baseStyles = clsx(
@@ -93,13 +84,11 @@ export const LabButton: React.FC<LabButtonProps> = memo(
         "bg-white/[0.03] text-zinc-400 border border-white/10 hover:border-white/30 hover:text-white backdrop-blur-md",
       danger:
         "bg-red-950/20 text-red-500 border border-red-500/30 hover:bg-red-600 hover:text-white shadow-[inset_0_0_15px_rgba(239,68,68,0.1)]",
-      ghost:
-        "bg-transparent text-zinc-500 hover:text-brand-primary hover:bg-brand-primary/5",
+      ghost: "bg-transparent text-zinc-500 hover:text-brand-primary hover:bg-brand-primary/5",
       laser:
         "bg-black text-brand-primary border border-brand-primary/50 shadow-[0_0_15px_rgba(var(--brand-primary-rgb),0.2)]",
       neon: "bg-transparent text-white border-2 border-white/10 hover:border-brand-primary hover:shadow-[0_0_25px_rgba(var(--brand-primary-rgb),0.6)]",
-      cyber:
-        "bg-black text-brand-sage border-r-4 border-b-4 border-brand-primary shadow-xl",
+      cyber: "bg-black text-brand-sage border-r-4 border-b-4 border-brand-primary shadow-xl",
     };
 
     const glowBackground = useMotionTemplate`
@@ -155,19 +144,13 @@ export const LabButton: React.FC<LabButtonProps> = memo(
                 <Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />
               </motion.div>
             ) : Icon ? (
-              <motion.div
-                key="icon"
-                className="group-hover/btn:scale-110 transition-transform"
-              >
-                <Icon
-                  size={16}
-                  className={clsx(variant === "danger" && "animate-bounce")}
-                />
+              <motion.div key="icon" className="group-hover/btn:scale-110 transition-transform">
+                <Icon size={16} className={clsx(variant === "danger" && "animate-bounce")} />
               </motion.div>
             ) : null}
           </AnimatePresence>
 
-          <span className="relative tracking-[0.4em]">{children}</span>
+          <span className="relative tracking-[0.4em]">{children as React.ReactNode}</span>
         </motion.div>
 
         {/* TACTICAL HUD ACCENT - CANONICAL H-0.5 */}

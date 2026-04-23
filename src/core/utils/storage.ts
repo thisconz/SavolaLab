@@ -17,9 +17,7 @@ export const createSafeStorage = (): Storage => {
     getItem: (name: string): string | null => {
       try {
         const ls = getLS();
-        return (
-          (ls ? ls.getItem(name) : null) || inMemoryStorage.get(name) || null
-        );
+        return (ls ? ls.getItem(name) : null) || inMemoryStorage.get(name) || null;
       } catch (e) {
         return inMemoryStorage.get(name) || null;
       }

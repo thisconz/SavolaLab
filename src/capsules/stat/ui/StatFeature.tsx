@@ -34,7 +34,7 @@ export const StatFeature: React.FC = memo(() => {
   const [selectedStat, setSelectedStat] = useState<StatRequest | null>(null);
   const [newStatIds, setNewStatIds] = useState<Set<number>>(new Set()); // highlight newly arrived
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const { on } = useRealtime();
 
   const fetchStats = async (silent = false) => {
@@ -43,8 +43,7 @@ export const StatFeature: React.FC = memo(() => {
     try {
       const data = await StatApi.getStats();
       setStats(data);
-      if (data.length > 0 && !selectedStat && !showNewForm)
-        setSelectedStat(data[0]);
+      if (data.length > 0 && !selectedStat && !showNewForm) setSelectedStat(data[0]);
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -58,7 +57,10 @@ export const StatFeature: React.FC = memo(() => {
   // Live updates via SSE
   useEffect(() => {
     const unsubCreated = on("STAT_CREATED", (data) => {
-      clearTimeout(debounceTimer.current);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = undefined;
+      }
       debounceTimer.current = setTimeout(async () => {
         const updated = await StatApi.getStats();
         setStats(updated);
@@ -78,21 +80,20 @@ export const StatFeature: React.FC = memo(() => {
 
     const unsubUpdated = on("STAT_UPDATED", (data) => {
       setStats((prev) =>
-        prev.map((s) =>
-          s.id === data.id ? { ...s, status: data.status as any } : s,
-        ),
+        prev.map((s) => (s.id === data.id ? { ...s, status: data.status as any } : s)),
       );
       if (selectedStat?.id === data.id) {
-        setSelectedStat((prev) =>
-          prev ? { ...prev, status: data.status as any } : prev,
-        );
+        setSelectedStat((prev) => (prev ? { ...prev, status: data.status as any } : prev));
       }
     });
 
     return () => {
       unsubCreated();
       unsubUpdated();
-      clearTimeout(debounceTimer.current);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = undefined;
+      }
     };
   }, [on, selectedStat]);
 
@@ -115,9 +116,7 @@ export const StatFeature: React.FC = memo(() => {
     if (!selectedStat) return;
     const newStatus = selectedStat.status === "OPEN" ? "IN_PROGRESS" : "CLOSED";
     await StatApi.updateStatStatus(selectedStat.id, newStatus);
-    toast.success(
-      `Request ${newStatus === "IN_PROGRESS" ? "acknowledged" : "closed"}`,
-    );
+    toast.success(`Request ${newStatus === "IN_PROGRESS" ? "acknowledged" : "closed"}`);
     // SSE will update state
   };
 
@@ -126,8 +125,7 @@ export const StatFeature: React.FC = memo(() => {
       CRITICAL: "text-red-500 bg-red-500/10 border-red-500/20",
       HIGH: "text-orange-500 bg-orange-500/10 border-orange-500/20",
       NORMAL: "text-brand-primary bg-brand-primary/10 border-brand-primary/20",
-    })[u || "NORMAL"] ??
-    "text-brand-primary bg-brand-primary/10 border-brand-primary/20";
+    })[u || "NORMAL"] ?? "text-brand-primary bg-brand-primary/10 border-brand-primary/20";
 
   const statusIcon = (s: string) =>
     ({
@@ -136,9 +134,7 @@ export const StatFeature: React.FC = memo(() => {
     })[s] ?? <AlertCircle className="w-5 h-5 text-brand-primary" />;
 
   const active = stats.filter((s) => s.status !== "CLOSED").length;
-  const critical = stats.filter(
-    (s) => s.urgency === "CRITICAL" && s.status !== "CLOSED",
-  ).length;
+  const critical = stats.filter((s) => s.urgency === "CRITICAL" && s.status !== "CLOSED").length;
 
   return (
     <div className="h-full flex flex-col gap-6 overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
@@ -172,11 +168,7 @@ export const StatFeature: React.FC = memo(() => {
             className="bg-(--color-zenthar-carbon) p-5 rounded-2xl border border-brand-sage/10 flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-all"
           >
             <div
-              className={clsx(
-                "w-12 h-12 rounded-2xl flex items-center justify-center",
-                bg,
-                color,
-              )}
+              className={clsx("w-12 h-12 rounded-2xl flex items-center justify-center", bg, color)}
             >
               <Icon className="w-6 h-6" />
             </div>
@@ -184,11 +176,7 @@ export const StatFeature: React.FC = memo(() => {
               <p className="text-[9px] font-black text-brand-sage uppercase tracking-widest mb-0.5">
                 {label}
               </p>
-              <p
-                className={clsx("text-3xl font-light tracking-tighter", color)}
-              >
-                {value}
-              </p>
+              <p className={clsx("text-3xl font-light tracking-tighter", color)}>{value}</p>
             </div>
           </div>
         ))}
@@ -203,12 +191,7 @@ export const StatFeature: React.FC = memo(() => {
             loading={loading}
             actions={
               <div className="flex items-center gap-2">
-                {isRefreshing && (
-                  <RefreshCw
-                    size={12}
-                    className="animate-spin text-brand-sage"
-                  />
-                )}
+                {isRefreshing && <RefreshCw size={12} className="animate-spin text-brand-sage" />}
                 <button
                   onClick={() => {
                     setShowNewForm(true);
@@ -244,8 +227,7 @@ export const StatFeature: React.FC = memo(() => {
                       }}
                       className={clsx(
                         "p-4 rounded-2xl border transition-all duration-300 cursor-pointer group relative overflow-hidden",
-                        newStatIds.has(stat.id) &&
-                          "ring-2 ring-brand-primary ring-offset-1",
+                        newStatIds.has(stat.id) && "ring-2 ring-brand-primary ring-offset-1",
                         selectedStat?.id === stat.id
                           ? "bg-(--color-zenthar-carbon) border-brand-primary shadow-lg scale-[1.01]"
                           : "bg-(--color-zenthar-void) border-brand-sage/20 hover:border-brand-primary/40",
@@ -319,10 +301,7 @@ export const StatFeature: React.FC = memo(() => {
                   </div>
                 </div>
 
-                <form
-                  onSubmit={handleSubmit}
-                  className="flex-1 flex flex-col gap-6"
-                >
+                <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-6">
                   <div className="grid grid-cols-2 gap-5">
                     <div>
                       <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-2">
@@ -378,9 +357,7 @@ export const StatFeature: React.FC = memo(() => {
                       <textarea
                         required
                         value={formData.reason}
-                        onChange={(e) =>
-                          setFormData({ ...formData, reason: e.target.value })
-                        }
+                        onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                         placeholder="Provide detailed reason for the STAT request..."
                         className="w-full bg-(--color-zenthar-void) border-2 border-brand-sage/20 rounded-xl pl-11 pr-4 py-3.5 text-sm font-bold text-(--color-zenthar-text-primary) focus:border-brand-primary outline-none resize-none min-h-[120px]"
                       />
@@ -398,9 +375,7 @@ export const StatFeature: React.FC = memo(() => {
                     <button
                       type="submit"
                       disabled={
-                        submitting ||
-                        !formData.department.trim() ||
-                        !formData.reason.trim()
+                        submitting || !formData.department.trim() || !formData.reason.trim()
                       }
                       className="flex items-center gap-2 px-6 py-3 bg-brand-primary text-(--color-zenthar-void) text-xs font-bold rounded-xl hover:bg-brand-primary/90 transition-all shadow-lg disabled:opacity-50"
                     >
@@ -481,9 +456,7 @@ export const StatFeature: React.FC = memo(() => {
                               : "border-brand-primary/20",
                         )}
                       >
-                        <div className="mb-3">
-                          {statusIcon(selectedStat.status)}
-                        </div>
+                        <div className="mb-3">{statusIcon(selectedStat.status)}</div>
                         <p className="text-sm font-bold text-(--color-zenthar-text-primary)">
                           {selectedStat.status}
                         </p>
@@ -498,9 +471,7 @@ export const StatFeature: React.FC = memo(() => {
                       onClick={handleAcknowledge}
                       className="flex items-center gap-2 px-6 py-3 bg-brand-primary text-(--color-zenthar-void) text-sm font-bold rounded-2xl hover:bg-brand-primary/90 transition-all shadow-xl"
                     >
-                      {selectedStat.status === "OPEN"
-                        ? "Acknowledge"
-                        : "Mark Completed"}
+                      {selectedStat.status === "OPEN" ? "Acknowledge" : "Mark Completed"}
                       <ArrowRight size={16} />
                     </button>
                   </div>

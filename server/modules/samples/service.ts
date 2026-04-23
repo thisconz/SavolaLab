@@ -21,10 +21,7 @@ export const SampleService = {
     return SampleRepository.findAll();
   },
 
-  createSample: async (
-    data: SampleData,
-    technicianId: string,
-  ): Promise<number> => {
+  createSample: async (data: SampleData, technicianId: string): Promise<number> => {
     const id = await SampleRepository.create({
       ...data,
       technician_id: technicianId,

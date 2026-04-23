@@ -13,10 +13,7 @@ type Target = "json" | "query" | "param";
  *     const body = c.req.valid("json"); // fully typed
  *   });
  */
-export function validate<S extends ZodSchema>(
-  target: Target,
-  schema: S,
-): MiddlewareHandler {
+export function validate<S extends ZodSchema>(target: Target, schema: S): MiddlewareHandler {
   return async (c: Context, next: Next) => {
     let raw: unknown;
 
@@ -33,10 +30,7 @@ export function validate<S extends ZodSchema>(
           break;
       }
     } catch {
-      return c.json(
-        { success: false, error: "Invalid JSON body", code: "BAD_REQUEST" },
-        400,
-      );
+      return c.json({ success: false, error: "Invalid JSON body", code: "BAD_REQUEST" }, 400);
     }
 
     const result = schema.safeParse(raw);

@@ -18,10 +18,7 @@ app.get("/", authenticateToken, async (c) => {
     return c.json({ success: true, data: stats });
   } catch (err: any) {
     logger.error({ reqId, err }, "Error fetching stats");
-    return c.json(
-      { success: false, error: err.message || "Failed to fetch stats" },
-      500,
-    );
+    return c.json({ success: false, error: err.message || "Failed to fetch stats" }, 500);
   }
 });
 
@@ -39,10 +36,7 @@ app.post("/", authenticateToken, async (c) => {
     return c.json({ success: true, data: { id } }, 201);
   } catch (err: any) {
     logger.error({ reqId, err }, "Error creating stat");
-    return c.json(
-      { success: false, error: err.message || "Failed to create stat request" },
-      400,
-    );
+    return c.json({ success: false, error: err.message || "Failed to create stat request" }, 400);
   }
 });
 
@@ -57,19 +51,11 @@ app.put("/:id/status", authenticateToken, async (c) => {
     const employeeNumber = user?.employee_number || "system";
     const ip = c.req.header("x-forwarded-for") || "127.0.0.1";
 
-    await StatService.updateStatStatus(
-      id as string,
-      parsedBody.status,
-      employeeNumber,
-      ip,
-    );
+    await StatService.updateStatStatus(id as string, parsedBody.status, employeeNumber, ip);
     return c.json({ success: true });
   } catch (err: any) {
     logger.error({ reqId, err }, "Error updating stat status");
-    return c.json(
-      { success: false, error: err.message || "Failed to update stat status" },
-      400,
-    );
+    return c.json({ success: false, error: err.message || "Failed to update stat status" }, 400);
   }
 });
 

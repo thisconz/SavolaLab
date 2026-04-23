@@ -20,10 +20,7 @@ type ArchiveQuery = {
 /**
  * Route factory (removes duplication)
  */
-function createArchiveRoute(
-  path: string,
-  serviceFn: (query: ArchiveQuery) => any,
-) {
+function createArchiveRoute(path: string, serviceFn: (query: ArchiveQuery) => any) {
   app.get(path, authenticateToken, async (c) => {
     const reqId = c.get("requestId");
     try {
@@ -32,10 +29,7 @@ function createArchiveRoute(
       return c.json({ success: true, data: result });
     } catch (err: any) {
       logger.error({ reqId, err, path }, `Archive route error [${path}]`);
-      return c.json(
-        { success: false, error: err.message || "Internal Server Error" },
-        500,
-      );
+      return c.json({ success: false, error: err.message || "Internal Server Error" }, 500);
     }
   });
 }

@@ -88,19 +88,12 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = memo(
               isStat && "animate-[pulse_1.5s_ease-in-out_infinite]",
             )}
           >
-            <Icon
-              className={clsx(
-                "w-4 h-4 stroke-[3px]",
-                !isStat && current.iconColor,
-              )}
-            />
+            <Icon className={clsx("w-4 h-4 stroke-[3px]", !isStat && current.iconColor)} />
           </div>
         )}
 
         {/* 3️⃣ Label: Industrial Monospace */}
-        <span className="relative z-10 leading-none drop-shadow-sm">
-          {current.label}
-        </span>
+        <span className="relative z-10 leading-none drop-shadow-sm">{current.label}</span>
 
         {/* 4️⃣ STAT Effects */}
         {isStat && (

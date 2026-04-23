@@ -1,11 +1,4 @@
-import React, {
-  memo,
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-} from "react";
+import React, { memo, useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   ListChecks,
   Search,
@@ -52,15 +45,13 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const styles: Record<string, string> = {
     COMPLETED: "bg-emerald-500/10 border-emerald-500/20 text-emerald-500",
     FAILED: "bg-rose-500/10    border-rose-500/20    text-rose-500",
-    IN_PROGRESS:
-      "bg-brand-primary/10 border-brand-primary/20 text-brand-primary",
+    IN_PROGRESS: "bg-brand-primary/10 border-brand-primary/20 text-brand-primary",
   };
   return (
     <span
       className={clsx(
         "text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest border",
-        styles[status] ??
-          "bg-(--color-zenthar-void) border-brand-sage/20 text-brand-sage",
+        styles[status] ?? "bg-(--color-zenthar-void) border-brand-sage/20 text-brand-sage",
       )}
     >
       {status}
@@ -78,7 +69,7 @@ export const WorkflowsFeature: React.FC = memo(() => {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [liveExIds, setLiveExIds] = useState<Set<number>>(new Set()); // pulsing active executions
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const { on } = useRealtime();
 
   useEffect(() => {
@@ -94,9 +85,7 @@ export const WorkflowsFeature: React.FC = memo(() => {
       const data = await WorkflowApi.getWorkflowExecutions(sample.id);
       setExecutions(data);
       // Mark in-progress executions
-      const inProgress = new Set(
-        data.filter((e) => e.status === "IN_PROGRESS").map((e) => e.id),
-      );
+      const inProgress = new Set(data.filter((e) => e.status === "IN_PROGRESS").map((e) => e.id));
       setLiveExIds(inProgress);
     } finally {
       setExLoading(false);
@@ -111,11 +100,11 @@ export const WorkflowsFeature: React.FC = memo(() => {
   useEffect(() => {
     const refresh = () => {
       if (!selectedSample) return;
-      clearTimeout(debounceTimer.current);
-      debounceTimer.current = setTimeout(
-        () => loadExecutions(selectedSample),
-        600,
-      );
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = undefined;
+      }
+      debounceTimer.current = setTimeout(() => loadExecutions(selectedSample), 600);
     };
 
     const unsubs = [
@@ -133,7 +122,10 @@ export const WorkflowsFeature: React.FC = memo(() => {
 
     return () => {
       unsubs.forEach((u) => u());
-      clearTimeout(debounceTimer.current);
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = undefined;
+      }
     };
   }, [on, selectedSample, loadExecutions]);
 
@@ -152,9 +144,7 @@ export const WorkflowsFeature: React.FC = memo(() => {
 
   const filteredExecutions = useMemo(
     () =>
-      statusFilter === "ALL"
-        ? executions
-        : executions.filter((e) => e.status === statusFilter),
+      statusFilter === "ALL" ? executions : executions.filter((e) => e.status === statusFilter),
     [executions, statusFilter],
   );
 
@@ -162,9 +152,7 @@ export const WorkflowsFeature: React.FC = memo(() => {
     ({
       COMPLETED: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
       FAILED: <XCircle className="w-4 h-4 text-rose-500" />,
-      IN_PROGRESS: (
-        <Play className="w-4 h-4 text-brand-primary animate-pulse" />
-      ),
+      IN_PROGRESS: <Play className="w-4 h-4 text-brand-primary animate-pulse" />,
     })[status] ?? <Clock className="w-4 h-4 text-brand-sage" />;
 
   return (
@@ -215,9 +203,7 @@ export const WorkflowsFeature: React.FC = memo(() => {
                   <div
                     className={clsx(
                       "text-[9px] uppercase font-bold opacity-70",
-                      selectedSample?.id === sample.id
-                        ? "text-white"
-                        : "text-brand-sage",
+                      selectedSample?.id === sample.id ? "text-white" : "text-brand-sage",
                     )}
                   >
                     {sample.source_stage ?? sample.sample_type}
@@ -232,11 +218,7 @@ export const WorkflowsFeature: React.FC = memo(() => {
       {/* Execution viewer */}
       <main className="col-span-12 lg:col-span-8 flex flex-col gap-6 overflow-hidden">
         <LabPanel
-          title={
-            selectedSample
-              ? `Traceability: ${selectedSample.batch_id}`
-              : "Workflow Monitor"
-          }
+          title={selectedSample ? `Traceability: ${selectedSample.batch_id}` : "Workflow Monitor"}
           icon={ListChecks}
           loading={exLoading}
         >
@@ -335,58 +317,50 @@ export const WorkflowsFeature: React.FC = memo(() => {
                               Cycle Time
                             </p>
                             <p className="text-xs font-mono font-bold text-white">
-                              {getCycleTime(
-                                execution.started_at,
-                                execution.completed_at,
-                              )}
+                              {getCycleTime(execution.started_at, execution.completed_at)}
                             </p>
                           </div>
                         </div>
 
                         {/* Steps */}
                         <div className="space-y-2">
-                          {(execution as any).step_executions?.map(
-                            (step: any) => (
-                              <div
-                                key={step.id}
-                                className="flex items-center justify-between p-3 rounded-xl bg-(--color-zenthar-carbon)/50 hover:bg-(--color-zenthar-carbon) transition-colors"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div
-                                    className={clsx(
-                                      "w-2 h-2 rounded-full",
-                                      step.status === "COMPLETED"
-                                        ? "bg-emerald-500"
-                                        : step.status === "FAILED"
-                                          ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]"
-                                          : step.status === "IN_PROGRESS"
-                                            ? "bg-brand-primary animate-pulse"
-                                            : "bg-brand-sage/20",
-                                    )}
-                                  />
-                                  <span className="text-[10px] font-bold text-white uppercase">
-                                    {step.test_type}
-                                  </span>
-                                  <span className="text-[8px] font-mono text-brand-sage/30">
-                                    step {step.sequence_order}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-4 text-[10px] font-mono">
-                                  {step.result_value != null && (
-                                    <span className="text-brand-primary font-bold">
-                                      {step.result_value}
-                                    </span>
+                          {(execution as any).step_executions?.map((step: any) => (
+                            <div
+                              key={step.id}
+                              className="flex items-center justify-between p-3 rounded-xl bg-(--color-zenthar-carbon)/50 hover:bg-(--color-zenthar-carbon) transition-colors"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className={clsx(
+                                    "w-2 h-2 rounded-full",
+                                    step.status === "COMPLETED"
+                                      ? "bg-emerald-500"
+                                      : step.status === "FAILED"
+                                        ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]"
+                                        : step.status === "IN_PROGRESS"
+                                          ? "bg-brand-primary animate-pulse"
+                                          : "bg-brand-sage/20",
                                   )}
-                                  <span className="text-brand-sage/50">
-                                    {getCycleTime(
-                                      step.started_at,
-                                      step.completed_at,
-                                    )}
-                                  </span>
-                                </div>
+                                />
+                                <span className="text-[10px] font-bold text-white uppercase">
+                                  {step.test_type}
+                                </span>
+                                <span className="text-[8px] font-mono text-brand-sage/30">
+                                  step {step.sequence_order}
+                                </span>
                               </div>
-                            ),
-                          )}
+                              <div className="flex items-center gap-4 text-[10px] font-mono">
+                                {step.result_value != null && (
+                                  <span className="text-brand-primary font-bold">
+                                    {step.result_value}
+                                  </span>
+                                )}
+                                <span className="text-brand-sage/50">
+                                  {getCycleTime(step.started_at, step.completed_at)}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </motion.div>
                     ))

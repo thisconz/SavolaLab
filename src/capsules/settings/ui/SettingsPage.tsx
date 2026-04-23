@@ -110,16 +110,12 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "id",
         label: "ID",
-        render: (v) => (
-          <span className="font-mono text-[10px] text-brand-sage">#{v}</span>
-        ),
+        render: (v) => <span className="font-mono text-[10px] text-brand-sage">#{v}</span>,
       },
       {
         key: "name",
         label: "Name",
-        render: (v) => (
-          <span className="font-bold text-zenthar-text-primary">{v}</span>
-        ),
+        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
       },
       {
         key: "description",
@@ -153,18 +149,12 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "name",
         label: "Method",
-        render: (v) => (
-          <span className="font-bold text-zenthar-text-primary">{v}</span>
-        ),
+        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
       },
       {
         key: "formula",
         label: "Formula",
-        render: (v) => (
-          <span className="font-mono text-[10px] text-brand-sage">
-            {v || "—"}
-          </span>
-        ),
+        render: (v) => <span className="font-mono text-[10px] text-brand-sage">{v || "—"}</span>,
       },
       {
         key: "min_range",
@@ -202,27 +192,17 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "name",
         label: "Name",
-        render: (v) => (
-          <span className="font-bold text-zenthar-text-primary">{v}</span>
-        ),
+        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
       },
       {
         key: "model",
         label: "Model",
-        render: (v) => (
-          <span className="text-xs text-zenthar-text-secondary">
-            {v || "—"}
-          </span>
-        ),
+        render: (v) => <span className="text-xs text-zenthar-text-secondary">{v || "—"}</span>,
       },
       {
         key: "serial_number",
         label: "Serial",
-        render: (v) => (
-          <span className="font-mono text-[10px] text-brand-sage">
-            {v || "—"}
-          </span>
-        ),
+        render: (v) => <span className="font-mono text-[10px] text-brand-sage">{v || "—"}</span>,
       },
       {
         key: "status",
@@ -255,9 +235,7 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
             <span
               className={clsx(
                 "text-[10px] font-mono",
-                overdue
-                  ? "text-red-600 font-bold"
-                  : "text-zenthar-text-secondary",
+                overdue ? "text-red-600 font-bold" : "text-zenthar-text-secondary",
               )}
             >
               {new Date(v).toLocaleDateString()}
@@ -281,27 +259,17 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "name",
         label: "Client",
-        render: (v) => (
-          <span className="font-bold text-zenthar-text-primary">{v}</span>
-        ),
+        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
       },
       {
         key: "email",
         label: "Email",
-        render: (v) => (
-          <span className="text-xs text-zenthar-text-secondary">
-            {v || "—"}
-          </span>
-        ),
+        render: (v) => <span className="text-xs text-zenthar-text-secondary">{v || "—"}</span>,
       },
       {
         key: "phone",
         label: "Phone",
-        render: (v) => (
-          <span className="font-mono text-[10px] text-brand-sage">
-            {v || "—"}
-          </span>
-        ),
+        render: (v) => <span className="font-mono text-[10px] text-brand-sage">{v || "—"}</span>,
       },
     ],
   },
@@ -348,25 +316,19 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
         key: "employee_number",
         label: "Emp. #",
         render: (v) => (
-          <span className="font-mono text-[10px] font-bold text-brand-primary">
-            {v}
-          </span>
+          <span className="font-mono text-[10px] font-bold text-brand-primary">{v}</span>
         ),
       },
       {
         key: "name",
         label: "Name",
-        render: (v) => (
-          <span className="font-bold text-zenthar-text-primary">{v}</span>
-        ),
+        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
       },
       {
         key: "role",
         label: "Role",
         render: (v) => (
-          <span className="text-xs font-bold text-zenthar-text-secondary uppercase">
-            {v}
-          </span>
+          <span className="text-xs font-bold text-zenthar-text-secondary uppercase">{v}</span>
         ),
       },
       { key: "status", label: "Status", render: STATUS_BADGE },
@@ -383,25 +345,17 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "id",
         label: "ID",
-        render: (v) => (
-          <span className="font-mono text-[10px] text-brand-sage">#{v}</span>
-        ),
+        render: (v) => <span className="font-mono text-[10px] text-brand-sage">#{v}</span>,
       },
       {
         key: "name",
         label: "Line",
-        render: (v) => (
-          <span className="font-bold text-zenthar-text-primary">{v}</span>
-        ),
+        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
       },
       {
         key: "plant_id",
         label: "Plant",
-        render: (v) => (
-          <span className="text-xs text-zenthar-text-secondary">
-            {v || "—"}
-          </span>
-        ),
+        render: (v) => <span className="text-xs text-zenthar-text-secondary">{v || "—"}</span>,
       },
     ],
   },
@@ -426,9 +380,7 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "name",
         label: "Item",
-        render: (v) => (
-          <span className="font-bold text-zenthar-text-primary">{v}</span>
-        ),
+        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
       },
       {
         key: "quantity",
@@ -458,9 +410,7 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
             <span
               className={clsx(
                 "text-[10px] font-mono",
-                expired
-                  ? "text-red-600 font-bold"
-                  : "text-zenthar-text-secondary",
+                expired ? "text-red-600 font-bold" : "text-zenthar-text-secondary",
               )}
             >
               {new Date(v).toLocaleDateString()}
@@ -497,9 +447,7 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "name",
         label: "Rule",
-        render: (v) => (
-          <span className="font-bold text-zenthar-text-primary">{v}</span>
-        ),
+        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
       },
       {
         key: "action",
@@ -530,20 +478,12 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "key",
         label: "Key",
-        render: (v) => (
-          <span className="font-mono text-sm font-bold text-brand-primary">
-            {v}
-          </span>
-        ),
+        render: (v) => <span className="font-mono text-sm font-bold text-brand-primary">{v}</span>,
       },
       {
         key: "value",
         label: "Value",
-        render: (v) => (
-          <span className="font-mono text-sm text-zenthar-text-secondary">
-            {v}
-          </span>
-        ),
+        render: (v) => <span className="font-mono text-sm text-zenthar-text-secondary">{v}</span>,
       },
     ],
   },
@@ -621,15 +561,11 @@ const FieldRenderer: React.FC<{
   onChange: (val: any) => void;
   isEditing: boolean;
 }> = ({ field, value, onChange, isEditing }) => {
-  const isReadonly =
-    field.type === "readonly" || (isEditing && field.readonlyOnEdit);
+  const isReadonly = field.type === "readonly" || (isEditing && field.readonlyOnEdit);
   if (isReadonly)
     return (
       <div
-        className={clsx(
-          inputBase,
-          "bg-zenthar-graphite/30 cursor-not-allowed text-brand-sage/80",
-        )}
+        className={clsx(inputBase, "bg-zenthar-graphite/30 cursor-not-allowed text-brand-sage/80")}
       >
         {value || "—"}
       </div>
@@ -647,11 +583,7 @@ const FieldRenderer: React.FC<{
             : "bg-zenthar-void border-zenthar-steel text-brand-sage",
         )}
       >
-        {checked ? (
-          <ToggleRight className="w-5 h-5" />
-        ) : (
-          <ToggleLeft className="w-5 h-5" />
-        )}
+        {checked ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
         <span className="text-sm font-bold uppercase tracking-wider">
           {checked ? "Enabled" : "Disabled"}
         </span>
@@ -787,11 +719,7 @@ export const SettingsPage: React.FC = () => {
     setSaving(true);
     try {
       if (isEditing) {
-        await SettingsApi.updateSetting(
-          activeModule as any,
-          editingItem[config.pk],
-          formData,
-        );
+        await SettingsApi.updateSetting(activeModule as any, editingItem[config.pk], formData);
         toast.success("Entry updated");
       } else {
         await SettingsApi.addSetting(activeModule as any, formData);
@@ -833,8 +761,7 @@ export const SettingsPage: React.FC = () => {
           className={clsx(
             "flex-col gap-3 shrink-0 transition-opacity",
             !sidebarOpen && "hidden lg:flex",
-            sidebarOpen &&
-              "flex fixed inset-y-4 left-4 z-40 w-[240px] lg:static lg:w-auto",
+            sidebarOpen && "flex fixed inset-y-4 left-4 z-40 w-[240px] lg:static lg:w-auto",
           )}
         >
           <div className="glass-panel p-5 flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar min-w-[220px] shadow-2xl lg:shadow-none border border-transparent lg:border-(--color-soft-apricot)/30">
@@ -936,10 +863,7 @@ export const SettingsPage: React.FC = () => {
               title="Refresh"
             >
               <RefreshCw
-                className={clsx(
-                  "w-5 h-5 text-brand-primary",
-                  loading && "animate-spin",
-                )}
+                className={clsx("w-5 h-5 text-brand-primary", loading && "animate-spin")}
               />
             </button>
             <LabButton
@@ -968,9 +892,7 @@ export const SettingsPage: React.FC = () => {
                 <moduleInfo.icon className="w-12 h-12 text-brand-primary/30" />
               </div>
               <p className="text-[13px] font-black text-zenthar-text-primary uppercase tracking-widest mt-2">
-                {search
-                  ? "No results match your search"
-                  : `No ${moduleInfo.label} yet`}
+                {search ? "No results match your search" : `No ${moduleInfo.label} yet`}
               </p>
               {!search && (
                 <button
@@ -1059,9 +981,7 @@ export const SettingsPage: React.FC = () => {
       <Modal
         isOpen={isFormOpen}
         onClose={closeForm}
-        title={
-          isEditing ? `Edit ${moduleInfo.label}` : `Add ${moduleInfo.label}`
-        }
+        title={isEditing ? `Edit ${moduleInfo.label}` : `Add ${moduleInfo.label}`}
         subtitle={moduleInfo.hint}
         maxWidth="max-w-2xl"
       >
@@ -1072,9 +992,7 @@ export const SettingsPage: React.FC = () => {
                 <label className="text-[10px] font-black text-zenthar-text-primary uppercase tracking-widest flex items-center gap-1.5">
                   {field.label}
                   {field.required && (
-                    <span className="text-brand-primary text-[12px] leading-none mt-0.5">
-                      *
-                    </span>
+                    <span className="text-brand-primary text-[12px] leading-none mt-0.5">*</span>
                   )}
                 </label>
                 {field.hint && (
@@ -1086,9 +1004,7 @@ export const SettingsPage: React.FC = () => {
               <FieldRenderer
                 field={field}
                 value={formData[field.key]}
-                onChange={(val) =>
-                  setFormData((p) => ({ ...p, [field.key]: val }))
-                }
+                onChange={(val) => setFormData((p) => ({ ...p, [field.key]: val }))}
                 isEditing={isEditing}
               />
             </div>
@@ -1112,11 +1028,7 @@ export const SettingsPage: React.FC = () => {
               {saving ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
               ) : null}
-              {saving
-                ? "Saving..."
-                : isEditing
-                  ? "Save Changes"
-                  : "Create Entry"}
+              {saving ? "Saving..." : isEditing ? "Save Changes" : "Create Entry"}
             </LabButton>
           </div>
         </form>
@@ -1135,12 +1047,8 @@ export const SettingsPage: React.FC = () => {
               <AlertCircle className="w-5 h-5 text-red-500" />
             </div>
             <p className="text-sm text-zenthar-text-primary font-medium leading-relaxed">
-              Delete{" "}
-              <span className="font-bold text-red-600">
-                "{deleteItem?.[config.pk]}"
-              </span>
-              ? This action cannot be undone and will permanently remove this
-              record.
+              Delete <span className="font-bold text-red-600">"{deleteItem?.[config.pk]}"</span>?
+              This action cannot be undone and will permanently remove this record.
             </p>
           </div>
           <div className="flex gap-4">

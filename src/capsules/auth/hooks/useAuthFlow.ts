@@ -15,10 +15,7 @@ const getInitials = (name: string) => {
   return parts[0].charAt(0).toUpperCase() + parts[1].charAt(0).toUpperCase();
 };
 
-export const useAuthFlow = ({
-  onSuccess,
-  isOpen = true,
-}: UseAuthFlowOptions = {}) => {
+export const useAuthFlow = ({ onSuccess, isOpen = true }: UseAuthFlowOptions = {}) => {
   const { login, currentUser } = useAuthStore();
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);

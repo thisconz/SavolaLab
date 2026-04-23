@@ -55,12 +55,7 @@ const SPECS: Record<string, { usl: number; lsl: number }> = {
   pH: { lsl: 6.5, usl: 8.5 },
 };
 
-function calcCpk(
-  mean: number,
-  stddev: number,
-  usl: number,
-  lsl: number,
-): number {
+function calcCpk(mean: number, stddev: number, usl: number, lsl: number): number {
   if (stddev <= 0) return 0;
   const cpu = (usl - mean) / (3 * stddev);
   const cpl = (mean - lsl) / (3 * stddev);

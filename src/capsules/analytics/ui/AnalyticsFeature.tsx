@@ -1,11 +1,4 @@
-import React, {
-  memo,
-  useEffect,
-  useState,
-  useMemo,
-  useCallback,
-  useRef,
-} from "react";
+import React, { memo, useEffect, useState, useMemo, useCallback, useRef } from "react";
 import {
   BarChart3,
   TrendingUp,
@@ -82,12 +75,11 @@ interface StatusBreakdown {
 // Spec limits — UCL/LCL for reference lines
 // ─────────────────────────────────────────────
 
-const SPEC_LIMITS: Record<string, { usl: number; lsl: number; label: string }> =
-  {
-    Brix: { lsl: 60, usl: 70, label: "Brix %" },
-    Purity: { lsl: 95, usl: 100, label: "Purity %" },
-    Colour: { lsl: 0, usl: 60, label: "Colour IU" },
-  };
+const SPEC_LIMITS: Record<string, { usl: number; lsl: number; label: string }> = {
+  Brix: { lsl: 60, usl: 70, label: "Brix %" },
+  Purity: { lsl: 95, usl: 100, label: "Purity %" },
+  Colour: { lsl: 0, usl: 60, label: "Colour IU" },
+};
 
 type TimeWindow = "24h" | "7d" | "30d";
 const TIME_LABELS: Record<TimeWindow, string> = {
@@ -142,11 +134,7 @@ const CHART = {
 // (point beyond ±3σ of the dataset mean)
 // ─────────────────────────────────────────────
 
-function detectViolations(
-  data: number[],
-  mean: number,
-  stddev: number,
-): boolean[] {
+function detectViolations(data: number[], mean: number, stddev: number): boolean[] {
   if (stddev <= 0) return data.map(() => false);
   const ucl = mean + 3 * stddev;
   const lcl = mean - 3 * stddev;
@@ -157,8 +145,7 @@ function statsOf(values: (number | null)[]): { mean: number; stddev: number } {
   const valid = values.filter((v): v is number => v != null);
   if (!valid.length) return { mean: 0, stddev: 0 };
   const mean = valid.reduce((s, v) => s + v, 0) / valid.length;
-  const variance =
-    valid.reduce((s, v) => s + (v - mean) ** 2, 0) / valid.length;
+  const variance = valid.reduce((s, v) => s + (v - mean) ** 2, 0) / valid.length;
   return { mean, stddev: Math.sqrt(variance) };
 }
 
@@ -250,9 +237,7 @@ const CpkGauge: React.FC<{
         </div>
       </div>
       <div className="text-center">
-        <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest">
-          {label}
-        </p>
+        <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest">{label}</p>
         <div
           className={clsx(
             "flex items-center justify-center gap-1 mt-1 text-[9px]",
@@ -271,20 +256,13 @@ const CpkGauge: React.FC<{
 // Empty state
 // ─────────────────────────────────────────────
 
-const EmptyChart: React.FC<{ message: string; hint?: string }> = ({
-  message,
-  hint,
-}) => (
+const EmptyChart: React.FC<{ message: string; hint?: string }> = ({ message, hint }) => (
   <div className="h-full flex flex-col items-center justify-center gap-3 opacity-50">
     <Activity className="w-8 h-8 text-brand-sage/30" />
     <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest text-center">
       {message}
     </p>
-    {hint && (
-      <p className="text-[9px] font-mono text-brand-sage/50 text-center max-w-xs">
-        {hint}
-      </p>
-    )}
+    {hint && <p className="text-[9px] font-mono text-brand-sage/50 text-center max-w-xs">{hint}</p>}
   </div>
 );
 
@@ -323,9 +301,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
       if (qRes.status === "fulfilled") setQuality(qRes.value?.data ?? []);
       if (vRes.status === "fulfilled") setVolume(vRes.value?.data ?? []);
       if (cRes.status === "fulfilled")
-        setCapability(
-          cRes.value?.data ?? { brixCpk: 0, purityCpk: 0, colorCpk: 0 },
-        );
+        setCapability(cRes.value?.data ?? { brixCpk: 0, purityCpk: 0, colorCpk: 0 });
       if (prRes.status === "fulfilled") setPassRates(prRes.value?.data ?? []);
       if (bkRes.status === "fulfilled") setBreakdown(bkRes.value?.data ?? []);
       setLastFetch(new Date());
@@ -359,9 +335,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
 
   const avgPassRate = useMemo(() => {
     if (!passRates.length) return null;
-    return (
-      passRates.reduce((s, r) => s + (r.pass_rate ?? 0), 0) / passRates.length
-    ).toFixed(1);
+    return (passRates.reduce((s, r) => s + (r.pass_rate ?? 0), 0) / passRates.length).toFixed(1);
   }, [passRates]);
 
   // ── CSV export ─────────────────────────────────────────────────────────
@@ -371,21 +345,11 @@ export const AnalyticsFeature: React.FC = memo(() => {
         type === "quality"
           ? [
               ["Time", "Brix", "Purity", "Colour"],
-              ...quality.map((q) => [
-                q.time,
-                q.brix ?? "",
-                q.purity ?? "",
-                q.color ?? "",
-              ]),
+              ...quality.map((q) => [q.time, q.brix ?? "", q.purity ?? "", q.color ?? ""]),
             ]
           : [
               ["Test Type", "Pass Rate %", "Total Tested", "Approved"],
-              ...passRates.map((p) => [
-                p.test_type,
-                p.pass_rate,
-                p.total_tested,
-                p.approved,
-              ]),
+              ...passRates.map((p) => [p.test_type, p.pass_rate, p.total_tested, p.approved]),
             ];
       const csv = rows.map((r) => r.join(",")).join("\n");
       const a = Object.assign(document.createElement("a"), {
@@ -481,35 +445,16 @@ export const AnalyticsFeature: React.FC = memo(() => {
               />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={quality}
-                  margin={{ top: 8, right: 16, left: -8, bottom: 16 }}
-                >
+                <AreaChart data={quality} margin={{ top: 8, right: 16, left: -8, bottom: 16 }}>
                   <defs>
                     <linearGradient id="gBrix" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor="#0ea5e9"
-                        stopOpacity={0.15}
-                      />
+                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.15} />
                       <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid {...CHART.grid} vertical={false} />
-                  <XAxis
-                    dataKey="time"
-                    {...CHART.text}
-                    axisLine={false}
-                    tickLine={false}
-                    dy={12}
-                  />
-                  <YAxis
-                    yAxisId="left"
-                    {...CHART.text}
-                    axisLine={false}
-                    tickLine={false}
-                    dx={-8}
-                  />
+                  <XAxis dataKey="time" {...CHART.text} axisLine={false} tickLine={false} dy={12} />
+                  <YAxis yAxisId="left" {...CHART.text} axisLine={false} tickLine={false} dx={-8} />
                   <YAxis
                     yAxisId="right"
                     {...CHART.text}
@@ -605,9 +550,8 @@ export const AnalyticsFeature: React.FC = memo(() => {
                 <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
               </div>
               <span className="text-[9px] font-bold text-red-400 uppercase tracking-widest">
-                {spcViolations.filter(Boolean).length} Western Electric Rule 1
-                violation{spcViolations.filter(Boolean).length !== 1 ? "s" : ""}{" "}
-                (point beyond ±3σ)
+                {spcViolations.filter(Boolean).length} Western Electric Rule 1 violation
+                {spcViolations.filter(Boolean).length !== 1 ? "s" : ""} (point beyond ±3σ)
               </span>
             </div>
           )}
@@ -643,12 +587,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
                         tickLine={false}
                         dy={12}
                       />
-                      <YAxis
-                        {...CHART.text}
-                        axisLine={false}
-                        tickLine={false}
-                        dx={-4}
-                      />
+                      <YAxis {...CHART.text} axisLine={false} tickLine={false} dx={-4} />
                       <Tooltip
                         {...CHART.tooltip}
                         cursor={{ fill: "rgba(148,163,184,0.05)", radius: 8 }}
@@ -664,12 +603,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
                           paddingBottom: 16,
                         }}
                       />
-                      <Bar
-                        dataKey="volume"
-                        name="Actual"
-                        fill="#0ea5e9"
-                        radius={[8, 8, 0, 0]}
-                      />
+                      <Bar dataKey="volume" name="Actual" fill="#0ea5e9" radius={[8, 8, 0, 0]} />
                       <Bar
                         dataKey="target"
                         name="Target"
@@ -691,23 +625,11 @@ export const AnalyticsFeature: React.FC = memo(() => {
               skeleton={<ChartSkeleton height="h-64" />}
             >
               <div className="h-64 flex items-center justify-around px-4 py-6">
-                <CpkGauge
-                  label="Brix"
-                  cpk={capability.brixCpk}
-                  ppk={capability.brixPpk}
-                />
+                <CpkGauge label="Brix" cpk={capability.brixCpk} ppk={capability.brixPpk} />
                 <div className="w-px h-20 bg-brand-sage/10" />
-                <CpkGauge
-                  label="Purity"
-                  cpk={capability.purityCpk}
-                  ppk={capability.purityPpk}
-                />
+                <CpkGauge label="Purity" cpk={capability.purityCpk} ppk={capability.purityPpk} />
                 <div className="w-px h-20 bg-brand-sage/10" />
-                <CpkGauge
-                  label="Colour"
-                  cpk={capability.colorCpk}
-                  ppk={capability.colorPpk}
-                />
+                <CpkGauge label="Colour" cpk={capability.colorCpk} ppk={capability.colorPpk} />
               </div>
             </LabPanel>
           </div>
@@ -758,10 +680,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
                         </Pie>
                         <Tooltip
                           {...CHART.tooltip}
-                          formatter={(v: number, name: string) => [
-                            `${v} samples`,
-                            name,
-                          ]}
+                          formatter={(v: number, name: string) => [`${v} samples`, name]}
                         />
                         <Legend
                           verticalAlign="bottom"
@@ -814,15 +733,9 @@ export const AnalyticsFeature: React.FC = memo(() => {
                         </span>
                         <div className="flex items-center gap-2">
                           {Number(avgPassRate) >= 95 ? (
-                            <CheckCircle2
-                              size={12}
-                              className="text-emerald-400"
-                            />
+                            <CheckCircle2 size={12} className="text-emerald-400" />
                           ) : Number(avgPassRate) >= 80 ? (
-                            <AlertTriangle
-                              size={12}
-                              className="text-amber-400"
-                            />
+                            <AlertTriangle size={12} className="text-amber-400" />
                           ) : (
                             <XCircle size={12} className="text-red-400" />
                           )}
@@ -843,10 +756,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
                     )}
                     <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 pr-1">
                       {passRates.map((r) => (
-                        <div
-                          key={r.test_type}
-                          className="flex items-center gap-3 group"
-                        >
+                        <div key={r.test_type} className="flex items-center gap-3 group">
                           <span className="text-[10px] font-black text-(--color-zenthar-text-primary) uppercase w-24 shrink-0">
                             {r.test_type}
                           </span>

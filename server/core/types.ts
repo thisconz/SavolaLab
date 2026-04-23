@@ -120,11 +120,7 @@ export function can(user: User, perm: keyof PermissionFlags): boolean {
   return user.permissions[perm] === 1;
 }
 
-export const REVIEWER_ROLES: UserRole[] = [
-  "SHIFT_CHEMIST",
-  "HEAD_MANAGER",
-  "ADMIN",
-];
+export const REVIEWER_ROLES: UserRole[] = ["SHIFT_CHEMIST", "HEAD_MANAGER", "ADMIN"];
 
 export function isReviewer(role: string): role is UserRole {
   return REVIEWER_ROLES.includes(role as UserRole);
