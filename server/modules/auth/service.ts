@@ -419,6 +419,9 @@ export const AuthService = {
     } catch (err: any) {
       if (err.message?.includes("locked") || err.message?.includes("Invalid")) throw err;
       if (err.message === "Database not connected") {
+        if (process.env.NODE_ENV === "production") {
+          throw new Error("Database unavailable - cannot authenticate");
+        }
         const mockUser =
           mockUsers().find((u) => u.employee_number === employeeNumber) ?? mockUsers()[0];
         const token = signToken(mockUser as any);

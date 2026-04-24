@@ -11,24 +11,32 @@ export const WorkflowService = {
   getWorkflows: async () => {
     try {
       const workflows = await db.query(
-        "SELECT * FROM workflows WHERE is_active = TRUE ORDER BY created_at DESC",
+        "SELECT * FROM workflows WHERE is_active = 1 ORDER BY created_at DESC",
       );
 
-      const result = [];
+      const ids = workflows.map((w: any) => w.id);
 
-      for (const wf of workflows) {
-        const steps = await db.query(
-          "SELECT * FROM workflow_steps WHERE workflow_id = $1 ORDER BY sequence_order ASC",
-          [(wf as any).id],
-        );
+      if (ids.length === 0) return [];
 
-        result.push({
-          ...wf,
-          steps,
-        });
+      const steps = await db.query(
+        `SELECT * FROM workflow_steps
+        WHERE workflow_id = ANY($1::int[])
+        ORDER BY sequence_order ASC`,
+        [ids],
+      );
+
+      const grouped = new Map<number, any[]>();
+
+      for (const step of steps) {
+        const list = grouped.get(step.workflow_id) || [];
+        list.push(step);
+        grouped.set(step.workflow_id, list);
       }
 
-      return result;
+      return workflows.map((wf: any) => ({
+        ...wf,
+        steps: grouped.get(wf.id) || [],
+      }));
     } catch (err: any) {
       if (err.message === "Database not connected") return [];
       throw err;
@@ -99,14 +107,21 @@ export const WorkflowService = {
         [workflowId],
       )) as Array<{ id: number }>;
 
-      for (const step of stepRows) {
-        await client.query(
-          `INSERT INTO workflow_step_executions
-           (execution_id, step_id, status)
-           VALUES ($1, $2, 'PENDING')`,
-          [executionId, step.id],
-        );
-      }
+      const values: any[] = [];
+      const placeholders: string[] = [];
+
+      stepRows.forEach((step, i) => {
+        const base = i * 2;
+        placeholders.push(`($1, $${base + 2}, 'PENDING')`);
+        values.push(step.id);
+      });
+
+      await client.query(
+        `INSERT INTO workflow_step_executions
+        (execution_id, step_id, status)
+        VALUES ${placeholders.join(", ")}`,
+        [executionId, ...values],
+      );
 
       sseBus.broadcast("WORKFLOW_STARTED", {
         execution_id: executionId,
@@ -161,12 +176,12 @@ export const WorkflowService = {
       );
 
       const pendingRows = (await client.query(
-        `SELECT COUNT(*) AS count
-         FROM workflow_step_executions
-         WHERE execution_id = $1
-         AND status NOT IN ('COMPLETED','FAILED')`,
+        `SELECT COUNT(*)::int AS count
+        FROM workflow_step_executions
+        WHERE execution_id = $1
+        AND status NOT IN ('COMPLETED','FAILED')`,
         [executionId],
-      )) as Array<{ count: string }>;
+      )) as Array<{ count: number }>;
 
       const remaining = Number(pendingRows[0]?.count ?? 0);
 
@@ -192,32 +207,43 @@ export const WorkflowService = {
     try {
       const executions = await db.query(
         `SELECT we.*, w.name AS workflow_name
-         FROM workflow_executions we
-         JOIN workflows w ON we.workflow_id = w.id
-         WHERE we.sample_id = $1
-         ORDER BY we.started_at DESC`,
+        FROM workflow_executions we
+        JOIN workflows w ON we.workflow_id = w.id
+        WHERE we.sample_id = $1
+        ORDER BY we.started_at DESC`,
         [sampleId],
       );
 
-      const result = [];
+      const execIds = executions.map((e: any) => e.id);
 
-      for (const exec of executions) {
-        const steps = await db.query(
-          `SELECT wse.*, ws.test_type, ws.sequence_order, ws.min_value, ws.max_value
-           FROM workflow_step_executions wse
-           JOIN workflow_steps ws ON wse.step_id = ws.id
-           WHERE wse.execution_id = $1
-           ORDER BY ws.sequence_order ASC`,
-          [(exec as any).id],
-        );
+      if (execIds.length === 0) return [];
 
-        result.push({
-          ...exec,
-          step_executions: steps,
-        });
+      const steps = await db.query(
+        `SELECT
+            wse.*,
+            ws.test_type,
+            ws.sequence_order,
+            ws.min_value,
+            ws.max_value
+        FROM workflow_step_executions wse
+        JOIN workflow_steps ws ON wse.step_id = ws.id
+        WHERE wse.execution_id = ANY($1::int[])
+        ORDER BY ws.sequence_order ASC`,
+        [execIds],
+      );
+
+      const grouped = new Map<number, any[]>();
+
+      for (const step of steps) {
+        const list = grouped.get(step.execution_id) || [];
+        list.push(step);
+        grouped.set(step.execution_id, list);
       }
 
-      return result;
+      return executions.map((exec: any) => ({
+        ...exec,
+        step_executions: grouped.get(exec.id) || [],
+      }));
     } catch (err: any) {
       if (err.message === "Database not connected") return [];
       throw err;
@@ -230,7 +256,7 @@ export const WorkflowService = {
         `SELECT id
          FROM workflows
          WHERE target_stage = $1
-         AND is_active = TRUE
+         AND is_active = 1
          LIMIT 1`,
         [stage],
       );

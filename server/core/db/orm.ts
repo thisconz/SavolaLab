@@ -1,7 +1,8 @@
 import { drizzle } from "drizzle-orm/node-postgres";
+import type { Pool } from "pg";
 import { pool } from "./client";
 
 // ----------------------
-// Exported ORM instance
+// Single ORM instance
 // ----------------------
-export const dbOrm = drizzle(pool);
+export const dbOrm = drizzle(pool as Pool);

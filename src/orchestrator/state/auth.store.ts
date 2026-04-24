@@ -59,10 +59,12 @@ export const useAuthStore = create<AuthState>()(
         // Only persist identity and session token, avoid sensitive long-term data if necessary
         partialize: (state) => ({
           currentUser: state.currentUser,
-          token: state.token,
         }),
       },
     ),
     { name: "AuthStore" },
   ),
 );
+
+export const useIsAuthenticated = () =>
+  useAuthStore((s) => !!s.currentUser);

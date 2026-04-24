@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "@/src/lib/motion";
 import { Sidebar } from "./layout/Sidebar";
 import { Header } from "./layout/Header";
 import { RightRail } from "./layout/RightRail";
-import { useAppStore, useAppActions, AppTab } from "../orchestrator/state/app.store";
+import { useAppStore, AppTab, useSetActiveTab } from "../orchestrator/state/app.store";
 import { useAuthStore } from "../orchestrator/state/auth.store";
 import { LoginPage } from "../capsules/auth";
 import clsx from "@/src/lib/clsx";
@@ -22,7 +22,7 @@ const MOBILE_NAV_TABS: {
 ];
 
 const MobileBottomNav: React.FC<{ activeTab: AppTab }> = ({ activeTab }) => {
-  const { setActiveTab } = useAppActions();
+  const setActiveTab = useSetActiveTab();
 
   return (
     <nav
@@ -144,7 +144,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = memo(({ childre
       {/* FIX #05: was "hidden lg:flex lg:relative lg:z-auto lg:translate-x-0 lg:block"
                   "lg:block" conflicted with "lg:flex". Now just "hidden lg:flex". */}
       <div className="hidden lg:flex shrink-0">
-        <Sidebar activeTab={activeTab} />
+        <Sidebar activeTab={activeTab} onTabChange={function (tab: AppTab): void {
+          throw new Error("Function not implemented.");
+        } } />
       </div>
 
       {/* ── MOBILE SIDEBAR — slide in from left ─────────────────────────── */}
@@ -160,7 +162,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = memo(({ childre
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="fixed left-0 top-0 h-full z-50 lg:hidden shadow-2xl"
           >
-            <Sidebar activeTab={activeTab} />
+            <Sidebar activeTab={activeTab} onTabChange={function (tab: AppTab): void {
+              throw new Error("Function not implemented.");
+            } } />
             {/* Close button at top-right of mobile sidebar */}
             <button
               onClick={() => setMobileSidebarOpen(false)}

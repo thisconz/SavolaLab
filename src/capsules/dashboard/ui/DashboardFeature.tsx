@@ -24,7 +24,7 @@ import { NotificationApi } from "../../notifications";
 import { LabApi } from "../../lab";
 import { Notification, Sample, TestResult } from "../../../core/types";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
-import { useAppActions } from "../../../orchestrator/state/app.store";
+import { useSetActiveTab } from "../../../orchestrator/state/app.store";
 import clsx from "@/src/lib/clsx";
 
 import { QCStatsWidget } from "./QCStatsWidget";
@@ -99,7 +99,7 @@ const DateRangeSelector: React.FC<{
 // ─────────────────────────────────────────────
 
 export const DashboardFeature: React.FC = memo(() => {
-  const { setActiveTab } = useAppActions();
+  const setActiveTab = useSetActiveTab();
 
   const [data, setData] = useState({
     alerts: [] as Notification[],

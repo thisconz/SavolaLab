@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { LabApi } from "../api/lab.api";
 import { WorkflowApi } from "../../workflows/api/workflow.api";
@@ -19,8 +19,14 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
   >({});
   const [previousResults, setPreviousResults] = useState<Record<string, any[]>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const mountedRef = useRef(true);
 
   // ─── Load tests ──────────────────────────────────────────────────────────
+
+    useEffect(() => {
+     mountedRef.current = true;
+     return () => { mountedRef.current = false; };
+   }, []);
 
   const loadTests = useCallback(async () => {
     setLoading(true);
@@ -56,11 +62,16 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
 
       // Load history per test type (no duplicate fetches)
       const seen = new Set<string>();
+      const abortCtrl = new AbortController();
       for (const t of data) {
         if (seen.has(t.test_type)) continue;
         seen.add(t.test_type);
         LabApi.getPreviousResults(sample.source_stage ?? "", t.test_type, 3)
-          .then((res) => setPreviousResults((prev) => ({ ...prev, [t.test_type]: res })))
+          .then((res) => {
+            if (mountedRef.current) {
+              setPreviousResults((prev) => ({ ...prev, [t.test_type]: res }));
+            }
+          })
           .catch(() => {
             /* best-effort */
           });

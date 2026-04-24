@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { Variables } from "../../core/types";
-import { SettingsService, ALLOWED_TABLES } from "./service";
+import { SettingsService, TABLE_CONFIG } from "./service";
+import { OperationalService } from "../operational/service";
 import { authenticateToken, requireRoles } from "../../core/middleware";
 import { logger } from "../../core/logger";
 import { requireParam, requireIntParam } from "@/server/core/utils/params";
@@ -9,8 +10,9 @@ import { AuditService } from "../audit/service";
 const app = new Hono<{ Variables: Variables }>();
 
 const DELETABLE_TABLES = new Set(["sample_types", "clients", "inventory"]);
+const OPERATIONAL_TABLES = new Set(["production_lines", "instruments", "inventory"]);
 
-const validateTable = (t: string) => ALLOWED_TABLES.has(t);
+const validateTable = (t: string) => t in TABLE_CONFIG;
 
 app.get("/preferences", authenticateToken, async (c) => {
   const reqId = c.get("requestId");
@@ -46,6 +48,9 @@ app.post("/:table", authenticateToken, async (c) => {
   try {
     const body = await c.req.json();
     const result = await SettingsService.create(table, body);
+    if (OPERATIONAL_TABLES.has(table)) {
+      OperationalService.invalidate;
+    }
 
     await AuditService.createLog(
       user.employee_number,
@@ -70,6 +75,9 @@ app.put("/:table/:id", authenticateToken, async (c) => {
   try {
     const body = await c.req.json();
     const result = await SettingsService.update(table, id, body);
+    if (OPERATIONAL_TABLES.has(table)) {
+      OperationalService.invalidate;
+    }
 
     await AuditService.createLog(
       user.employee_number,

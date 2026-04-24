@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import { LogoRoot, LogoIcon } from "../../shared/components/Logo";
-import { useAppStore, AppTab, useAppActions } from "../../orchestrator/state/app.store";
+import { useAppStore, AppTab } from "../../orchestrator/state/app.store";
 import { useAuthStore } from "../../orchestrator/state/auth.store";
 import { QuickSwitch } from "../../capsules/auth";
 import { isTabAllowed } from "../../core/rbac";
@@ -150,8 +150,7 @@ const NAV_CONFIG = [
 // Sidebar
 // ─────────────────────────────────────────────
 
-export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => {
-  const { setActiveTab } = useAppActions();
+export const Sidebar: React.FC<{ activeTab: AppTab; onTabChange: (tab: AppTab) => void; }> = memo(({ activeTab, onTabChange }) => {
   const { currentUser, logout } = useAuthStore();
   const [isSwitchOpen, setSwitch] = useState(false);
 
@@ -213,7 +212,7 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
                   key={tab}
                   icon={icon}
                   active={activeTab === tab}
-                  onClick={() => setActiveTab(tab as AppTab)}
+                  onClick={() => onTabChange(tab as AppTab)}
                   label={label}
                 />
               ))}
@@ -227,7 +226,7 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
         {/* Quick links */}
         <div className="grid grid-cols-2 gap-2">
           <button
-            onClick={() => setActiveTab("settings")}
+            onClick={() => onTabChange("settings")}
             className="flex flex-col items-center justify-center p-3 rounded-2xl
                        bg-(--color-zenthar-graphite) border border-(--color-zenthar-steel)
                        hover:bg-brand-primary/10 hover:border-brand-primary/20
@@ -246,7 +245,7 @@ export const Sidebar: React.FC<{ activeTab: AppTab }> = memo(({ activeTab }) => 
             </span>
           </button>
           <button
-            onClick={() => setActiveTab("archive")}
+            onClick={() => onTabChange("archive")}
             className="flex flex-col items-center justify-center p-3 rounded-2xl
                        bg-(--color-zenthar-graphite) border border-(--color-zenthar-steel)
                        hover:bg-brand-primary/10 hover:border-brand-primary/20

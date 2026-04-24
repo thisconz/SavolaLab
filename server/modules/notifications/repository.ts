@@ -63,7 +63,7 @@ export const NotificationRepository = {
         .where(
           and(
             eq(tests.status, "PENDING"),
-            lt(samples.created_at, sql`NOW() - interval '4 hours'`)
+            lt(tests.updated_at, sql`NOW() - interval '4 hours'`)
           )
         );
 

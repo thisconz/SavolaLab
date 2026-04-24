@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { Variables } from "../../core/types";
 import { setCookie, deleteCookie, getCookie } from "hono/cookie";
 import { AuthService, verifyRefreshToken } from "./service";
-import { authenticateToken } from "../../core/middleware";
+import { authenticateToken, requireRoles } from "../../core/middleware";
 import { z } from "zod";
 import {
   GetUsersResponseSchema,
@@ -179,7 +179,7 @@ app.post("/refresh", async (c) => {
   return c.json({ success: true, token: result.token });
 });
 
-app.post("/reset-credentials/:id", authenticateToken, async (c) => {
+app.post("/reset-credentials/:id", authenticateToken, requireRoles("ADMIN", "HEAD_MANAGER"), async (c) => {
   const requestId = c.get("requestId");
   try {
     const employeeNumber = c.req.param("id");

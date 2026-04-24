@@ -267,8 +267,8 @@ async function startServer(): Promise<void> {
     logger.error({ err }, "UNCAUGHT_EXCEPTION");
     shutdown("uncaughtException");
   });
-  process.on("unhandledRejection", (reason) => {
-    logger.error({ reason }, "UNHANDLED_REJECTION");
+  process.on("unhandledRejection", (reason, promise) => {
+    logger.error({ reason, promise: String(promise) }, "UNHANDLED_REJECTION");
   });
 }
 

@@ -26,19 +26,36 @@ const LAB_INPUT_CLASSES =
   "w-full bg-(--color-zenthar-graphite)/30 border-2 border-brand-sage/10 rounded-[1.25rem] p-5 font-mono text-sm font-bold transition-all duration-300 focus:outline-none focus:border-brand-primary/40 focus:bg-(--color-zenthar-graphite) focus:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.2)] placeholder:text-brand-sage/30 text-(--color-zenthar-text-primary)";
 
 // 2. HELPER COMPONENTS (Define outside so they have access to global constants)
-const Field = ({ label, icon, ...props }: any) => (
+type FieldProps = {
+  label: string;
+  icon?: React.ReactNode;
+  value: string;
+  onChange: (value: string) => void;
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">;
+
+const Field: React.FC<FieldProps> = ({
+  label,
+  icon,
+  value,
+  onChange,
+  ...rest
+}) => (
   <div className="space-y-1.5">
     <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">
       {label}
     </label>
+
     <div className="relative group">
       <div className="absolute left-5 top-1/2 -translate-y-1/2 text-brand-sage group-focus-within:text-brand-primary transition-colors opacity-40">
         {icon}
       </div>
+
       <input
+        {...rest}
         required
-        {...props}
-        className={`${LAB_INPUT_CLASSES} pl-12`} // Template literal is safer for appending classes
+        value={value}
+        onChange={(e) => onChange(e.target.value)} // ✅ FIX
+        className={`${LAB_INPUT_CLASSES} pl-12`}
       />
     </div>
   </div>
@@ -58,9 +75,6 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pin, setPin] = useState("");
-
-  const LAB_INPUT_CLASSES =
-    "w-full bg-(--color-zenthar-graphite)/30 border-2 border-brand-sage/10 rounded-[1.25rem] p-5 font-mono text-sm font-bold transition-all duration-300 focus:outline-none focus:border-brand-primary/40 focus:bg-(--color-zenthar-graphite) focus:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.2)] placeholder:text-brand-sage/30 text-(--color-zenthar-text-primary)";
 
   const steps = useMemo(
     () => [
@@ -150,6 +164,8 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
       setLoading(false);
     }
   };
+
+  
 
   if (isSuccess) {
     return (
