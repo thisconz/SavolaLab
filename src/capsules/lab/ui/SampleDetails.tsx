@@ -17,6 +17,8 @@ import {
   CheckCircle2,
   TrendingUp,
   Fingerprint,
+  RotateCcw,
+  User,
   Zap,
 } from "lucide-react";
 import type { Sample } from "../../../core/types";
@@ -25,16 +27,19 @@ import { LabPanel } from "../../../shared/components/LabPanel";
 import { LabButton } from "../../../shared/components/LabButton";
 import { useSampleDetails } from "../hooks/useSampleDetails";
 import { motion, AnimatePresence } from "@/src/lib/motion";
+import { toast } from "sonner";
+import { LabApi } from "../api/lab.api";
 
 interface SampleDetailsProps {
   sample: Sample;
   onBack: () => void;
   onStartTesting: () => void;
   onUpdate: () => void;
+  onSelectSample?: (id: number) => void;
 }
 
 export const SampleDetails: React.FC<SampleDetailsProps> = memo(
-  ({ sample, onBack, onStartTesting, onUpdate }) => {
+  ({ sample, onBack, onStartTesting, onUpdate, onSelectSample }) => {
     const {
       isEditing,
       setIsEditing,
@@ -44,6 +49,24 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
       testResults,
       handleSave,
     } = useSampleDetails(sample, onUpdate);
+
+    const [isRegenerating, setIsRegenerating] = React.useState(false);
+
+    const handleRegenerate = async () => {
+      if (!window.confirm("This will create a new re-test sample (suffixed with -R). Proceed?"))
+        return;
+      setIsRegenerating(true);
+      try {
+        const res = await LabApi.regenerateSample(sample.id);
+        toast.success("Sample regenerated successfully.");
+        if (onSelectSample) onSelectSample(res.id);
+        onUpdate();
+      } catch (err) {
+        toast.error("Failed to regenerate sample.");
+      } finally {
+        setIsRegenerating(false);
+      }
+    };
 
     const isStat = sample.priority === "STAT";
     const isCompleted =
@@ -186,6 +209,30 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                           setEditedSample((p) => ({ ...p, source_stage: v }))
                         }
                       />
+                      <EditField
+                        icon={Factory}
+                        label="Line_ID"
+                        value={editedSample.line_id}
+                        onChange={(v: string) => setEditedSample((p) => ({ ...p, line_id: v }))}
+                      />
+                      <EditField
+                        icon={Cpu}
+                        label="Equipment_ID"
+                        value={editedSample.equipment_id}
+                        onChange={(v: string) => setEditedSample((p) => ({ ...p, equipment_id: v }))}
+                      />
+                      <EditField
+                        icon={Clock}
+                        label="Shift_ID"
+                        value={editedSample.shift_id}
+                        onChange={(v: string) => setEditedSample((p) => ({ ...p, shift_id: v }))}
+                      />
+                      <EditField
+                        icon={User}
+                        label="Assignee_ID"
+                        value={editedSample.technician_id}
+                        onChange={(v: string) => setEditedSample((p) => ({ ...p, technician_id: v }))}
+                      />
                     </motion.div>
                   ) : (
                     <>
@@ -216,9 +263,9 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                       />
                       <DetailTile
                         className="col-span-2"
-                        icon={Clock}
-                        label="Shift"
-                        value={sample.shift_id ? `Shift ${sample.shift_id}` : null}
+                        icon={User}
+                        label="Assignee"
+                        value={sample.technician_id ?? "Unassigned"}
                       />
                     </>
                   )}
@@ -306,6 +353,15 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
               </>
             ) : (
               <>
+                <LabButton
+                  variant="secondary"
+                  onClick={handleRegenerate}
+                  loading={isRegenerating}
+                  icon={RotateCcw}
+                  title="Regenerate/Re-test Sample"
+                >
+                  Regen
+                </LabButton>
                 <LabButton variant="secondary" onClick={() => setIsEditing(true)} icon={Edit2}>
                   Edit
                 </LabButton>

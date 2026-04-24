@@ -1,243 +1,90 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
-
-/* =============================================================
-   ZENTHAR DESIGN SYSTEM — Dark Theme
-   All tokens are CSS custom properties consumed by Tailwind v4
-   ============================================================= */
 
 @theme {
   /* --- Typography --- */
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 
-  /* --- Brand Palette (Rose/Berry accent on dark) --- */
-  --color-soft-apricot: #f9dbbd;
-  --color-cotton-candy: #ffa5ab;
-  --color-blush-rose: #da627d;
-  --color-cherry-rose: #a53860;
-  --color-crimson-violet: #450920;
+  /* --- Brand Palette (Technical Obsidian + Rose/Cyan accents) --- */
+  --color-brand-primary: #f43f5e; /* Rose 500 */
+  --brand-primary-rgb: 244, 63, 94;
+  --color-brand-accent: #fb7185;  /* Rose 400 */
+  --color-brand-sage: #b4afd4;    /* Muted lavender — readable on dark */
+  
+  /* Instrumental / Status Accents */
+  --color-lab-laser: #22d3ee;     /* Cyan 400 — high-tech highlight */
+  --color-lab-toxic: #4ade80;     /* Green 400 — success/normal */
+  --color-lab-plasma: #a855f7;    /* Purple 500 — alternative status */
+  --color-lab-warning: #fbbf24;   /* Amber 400 */
 
-  --color-brand-primary: var(--color-blush-rose); /* #da627d */
-  --color-brand-accent: var(--color-cotton-candy); /* #ffa5ab */
-  --color-brand-sage: #b4afd4; /* muted lavender — readable on dark */
-  --color-brand-deep: #06060f;
-
-  /* --- Surface Scale (Dark) --- */
-  --color-zenthar-void: #07071a; /* page background    */
-  --color-zenthar-carbon: #0d0d22; /* card background    */
-  --color-zenthar-graphite: #12122c; /* elevated surface   */
-  --color-zenthar-steel: rgba(148, 163, 184, 0.1); /* border            */
-  --color-zenthar-border: rgba(148, 163, 184, 0.07); /* subtle border     */
+  /* --- Surface Scale (Deep Laboratory Obsidian) --- */
+  --color-zenthar-void: #030310;     /* Absolute page background */
+  --color-zenthar-carbon: #070718;   /* Component background */
+  --color-zenthar-graphite: #0c0c22; /* Elevated surface / hover */
+  --color-zenthar-steel: rgba(148, 163, 184, 0.12); /* Standard border */
 
   /* --- Text Scale --- */
-  --color-zenthar-text-primary: #f0eeff; /* headings / values */
-  --color-zenthar-text-secondary: #b4afd4; /* labels            */
-  --color-zenthar-text-muted: rgba(180, 175, 212, 0.45); /* placeholders      */
+  --color-zenthar-text-primary: #f8fafc;   /* Slate 50 - headings */
+  --color-zenthar-text-secondary: #94a3b8; /* Slate 400 - body/labels */
+  --color-zenthar-text-muted: #475569;     /* Slate 600 - placeholders */
 
-  /* --- Semantic --- */
-  --color-zenthar-success: #10b981;
-  --color-zenthar-warning: #f59e0b;
-  --color-zenthar-critical: #ef4444;
-  --color-zenthar-info: #38bdf8;
+  /* --- Safe Area Utilities --- */
+  --safe-area-top: env(safe-area-inset-top);
+  --safe-area-bottom: env(safe-area-inset-bottom);
+  --safe-area-left: env(safe-area-inset-left);
+  --safe-area-right: env(safe-area-inset-right);
 
-  /* --- Functional --- */
-  --color-lab-laser: var(--color-blush-rose);
-
-  /* --- Brand RGB for dynamic alpha utilities --- */
-  --brand-primary-rgb: 218, 98, 125;
+  /* --- Animations --- */
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+  @keyframes aura-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+  }
 }
-
-/* =============================================================
-   BASE RESET
-   ============================================================= */
 
 @layer base {
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-  }
-
-  html {
-    color-scheme: dark;
-  }
-
   body {
-    @apply bg-zenthar-void text-(--color-zenthar-text-primary) font-sans antialiased overflow-hidden;
-    font-feature-settings: "ss01", "ss03", "cv01";
+    @apply bg-(--color-zenthar-void) text-(--color-zenthar-text-primary) antialiased selection:bg-brand-primary/30;
   }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-display tracking-tight;
+  
+  /* Scrollbar override */
+  ::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
   }
-
-  /* Ensure inputs inherit the font */
-  input,
-  textarea,
-  select,
-  button {
-    font-family: inherit;
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
   }
 }
 
-/* =============================================================
-   COMPONENT CLASSES
-   ============================================================= */
-
 @layer components {
-  /* Glass panel — dark frosted surface */
   .glass-panel {
-    background: rgba(13, 13, 34, 0.75);
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(148, 163, 184, 0.09);
-    border-radius: 1.5rem;
+    @apply bg-(--color-zenthar-carbon)/80 backdrop-blur-xl border border-(--color-zenthar-steel) shadow-2xl;
   }
 
-  /* Light glass card — used by MetricCard for contrast against dark bg */
-  .glass-card-light {
-    background: rgba(255, 255, 255, 0.07);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  /* Industrial surface */
-  .industrial-surface {
-    @apply bg-zenthar-carbon border border-(--color-zenthar-steel) rounded-xl shadow-md;
-  }
-
-  /* Brand gradient (rose → cotton candy) */
-  .brand-gradient {
-    background: linear-gradient(135deg, var(--color-blush-rose) 0%, var(--color-cotton-candy) 100%);
-  }
-
-  /* Subtle grid dot pattern */
   .instrument-grid {
-    background-image: radial-gradient(
-      circle at 1px 1px,
-      rgba(148, 163, 184, 0.06) 1px,
-      transparent 0
-    );
+    background-image: 
+      linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
-  /* Table row styles */
-  .data-row {
-    @apply flex items-center p-4 border-b border-(--color-zenthar-steel) transition-all duration-200 cursor-pointer;
-  }
-  .data-row:hover {
-    background: rgba(218, 98, 125, 0.04);
+  .tab-inactive {
+    @apply text-zenthar-text-muted hover:text-zenthar-text-secondary hover:bg-zenthar-graphite/40 transition-all;
   }
 
-  .col-header {
-    @apply text-[10px] font-mono text-(--color-zenthar-text-muted) uppercase tracking-[0.2em] mb-2 border-b border-(--color-zenthar-steel) pb-2;
-  }
-
-  .data-value {
-    @apply font-mono text-[12px] tracking-tight text-(--color-zenthar-text-primary);
-  }
-
-  .status-pill {
-    @apply px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest border border-current/20 bg-current/10;
-  }
-
-  /* Scan-line sweep effect */
-  .scanline {
-    background: linear-gradient(
-      0deg,
-      transparent 0%,
-      rgba(218, 98, 125, 0.04) 50%,
-      transparent 100%
-    );
-  }
-
-  /* Custom scrollbar */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.18);
-    border-radius: 9999px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(218, 98, 125, 0.4);
-  }
-
-  /* Hide scrollbar visually but keep functionality */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  .text-hud {
+    @apply font-mono text-[10px] uppercase tracking-[0.2em] font-black;
   }
 }
 
-/* =============================================================
-   ANIMATIONS
-   ============================================================= */
-
-@keyframes scanline {
-  0% {
-    bottom: 100%;
-  }
-  100% {
-    bottom: -100px;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 200%;
-  }
-}
-
-@keyframes glitch {
-  0% {
-    text-shadow:
-      2px 0 0 #ff0055,
-      -2px 0 0 #00ffff;
-  }
-  50% {
-    text-shadow:
-      -2px 0 0 #ff0055,
-      2px 0 0 #00ffff;
-  }
-  100% {
-    text-shadow:
-      2px 0 0 #ff0055,
-      -2px 0 0 #00ffff;
-  }
-}
-
-/* =============================================================
-   GLOBAL SCROLLBAR OVERRIDE
-   ============================================================= */
-
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.15);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(218, 98, 125, 0.35);
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }

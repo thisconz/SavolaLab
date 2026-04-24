@@ -179,6 +179,19 @@ app.post("/refresh", async (c) => {
   return c.json({ success: true, token: result.token });
 });
 
+app.post("/reset-credentials/:id", authenticateToken, async (c) => {
+  const requestId = c.get("requestId");
+  try {
+    const employeeNumber = c.req.param("id");
+    if (!employeeNumber) return c.json({ success: false, error: "Employee number is required" }, 400);
+    await AuthService.resetCredentials(employeeNumber);
+    return c.json({ success: true, message: "Credentials reset. Temp PIN: 0000" });
+  } catch (err) {
+    logger.error({ err, requestId }, "reset-credentials failed");
+    return c.json({ success: false, error: toMsg(err) }, 400);
+  }
+});
+
 app.get("/me", authenticateToken, async (c) => {
   const requestId = c.get("requestId");
   try {

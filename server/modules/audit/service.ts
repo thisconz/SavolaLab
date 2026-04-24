@@ -1,5 +1,8 @@
-import { db } from "../../core/database";
+import { db } from "../../core/db/client";
+import { dbOrm } from "../../core/db/orm";
+import { auditLogs } from "../../core/db/schema";
 import { logger } from "../../core/logger";
+import { eq, desc, and, gte, lte } from "drizzle-orm";
 
 export type AuditLog = {
   id: number;
@@ -22,37 +25,33 @@ export type AuditFilters = {
 export const AuditService = {
   // Get audit logs with optional filtering & pagination
   getLogs: async (filters: AuditFilters = {}): Promise<AuditLog[]> => {
-    let sql = `SELECT * FROM audit_logs WHERE 1=1`;
-    const params: any[] = [];
-    let paramIndex = 1;
+    let conditions = [];
 
     if (filters.employee_number) {
-      sql += ` AND employee_number = $${paramIndex++}`;
-      params.push(filters.employee_number);
+      conditions.push(eq(auditLogs.employee_number, filters.employee_number));
     }
     if (filters.action) {
-      sql += ` AND action = $${paramIndex++}`;
-      params.push(filters.action);
+      conditions.push(eq(auditLogs.action, filters.action));
     }
     if (filters.start_date) {
-      sql += ` AND created_at >= $${paramIndex++}`;
-      params.push(filters.start_date);
+      conditions.push(gte(auditLogs.created_at, new Date(filters.start_date)));
     }
     if (filters.end_date) {
-      sql += ` AND created_at <= $${paramIndex++}`;
-      params.push(filters.end_date);
+      conditions.push(lte(auditLogs.created_at, new Date(filters.end_date)));
     }
 
-    sql += ` ORDER BY created_at DESC`;
-
-    // Pagination with defaults & max limits
     const limit = Math.min(filters.limit || 50, 500);
     const offset = Math.max(filters.offset || 0, 0);
-    sql += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
-    params.push(limit, offset);
 
     try {
-      return (await db.query(sql, params)) as AuditLog[];
+      const results = await dbOrm
+        .select()
+        .from(auditLogs)
+        .where(conditions.length ? and(...conditions) : undefined)
+        .orderBy(desc(auditLogs.created_at))
+        .limit(limit)
+        .offset(offset);
+      return results as any;
     } catch (error: any) {
       if (error.message === "Database not connected") return [];
       throw error;
@@ -70,10 +69,12 @@ export const AuditService = {
     const safeDetails = details ? details.slice(0, 1000) : "";
 
     try {
-      await db.execute(
-        `INSERT INTO audit_logs (employee_number, action, details, ip_address) VALUES ($1, $2, $3, $4)`,
-        [employeeNumber, safeAction, safeDetails, ip || "127.0.0.1"],
-      );
+      await dbOrm.insert(auditLogs).values({
+        employee_number: employeeNumber,
+        action: safeAction,
+        details: safeDetails,
+        ip_address: ip || "127.0.0.1",
+      });
     } catch (err: any) {
       if (err.message === "Database not connected") return;
       logger.error(

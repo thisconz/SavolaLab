@@ -13,7 +13,7 @@ app.get("/", authenticateToken, async (c) => {
     const workflows = await WorkflowService.getWorkflows();
     return c.json({ success: true, data: workflows });
   } catch (err: any) {
-    logger.error("Failed to fetch workflows:", err);
+    logger.error({ err }, "Failed to fetch workflows");
     return c.json({ success: false, error: err.message || "Failed to fetch workflows" }, 500);
   }
 });
@@ -25,7 +25,7 @@ app.post("/", authenticateToken, async (c) => {
     const id = await WorkflowService.createWorkflow(body);
     return c.json({ success: true, data: { id } }, 201);
   } catch (err: any) {
-    logger.error("Failed to create workflow:", err);
+    logger.error({ err }, "Failed to create workflow");
     return c.json({ success: false, error: err.message }, 400);
   }
 });
@@ -40,7 +40,7 @@ app.post("/:id/execute", authenticateToken, async (c) => {
     const executionId = await WorkflowService.executeWorkflow(id, body.sample_id);
     return c.json({ success: true, data: { executionId } }, 201);
   } catch (err: any) {
-    logger.error("Failed to execute workflow:", err);
+    logger.error({ err }, "Failed to execute workflow");
     return c.json({ success: false, error: err.message }, 400);
   }
 });
@@ -53,7 +53,7 @@ app.post("/executions/:id/steps/:step_id/start", authenticateToken, async (c) =>
     await WorkflowService.startStep(id, stepId);
     return c.json({ success: true });
   } catch (err: any) {
-    logger.error("Failed to start step:", err);
+    logger.error({ err }, "Failed to start step");
     return c.json({ success: false, error: err.message }, 400);
   }
 });
@@ -68,7 +68,7 @@ app.post("/executions/:id/steps/:step_id/complete", authenticateToken, async (c)
     await WorkflowService.completeStep(id, stepId, status, test_id, result_value);
     return c.json({ success: true });
   } catch (err: any) {
-    logger.error("Failed to complete step:", err);
+    logger.error({ err }, "Failed to complete step");
     return c.json({ success: false, error: err.message }, 400);
   }
 });
@@ -80,7 +80,7 @@ app.get("/executions/:sample_id", authenticateToken, async (c) => {
     const executions = await WorkflowService.getExecutionsBySample(sampleId);
     return c.json({ success: true, data: executions });
   } catch (err: any) {
-    logger.error("Failed to fetch executions:", err);
+    logger.error({ err }, "Failed to fetch executions");
     return c.json(
       {
         success: false,

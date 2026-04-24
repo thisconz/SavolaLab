@@ -23,6 +23,8 @@ import {
   Check,
   RefreshCw,
   ChevronLeft,
+  Lock,
+  RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import { SettingsApi } from "../api/settings.api";
@@ -88,8 +90,8 @@ const STATUS_BADGE = (val: any) => {
       className={clsx(
         "px-2 py-0.5 rounded-md text-[9px] font-black uppercase border",
         active
-          ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-          : "bg-slate-50 border-slate-200 text-slate-500",
+          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+          : "bg-zenthar-graphite/40 border-zenthar-steel text-zenthar-text-muted",
       )}
     >
       {active ? "Active" : "Inactive"}
@@ -764,9 +766,9 @@ export const SettingsPage: React.FC = () => {
             sidebarOpen && "flex fixed inset-y-4 left-4 z-40 w-[240px] lg:static lg:w-auto",
           )}
         >
-          <div className="glass-panel p-5 flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar min-w-[220px] shadow-2xl lg:shadow-none border border-transparent lg:border-(--color-soft-apricot)/30">
+          <div className="glass-panel p-5 flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar min-w-[220px] shadow-2xl lg:shadow-none border border-transparent lg:border-brand-primary/10">
             <div className="flex items-center gap-4 px-3 pb-6 pt-2 border-b border-zenthar-steel/50 mb-4">
-              <div className="w-12 h-12 flex items-center justify-center bg-brand-primary/10 rounded-2xl shadow-inner border border-white/50">
+              <div className="w-12 h-12 flex items-center justify-center bg-brand-primary/10 rounded-2xl shadow-inner border border-brand-primary/30">
                 <SettingsIcon className="w-6 h-6 text-brand-primary" />
               </div>
               <div>
@@ -824,7 +826,7 @@ export const SettingsPage: React.FC = () => {
           <div className="absolute top-0 right-0 w-72 h-72 bg-brand-primary/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
 
           <div className="flex items-center gap-5 relative z-10">
-            <div className="w-16 h-16 bg-white border border-zenthar-steel rounded-[20px] flex items-center justify-center text-brand-primary shadow-lg shadow-brand-primary/5">
+            <div className="w-16 h-16 bg-zenthar-graphite/80 border border-zenthar-steel rounded-[20px] flex items-center justify-center text-brand-primary shadow-lg shadow-brand-primary/5">
               <moduleInfo.icon className="w-7 h-7" />
             </div>
             <div>
@@ -845,7 +847,7 @@ export const SettingsPage: React.FC = () => {
                 placeholder="Search registry..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full sm:w-64 bg-white/50 backdrop-blur-sm border border-zenthar-steel rounded-[16px] pl-11 pr-8 py-3.5 text-sm focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-zenthar-text-primary transition-all placeholder:text-brand-sage/40 font-medium"
+                className="w-full sm:w-64 bg-zenthar-graphite/40 backdrop-blur-sm border border-zenthar-steel rounded-[16px] pl-11 pr-8 py-3.5 text-sm focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-zenthar-text-primary transition-all placeholder:text-brand-sage/40 font-medium"
               />
               {search && (
                 <button
@@ -859,7 +861,7 @@ export const SettingsPage: React.FC = () => {
 
             <button
               onClick={fetchData}
-              className="p-3.5 bg-white/50 backdrop-blur-sm border border-zenthar-steel rounded-[16px] hover:bg-white transition-all shadow-sm"
+              className="p-3.5 bg-zenthar-graphite/40 backdrop-blur-sm border border-zenthar-steel rounded-[16px] hover:bg-zenthar-graphite transition-all shadow-sm"
               title="Refresh"
             >
               <RefreshCw
@@ -878,7 +880,7 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         {/* Table */}
-        <div className="flex-1 glass-panel border border-white/50 shadow-sm overflow-hidden flex flex-col min-h-0 relative">
+        <div className="flex-1 glass-panel border border-zenthar-steel/50 shadow-sm overflow-hidden flex flex-col min-h-0 relative">
           {/* subtle background details */}
           <div className="absolute inset-0 instrument-grid opacity-30 pointer-events-none" />
 
@@ -888,7 +890,7 @@ export const SettingsPage: React.FC = () => {
             </div>
           ) : filteredData.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 py-16 relative z-10">
-              <div className="p-6 bg-white/40 backdrop-blur-md rounded-[24px] border border-zenthar-steel shadow-inner">
+              <div className="p-6 bg-zenthar-graphite/30 backdrop-blur-md rounded-[24px] border border-zenthar-steel shadow-inner">
                 <moduleInfo.icon className="w-12 h-12 text-brand-primary/30" />
               </div>
               <p className="text-[13px] font-black text-zenthar-text-primary uppercase tracking-widest mt-2">
@@ -906,12 +908,12 @@ export const SettingsPage: React.FC = () => {
           ) : (
             <div className="flex-1 overflow-auto custom-scrollbar relative z-10">
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-white/80 backdrop-blur-xl z-20">
+                <thead className="sticky top-0 bg-zenthar-void/80 backdrop-blur-xl z-20">
                   <tr className="border-b border-zenthar-steel/40 shadow-sm">
                     {config.columns.map((col) => (
                       <th
                         key={col.key}
-                        className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-brand-sage bg-gradient-to-r from-white to-white/50"
+                        className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-brand-sage"
                       >
                         {col.label}
                       </th>
@@ -942,7 +944,7 @@ export const SettingsPage: React.FC = () => {
                         <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => openEdit(item)}
-                            className="w-8 h-8 flex items-center justify-center rounded-[10px] border border-transparent group-hover:border-zenthar-steel hover:bg-white hover:text-brand-primary text-brand-sage transition-all shadow-sm"
+                            className="w-8 h-8 flex items-center justify-center rounded-[10px] border border-transparent group-hover:border-zenthar-steel hover:bg-zenthar-graphite/80 hover:text-brand-primary text-brand-sage transition-all shadow-sm"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -962,7 +964,7 @@ export const SettingsPage: React.FC = () => {
               </table>
             </div>
           )}
-          <div className="px-8 py-3.5 border-t border-zenthar-steel/40 bg-white/60 backdrop-blur-md shrink-0 flex items-center justify-between relative z-20">
+          <div className="px-8 py-3.5 border-t border-zenthar-steel/40 bg-zenthar-void/60 backdrop-blur-md shrink-0 flex items-center justify-between relative z-20">
             <span className="text-[10px] font-mono font-medium tracking-tight text-brand-sage/80 uppercase">
               {filteredData.length}
               {search ? ` of ${data.length}` : ""} records
@@ -1009,6 +1011,52 @@ export const SettingsPage: React.FC = () => {
               />
             </div>
           ))}
+
+          <AnimatePresence>
+            {isEditing && activeModule === "employees" && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="pt-6 border-t border-red-500/10 mt-6"
+              >
+                <div className="flex items-center justify-between p-5 bg-red-500/5 border border-red-500/20 rounded-2xl">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center">
+                      <Lock className="w-5 h-5 text-red-500" />
+                    </div>
+                    <div>
+                      <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest">
+                        Security_Reset
+                      </h4>
+                      <p className="text-[9px] text-brand-sage uppercase font-mono mt-1 opacity-70">
+                        Reset PIN to 0000 and clear password.
+                      </p>
+                    </div>
+                  </div>
+                  <LabButton
+                    variant="secondary"
+                    className="text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white transition-all text-[9px] font-black tracking-widest"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      if (!window.confirm("Reset credentials for this employee?")) return;
+                      try {
+                        const { AuthApi } = await import("../../auth/api/auth.api");
+                        await AuthApi.resetCredentials(formData[config.pk]);
+                        toast.success("Credentials regenerated successfully (Temp PIN: 0000).");
+                      } catch (err) {
+                        toast.error("Failed to reset credentials.");
+                      }
+                    }}
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Reset_Account
+                  </LabButton>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="flex gap-4 pt-6 border-t border-zenthar-steel mt-6">
             <LabButton
               variant="ghost"

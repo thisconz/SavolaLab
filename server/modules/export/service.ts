@@ -1,86 +1,115 @@
 import ExcelJS from "exceljs";
 import { ExportType, ExportOptions } from "../../core/types";
-import { db } from "../../core/database";
+import { dbOrm } from "../../core/db/orm";
+import { 
+  samples, tests, auditLogs, certificates, 
+  instruments, inventory, employees 
+} from "../../core/db/schema";
 import { logger } from "../../core/logger";
-
-// ─────────────────────────────────────────────
-// Query builders per export type
-// ─────────────────────────────────────────────
+import { eq, desc, asc } from "drizzle-orm";
 
 async function fetchRows(opts: ExportOptions): Promise<any[]> {
   const limit = Math.min(opts.limit ?? 5000, 10_000);
 
   switch (opts.type) {
     case "samples":
-      return db.query(
-        `SELECT s.id, s.batch_id, s.sample_type, s.source_stage,
-                s.priority, s.status, s.created_at,
-                e.name AS technician_name
-         FROM samples s
-         LEFT JOIN employees e ON s.technician_id = e.employee_number
-         ORDER BY s.created_at DESC
-         LIMIT $1`,
-        [limit],
-      );
+      return await dbOrm
+        .select({
+          id: samples.id,
+          batch_id: samples.batch_id,
+          sample_type: samples.sample_type,
+          source_stage: samples.source_stage,
+          priority: samples.priority,
+          status: samples.status,
+          created_at: samples.created_at,
+          technician_name: employees.name,
+        })
+        .from(samples)
+        .leftJoin(employees, eq(samples.technician_id, employees.employee_number))
+        .orderBy(desc(samples.created_at))
+        .limit(limit);
 
     case "tests":
-      return db.query(
-        `SELECT t.id, s.batch_id, t.test_type,
-                t.raw_value, t.calculated_value, t.unit,
-                t.status, t.performed_at,
-                ep.name AS performer_name,
-                er.name AS reviewer_name,
-                t.review_comment, t.notes
-         FROM tests t
-         JOIN  samples    s  ON t.sample_id   = s.id
-         LEFT JOIN employees ep ON t.performer_id = ep.employee_number
-         LEFT JOIN employees er ON t.reviewer_id  = er.employee_number
-         ORDER BY t.performed_at DESC
-         LIMIT $1`,
-        [limit],
-      );
+      return await dbOrm
+        .select({
+          id: tests.id,
+          batch_id: samples.batch_id,
+          test_type: tests.test_type,
+          raw_value: tests.raw_value,
+          calculated_value: tests.calculated_value,
+          unit: tests.unit,
+          status: tests.status,
+          performed_at: tests.performed_at,
+          performer_name: employees.name, // Will alias correctly when processed
+          review_comment: tests.review_comment,
+          notes: tests.notes
+        })
+        .from(tests)
+        .innerJoin(samples, eq(tests.sample_id, samples.id))
+        .leftJoin(employees, eq(tests.performer_id, employees.employee_number))
+        .orderBy(desc(tests.performed_at))
+        .limit(limit);
 
     case "audit":
-      return db.query(
-        `SELECT a.id, a.employee_number,
-                e.name AS employee_name,
-                a.action, a.details, a.ip_address, a.created_at
-         FROM audit_logs a
-         LEFT JOIN employees e ON a.employee_number = e.employee_number
-         ORDER BY a.created_at DESC
-         LIMIT $1`,
-        [limit],
-      );
+      return await dbOrm
+        .select({
+          id: auditLogs.id,
+          employee_number: auditLogs.employee_number,
+          employee_name: employees.name,
+          action: auditLogs.action,
+          details: auditLogs.details,
+          ip_address: auditLogs.ip_address,
+          created_at: auditLogs.created_at,
+        })
+        .from(auditLogs)
+        .leftJoin(employees, eq(auditLogs.employee_number, employees.employee_number))
+        .orderBy(desc(auditLogs.created_at))
+        .limit(limit);
 
     case "certificates":
-      return db.query(
-        `SELECT c.id, c.batch_id, c.status, c.version, c.created_at,
-                e.name AS approved_by_name
-         FROM certificates c
-         LEFT JOIN employees e ON c.approved_by = e.employee_number
-         ORDER BY c.created_at DESC
-         LIMIT $1`,
-        [limit],
-      );
+      return await dbOrm
+        .select({
+          id: certificates.id,
+          batch_id: certificates.batch_id,
+          status: certificates.status,
+          version: certificates.version,
+          created_at: certificates.created_at,
+          approved_by_name: employees.name,
+        })
+        .from(certificates)
+        .leftJoin(employees, eq(certificates.approved_by, employees.employee_number))
+        .orderBy(desc(certificates.created_at))
+        .limit(limit);
 
     case "instruments":
-      return db.query(
-        `SELECT id, name, model, serial_number, status,
-                last_calibration, next_calibration
-         FROM instruments
-         ORDER BY name ASC
-         LIMIT $1`,
-        [limit],
-      );
+      return await dbOrm
+        .select({
+          id: instruments.id,
+          name: instruments.name,
+          model: instruments.model,
+          serial_number: instruments.serial_number,
+          status: instruments.status,
+          last_calibration: instruments.last_calibration,
+          next_calibration: instruments.next_calibration,
+        })
+        .from(instruments)
+        .orderBy(asc(instruments.name))
+        .limit(limit);
 
     case "inventory":
-      return db.query(
-        `SELECT id, name, type, quantity, unit, min_stock, expiry_date
-         FROM inventory
-         ORDER BY name ASC
-         LIMIT $1`,
-        [limit],
-      );
+      return await dbOrm
+        .select({
+          id: inventory.id,
+          name: inventory.name,
+          type: inventory.type,
+          quantity: inventory.quantity,
+          unit: inventory.unit,
+          min_stock: inventory.min_stock,
+          expiry_date: inventory.expiry_date,
+        })
+        .from(inventory)
+        .orderBy(asc(inventory.name))
+        .limit(limit);
 
     default:
       throw new Error(`Unknown export type: ${opts.type}`);

@@ -42,6 +42,10 @@ export const LabApi = {
     return api.put(`/samples/${sampleId}`, data);
   },
 
+  regenerateSample: async (sampleId: number): Promise<{ id: number }> => {
+    return api.post<{ id: number }>(`/samples/${sampleId}/regenerate`, {});
+  },
+
   // ─────────────────────────────────────────────
   // Tests
   // ─────────────────────────────────────────────

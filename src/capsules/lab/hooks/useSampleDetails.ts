@@ -23,6 +23,7 @@ export const useSampleDetails = (sample: Sample, onUpdate: () => void) => {
         line_id: sample.line_id ?? "",
         equipment_id: sample.equipment_id ?? "",
         shift_id: sample.shift_id ?? "",
+        technician_id: sample.technician_id ?? "",
       });
     }
   }, [isEditing, sample]);

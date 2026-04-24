@@ -27,9 +27,9 @@ const MobileBottomNav: React.FC<{ activeTab: AppTab }> = ({ activeTab }) => {
   return (
     <nav
       aria-label="Mobile quick navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-(--color-zenthar-carbon)/95 backdrop-blur-2xl border-t border-(--color-zenthar-steel) safe-area-bottom"
+      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-(--color-zenthar-carbon)/95 backdrop-blur-2xl border-t border-(--color-zenthar-steel) pb-[var(--safe-area-bottom)]"
     >
-      <div className="flex items-center justify-around px-2 py-2">
+      <div className="flex items-center justify-around px-2 py-2 mb-1">
         {MOBILE_NAV_TABS.map(({ tab, icon: Icon, label }) => {
           const isActive = activeTab === tab;
           return (
@@ -39,14 +39,14 @@ const MobileBottomNav: React.FC<{ activeTab: AppTab }> = ({ activeTab }) => {
               aria-label={`Navigate to ${label}`}
               aria-current={isActive ? "page" : undefined}
               className={clsx(
-                "flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all duration-300 min-w-[60px]",
+                "flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all duration-300 min-w-[60px] touch-manipulation",
                 isActive
                   ? "bg-brand-primary/10 text-brand-primary"
                   : "text-(--color-zenthar-text-muted) hover:text-(--color-zenthar-text-primary)",
               )}
             >
               <Icon
-                size={20}
+                size={22}
                 strokeWidth={isActive ? 2.5 : 2}
                 className={clsx("transition-transform", isActive && "scale-110")}
               />
@@ -58,12 +58,6 @@ const MobileBottomNav: React.FC<{ activeTab: AppTab }> = ({ activeTab }) => {
               >
                 {label}
               </span>
-              {isActive && (
-                <motion.div
-                  layoutId="mobile-nav-dot"
-                  className="w-1 h-1 rounded-full bg-brand-primary"
-                />
-              )}
             </button>
           );
         })}
@@ -71,13 +65,12 @@ const MobileBottomNav: React.FC<{ activeTab: AppTab }> = ({ activeTab }) => {
         {/* "More" button opens the full sidebar */}
         <button
           onClick={() => {
-            // Dispatch a custom event the AppShell listens for
             window.dispatchEvent(new CustomEvent("open-mobile-sidebar"));
           }}
           aria-label="Open full navigation menu"
-          className="flex flex-col items-center gap-1 px-4 py-2 rounded-2xl text-(--color-zenthar-text-muted) hover:text-(--color-zenthar-text-primary) transition-all min-w-[60px]"
+          className="flex flex-col items-center gap-1 px-4 py-2 rounded-2xl text-(--color-zenthar-text-muted) hover:text-(--color-zenthar-text-primary) transition-all min-w-[60px] touch-manipulation"
         >
-          <Menu size={20} strokeWidth={2} />
+          <Menu size={22} strokeWidth={2} />
           <span className="text-[9px] font-black uppercase tracking-widest opacity-60">More</span>
         </button>
       </div>
@@ -181,7 +174,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = memo(({ childre
       </AnimatePresence>
 
       {/* ── MAIN WORKSPACE ─────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 relative z-10 bg-(--color-zenthar-carbon)/60 backdrop-blur-md overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10 bg-(--color-zenthar-carbon)/60 backdrop-blur-md">
         <Header onMenuToggle={toggleMobileSidebar} />
 
         <div className="flex-1 relative overflow-hidden flex flex-col min-h-0">

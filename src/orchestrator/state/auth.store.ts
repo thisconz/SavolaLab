@@ -56,9 +56,10 @@ export const useAuthStore = create<AuthState>()(
         name: "zenthar-auth-storage",
         storage: createJSONStorage(() => safeLocalStorage),
 
-        // Only persist identity, not sensitive session tokens
+        // Only persist identity and session token, avoid sensitive long-term data if necessary
         partialize: (state) => ({
           currentUser: state.currentUser,
+          token: state.token,
         }),
       },
     ),

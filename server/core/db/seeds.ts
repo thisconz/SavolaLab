@@ -250,7 +250,7 @@ async function seedSystemPreferences(client: TransactionClient) {
     { key: "DATE_TIME_FORMAT", value: "YYYY-MM-DDTHH:mm:ss.SSSZ" },
     { key: "TIMEZONE", value: "UTC" },
     { key: "UNITS", value: "metric" },
-    { key: "APP_VERSION", value: "2.0.0" },
+    { key: "APP_VERSION", value: "v1.0.0" },
   ];
 
   for (const p of prefs) {

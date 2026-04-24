@@ -219,13 +219,15 @@ export const TestService = {
     });
 
     // Notify the original performer
-    sseBus.sendTo(test.performer_id, "TEST_REVIEWED", {
-      id: numId,
-      sample_id: test.sample_id,
-      test_type: test.test_type,
-      status: data.status,
-      reviewed_by: reviewerId,
-    });
+    if (test.performer_id) {
+      sseBus.sendTo(test.performer_id, "TEST_REVIEWED", {
+        id: numId,
+        sample_id: test.sample_id,
+        test_type: test.test_type,
+        status: data.status,
+        reviewed_by: reviewerId,
+      });
+    }
 
     // Also broadcast to all so queues update
     sseBus.broadcast("TEST_REVIEWED", {

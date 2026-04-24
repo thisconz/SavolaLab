@@ -3,6 +3,7 @@ import { db } from "../../core/database";
 import { StatRepository } from "./repository";
 import { sseBus } from "../../core/sse";
 import { analyticsCache } from "../../core/cache";
+import { AuditService } from "../audit/service";
 
 export interface StatRequestInput {
   department: string;
@@ -21,14 +22,11 @@ export const StatService = {
     });
 
     if (employeeNumber) {
-      await db.execute(
-        `INSERT INTO audit_logs (employee_number, action, details, ip_address)
-         VALUES ($1, 'STAT_REQUEST_CREATED', $2, $3)`,
-        [
-          employeeNumber,
-          `Created STAT request #${statId} for department: ${data.department}`,
-          ip ?? "127.0.0.1",
-        ],
+      await AuditService.createLog(
+        employeeNumber,
+        'STAT_REQUEST_CREATED',
+        `Created STAT request #${statId} for department: ${data.department}`,
+        ip ?? "127.0.0.1"
       );
     }
 
@@ -57,10 +55,11 @@ export const StatService = {
     await StatRepository.updateStatus(statId, status);
 
     if (employeeNumber) {
-      await db.execute(
-        `INSERT INTO audit_logs (employee_number, action, details, ip_address)
-         VALUES ($1, 'STAT_REQUEST_UPDATED', $2, $3)`,
-        [employeeNumber, `Updated STAT request #${statId} → ${status}`, ip ?? "127.0.0.1"],
+      await AuditService.createLog(
+        employeeNumber,
+        'STAT_REQUEST_UPDATED',
+        `Updated STAT request #${statId} → ${status}`,
+        ip ?? "127.0.0.1"
       );
     }
 

@@ -10,10 +10,12 @@
  *  - signToken: payload values always override defaults (not the other way around)
  */
 import { createHmac, timingSafeEqual, randomBytes } from "crypto";
-import { db } from "../../core/db/client";
+import { dbOrm } from "../../core/db/orm";
+import { users, employees, userPermissions } from "../../core/db/schema";
 import { generateOtp, storeOtp, verifyOtp } from "../../core/db/security";
 import { AuditService } from "../audit/service";
 import argon2 from "argon2";
+import { eq, and, asc } from "drizzle-orm";
 
 // ─────────────────────────────────────────────
 // Argon2id password helpers
@@ -192,15 +194,23 @@ export type UserPayload = {
 export const AuthService = {
   getUsers: async (): Promise<UserPayload[]> => {
     try {
-      const rows = await db.query(`
-        SELECT e.employee_number, e.name, e.role, e.department AS dept,
-               p.view_results, p.input_data, p.edit_formulas, p.change_specs
-        FROM users u
-        JOIN employees e ON u.employee_number = e.employee_number
-        JOIN user_permissions p ON e.role = p.role
-        WHERE u.status = 'ACTIVE'
-        ORDER BY e.name ASC
-      `);
+      const rows = await dbOrm
+        .select({
+          employee_number: employees.employee_number,
+          name: employees.name,
+          role: employees.role,
+          dept: employees.department,
+          view_results: userPermissions.view_results,
+          input_data: userPermissions.input_data,
+          edit_formulas: userPermissions.edit_formulas,
+          change_specs: userPermissions.change_specs,
+        })
+        .from(users)
+        .innerJoin(employees, eq(users.employee_number, employees.employee_number))
+        .innerJoin(userPermissions, eq(employees.role, userPermissions.role as any))
+        .where(eq(users.status, 'ACTIVE'))
+        .orderBy(asc(employees.name));
+        
       return rows.map(mapToPayload);
     } catch (err: any) {
       if (err.message === "Database not connected") return mockUsers();
@@ -209,20 +219,44 @@ export const AuthService = {
     }
   },
 
+  resetCredentials: async (employeeNumber: string): Promise<boolean> => {
+    // Generate a new temporary PIN '0000' and clear password to force reset
+    // In a real app we might send an email, but here we just reset the state
+    const tempPinHash = await hashPassword("0000");
+    await dbOrm
+      .update(users)
+      .set({ password_hash: null as any, pin_hash: tempPinHash, failed_attempts: 0, locked_until: null as any })
+      .where(eq(users.employee_number, employeeNumber));
+
+    await AuditService.createLog(
+      employeeNumber,
+      "ACCOUNT_RESET",
+      "Administrator initiated credential reset",
+      "127.0.0.1"
+    );
+
+    return true;
+  },
+
   getMe: async (employeeNumber: string): Promise<UserPayload> => {
     try {
-      const row = await db.queryOne(
-        `
-        SELECT e.employee_number, e.name, e.role, e.department AS dept,
-               p.view_results, p.input_data, p.edit_formulas, p.change_specs
-        FROM employees e
-        JOIN user_permissions p ON e.role = p.role
-        WHERE e.employee_number = $1
-      `,
-        [employeeNumber],
-      );
-      if (!row) throw new Error("User not found");
-      return mapToPayload(row);
+      const rows = await dbOrm
+        .select({
+          employee_number: employees.employee_number,
+          name: employees.name,
+          role: employees.role,
+          dept: employees.department,
+          view_results: userPermissions.view_results,
+          input_data: userPermissions.input_data,
+          edit_formulas: userPermissions.edit_formulas,
+          change_specs: userPermissions.change_specs,
+        })
+        .from(employees)
+        .innerJoin(userPermissions, eq(employees.role, userPermissions.role as any))
+        .where(eq(employees.employee_number, employeeNumber));
+        
+      if (!rows.length) throw new Error("User not found");
+      return mapToPayload(rows[0]);
     } catch (err: any) {
       if (err.message === "Database not connected") return mockUsers()[0];
       throw err;
@@ -237,10 +271,9 @@ export const AuthService = {
   },
 
   verifyEmployee: async (employeeNumber: string, nationalId: string, dob: string) => {
-    const employee = await db.queryOne(
-      `SELECT * FROM employees WHERE employee_number = $1 AND national_id = $2 AND dob = $3`,
-      [employeeNumber, nationalId, dob],
-    );
+    const records = await dbOrm.select().from(employees).where(and(eq(employees.employee_number, employeeNumber), eq(employees.national_id, nationalId), eq(employees.dob, dob)));
+    const employee = records[0];
+
     if (!employee) {
       await AuditService.createLog(
         employeeNumber,
@@ -250,9 +283,9 @@ export const AuthService = {
       );
       return null;
     }
-    const existingUser = await db.queryOne("SELECT * FROM users WHERE employee_number = $1", [
-      employeeNumber,
-    ]);
+    const usrRecords = await dbOrm.select().from(users).where(eq(users.employee_number, employeeNumber));
+    const existingUser = usrRecords[0];
+
     if (existingUser?.status === "ACTIVE") throw new Error("Account already active. Please login.");
 
     const otp = generateOtp();
@@ -285,15 +318,22 @@ export const AuthService = {
   ): Promise<boolean> => {
     const passwordHash = await hashPassword(password);
     const pinHash = pin ? await hashPassword(pin) : null;
-    await db.execute(
-      `INSERT INTO users (employee_number, password_hash, pin_hash, status)
-       VALUES ($1, $2, $3, 'ACTIVE')
-       ON CONFLICT(employee_number) DO UPDATE
-         SET password_hash = EXCLUDED.password_hash,
-             pin_hash      = EXCLUDED.pin_hash,
-             status        = 'ACTIVE'`,
-      [employeeNumber, passwordHash, pinHash],
-    );
+    
+    // UPSERT polyfill using Drizzle depending on postgres dialect
+    await dbOrm.insert(users).values({
+      employee_number: employeeNumber,
+      password_hash: passwordHash,
+      pin_hash: pinHash,
+      status: 'ACTIVE'
+    }).onConflictDoUpdate({
+      target: users.employee_number,
+      set: {
+        password_hash: passwordHash,
+        pin_hash: pinHash,
+        status: 'ACTIVE'
+      }
+    });
+    
     await AuditService.createLog(
       employeeNumber,
       "ACCOUNT_ACTIVATED",
@@ -309,17 +349,28 @@ export const AuthService = {
     pin?: string,
   ): Promise<{ token: string; refreshToken: string; user: UserPayload } | null> => {
     try {
-      const row = await db.queryOne(
-        `
-        SELECT u.*, e.name, e.role, e.department AS dept,
-               p.view_results, p.input_data, p.edit_formulas, p.change_specs
-        FROM users u
-        JOIN employees e ON u.employee_number = e.employee_number
-        JOIN user_permissions p ON e.role = p.role
-        WHERE u.employee_number = $1
-      `,
-        [employeeNumber],
-      );
+      const rows = await dbOrm
+        .select({
+          password_hash: users.password_hash,
+          pin_hash: users.pin_hash,
+          status: users.status,
+          locked_until: users.locked_until,
+          failed_attempts: users.failed_attempts,
+          employee_number: users.employee_number,
+          name: employees.name,
+          role: employees.role,
+          dept: employees.department,
+          view_results: userPermissions.view_results,
+          input_data: userPermissions.input_data,
+          edit_formulas: userPermissions.edit_formulas,
+          change_specs: userPermissions.change_specs,
+        })
+        .from(users)
+        .innerJoin(employees, eq(users.employee_number, employees.employee_number))
+        .innerJoin(userPermissions, eq(employees.role, userPermissions.role as any))
+        .where(eq(users.employee_number, employeeNumber));
+
+      const row = rows[0];
 
       if (!row || row.status !== "ACTIVE") return null;
 
@@ -330,17 +381,15 @@ export const AuthService = {
       }
 
       let isValid = false;
-      if (password) isValid = await verifyPassword(row.password_hash, password);
+      if (password) isValid = await verifyPassword(row.password_hash as any, password);
       else if (pin && row.pin_hash) isValid = await verifyPassword(row.pin_hash, pin);
 
       if (!isValid) {
         const attempts = (row.failed_attempts || 0) + 1;
         if (attempts >= 5) {
           const lockUntil = new Date(Date.now() + 30 * 60_000);
-          await db.execute(
-            "UPDATE users SET failed_attempts=$1, locked_until=$2 WHERE employee_number=$3",
-            [attempts, lockUntil, employeeNumber],
-          );
+          await dbOrm.update(users).set({ failed_attempts: attempts, locked_until: lockUntil }).where(eq(users.employee_number, employeeNumber));
+          
           await AuditService.createLog(
             employeeNumber,
             "ACCOUNT_LOCKED",
@@ -349,10 +398,8 @@ export const AuthService = {
           );
           throw new Error("Account locked for 30 minutes after 5 failed attempts.");
         }
-        await db.execute("UPDATE users SET failed_attempts=$1 WHERE employee_number=$2", [
-          attempts,
-          employeeNumber,
-        ]);
+        await dbOrm.update(users).set({ failed_attempts: attempts }).where(eq(users.employee_number, employeeNumber));
+        
         await AuditService.createLog(
           employeeNumber,
           "LOGIN_FAILED",
@@ -362,10 +409,7 @@ export const AuthService = {
         return null;
       }
 
-      await db.execute(
-        "UPDATE users SET failed_attempts=0, locked_until=NULL, last_login=CURRENT_TIMESTAMP WHERE employee_number=$1",
-        [employeeNumber],
-      );
+      await dbOrm.update(users).set({ failed_attempts: 0, locked_until: null, last_login: new Date() }).where(eq(users.employee_number, employeeNumber));
 
       const payload = mapToPayload(row);
       const token = signToken(payload as any);
@@ -392,17 +436,23 @@ export const AuthService = {
     const payload = verifyRefreshToken(refreshToken);
     if (!payload) return null;
     try {
-      const row = await db.queryOne(
-        `
-        SELECT e.employee_number, e.name, e.role, e.department AS dept,
-               p.view_results, p.input_data, p.edit_formulas, p.change_specs
-        FROM users u
-        JOIN employees e ON u.employee_number = e.employee_number
-        JOIN user_permissions p ON e.role = p.role
-        WHERE u.employee_number = $1 AND u.status = 'ACTIVE'
-      `,
-        [payload.employee_number],
-      );
+      const rows = await dbOrm
+        .select({
+          employee_number: employees.employee_number,
+          name: employees.name,
+          role: employees.role,
+          dept: employees.department,
+          view_results: userPermissions.view_results,
+          input_data: userPermissions.input_data,
+          edit_formulas: userPermissions.edit_formulas,
+          change_specs: userPermissions.change_specs,
+        })
+        .from(users)
+        .innerJoin(employees, eq(users.employee_number, employees.employee_number))
+        .innerJoin(userPermissions, eq(employees.role, userPermissions.role as any))
+        .where(and(eq(users.employee_number, payload.employee_number), eq(users.status, 'ACTIVE')));
+
+      const row = rows[0];
       if (!row) return null;
       return { token: signToken(mapToPayload(row) as any) };
     } catch {

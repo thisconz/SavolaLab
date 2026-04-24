@@ -4,6 +4,7 @@ import { SettingsService, ALLOWED_TABLES } from "./service";
 import { authenticateToken, requireRoles } from "../../core/middleware";
 import { logger } from "../../core/logger";
 import { requireParam, requireIntParam } from "@/server/core/utils/params";
+import { AuditService } from "../audit/service";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -39,11 +40,20 @@ app.get("/:table", authenticateToken, async (c) => {
 
 app.post("/:table", authenticateToken, async (c) => {
   const reqId = c.get("requestId");
+  const user = c.get("user");
   const table = requireParam(c.req.param("table"), "table");
   if (!validateTable(table)) return c.json({ success: false, error: "Invalid table" }, 400);
   try {
     const body = await c.req.json();
     const result = await SettingsService.create(table, body);
+
+    await AuditService.createLog(
+      user.employee_number,
+      "SETTINGS_UPDATED",
+      `Inserted record into ${table} (ID/Key: ${result.id})`,
+      c.get("clientIp") as string
+    );
+
     return c.json({ success: true, data: result }, 201);
   } catch (err: any) {
     logger.error({ reqId, err, table });
@@ -53,12 +63,21 @@ app.post("/:table", authenticateToken, async (c) => {
 
 app.put("/:table/:id", authenticateToken, async (c) => {
   const reqId = c.get("requestId");
+  const user = c.get("user");
   const table = requireParam(c.req.param("table"), "table");
   const id = requireParam(c.req.param("id"), "id");
   if (!validateTable(table)) return c.json({ success: false, error: "Invalid table" }, 400);
   try {
     const body = await c.req.json();
     const result = await SettingsService.update(table, id, body);
+
+    await AuditService.createLog(
+      user.employee_number,
+      "SETTINGS_UPDATED",
+      `Updated record ${id} in ${table}`,
+      c.get("clientIp") as string
+    );
+
     return c.json({ success: true, data: result });
   } catch (err: any) {
     logger.error({ reqId, err, table, id });
@@ -68,6 +87,7 @@ app.put("/:table/:id", authenticateToken, async (c) => {
 
 app.delete("/:table/:id", authenticateToken, requireRoles("ADMIN", "HEAD_MANAGER"), async (c) => {
   const reqId = c.get("requestId");
+  const user = c.get("user");
   const table = requireParam(c.req.param("table"), "table");
   const id = c.req.param("id");
 
@@ -82,8 +102,15 @@ app.delete("/:table/:id", authenticateToken, requireRoles("ADMIN", "HEAD_MANAGER
     const { db } = await import("../../core/database");
     await db.execute(`DELETE FROM ${table} WHERE ${pkCol} = $1`, [id]);
 
+    await AuditService.createLog(
+      user.employee_number,
+      "SETTINGS_UPDATED",
+      `Deleted record ${id} from ${table}`,
+      c.get("clientIp") as string
+    );
+
     logger.info(
-      { table, id, user: (c as any).get?.("user")?.employee_number },
+      { table, id, user: user.employee_number },
       "Record deleted via settings API",
     );
     return c.json({ success: true });

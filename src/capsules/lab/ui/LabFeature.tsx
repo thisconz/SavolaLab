@@ -131,6 +131,7 @@ export const LabFeature: React.FC = memo(() => {
                     onBack={handleBackToQueue}
                     onStartTesting={() => setViewMode("bench")}
                     onUpdate={refresh}
+                    onSelectSample={setSelectedSampleId}
                   />
                 </ErrorBoundary>
               </WorkspaceTransition>

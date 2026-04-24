@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import { LabPanel } from "../../../shared/components/LabPanel";
+import { MetricCard } from "../../../shared/components/MetricCard";
 import { StatApi } from "../api/stat.api";
 import { StatRequest } from "../../../core/types";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
@@ -137,49 +138,62 @@ export const StatFeature: React.FC = memo(() => {
   const critical = stats.filter((s) => s.urgency === "CRITICAL" && s.status !== "CLOSED").length;
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
-      {/* Metrics */}
-      <div className="grid grid-cols-3 gap-4 shrink-0">
-        {[
-          {
-            label: "Active STATs",
-            value: active,
-            color: "text-brand-primary",
-            bg: "bg-brand-primary/10",
-            Icon: Activity,
-          },
-          {
-            label: "Critical",
-            value: critical,
-            color: "text-red-500",
-            bg: "bg-red-500/10",
-            Icon: AlertCircle,
-          },
-          {
-            label: "Avg Response",
-            value: "12 min",
-            color: "text-emerald-500",
-            bg: "bg-emerald-500/10",
-            Icon: Clock,
-          },
-        ].map(({ label, value, color, bg, Icon }) => (
-          <div
-            key={label}
-            className="bg-(--color-zenthar-carbon) p-5 rounded-2xl border border-brand-sage/10 flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-all"
-          >
-            <div
-              className={clsx("w-12 h-12 rounded-2xl flex items-center justify-center", bg, color)}
-            >
-              <Icon className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-[9px] font-black text-brand-sage uppercase tracking-widest mb-0.5">
-                {label}
-              </p>
-              <p className={clsx("text-3xl font-light tracking-tighter", color)}>{value}</p>
-            </div>
+    <div className="flex flex-col h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 mb-4 shrink-0">
+        <div>
+          <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
+            <Wifi className="w-5 h-5 text-brand-primary" /> STATs
+          </h2>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
+              STAT requests for QC
+            </p>
+            {isRefreshing && (
+              <span className="flex items-center gap-1 text-[9px] font-bold text-brand-primary">
+                <RefreshCw size={9} className="animate-spin" /> Syncing
+              </span>
+            )}
           </div>
-        ))}
+        </div>
+        <button
+          onClick={() => fetchStats(true)}
+          className="p-2 rounded-xl border border-brand-sage/20 bg-(--color-zenthar-graphite) hover:bg-(--color-zenthar-graphite)/80 transition-colors group"
+        >
+          <RefreshCw
+            className={clsx(
+              "w-4 h-4 text-brand-sage group-hover:text-brand-primary",
+              isRefreshing && "animate-spin",
+            )}
+          />
+        </button>
+      </div>
+
+      {/* Metrics */}
+      <div className="grid grid-cols-3 gap-4 shrink-0 mb-6">
+        <MetricCard
+            label="Active STATs"
+            value={active}
+            trend="Awaiting QC"
+            icon={Activity}
+            variant="primary"
+          />
+
+          <MetricCard
+            label="Critical"
+            value={critical}
+            trend="Awaiting QC"
+            icon={AlertCircle}
+            variant="error"
+          />
+
+          <MetricCard
+            label="Avg Response"
+            value={"12 min"}
+            trend="Awaiting QC"
+            icon={Clock}
+            variant="success"
+          />
       </div>
 
       <div className="flex-1 grid grid-cols-12 gap-6 min-h-0">

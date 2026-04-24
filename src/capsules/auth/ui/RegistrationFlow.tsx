@@ -87,6 +87,14 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
   );
 
   const currentStepIndex = steps.findIndex((s) => s.id === step);
+  const StepIcon = steps[currentStepIndex].icon;
+
+  const getErrorMessage = (err: any) => {
+    if (typeof err === "string") return err;
+    if (err?.message && typeof err.message === "string") return err.message;
+    if (err?.error && typeof err.error === "string") return err.error;
+    return "An unexpected error occurred.";
+  };
 
   // --- Handlers (Logic remains same as requested, UI wrapper updated) ---
   const handleVerify = async (e: React.FormEvent) => {
@@ -101,7 +109,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
       });
       setStep("otp");
     } catch (err: any) {
-      setError(err.message || "Identity not found in registry.");
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -115,7 +123,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
       await AuthApi.confirmOtp(employeeNumber, otp);
       setStep("credentials");
     } catch (err: any) {
-      setError(err.message || "Security token rejected.");
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -137,7 +145,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
       setIsSuccess(true);
       setTimeout(onSuccess, 2200);
     } catch (err: any) {
-      setError(err.message || "Registry synchronization failed.");
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -215,9 +223,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
 
         <div className="flex items-center gap-5 p-4 bg-(--color-zenthar-graphite)/30 rounded-2xl border border-brand-sage/10 relative overflow-hidden group">
           <div className="w-12 h-12 rounded-xl bg-(--color-zenthar-void) flex items-center justify-center text-brand-primary shadow-lg transition-transform group-hover:scale-105">
-            {React.createElement(steps[currentStepIndex].icon, {
-              className: "w-6 h-6",
-            })}
+            <StepIcon className="w-6 h-6" />
           </div>
           <div>
             <h2 className="text-[11px] font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.3em]">

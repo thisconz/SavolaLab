@@ -157,6 +157,17 @@ export const certificates = pgTable("certificates", {
   approved_by: text("approved_by"),
 });
 
+// ─── STAT Requests ─────────────────────────────────────────────────────────────
+
+export const statRequests = pgTable("stat_requests", {
+  id: serial("id").primaryKey(),
+  department: text("department").notNull(),
+  reason: text("reason").notNull(),
+  urgency: text("urgency").default("NORMAL"),
+  status: text("status").default("OPEN"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
 // ─── System Preferences ───────────────────────────────────────────────────────
 
 export const systemPreferences = pgTable("system_preferences", {

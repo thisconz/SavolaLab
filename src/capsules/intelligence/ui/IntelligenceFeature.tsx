@@ -121,8 +121,8 @@ export const IntelligenceFeature: React.FC = memo(() => {
             variant="primary"
           />
           <MetricCard
-            label="Energy (kWh/t)"
-            value={`${data.metrics.energy}`}
+            label="Energy Consumption"
+            value={`${data.metrics.energy.toFixed(4).concat(" KWh/t")}`}
             trend="Monitor"
             icon={Zap}
             variant="warning"

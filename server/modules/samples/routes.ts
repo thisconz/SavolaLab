@@ -69,6 +69,20 @@ app.put("/:id", authenticateToken, requirePermission("input_data"), async (c) =>
   }
 });
 
+// POST /samples/:id/regenerate
+app.post("/:id/regenerate", authenticateToken, requirePermission("input_data"), async (c) => {
+  const requestId = c.get("requestId");
+  try {
+    const sampleId = Number(c.req.param("id"));
+    const user = c.get("user");
+    const newId = await SampleService.regenerateSample(sampleId, user.employee_number);
+    return c.json({ success: true, id: newId });
+  } catch (err: unknown) {
+    logger.error({ err, requestId }, "Failed to regenerate sample");
+    return c.json({ success: false, error: toMsg(err) }, 400);
+  }
+});
+
 // GET /samples/previous-results
 app.get("/previous-results", authenticateToken, async (c) => {
   const requestId = c.get("requestId");

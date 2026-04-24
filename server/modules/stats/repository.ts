@@ -1,21 +1,22 @@
-import { db } from "../../core/database";
+import { dbOrm } from "../../core/db/orm";
+import { statRequests } from "../../core/db/schema";
+import { eq, desc, sql } from "drizzle-orm";
 
 export const StatRepository = {
   findAll: async () => {
     try {
-      return await db.query(
-        `
-        SELECT * 
-        FROM stat_requests 
-        ORDER BY 
-          CASE urgency
+      const results = await dbOrm
+        .select()
+        .from(statRequests)
+        .orderBy(
+          sql`CASE ${statRequests.urgency}
             WHEN 'CRITICAL' THEN 1
             WHEN 'HIGH' THEN 2
             ELSE 3
-          END ASC,
-          created_at DESC
-      `,
-      );
+          END ASC`,
+          desc(statRequests.created_at)
+        );
+      return results as any;
     } catch (error: any) {
       if (error.message === "Database not connected") return [];
       throw error;
@@ -23,25 +24,22 @@ export const StatRepository = {
   },
 
   create: async (data: any) => {
-    const rows = await db.query(
-      `
-      INSERT INTO stat_requests (department, reason, urgency, status)
-      VALUES ($1, $2, $3, 'OPEN')
-      RETURNING id
-    `,
-      [data.department, data.reason || "", data.urgency || "NORMAL"],
-    );
+    const rows = await dbOrm
+      .insert(statRequests)
+      .values({
+        department: data.department,
+        reason: data.reason || "",
+        urgency: data.urgency || "NORMAL",
+        status: "OPEN",
+      })
+      .returning({ id: statRequests.id });
     return rows[0].id;
   },
 
   updateStatus: async (id: number, status: string) => {
-    await db.execute(
-      `
-      UPDATE stat_requests 
-      SET status = $1 
-      WHERE id = $2
-    `,
-      [status, id],
-    );
+    await dbOrm
+      .update(statRequests)
+      .set({ status })
+      .where(eq(statRequests.id, id));
   },
 };

@@ -55,8 +55,8 @@ export const pool = useMock
       connectionString,
       max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
-      query_timeout: 5000,
+      connectionTimeoutMillis: 5000,
+      query_timeout: 15000,
     });
 
 if (!useMock) {

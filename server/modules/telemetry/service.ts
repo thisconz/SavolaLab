@@ -1,7 +1,9 @@
 import os from "os";
-import { db } from "../../core/database";
+import { dbOrm } from "../../core/db/orm";
+import { samples, tests, auditLogs } from "../../core/db/schema";
 import { telemetryCache, TTL } from "../../core/cache";
 import { TelemetryMetrics, TelemetryFilter } from "../../core/types";
+import { sql, and, gte, lte, notInArray, eq, like, or } from "drizzle-orm";
 
 export const TelemetryService = {
   getTelemetry: async (filter?: TelemetryFilter): Promise<TelemetryMetrics> => {
@@ -30,12 +32,17 @@ export const TelemetryService = {
         days > 0 ? `${days}d ${hours}h` : hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 
       // ── DB metrics ─────────────────────────────────────────────────────
-      const timeConstraint = hasFilter
-        ? `created_at BETWEEN $1 AND $2`
-        : `created_at > NOW() - interval '24 hours'`;
-      const params = hasFilter
-        ? [filter!.startDate, filter!.endDate ?? new Date().toISOString()]
-        : [];
+      const timeConstraintAudit = hasFilter
+        ? and(gte(auditLogs.created_at, new Date(filter!.startDate!)), lte(auditLogs.created_at, new Date(filter!.endDate ?? new Date())))
+        : gte(auditLogs.created_at, sql`NOW() - interval '24 hours'`);
+
+      const timeConstraintTest = hasFilter
+        ? and(gte(tests.updated_at, new Date(filter!.startDate!)), lte(tests.updated_at, new Date(filter!.endDate ?? new Date())))
+        : gte(tests.updated_at, sql`NOW() - interval '24 hours'`);
+
+      const activeUsersConstraintAudit = hasFilter 
+        ? timeConstraintAudit
+        : gte(auditLogs.created_at, sql`NOW() - interval '1 hour'`);
 
       const dbStart = Date.now();
 
@@ -50,42 +57,25 @@ export const TelemetryService = {
 
       try {
         const [sr, pt, la, au, tl, el, ct] = await Promise.all([
-          db.queryOne<{ count: string }>(
-            "SELECT COUNT(*)::text AS count FROM samples WHERE status NOT IN ('COMPLETED', 'ARCHIVED')",
-          ),
-          db.queryOne<{ count: string }>(
-            "SELECT COUNT(*)::text AS count FROM tests WHERE status = 'PENDING'",
-          ),
-          db.queryOne<{ created_at: string }>(
-            "SELECT created_at FROM audit_logs ORDER BY created_at DESC LIMIT 1",
-          ),
-          db.queryOne<{ count: string }>(
-            `SELECT COUNT(DISTINCT employee_number)::text AS count FROM audit_logs WHERE ${hasFilter ? timeConstraint : "created_at > NOW() - interval '1 hour'"}`,
-            params,
-          ),
-          db.queryOne<{ count: string }>(
-            `SELECT COUNT(*)::text AS count FROM audit_logs WHERE ${timeConstraint}`,
-            params,
-          ),
-          db.queryOne<{ count: string }>(
-            `SELECT COUNT(*)::text AS count FROM audit_logs WHERE (action LIKE '%FAILURE%' OR action LIKE '%ERROR%') AND ${timeConstraint}`,
-            params,
-          ),
-          db.queryOne<{ count: string }>(
-            `SELECT COUNT(*)::text AS count FROM tests WHERE status = 'COMPLETED' AND ${timeConstraint.replace("created_at", "updated_at")}`,
-            params,
-          ),
+          dbOrm.select({ count: sql`COUNT(*)::text` }).from(samples).where(notInArray(samples.status, ['COMPLETED', 'ARCHIVED'])),
+          dbOrm.select({ count: sql`COUNT(*)::text` }).from(tests).where(eq(tests.status, 'PENDING')),
+          dbOrm.select({ created_at: auditLogs.created_at }).from(auditLogs).orderBy(sql`${auditLogs.created_at} DESC`).limit(1),
+          dbOrm.select({ count: sql`COUNT(DISTINCT ${auditLogs.employee_number})::text` }).from(auditLogs).where(activeUsersConstraintAudit as any),
+          dbOrm.select({ count: sql`COUNT(*)::text` }).from(auditLogs).where(timeConstraintAudit as any),
+          dbOrm.select({ count: sql`COUNT(*)::text` }).from(auditLogs).where(and(or(like(auditLogs.action, '%FAILURE%'), like(auditLogs.action, '%ERROR%')) as any, timeConstraintAudit as any)),
+          dbOrm.select({ count: sql`COUNT(*)::text` }).from(tests).where(and(eq(tests.status, 'COMPLETED'), timeConstraintTest as any)),
         ]);
 
         dbSync = "ACTIVE";
-        sampleCount = Number(sr?.count ?? 0);
-        pendingTests = Number(pt?.count ?? 0);
-        lastAudit = la?.created_at ?? null;
-        activeUsers = Number(au?.count ?? 0);
-        totalLogs = Number(tl?.count ?? 0);
-        errorLogs = Number(el?.count ?? 0);
-        completedTests = Number(ct?.count ?? 0);
-      } catch {
+        sampleCount = Number(sr[0]?.count ?? 0);
+        pendingTests = Number(pt[0]?.count ?? 0);
+        lastAudit = (la[0]?.created_at as any)?.toISOString() ?? null;
+        activeUsers = Number(au[0]?.count ?? 0);
+        totalLogs = Number(tl[0]?.count ?? 0);
+        errorLogs = Number(el[0]?.count ?? 0);
+        completedTests = Number(ct[0]?.count ?? 0);
+      } catch (e: any) {
+        console.error(e);
         // DB unavailable — return OS metrics only
       }
 

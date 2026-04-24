@@ -1,25 +1,40 @@
-import { db } from "../../core/database";
+import { db } from "../../core/db/client";
+import { dbOrm } from "../../core/db/orm";
+import { samples, tests } from "../../core/db/schema";
 import { SampleData, TestResultSummary, SampleTest } from "../../core/types";
+import { eq, desc, asc, and, sql } from "drizzle-orm";
 
 export const SampleRepository = {
   async findAll(): Promise<any[]> {
     try {
-      const results = await db.query(`
-        SELECT
-          s.*,
-          COUNT(t.id)::int AS test_count
-        FROM samples s
-        LEFT JOIN tests t ON s.id = t.sample_id
-        GROUP BY s.id
-        ORDER BY
-          CASE s.priority
+      // Using query builder for join and group by
+      const results = await dbOrm
+        .select({
+          id: samples.id,
+          batch_id: samples.batch_id,
+          sample_type: samples.sample_type,
+          source_stage: samples.source_stage,
+          line_id: samples.line_id,
+          equipment_id: samples.equipment_id,
+          shift_id: samples.shift_id,
+          status: samples.status,
+          priority: samples.priority,
+          created_at: samples.created_at,
+          technician_id: samples.technician_id,
+          test_count: sql<number>`count(${tests.id})::int`,
+        })
+        .from(samples)
+        .leftJoin(tests, eq(samples.id, tests.sample_id))
+        .groupBy(samples.id)
+        .orderBy(
+          sql`CASE ${samples.priority}
             WHEN 'STAT'   THEN 1
             WHEN 'HIGH'   THEN 2
             WHEN 'NORMAL' THEN 3
             ELSE 4
-          END ASC,
-          s.created_at DESC
-      `);
+          END ASC`,
+          desc(samples.created_at)
+        );
       return results;
     } catch (error: any) {
       if (error.message === "Database not connected") {
@@ -62,7 +77,12 @@ export const SampleRepository = {
 
   async findById(id: number): Promise<any | null> {
     try {
-      return await db.queryOne("SELECT * FROM samples WHERE id = $1", [id]);
+      const result = await dbOrm
+        .select()
+        .from(samples)
+        .where(eq(samples.id, id))
+        .limit(1);
+      return result[0] || null;
     } catch (error: any) {
       if (error.message === "Database not connected") {
         return {
@@ -82,24 +102,20 @@ export const SampleRepository = {
 
   async create(data: SampleData & { technician_id: string }): Promise<number> {
     try {
-      const rows = await db.query<{ id: number }>(
-        `INSERT INTO samples
-           (batch_id, sample_type, source_stage, priority, technician_id,
-            line_id, equipment_id, shift_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-         RETURNING id`,
-        [
-          data.batch_id ?? null,
-          data.sample_type ?? null,
-          data.source_stage ?? null,
-          data.priority ?? "NORMAL",
-          data.technician_id,
-          data.line_id ?? null,
-          data.equipment_id ?? null,
-          data.shift_id ?? null,
-        ],
-      );
-      return rows[0].id;
+      const result = await dbOrm
+        .insert(samples)
+        .values({
+          batch_id: data.batch_id ?? null,
+          sample_type: data.sample_type ?? null,
+          source_stage: data.source_stage ?? null,
+          priority: data.priority ?? "NORMAL",
+          technician_id: data.technician_id,
+          line_id: data.line_id ?? null,
+          equipment_id: data.equipment_id ?? null,
+          shift_id: data.shift_id ?? null,
+        } as any)
+        .returning({ id: samples.id });
+      return result[0].id;
     } catch (error: any) {
       if (error.message === "Database not connected") return Math.floor(Math.random() * 1000) + 100;
       throw error;
@@ -107,22 +123,12 @@ export const SampleRepository = {
   },
 
   async update(id: number, data: Partial<SampleData>): Promise<void> {
-    const fields: string[] = [];
-    const values: any[] = [];
-    let i = 1;
-
-    for (const [key, value] of Object.entries(data)) {
-      if (value !== undefined) {
-        fields.push(`${key} = $${i++}`);
-        values.push(value);
-      }
-    }
-
-    if (fields.length === 0) return;
-
-    values.push(id);
+    if (Object.keys(data).length === 0) return;
     try {
-      await db.execute(`UPDATE samples SET ${fields.join(", ")} WHERE id = $${i}`, values);
+      await dbOrm
+        .update(samples)
+        .set(data as any)
+        .where(eq(samples.id, id));
     } catch (error: any) {
       if (error.message === "Database not connected") return;
       throw error;
@@ -135,17 +141,24 @@ export const SampleRepository = {
     limit: number,
   ): Promise<TestResultSummary[]> {
     try {
-      return await db.query(
-        `SELECT t.raw_value, t.performed_at, s.batch_id
-         FROM tests t
-         JOIN samples s ON t.sample_id = s.id
-         WHERE s.source_stage = $1
-           AND t.test_type = $2
-           AND t.status = 'COMPLETED'
-         ORDER BY t.performed_at DESC
-         LIMIT $3`,
-        [stage, testType, limit],
-      );
+      const results = await dbOrm
+        .select({
+          raw_value: tests.raw_value,
+          performed_at: tests.performed_at,
+          batch_id: samples.batch_id,
+        })
+        .from(tests)
+        .innerJoin(samples, eq(tests.sample_id, samples.id))
+        .where(
+          and(
+            eq(samples.source_stage, stage),
+            eq(tests.test_type, testType),
+            eq(tests.status, "COMPLETED")
+          )
+        )
+        .orderBy(desc(tests.performed_at))
+        .limit(limit);
+      return results as any;
     } catch (error: any) {
       if (error.message === "Database not connected") return [];
       throw error;
@@ -154,7 +167,12 @@ export const SampleRepository = {
 
   async findTestsBySampleId(sampleId: number): Promise<SampleTest[]> {
     try {
-      return await db.query("SELECT * FROM tests WHERE sample_id = $1 ORDER BY id ASC", [sampleId]);
+      const results = await dbOrm
+        .select()
+        .from(tests)
+        .where(eq(tests.sample_id, sampleId))
+        .orderBy(asc(tests.id));
+      return results as any;
     } catch (error: any) {
       if (error.message === "Database not connected") {
         return [
@@ -165,7 +183,7 @@ export const SampleRepository = {
             test_type: "Moisture",
             status: "COMPLETED",
           },
-        ];
+        ] as any;
       }
       throw error;
     }

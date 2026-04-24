@@ -3,6 +3,7 @@ import type { Variables, ExportType } from "../../core/types";
 import { authenticateToken, requireRoles } from "../../core/middleware";
 import { buildExcelExport } from "./service";
 import { logger } from "../../core/logger";
+import { AuditService } from "../audit/service";
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -35,6 +36,13 @@ app.get(
 
       const buffer = await buildExcelExport({ type, limit });
       const filename = `zenthar-${type}-${new Date().toISOString().split("T")[0]}.xlsx`;
+
+      await AuditService.createLog(
+        user.employee_number,
+        "EXPORT_GENERATED",
+        `Exported ${type} to Excel (limit: ${limit})`,
+        c.get("clientIp") as string,
+      );
 
       c.header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
       c.header("Content-Disposition", `attachment; filename="${filename}"`);

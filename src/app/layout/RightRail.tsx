@@ -47,7 +47,10 @@ export const RightRail: FC = memo(() => {
       const data = (res as any)?.data ?? res;
       setTelemetry(data);
     } catch (err: any) {
-      if (err.name !== "AbortError") console.error("Telemetry fetch failed", err);
+      if (err.name === "AbortError") return;
+      // Don't noise the console for auth errors, client.ts handles global logout/redirect
+      if (err.status === 401 || err.status === 403) return;
+      console.error("Telemetry fetch failed", err);
     } finally {
       setTimeout(() => setIsSyncing(false), 600);
     }

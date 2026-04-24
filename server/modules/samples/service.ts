@@ -109,6 +109,35 @@ export const SampleService = {
     return true;
   },
 
+  regenerateSample: async (id: string | number, technicianId: string): Promise<number> => {
+    const sampleId = Number(id);
+    const existing = await SampleRepository.findById(sampleId);
+    if (!existing) throw new Error("Sample to regenerate not found");
+
+    // Create a NEW sample based on the existing one
+    const newId = await SampleRepository.create({
+      batch_id: `${existing.batch_id}-R`,
+      sample_type: existing.sample_type,
+      source_stage: existing.source_stage,
+      priority: existing.priority,
+      status: "REGISTERED",
+      line_id: existing.line_id,
+      equipment_id: existing.equipment_id,
+      shift_id: existing.shift_id,
+      technician_id: technicianId,
+    });
+
+    sseBus.broadcast("SAMPLE_CREATED", {
+      id: newId,
+      batch_id: `${existing.batch_id}-R`,
+      priority: existing.priority,
+      source_stage: existing.source_stage,
+      technician_id: technicianId,
+    });
+
+    return newId;
+  },
+
   getPreviousResults: async (
     stage: string,
     testType: string,

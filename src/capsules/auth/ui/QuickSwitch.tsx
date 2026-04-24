@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { X, LogOut, ChevronRight, Fingerprint, ShieldCheck, Globe, Radio, Zap } from "lucide-react";
+import { X, LogOut, ChevronRight, Fingerprint, ShieldCheck, Globe, Radio, Zap, RefreshCw } from "lucide-react";
 import { useAuthStore } from "../../../orchestrator/state/auth.store";
 import { useAuthFlow } from "../hooks/useAuthFlow";
 import clsx from "@/src/lib/clsx";
@@ -13,7 +13,23 @@ interface QuickSwitchProps {
 
 export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => {
   const { currentUser, logout } = useAuthStore();
-  const { users, handleUserSelect } = useAuthFlow();
+  const { 
+    users, 
+    selectedUser, 
+    handleUserSelect, 
+    inputValue, 
+    setInputValue, 
+    handleSubmit, 
+    loading, 
+    error,
+    resetState 
+  } = useAuthFlow({
+    onSuccess: () => {
+      onClose();
+    },
+    isOpen
+  });
+
   const isBrowser = typeof window !== "undefined";
 
   // Filter out current user from the list if you want a "Switch To" focus,
@@ -21,6 +37,12 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
   const sortedUsers = useMemo(() => {
     return [...users].sort((a, b) => (String(a.id) === String(currentUser?.id) ? -1 : 1));
   }, [users, currentUser]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      resetState();
+    }
+  }, [isOpen, resetState]);
 
   if (!isOpen || typeof document === "undefined") return null;
 
@@ -63,7 +85,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                   </div>
                   <div>
                     <h2 className="text-sm font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.3em]">
-                      Switch Personnel
+                      {selectedUser ? "Verify Credentials" : "Switch Personnel"}
                     </h2>
                     <div className="flex items-center gap-2 mt-1">
                       <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
@@ -83,127 +105,214 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
               </div>
             </div>
 
-            {/* Profiles Container */}
-            <div className="px-8 py-2 max-h-[50vh] overflow-y-auto custom-scrollbar">
-              <div className="space-y-3 py-4">
-                {sortedUsers.map((user, index) => {
-                  const isActive = String(currentUser?.id) === String(user.id);
-                  const userRole =
-                    typeof user.role === "string" ? user.role : (user.role as any)?.name;
+            {/* Content Area */}
+            <div className="px-8 py-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <AnimatePresence mode="wait">
+                {selectedUser ? (
+                  <motion.div
+                    key="auth-input"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="py-6 space-y-8"
+                  >
+                    {/* User Identity Highlight */}
+                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-brand-primary/5 border border-brand-primary/10">
+                      <div className="w-14 h-14 rounded-xl bg-brand-primary text-(--color-zenthar-void) flex items-center justify-center font-black text-sm shadow-lg">
+                        {selectedUser.initials}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-black text-(--color-zenthar-text-primary) uppercase tracking-wider">
+                          {selectedUser.name}
+                        </h3>
+                        <p className="text-[10px] text-brand-sage font-bold uppercase tracking-widest opacity-60">
+                          {typeof selectedUser.role === "string" ? selectedUser.role : (selectedUser.role as any)?.name}
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => resetState()}
+                        className="p-2 text-brand-sage hover:text-brand-primary transition-colors"
+                      >
+                        <RefreshCw size={16} />
+                      </button>
+                    </div>
 
-                  return (
-                    <motion.button
-                      key={user.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.03 }}
-                      onClick={() => {
-                        handleUserSelect(user);
-                        onClose();
-                      }}
-                      className={clsx(
-                        "w-full flex items-center p-2 rounded-2xl border transition-all duration-300 group relative",
-                        isActive
-                          ? "border-brand-primary/40 bg-brand-primary/10 ring-1 ring-brand-primary/20 shadow-sm"
-                          : "border-brand-sage/10 bg-(--color-zenthar-graphite)/30 hover:bg-(--color-zenthar-graphite) hover:border-brand-primary/30 hover:shadow-md",
-                      )}
-                    >
-                      <div className="flex items-center gap-4 w-full p-2">
-                        {/* Avatar Cell */}
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="space-y-4">
+                        <label className="text-[9px] font-black text-brand-primary uppercase tracking-[0.3em] block text-center">
+                          Input Security PIN
+                        </label>
                         <div className="relative">
-                          <div
+                          <input
+                            autoFocus
+                            type="password"
+                            inputMode="numeric"
+                            maxLength={4}
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
                             className={clsx(
-                              "w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm transition-all",
-                              isActive
-                                ? "bg-brand-primary text-(--color-zenthar-void) shadow-lg"
-                                : "bg-(--color-zenthar-void) text-brand-sage border border-brand-sage/10",
+                              "w-full bg-(--color-zenthar-graphite)/30 border-2 rounded-2xl py-6 px-4 text-center text-3xl font-mono tracking-[0.8em] focus:outline-none transition-all",
+                              error 
+                                ? "border-brand-primary/50 bg-brand-primary/5 text-brand-primary ring-4 ring-brand-primary/10" 
+                                : "border-brand-sage/10 focus:border-brand-primary focus:bg-(--color-zenthar-graphite) focus:ring-4 focus:ring-brand-primary/10 text-(--color-zenthar-text-primary)"
                             )}
-                          >
-                            {user.initials}
-                          </div>
-                          {isActive && (
-                            <div className="absolute -bottom-1 -right-1 p-0.5 bg-(--color-zenthar-carbon) rounded-full">
-                              <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
-                            </div>
-                          )}
+                            placeholder="••••"
+                          />
                         </div>
+                        {error && (
+                          <p className="text-center text-[10px] font-bold text-brand-primary uppercase tracking-widest animate-shake">
+                            {error}
+                          </p>
+                        )}
+                      </div>
 
-                        {/* Text Content */}
-                        <div className="flex-1 text-left min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span
-                              className={clsx(
-                                "text-[11px] font-black uppercase tracking-wider truncate",
-                                isActive
-                                  ? "text-brand-primary"
-                                  : "text-(--color-zenthar-text-primary)",
-                              )}
-                            >
-                              {user.name}
-                            </span>
-                          </div>
+                      <button
+                        type="submit"
+                        disabled={inputValue.length < 4 || loading}
+                        className={clsx(
+                          "w-full py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] transition-all flex items-center justify-center gap-3",
+                          inputValue.length < 4 || loading
+                            ? "bg-(--color-zenthar-graphite) text-brand-sage opacity-50"
+                            : "bg-brand-primary text-(--color-zenthar-void) shadow-2xl shadow-brand-primary/20 hover:-translate-y-0.5 active:scale-95"
+                        )}
+                      >
+                        {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : (
+                          <>
+                            <Zap className="w-4 h-4" />
+                            <span>Confirm Swap</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="user-list"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    className="space-y-3 py-4"
+                  >
+                    {sortedUsers.map((user, index) => {
+                      const isActive = String(currentUser?.id) === String(user.id);
+                      const userRole =
+                        typeof user.role === "string" ? user.role : (user.role as any)?.name;
 
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] text-brand-sage font-bold uppercase tracking-tighter opacity-70">
-                              {userRole}
-                            </span>
-                            <span className="w-1 h-1 rounded-full bg-brand-sage/20" />
-                            <span className="text-[9px] font-mono text-brand-primary/60 font-bold uppercase">
-                              {user.status || "IDLE"}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Action Hint */}
-                        <div
+                      return (
+                        <motion.button
+                          key={user.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.03 }}
+                          onClick={() => handleUserSelect(user)}
                           className={clsx(
-                            "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                            "w-full flex items-center p-2 rounded-2xl border transition-all duration-300 group relative",
                             isActive
-                              ? "bg-brand-primary/10 text-brand-primary"
-                              : "opacity-0 group-hover:opacity-100 bg-(--color-zenthar-void) text-brand-sage",
+                              ? "border-brand-primary/40 bg-brand-primary/10 ring-1 ring-brand-primary/20 shadow-sm"
+                              : "border-brand-sage/10 bg-(--color-zenthar-graphite)/30 hover:bg-(--color-zenthar-graphite) hover:border-brand-primary/30 hover:shadow-md",
                           )}
                         >
-                          {isActive ? (
-                            <Zap className="w-4 h-4" />
-                          ) : (
-                            <ChevronRight className="w-4 h-4" />
-                          )}
-                        </div>
-                      </div>
-                    </motion.button>
-                  );
-                })}
-              </div>
+                          <div className="flex items-center gap-4 w-full p-2">
+                            {/* Avatar Cell */}
+                            <div className="relative">
+                              <div
+                                className={clsx(
+                                  "w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm transition-all",
+                                  isActive
+                                    ? "bg-brand-primary text-(--color-zenthar-void) shadow-lg"
+                                    : "bg-(--color-zenthar-void) text-brand-sage border border-brand-sage/10",
+                                )}
+                              >
+                                {user.initials}
+                              </div>
+                              {isActive && (
+                                <div className="absolute -bottom-1 -right-1 p-0.5 bg-(--color-zenthar-carbon) rounded-full">
+                                  <ShieldCheck className="w-3.5 h-3.5 text-brand-primary" />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Text Content */}
+                            <div className="flex-1 text-left min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span
+                                  className={clsx(
+                                    "text-[11px] font-black uppercase tracking-wider truncate",
+                                    isActive
+                                      ? "text-brand-primary"
+                                      : "text-(--color-zenthar-text-primary)",
+                                  )}
+                                >
+                                  {user.name}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] text-brand-sage font-bold uppercase tracking-tighter opacity-70">
+                                  {userRole}
+                                </span>
+                                <span className="w-1 h-1 rounded-full bg-brand-sage/20" />
+                                <span className="text-[9px] font-mono text-brand-primary/60 font-bold uppercase">
+                                  {user.status || "IDLE"}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Action Hint */}
+                            <div
+                              className={clsx(
+                                "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
+                                isActive
+                                  ? "bg-brand-primary/10 text-brand-primary"
+                                  : "opacity-0 group-hover:opacity-100 bg-(--color-zenthar-void) text-brand-sage",
+                              )}
+                            >
+                              {isActive ? (
+                                <Zap className="w-4 h-4" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
+                            </div>
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Termination Zone */}
-            <div className="p-8 pt-4">
+            <div className={`p-8 ${selectedUser ? "pt-0" : "pt-4"}`}>
               <div className="h-px w-full bg-linear-to-r from-transparent via-brand-sage/10 to-transparent mb-6" />
 
-              <button
-                onClick={() => {
-                  logout();
-                  onClose();
-                }}
-                className="w-full group flex items-center justify-between p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-600 hover:text-white transition-all duration-500 shadow-sm hover:shadow-red-500/20"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-(--color-zenthar-void) group-hover:bg-white/20 transition-colors shadow-sm">
-                    <LogOut className="w-4 h-4" />
+              {!selectedUser && (
+                <button
+                  onClick={() => {
+                    logout();
+                    onClose();
+                  }}
+                  className="w-full group flex items-center justify-between p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-600 hover:text-white transition-all duration-500 shadow-sm hover:shadow-red-500/20"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-(--color-zenthar-void) group-hover:bg-white/20 transition-colors shadow-sm">
+                      <LogOut className="w-4 h-4" />
+                    </div>
+                    <div className="text-left">
+                      <span className="block text-[10px] font-black uppercase tracking-[0.2em] leading-none">
+                        Emergency Sign-Out
+                      </span>
+                      <span className="text-[8px] uppercase font-bold opacity-60 mt-1 block">
+                        Clear all local cached tokens
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <span className="block text-[10px] font-black uppercase tracking-[0.2em] leading-none">
-                      Emergency Sign-Out
-                    </span>
-                    <span className="text-[8px] uppercase font-bold opacity-60 mt-1 block">
-                      Clear all local cached tokens
-                    </span>
+                  <div className="hidden sm:block">
+                    <Globe className="w-4 h-4 opacity-20 group-hover:opacity-100 animate-spin-slow" />
                   </div>
-                </div>
-                <div className="hidden sm:block">
-                  <Globe className="w-4 h-4 opacity-20 group-hover:opacity-100 animate-spin-slow" />
-                </div>
-              </button>
+                </button>
+              )}
 
               <div className="mt-6 flex items-center justify-center gap-4 text-[8px] font-bold text-brand-sage/40 uppercase tracking-[0.4em]">
                 <span>Sec_Protocol: 88-Alpha</span>

@@ -63,6 +63,7 @@ export type SampleTest = {
 export type Variables = {
   user: User;
   requestId: string;
+  clientIp?: string;
 };
 
 // --- Export ---

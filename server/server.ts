@@ -17,7 +17,6 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { cors } from "hono/cors";
 import { rateLimiter } from "hono-rate-limiter";
-import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import { readFile } from "fs/promises";
@@ -49,7 +48,7 @@ import certificateRoutes from "./modules/certificates/routes";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PORT = Number(process.env.PORT ?? 3000);
+const PORT = Number(process.env.APP_PORT ?? process.env.PORT ?? 3000);
 const NODE_ENV = process.env.NODE_ENV ?? "development";
 const IS_PROD = NODE_ENV === "production";
 
@@ -222,6 +221,7 @@ async function startServer(): Promise<void> {
 
   // ── Dev: Vite middleware ──────────────────────────────────────────────────
   if (!IS_PROD) {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

@@ -30,10 +30,10 @@ export const Header: FC<HeaderProps> = memo(({ onMenuToggle }) => {
 
   return (
     <header
-      className="sticky top-0 h-[68px] w-full shrink-0 z-50 overflow-hidden
+      className="sticky top-0 h-[calc(68px+var(--safe-area-top))] w-full shrink-0 z-50
                        border-b border-(--color-zenthar-steel)
                        bg-(--color-zenthar-void)/90 backdrop-blur-2xl
-                       flex items-center justify-between px-5 md:px-8"
+                       flex items-end lg:items-center justify-between px-5 md:px-8 pb-3 lg:pb-0"
     >
       {/* Accent line */}
       <div

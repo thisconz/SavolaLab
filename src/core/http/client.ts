@@ -33,7 +33,7 @@ class ApiClient {
   }
 
   private async request<T>(path: string, config: RequestConfig = {}): Promise<T> {
-    const { timeout = 12_000, retries = 3, _noRefresh = false, ...init } = config;
+    const { timeout = 30_000, retries = 3, _noRefresh = false, ...init } = config;
 
     const url = `${BASE_URL}${path}`;
     const method = (init.method ?? "GET").toUpperCase();
@@ -127,7 +127,17 @@ class ApiClient {
   }
 
   private makeError(response: Response, body: any): ApiError {
-    const message = body?.error || response.statusText || "Unknown error";
+    let message = "Unknown error";
+    if (typeof body?.error === "string") {
+      message = body.error;
+    } else if (body?.error?.message) {
+      message = body.error.message;
+    } else if (body?.message) {
+      message = body.message;
+    } else if (response.statusText) {
+      message = response.statusText;
+    }
+
     const err = Object.assign(new Error(message), {
       code: body?.code ?? "API_ERROR",
       status: response.status,
