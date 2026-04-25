@@ -10,7 +10,6 @@ import {
   ArrowRight,
   Activity,
   RefreshCw,
-  Wifi,
 } from "lucide-react";
 import { motion, AnimatePresence } from "@/src/lib/motion";
 import { LabPanel } from "../../../shared/components/LabPanel";
@@ -143,7 +142,7 @@ export const StatFeature: React.FC = memo(() => {
       <div className="flex items-center justify-between px-4 mb-4 shrink-0">
         <div>
           <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
-            <Wifi className="w-5 h-5 text-brand-primary" /> STATs
+            <Zap className="w-5 h-5 text-brand-primary" /> STATs
           </h2>
           <div className="flex items-center gap-2 mt-0.5">
             <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">

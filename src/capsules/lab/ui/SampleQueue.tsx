@@ -50,14 +50,6 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
       return () => resizeObserver.current?.disconnect();
     }, []);
 
-    // ── Measure first card height once rendered ───────────────────────────
-    useEffect(() => {
-      if (firstCardRef.current) {
-        const h = firstCardRef.current.getBoundingClientRect().height;
-        if (h > 0) setCardHeight(h + 12); // +12 for gap
-      }
-    });
-
     // ── Filtering ─────────────────────────────────────────────────────────
     const filtered = useMemo(() => {
       const q = searchQuery.toLowerCase().trim();
@@ -72,6 +64,14 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
         return matchSearch && matchPriority && matchStatus;
       });
     }, [samples, searchQuery, priorityFilter, statusFilter]);
+
+    // ── Measure first card height once rendered ───────────────────────────
+    useEffect(() => {
+      if (firstCardRef.current) { // stable: only re-measure when filtered length changes
+        const h = firstCardRef.current.getBoundingClientRect().height;
+        if (h > 0) setCardHeight(h + 12); // +12 for gap
+      }
+    }, [filtered.length]);
 
     // ── Virtual scroll calculation ────────────────────────────────────────
     const totalHeight = filtered.length * cardHeight;

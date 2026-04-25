@@ -160,7 +160,7 @@ export async function buildExcelExport(opts: ExportOptions): Promise<Buffer> {
     ["Generated on", new Date().toLocaleString()],
     ["Export type", opts.type.toUpperCase()],
     ["Total records", String(rows.length)],
-    ["System", "Zenthar LIMS v2"],
+    ["System", "Zenthar LIMS v1.0.0"],
   ];
 
   meta.forEach(([label, value], i) => {

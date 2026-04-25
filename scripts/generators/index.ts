@@ -3,6 +3,10 @@ import fs from "fs";
 import { generateStructure } from "./generate-structure";
 import { renderTreeText } from "./generate-structure";
 import { generateTypes } from "./generate-types";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Base paths
 const ROOT_DIR = path.resolve(__dirname, "../../");

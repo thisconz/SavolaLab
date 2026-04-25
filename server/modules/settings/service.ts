@@ -9,7 +9,7 @@ import { db } from "../../core/database";
 export const TABLE_CONFIG = {
   sample_types: {
     pk: "id",
-    columns: ["name", "description", "is_active"],
+    columns: ["name", "category", "description"],
   },
   process_stages: {
     pk: "id",

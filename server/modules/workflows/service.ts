@@ -107,20 +107,20 @@ export const WorkflowService = {
         [workflowId],
       )) as Array<{ id: number }>;
 
-      const values: any[] = [];
+      const rowParams: any[] = [];
       const placeholders: string[] = [];
+      let paramIdx = 1;
 
-      stepRows.forEach((step, i) => {
-        const base = i * 2;
-        placeholders.push(`($1, $${base + 2}, 'PENDING')`);
-        values.push(step.id);
-      });
+      for (const step of stepRows) {
+        placeholders.push(`($${paramIdx}, $${paramIdx + 1}, 'PENDING')`);
+        rowParams.push(executionId, step.id);
+        paramIdx += 2;
+      }
 
       await client.query(
-        `INSERT INTO workflow_step_executions
-        (execution_id, step_id, status)
-        VALUES ${placeholders.join(", ")}`,
-        [executionId, ...values],
+        `INSERT INTO workflow_step_executions (execution_id, step_id, status)
+         VALUES ${placeholders.join(", ")}`,
+        rowParams,
       );
 
       sseBus.broadcast("WORKFLOW_STARTED", {

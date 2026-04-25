@@ -84,6 +84,7 @@ const MobileBottomNav: React.FC<{ activeTab: AppTab }> = ({ activeTab }) => {
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = memo(({ children }) => {
   const { activeTab } = useAppStore();
+  const setActiveTab = useSetActiveTab();
   const isAuthenticated = useAuthStore((s) => !!s.currentUser);
   const currentUser = useAuthStore((s) => s.currentUser);
 
@@ -144,9 +145,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = memo(({ childre
       {/* FIX #05: was "hidden lg:flex lg:relative lg:z-auto lg:translate-x-0 lg:block"
                   "lg:block" conflicted with "lg:flex". Now just "hidden lg:flex". */}
       <div className="hidden lg:flex shrink-0">
-        <Sidebar activeTab={activeTab} onTabChange={function (tab: AppTab): void {
-          throw new Error("Function not implemented.");
-        } } />
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
       {/* ── MOBILE SIDEBAR — slide in from left ─────────────────────────── */}
@@ -162,9 +161,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = memo(({ childre
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="fixed left-0 top-0 h-full z-50 lg:hidden shadow-2xl"
           >
-            <Sidebar activeTab={activeTab} onTabChange={function (tab: AppTab): void {
-              throw new Error("Function not implemented.");
-            } } />
+            <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
             {/* Close button at top-right of mobile sidebar */}
             <button
               onClick={() => setMobileSidebarOpen(false)}

@@ -49,7 +49,7 @@ app.post("/:table", authenticateToken, async (c) => {
     const body = await c.req.json();
     const result = await SettingsService.create(table, body);
     if (OPERATIONAL_TABLES.has(table)) {
-      OperationalService.invalidate;
+      OperationalService.invalidate();
     }
 
     await AuditService.createLog(
@@ -76,7 +76,7 @@ app.put("/:table/:id", authenticateToken, async (c) => {
     const body = await c.req.json();
     const result = await SettingsService.update(table, id, body);
     if (OPERATIONAL_TABLES.has(table)) {
-      OperationalService.invalidate;
+      OperationalService.invalidate();
     }
 
     await AuditService.createLog(

@@ -50,7 +50,7 @@ export interface TestPassRate {
 const SPECS: Record<string, { usl: number; lsl: number }> = {
   Brix: { lsl: 60, usl: 70 },
   Purity: { lsl: 95, usl: 100 },
-  Color: { lsl: 0, usl: 60 },
+  Colour: { lsl: 0, usl: 60 },
   Pol: { lsl: 95, usl: 100 },
   pH: { lsl: 6.5, usl: 8.5 },
 };
