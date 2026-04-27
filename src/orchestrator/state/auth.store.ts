@@ -25,43 +25,14 @@ interface AuthState {
  */
 export const useAuthStore = create<AuthState>()(
   devtools(
-    persist(
-      (set) => ({
-        currentUser: null,
-        token: null,
+    (set) => ({
+      currentUser: null,
+      token: null,
 
-        login: (user, token) =>
-          set(
-            {
-              currentUser: user,
-              token: token ?? null,
-            },
-            false,
-            "auth/login",
-          ),
-
-        logout: () =>
-          set(
-            {
-              currentUser: null,
-              token: null,
-            },
-            false,
-            "auth/logout",
-          ),
-
-        setToken: (token) => set({ token }, false, "auth/setToken"),
-      }),
-      {
-        name: "zenthar-auth-storage",
-        storage: createJSONStorage(() => safeLocalStorage),
-
-        // Only persist identity and session token, avoid sensitive long-term data if necessary
-        partialize: (state) => ({
-          currentUser: state.currentUser,
-        }),
-      },
-    ),
+      login: (user, token) => set({ currentUser: user, token: token ?? null }, false, "auth/login"),
+      logout: () => set({ currentUser: null, token: null }, false, "auth/logout"),
+      setToken: (token) => set({ token }, false, "auth/setToken"),
+    }),
     { name: "AuthStore" },
   ),
 );

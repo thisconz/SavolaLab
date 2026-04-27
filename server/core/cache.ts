@@ -17,14 +17,20 @@ interface CacheEntry<T> {
 export class TTLCache {
   private readonly store = new Map<string, CacheEntry<any>>();
   private readonly cleanupInterval: ReturnType<typeof setInterval>;
+  private readonly maxSize: number;
 
-  constructor(cleanupIntervalMs = 60_000) {
+  constructor(cleanupIntervalMs = 60_000, maxSize = 1000,) { 
+    this.maxSize = maxSize;
     this.cleanupInterval = setInterval(() => this.sweep(), cleanupIntervalMs);
     if (this.cleanupInterval.unref) this.cleanupInterval.unref();
   }
 
   /** Store a value with a TTL in milliseconds */
   set<T>(key: string, value: T, ttlMs: number): void {
+    if (this.store.size >= this.maxSize && !this.store.has(key)) {
+      const firstKey = this.store.keys().next().value;
+      if (firstKey) this.store.delete(firstKey);
+    }
     this.store.set(key, { value, expiresAt: Date.now() + ttlMs });
   }
 
@@ -85,9 +91,9 @@ export class TTLCache {
 
 // ─── Module-level singletons ─────────────────────────────────────────────────
 
-export const analyticsCache = new TTLCache();
-export const telemetryCache = new TTLCache();
-export const operationalCache = new TTLCache();
+export const analyticsCache = new TTLCache(60_000, 500);
+export const telemetryCache = new TTLCache(30_000, 100);
+export const operationalCache = new TTLCache(60_000, 200);
 
 /** Named TTL durations (milliseconds) */
 export const TTL = {

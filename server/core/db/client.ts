@@ -1,8 +1,9 @@
 import pg from "pg";
-import { logger } from "../logger";
-import { PGlite } from "@electric-sql/pglite";
 import path from "path";
+import { logger, requestContext } from "../logger";
+import { PGlite } from "@electric-sql/pglite";
 import { fileURLToPath } from "url";
+import { tr } from "zod/v4/locales";
 
 const { Pool } = pg;
 
@@ -45,10 +46,22 @@ class MockPool {
   }
 
   async connect() {
+    const pglite = getPGLiteInstance();
     return {
-      query: (text: string, params?: any[]) =>
-        getPGLiteInstance().query(text, params),
+      query: async (text: string, params?: any[]) => pglite.query(text, params),
       release: () => {},
+
+      beginTransaction: async () => {
+        await pglite.query("BEGIN");
+      },
+
+      commitTransaction: async () => {
+        await pglite.query("COMMIT");
+      },
+
+      rollbackTransaction: async () => {
+        try { await pglite.exec("ROLLBACK"); } catch { /* ignore */ }
+      },
     };
   }
 
@@ -96,15 +109,32 @@ export interface DatabaseClient {
 export const db: DatabaseClient = {
   async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
     const start = performance.now();
+    const requestId = requestContext.getStore()?.requestId ?? "no-request";
 
-    const result = await pool.query(sql, params);
-    const duration = performance.now() - start;
+    try {
+      const result = await pool.query(sql, params);
+      const duration = performance.now() - start;
 
-    if (duration > 50) {
-      logger.warn(`Slow query: ${sql.trim()} (${duration.toFixed(2)}ms)`);
+      if (duration > 50) {
+        logger.warn({
+        type: "SLOW_QUERY",
+        duration: `${duration.toFixed(2)}ms`,
+        sql: sql.trim().slice(0, 200), // truncate for log safety
+        paramCount: params.length,
+        rowCount: result.rows.length,
+        requestId,
+      });
     }
-
-    return result.rows as T[];
+      return result.rows as T[];
+    } catch (err: any) {
+      logger.error({
+        type: "QUERY_ERROR",
+        sql: sql.trim().slice(0, 200),
+        error: err.message,
+        requestId,
+      });
+      throw err;
+    }
   },
 
   async queryOne<T = any>(sql: string, params: any[] = []): Promise<T | null> {
@@ -116,25 +146,25 @@ export const db: DatabaseClient = {
     await pool.query(sql, params);
   },
 
-  async transaction<T>(
-    fn: (client: TransactionClient) => Promise<T>,
-  ): Promise<T> {
-    const client = await pool.connect();
+  async transaction<T>(fn: (client: TransactionClient) => Promise<T>): Promise<T> {
+    const client = await pool.connect() as any;
 
     try {
-      await client.query("BEGIN");
+      if (client.beginTransaction) {
+        await client.beginTransaction();
+      } else {
+        await client.query("BEGIN");
+      }
 
       const wrapped: TransactionClient = {
         query: async (sql, params = []) => {
           const res = await client.query(sql, params);
           return res.rows;
         },
-
         queryOne: async (sql, params = []) => {
           const res = await client.query(sql, params);
           return res.rows[0] || null;
         },
-
         execute: async (sql, params = []) => {
           await client.query(sql, params);
         },
@@ -142,10 +172,19 @@ export const db: DatabaseClient = {
 
       const result = await fn(wrapped);
 
-      await client.query("COMMIT");
+      if (client.commitTransaction) {
+        await client.commitTransaction();
+      } else {
+        await client.query("COMMIT");
+      }
+
       return result;
     } catch (err) {
-      await client.query("ROLLBACK");
+      if (client.rollbackTransaction) {
+        await client.rollbackTransaction();
+      } else {
+        try { await client.query("ROLLBACK"); } catch { /* ignore */ }
+      }
       throw err;
     } finally {
       client.release();

@@ -11,11 +11,13 @@
  */
 import { createHmac, timingSafeEqual, randomBytes } from "crypto";
 import { dbOrm } from "../../core/db/orm";
-import { users, employees, userPermissions } from "../../core/db/schema";
+import { users, employees, userPermissions, refreshTokens } from "../../core/db/schema";
 import { generateOtp, storeOtp, verifyOtp } from "../../core/db/security";
 import { AuditService } from "../audit/service";
 import argon2 from "argon2";
-import { eq, and, asc } from "drizzle-orm";
+import { createHash } from "crypto";
+import { eq, and, asc, isNull, gte } from "drizzle-orm";
+import { logger } from "@/server/core/logger";
 
 // ─────────────────────────────────────────────
 // Argon2id password helpers
@@ -28,6 +30,10 @@ export async function hashPassword(password: string): Promise<string> {
     timeCost: 3,
     parallelism: 4,
   });
+}
+
+function hashRefreshToken(raw: string): string {
+  return createHash("sha256").update(raw).digest("hex");
 }
 
 export async function verifyPassword(hash: string, password: string): Promise<boolean> {
@@ -43,13 +49,31 @@ export async function verifyPassword(hash: string, password: string): Promise<bo
 // ─────────────────────────────────────────────
 
 function getSecret(): string {
-  const s = process.env.JWT_SECRET;
-  if (!s || s === "insecure-dev-secret") {
+  const raw = process.env.JWT_SECRET;
+  const s = raw?.trim();
+
+  if (!s || s.length === 0) {
     if (process.env.NODE_ENV === "production") {
-      throw new Error("JWT_SECRET must be set in production");
+      throw new Error(
+        "JWT_SECRET environment variable must be set and non-empty in production. " +
+        "Generate one with: openssl rand -base64 64"
+      );
     }
+    logger.warn(
+      "JWT_SECRET not configured - using insecure development default. " +
+      "This MUST NOT be used in production."
+    );
+    return "insecure-dev-secret-DO-NOT-USE-IN-PRODUCTION";
   }
-  return s ?? "insecure-dev-secret";
+
+  if (process.env.NODE_ENV === "production" && s.length < 32) {
+    throw new Error(
+      `JWT_SECRET is too short (${s.length} chars). ` +
+      "Minimum 32 characters required in production. " +
+      "Generate one with: openssl rand -base64 64"
+    );
+  }
+  return s;
 }
 
 export interface JWTPayload {
@@ -415,6 +439,7 @@ export const AuthService = {
       const token = signToken(payload as any);
       const refresh = signRefreshToken({ sub: employeeNumber, employee_number: employeeNumber });
       await AuditService.createLog(employeeNumber, "LOGIN_SUCCESS", "User logged in", "127.0.0.1");
+      await AuthService.persistRefreshToken(employeeNumber, refresh, undefined, "127.0.0.1");
       return { token, refreshToken: refresh, user: payload };
     } catch (err: any) {
       if (err.message?.includes("locked") || err.message?.includes("Invalid")) throw err;
@@ -438,7 +463,28 @@ export const AuthService = {
   refreshAccess: async (refreshToken: string): Promise<{ token: string } | null> => {
     const payload = verifyRefreshToken(refreshToken);
     if (!payload) return null;
+
+    const tokenHash = hashRefreshToken(refreshToken);
+
     try {
+      const stored  = await dbOrm
+      .select({ id: refreshTokens.id })
+      .from(refreshTokens)
+        .where(
+          and(
+            eq(refreshTokens.token_hash, tokenHash),
+            eq(refreshTokens.employee_number, payload.employee_number),
+            isNull(refreshTokens.revoked_at),
+            gte(refreshTokens.expires_at, new Date()),
+          ),
+        )
+        .limit(1);
+
+      if (!stored.length) {
+        // Token was revoked, already used, or never persisted — reject
+        return null;
+      }
+      
       const rows = await dbOrm
         .select({
           employee_number: employees.employee_number,
@@ -453,14 +499,47 @@ export const AuthService = {
         .from(users)
         .innerJoin(employees, eq(users.employee_number, employees.employee_number))
         .innerJoin(userPermissions, eq(employees.role, userPermissions.role as any))
-        .where(and(eq(users.employee_number, payload.employee_number), eq(users.status, 'ACTIVE')));
+        .where(
+          and(
+            eq(users.employee_number, payload.employee_number),
+            eq(users.status, "ACTIVE"),
+          ),
+        );
 
       const row = rows[0];
       if (!row) return null;
+
       return { token: signToken(mapToPayload(row) as any) };
     } catch {
       return null;
     }
+  },
+
+  persistRefreshToken: async (
+    employeeNumber: string,
+    rawRefreshToken: string,
+    userAgent?: string,
+    ip?: string,
+  ): Promise<void> => {
+    const tokenHash = hashRefreshToken(rawRefreshToken);
+    const expiresAt = new Date(Date.now() + 30 * 24 * 3600 * 1000);
+
+    await dbOrm.insert(refreshTokens).values({
+      employee_number: employeeNumber,
+      token_hash: tokenHash,
+      expires_at: expiresAt,
+      user_agent: userAgent ?? null,
+      ip_address: ip ?? null,
+    });
+  },
+
+  revokeRefreshToken: async (rawRefreshToken: string): Promise<void> => {
+    if (!rawRefreshToken) return;
+    const tokenHash = hashRefreshToken(rawRefreshToken);
+    await dbOrm
+      .update(refreshTokens)
+      .set({ revoked_at: new Date() })
+      .where(eq(refreshTokens.token_hash, tokenHash));
   },
 };
 

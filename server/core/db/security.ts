@@ -1,20 +1,26 @@
 import { db } from "./client";
 import { randomInt } from "crypto";
-import { createHash } from "crypto";
+import argon2 from "argon2";
 
 /**
- * Simple hash using SHA-256 - enough for short-lived OTPs.
- * In production replace with bcrypt for passwords.
+ * Hash OTP with Argon2id — slow enough to prevent brute-force on DB read.
+ * We store the full argon2 encoded string (includes salt).
  */
-function hashCode(code: string): string {
-  return createHash("sha256").update(`otp:${code}:zenthar`).digest("hex");
+function hashOtp(code: string): Promise<string> {
+  return argon2.hash(code, {
+    type: argon2.argon2id,
+    memoryCost: 4096,
+    timeCost: 2,
+    parallelism: 1,
+  });
 }
 
-/**
- * Generate a cryptographically random 6-digit OTP
- */
-export function generateOtp(): string {
-  return randomInt(100000, 999999).toString();
+async function verifyOtpHash(hash: string, input: string): Promise<boolean> {
+  try {
+    return await argon2.verify(hash, input);
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -25,10 +31,14 @@ export async function storeOtp(
   code: string,
   expiresMinutes = 10,
 ): Promise<void> {
-  const hashed = hashCode(code);
+  // Async, slow (by design), unique salt per OTP
+  const hashed = await hashOtp(code);
 
-  // Remove any existing OTPs for this employee (single-use enforcement)
-  await db.execute("DELETE FROM otp_codes WHERE employee_number = $1", [employeeNumber]);
+  // Remove any existing OTPs for this user (single-use enforcement)
+  await db.execute(
+    "DELETE FROM otp_codes WHERE employee_number = $1",
+    [employeeNumber]
+  );
 
   await db.execute(
     `INSERT INTO otp_codes (employee_number, code, expires_at)
@@ -40,7 +50,10 @@ export async function storeOtp(
 /**
  * Verify OTP — consumes it on success (prevents replay attacks)
  */
-export async function verifyOtp(employeeNumber: string, input: string): Promise<boolean> {
+export async function verifyOtp(
+  employeeNumber: string,
+  input: string
+): Promise<boolean> {
   const row = await db.queryOne<{ id: number; code: string }>(
     `SELECT id, code FROM otp_codes
      WHERE employee_number = $1
@@ -51,9 +64,11 @@ export async function verifyOtp(employeeNumber: string, input: string): Promise<
 
   if (!row) return false;
 
-  const isValid = hashCode(input) === row.code;
+  // argon2.verify is constant-time and handles salt extraction internally
+  const isValid = await verifyOtpHash(row.code, input);
 
   if (isValid) {
+    // Consume the OTP immediately — prevents replay
     await db.execute("DELETE FROM otp_codes WHERE id = $1", [row.id]);
   }
 

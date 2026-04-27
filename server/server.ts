@@ -15,6 +15,7 @@ import "dotenv/config";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
+import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { rateLimiter } from "hono-rate-limiter";
 import path from "path";
@@ -26,6 +27,7 @@ import { initDatabase } from "./core/database";
 import { logger } from "./core/logger";
 import { auth } from "./core/auth";
 import { requestId } from "./core/middleware/requestId";
+import { csrfProtection } from "./core/middleware/csrf";
 
 // Route modules
 import { authRoutes } from "./modules/auth";
@@ -112,11 +114,9 @@ async function startServer(): Promise<void> {
   if (IS_PROD) {
     app.use(
       "/api/*",
-      rateLimiter({
-        windowMs: 15 * 60 * 1000,
-        limit: 1000,
-        standardHeaders: "draft-6",
-        keyGenerator: (c) => c.req.header("x-forwarded-for") ?? "global",
+      bodyLimit({
+        maxSize: 1 * 1024 * 1024, // 1 MB
+        onError: (c) => c.json({ error: "Request body too large", code: "PAYLOAD_TOO_LARGE" }, 413),
       }),
     );
   }

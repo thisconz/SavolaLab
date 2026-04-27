@@ -207,6 +207,16 @@ app.get("/me", authenticateToken, async (c) => {
 
 app.post("/logout", async (c) => {
   const isProd = process.env.NODE_ENV === "production";
+
+  const rawRefresh = getCookie(c, "refresh_token");
+  if (rawRefresh) {
+    try {
+      await AuthService.revokeRefreshToken(rawRefresh);
+    } catch {
+      // Non-fatal — cookie deletion still proceeds
+    }
+  }
+  
   deleteCookie(c, "token", { ...COOKIE_OPTS_BASE, secure: isProd });
   deleteCookie(c, "refresh_token", { ...COOKIE_OPTS_BASE, secure: isProd });
   return c.json({ success: true });

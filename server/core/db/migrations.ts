@@ -451,4 +451,40 @@ export const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 17,
+    up: async (client) => {
+      await client.execute(`
+        CREATE TABLE IF NOT EXISTS spec_limits (
+          id            SERIAL PRIMARY KEY,
+          test_type     TEXT NOT NULL,
+          sample_stage  TEXT,            -- NULL = applies to all stages
+          usl           DOUBLE PRECISION NOT NULL,
+          lsl           DOUBLE PRECISION NOT NULL,
+          target        DOUBLE PRECISION,
+          unit          TEXT,
+          is_active     INTEGER DEFAULT 1,
+          effective_from TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          created_by    TEXT REFERENCES employees(employee_number),
+          notes         TEXT
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_spec_limits_type_stage
+          ON spec_limits(test_type, COALESCE(sample_stage, ''))
+          WHERE is_active = 1;
+
+        -- Seed default limits
+        INSERT INTO spec_limits (test_type, usl, lsl, unit)
+        VALUES
+          ('Brix',    70, 60, '%'),
+          ('Purity',  100, 95, '%'),
+          ('Colour',  60, 0, 'IU'),
+          ('Pol',     100, 95, '%'),
+          ('pH',      8.5, 6.5, 'pH'),
+          ('Moisture', 0.15, 0, '%'),
+          ('Ash',     0.05, 0, '%')
+        ON CONFLICT DO NOTHING;
+      `);
+    },
+  },
 ];
