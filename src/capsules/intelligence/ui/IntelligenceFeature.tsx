@@ -16,6 +16,7 @@ import { AlertCard } from "../../../shared/components/AlertCard";
 import { api } from "../../../core/http/client";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import clsx from "@/src/lib/clsx";
+import { da } from "zod/v4/locales";
 
 interface PlantData {
   metrics: { oee: string; yield: string; energy: number; activeAlarms: number };
@@ -116,13 +117,13 @@ export const IntelligenceFeature: React.FC = memo(() => {
           <MetricCard
             label="Plant Yield"
             value={data.metrics.yield}
-            trend="+0.5% target"
+            trend="+2.1% weekly"
             icon={Factory}
             variant="primary"
           />
           <MetricCard
             label="Energy Consumption"
-            value={`${data.metrics.energy.toFixed(4).concat(" KWh/t")}`}
+            value={`${data.metrics.energy.toFixed(2).concat(" KWh/t")}`}
             trend="Monitor"
             icon={Zap}
             variant="warning"

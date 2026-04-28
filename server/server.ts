@@ -15,6 +15,7 @@ import "dotenv/config";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
+import { initSseSubscriber } from "./core/events/sse-subscriber";
 import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { rateLimiter } from "hono-rate-limiter";
@@ -22,6 +23,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { readFile } from "fs/promises";
 import os from "os";
+
 
 import { initDatabase } from "./core/database";
 import { logger } from "./core/logger";
@@ -97,6 +99,9 @@ async function startServer(): Promise<void> {
   // ── Request ID ───────────────────────────────────────────────────────────
   app.use("*", requestId);
 
+  // ── CSRF Protection ───────────────────────────────────────────────────────
+  app.use("/api/*", csrfProtection);
+
   // ── CORS (dev only) ───────────────────────────────────────────────────────
   if (!IS_PROD) {
     app.use(
@@ -137,6 +142,9 @@ async function startServer(): Promise<void> {
     logger.error({ err }, "DATABASE BOOT FAILURE — continuing in degraded mode");
   }
 
+  // ── Server-Sent Events ────────────────────────────────────────────────────
+  initSseSubscriber();
+  
   // ── API Routes ────────────────────────────────────────────────────────────
   const api = "/api";
 

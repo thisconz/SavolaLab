@@ -1,6 +1,6 @@
 import type { Context, Next, MiddlewareHandler } from "hono";
 import { getCookie } from "hono/cookie";
-import { createHmac, randomBytes } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 
 const CSRF_HEADER = "X-CSRF-Token";
 const CSRF_COOKIE = "csrf_token";
@@ -16,11 +16,7 @@ function generateCsrfToken(sessionId: string): string {
     .digest("hex");
 }
 
-function verifyCsrfToken(
-  sessionId: string,
-  submittedToken: string
-): boolean {
-  // Accept current hour and previous hour to handle clock edge cases
+function verifyCsrfToken(sessionId: string, submittedToken: string): boolean {
   const secret = process.env.JWT_SECRET ?? "insecure-dev-secret";
   const hourSlot = Math.floor(Date.now() / 3_600_000);
 
@@ -29,11 +25,13 @@ function verifyCsrfToken(
       .update(`${sessionId}:${slot}`)
       .digest("hex");
 
+    const expectedBuf = Buffer.from(expected, "hex");
+    const submittedBuf = Buffer.from(submittedToken, "hex");
+
     // Constant-time comparison
     if (
-      expected.length === submittedToken.length &&
-      createHmac("sha256", secret).update(expected).digest("hex") ===
-        createHmac("sha256", secret).update(submittedToken).digest("hex")
+      expectedBuf.length === submittedBuf.length &&
+      timingSafeEqual(expectedBuf, submittedBuf)
     ) {
       return true;
     }

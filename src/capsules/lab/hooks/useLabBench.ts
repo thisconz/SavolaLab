@@ -30,6 +30,7 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
 
   const loadTests = useCallback(async () => {
     setLoading(true);
+    const abortCtrl = new AbortController();
     try {
       const data = await LabApi.getSampleTests(sample.id);
       setTests(data);
@@ -62,18 +63,17 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
 
       // Load history per test type (no duplicate fetches)
       const seen = new Set<string>();
-      const abortCtrl = new AbortController();
       for (const t of data) {
         if (seen.has(t.test_type)) continue;
         seen.add(t.test_type);
         LabApi.getPreviousResults(sample.source_stage ?? "", t.test_type, 3)
           .then((res) => {
-            if (mountedRef.current) {
+            if (!abortCtrl.signal.aborted && mountedRef.current) {
               setPreviousResults((prev) => ({ ...prev, [t.test_type]: res }));
             }
           })
-          .catch(() => {
-            /* best-effort */
+          .catch((err) => {
+            if (err.name !== "AbortError") console.warn("Previous results fetch failed", err);
           });
       }
     } catch (err) {
@@ -82,10 +82,16 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
     } finally {
       setLoading(false);
     }
+    
+    return () => abortCtrl.abort();
   }, [sample.id, sample.source_stage]);
 
   useEffect(() => {
-    loadTests();
+    let cleanup: (() => void) | void;
+    loadTests().then((c) => { cleanup = c; });
+    return () => {
+      if (typeof cleanup === "function") cleanup();
+    };
   }, [sample.id]);
 
   // ─── Validation ──────────────────────────────────────────────────────────

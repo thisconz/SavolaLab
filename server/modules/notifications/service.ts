@@ -36,7 +36,9 @@ export const NotificationService = {
         await client.execute(
           `INSERT INTO notifications (employee_number, type, message)
            VALUES ($1, 'OVERDUE_TEST', $2)
-           ON CONFLICT DO NOTHING`, // prevent duplicate notifications per shift
+           ON CONFLICT (employee_number, type, DATE_TRUNC('hour', CURRENT_TIMESTAMP))
+           WHERE type = 'OVERDUE_TEST'
+           DO NOTHING`,
           [recipientId, message],
         );
 

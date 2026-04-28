@@ -1,10 +1,20 @@
+export interface QualityPrediction {
+  sampleId: number;
+  predictedGrade: string;
+  confidence: number;
+}
 
+export interface AnomalyResult {
+  isAnomaly: boolean;
+  zScore: number;
+  message: string;
+}
 
 export const PredictionApi = {
-  predictBatchQuality: async (sampleId: number): Promise<QualityPrediction> => {
-    // POST to internal Python inference service or Claude API
+  predictBatchQuality: async (_sampleId: number): Promise<QualityPrediction> => {
+    throw new Error("PredictionApi.predictBatchQuality: not yet implemented");
   },
-  detectAnomaly: async (testType: string, value: number, stage: string): Promise<AnomalyResult> => {
-    // Compare against statistical model trained on approved tests
+  detectAnomaly: async (_testType: string, _value: number, _stage: string): Promise<AnomalyResult> => {
+    throw new Error("PredictionApi.detectAnomaly: not yet implemented");
   },
 };

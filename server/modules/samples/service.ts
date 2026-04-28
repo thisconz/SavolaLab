@@ -1,4 +1,5 @@
 import { createNotification } from "../../core/db/events";
+import { domainBus } from "../../core/events/domain-bus";
 import { SampleRepository } from "./repository";
 import { AuditService } from "../audit/service";
 import { sseBus } from "../../core/sse";
@@ -28,12 +29,15 @@ export const SampleService = {
     });
 
     // Emit SSE event to all connected clients
-    sseBus.broadcast("SAMPLE_CREATED", {
-      id,
-      batch_id: data.batch_id ?? null,
-      priority: data.priority ?? "NORMAL",
-      source_stage: data.source_stage ?? null,
-      technician_id: technicianId,
+    domainBus.publish({
+      type: "SAMPLE_CREATED",
+      payload: {
+        id,
+        batch_id: data.batch_id ?? null,
+        priority: data.priority ?? "NORMAL",
+        source_stage: data.source_stage ?? null,
+        technician_id: technicianId,
+      },
     });
 
     return id;
@@ -75,13 +79,15 @@ export const SampleService = {
       }
 
       // Broadcast status change to all
-      sseBus.broadcast("SAMPLE_STATUS_CHANGED", {
-        id: sampleId,
-        batch_id: oldSample.batch_id,
-        old_status: oldSample.status,
-        new_status: data.status,
-        changed_by: employeeNumber,
-      });
+      domainBus.publish({
+        type: "SAMPLE_STATUS_CHANGED", 
+        payload:{
+          id: sampleId,
+          batch_id: oldSample.batch_id,
+          old_status: oldSample.status,
+          new_status: data.status,
+          changed_by: employeeNumber,
+      }});
     }
 
     if (data.batch_id && data.batch_id !== oldSample.batch_id)
@@ -98,12 +104,14 @@ export const SampleService = {
         ip,
       );
       // Broadcast general update
-      sseBus.broadcast("SAMPLE_UPDATED", {
-        id: sampleId,
-        batch_id: oldSample.batch_id,
-        changed_by: employeeNumber,
-        changes,
-      });
+      domainBus.publish({ 
+        type: "SAMPLE_UPDATED", 
+        payload: {
+          id: sampleId,
+          batch_id: oldSample.batch_id,
+          changed_by: employeeNumber,
+          changes,
+      }});
     }
 
     return true;
@@ -127,13 +135,15 @@ export const SampleService = {
       technician_id: technicianId,
     });
 
-    sseBus.broadcast("SAMPLE_CREATED", {
-      id: newId,
-      batch_id: `${existing.batch_id}-R`,
-      priority: existing.priority,
-      source_stage: existing.source_stage,
-      technician_id: technicianId,
-    });
+    domainBus.publish({ 
+      type: "SAMPLE_CREATED", 
+      payload: {
+        id: newId,
+        batch_id: `${existing.batch_id}-R`,
+        priority: existing.priority,
+        source_stage: existing.source_stage,
+        technician_id: technicianId,
+    }});
 
     return newId;
   },

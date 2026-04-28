@@ -43,7 +43,7 @@ app.get("/stream", sseRateLimit, authenticateToken, async (c) => {
         return;
       }
       try {
-        await writer.write(`:heartbeat ${Date.now()}\n\n`);
+        await writer.write(`event: heartbeat\ndata: ${Date.now()}\n\n`);
       } catch {
         closed = true;
         clearInterval(heartbeat);

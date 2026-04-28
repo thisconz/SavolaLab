@@ -1,13 +1,6 @@
 /**
- * server/modules/auth/service.ts
- *
  * Handles password hashing, JWT generation/verification,
  * OTP lifecycle, and user authentication flow.
- *
- * FIXES:
- *  - Correct import paths for generateOtp/storeOtp/verifyOtp
- *  - JWT signing uses createHmac (not createHash) — timing-safe verification
- *  - signToken: payload values always override defaults (not the other way around)
  */
 import { createHmac, timingSafeEqual, randomBytes } from "crypto";
 import { dbOrm } from "../../core/db/orm";
@@ -17,7 +10,7 @@ import { AuditService } from "../audit/service";
 import argon2 from "argon2";
 import { createHash } from "crypto";
 import { eq, and, asc, isNull, gte } from "drizzle-orm";
-import { logger } from "@/server/core/logger";
+import { logger } from "../../core/logger";
 
 // ─────────────────────────────────────────────
 // Argon2id password helpers
@@ -444,11 +437,17 @@ export const AuthService = {
     } catch (err: any) {
       if (err.message?.includes("locked") || err.message?.includes("Invalid")) throw err;
       if (err.message === "Database not connected") {
-        if (process.env.NODE_ENV === "production") {
+        if (process.env.NODE_ENV === "production" || process.env.DB_MODE !== "pglite") {
           throw new Error("Database unavailable - cannot authenticate");
         }
-        const mockUser =
-          mockUsers().find((u) => u.employee_number === employeeNumber) ?? mockUsers()[0];
+        const mockUser = mockUsers().find((u) => u.employee_number === employeeNumber);
+        if (!mockUser) return null;
+
+        const DEV_PASSWORD = "Z3nthar!2025";
+        const DEV_PIN = "1111";
+        const credentialValid = password === DEV_PASSWORD || pin === DEV_PIN;
+        if (!credentialValid) return null;
+        
         const token = signToken(mockUser as any);
         const refresh = signRefreshToken({
           sub: mockUser.employee_number,
@@ -509,9 +508,15 @@ export const AuthService = {
       const row = rows[0];
       if (!row) return null;
 
-      return { token: signToken(mapToPayload(row) as any) };
-    } catch {
-      return null;
+      await dbOrm
+      .update(refreshTokens)
+      .set({ revoked_at: new Date() })
+      .where(eq(refreshTokens.token_hash, tokenHash));
+
+    return { token: signToken(mapToPayload(row) as any) };
+    } catch (err: any) {
+      if (err.message === "Database not connected") return null;
+      throw err;
     }
   },
 

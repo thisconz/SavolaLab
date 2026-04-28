@@ -1,135 +1,43 @@
 import { db, createAuditLog } from "../../core/database";
 import { operationalCache, TTL } from "../../core/cache";
 import { Pagination, EquipmentFilter } from "../../core/types";
-
-function replacePlaceholders(sql: string) {
-  let index = 1;
-  return sql.replace(/\?/g, () => `$${index++}`);
-}
+import { OperationalRepository } from "./repository";
 
 export const OperationalService = {
-  getProductionLines: async (pagination?: Pagination) => {
-    return operationalCache.getOrSet(
+  getProductionLines: (pagination?: Pagination) =>
+    operationalCache.getOrSet(
       "op:production-lines",
-      async () => {
-        let sql = "SELECT * FROM production_lines ORDER BY name ASC";
-        const params: any[] = [];
-        if (pagination?.limit) {
-          sql += " LIMIT ?";
-          params.push(pagination.limit);
-        }
-        if (pagination?.offset) {
-          sql += " OFFSET ?";
-          params.push(pagination.offset);
-        }
-        try {
-          return await db.query(replacePlaceholders(sql), params);
-        } catch (err: any) {
-          if (err.message === "Database not connected") return [];
-          throw err;
-        }
-      },
+      () => OperationalRepository.getProductionLines(pagination),
       TTL.MINUTES_5,
-    );
-  },
+    ),
 
-  getEquipment: async ({ lineId, limit = 100, offset = 0 }: EquipmentFilter = {}) => {
-    const cacheKey = `op:equipment:${lineId ?? "all"}`;
-    return operationalCache.getOrSet(
-      cacheKey,
-      async () => {
-        let sql = "SELECT * FROM equipment";
-        const params: any[] = [];
-        if (lineId) {
-          sql += " WHERE line_id = ?";
-          params.push(lineId);
-        }
-        sql += " ORDER BY name ASC LIMIT ? OFFSET ?";
-        params.push(limit, offset);
-        try {
-          return await db.query(replacePlaceholders(sql), params);
-        } catch (err: any) {
-          if (err.message === "Database not connected") return [];
-          throw err;
-        }
-      },
+  getEquipment: (filter: EquipmentFilter = {}) =>
+    operationalCache.getOrSet(
+      `op:equipment:${filter.lineId ?? "all"}`,
+      () => OperationalRepository.getEquipment(filter),
       TTL.MINUTES_5,
-    );
-  },
+    ),
 
-  getInstruments: async (pagination?: Pagination) => {
-    return operationalCache.getOrSet(
+  getInstruments: (pagination?: Pagination) =>
+    operationalCache.getOrSet(
       "op:instruments",
-      async () => {
-        let sql = "SELECT * FROM instruments ORDER BY name ASC";
-        const params: any[] = [];
-        if (pagination?.limit) {
-          sql += " LIMIT ?";
-          params.push(pagination.limit);
-        }
-        if (pagination?.offset) {
-          sql += " OFFSET ?";
-          params.push(pagination.offset);
-        }
-        try {
-          return await db.query(replacePlaceholders(sql), params);
-        } catch (err: any) {
-          if (err.message === "Database not connected") return [];
-          throw err;
-        }
-      },
+      () => OperationalRepository.getInstruments(pagination),
       TTL.MINUTES_5,
-    );
-  },
+    ),
 
-  getInventory: async (pagination?: Pagination) => {
-    return operationalCache.getOrSet(
+  getInventory: (pagination?: Pagination) =>
+    operationalCache.getOrSet(
       "op:inventory",
-      async () => {
-        let sql = "SELECT * FROM inventory ORDER BY name ASC";
-        const params: any[] = [];
-        if (pagination?.limit) {
-          sql += " LIMIT ?";
-          params.push(pagination.limit);
-        }
-        if (pagination?.offset) {
-          sql += " OFFSET ?";
-          params.push(pagination.offset);
-        }
-        try {
-          return await db.query(replacePlaceholders(sql), params);
-        } catch (err: any) {
-          if (err.message === "Database not connected") return [];
-          throw err;
-        }
-      },
+      () => OperationalRepository.getInventory(pagination),
       TTL.MINUTES_5,
-    );
-  },
+    ),
 
-  getCertificates: async (filters?: { status?: string } & Pagination) => {
-    let sql = "SELECT * FROM certificates WHERE 1=1";
-    const params: any[] = [];
-    if (filters?.status) {
-      sql += " AND status = ?";
-      params.push(filters.status);
-    }
-    sql += " ORDER BY created_at DESC";
-    if (filters?.limit) {
-      sql += " LIMIT ?";
-      params.push(filters.limit);
-    }
-    if (filters?.offset) {
-      sql += " OFFSET ?";
-      params.push(filters.offset);
-    }
-    try {
-      return await db.query(replacePlaceholders(sql), params);
-    } catch (err: any) {
-      if (err.message === "Database not connected") return [];
-      throw err;
-    }
-  },
+  getCertificates: (status?: string, pagination?: Pagination) =>
+    operationalCache.getOrSet(
+      `op:certificates:${status ?? "all"}`,
+      () => OperationalRepository.getCertificates(status, pagination),
+      TTL.MINUTES_5,
+    ),
 
   getPlantIntel: async () => {
     return operationalCache.getOrSet(

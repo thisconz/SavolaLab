@@ -7,15 +7,27 @@ import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 
+const TRUSTED_PROXIES = new Set(
+  (process.env.TRUSTED_PROXY_IPS ?? "127.0.0.1,::1").split(",").map((s) => s.trim()),
+);
+
 /**
  * Extract safe IP (proxy-aware)
  */
 function getClientIp(c: any): string {
-  const forwarded = c.req.header("x-forwarded-for");
-  if (typeof forwarded === "string") {
-    return forwarded.split(",")[0].trim();
-  }
-  return "127.0.0.1";
+  const remoteAddr =
+    c.req.header("x-real-ip") ??    // set by nginx
+    "127.0.0.1";
+
+    if (TRUSTED_PROXIES.has(remoteAddr)) {
+      const forwarded = c.req.header("x-forwarded-for");
+      if (typeof forwarded === "string") {
+        // Take the leftmost (client) address
+        return forwarded.split(",")[0].trim();
+      }
+    }
+
+    return remoteAddr;
 }
 
 /**

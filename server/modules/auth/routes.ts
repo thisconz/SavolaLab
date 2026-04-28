@@ -3,6 +3,7 @@ import type { Variables } from "../../core/types";
 import { setCookie, deleteCookie, getCookie } from "hono/cookie";
 import { AuthService, verifyRefreshToken } from "./service";
 import { authenticateToken, requireRoles } from "../../core/middleware";
+import { authRateLimit } from "../../core/rateLimit";
 import { z } from "zod";
 import {
   GetUsersResponseSchema,
@@ -162,7 +163,7 @@ app.post("/login", async (c) => {
  * Refresh endpoint — exchanges a valid refresh cookie for a new access token.
  * No body required; reads the httpOnly refresh_token cookie automatically.
  */
-app.post("/refresh", async (c) => {
+app.post("/refresh", authRateLimit, async (c) => {
   const refresh = getCookie(c, "refresh_token");
   if (!refresh) return c.json({ success: false, error: "No refresh token" }, 401);
 

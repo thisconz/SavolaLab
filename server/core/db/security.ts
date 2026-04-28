@@ -2,6 +2,11 @@ import { db } from "./client";
 import { randomInt } from "crypto";
 import argon2 from "argon2";
 
+/** Generate a cryptographically random 6-digit OTP string */
+export function generateOtp(): string {
+  return String(randomInt(100000, 999999));
+}
+
 /**
  * Hash OTP with Argon2id — slow enough to prevent brute-force on DB read.
  * We store the full argon2 encoded string (includes salt).

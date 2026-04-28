@@ -78,47 +78,30 @@ export const AnalyticsService = {
         try {
           const rows = await db.query<{
             hour: string;
-            test_type: string;
+            brix: number | null;
+            purity: number | null;
+            color: number | null;
             avg_value: number;
           }>(`
             SELECT
-              date_trunc('hour', performed_at)         AS hour,
-              test_type,
-              ROUND(AVG(calculated_value)::numeric, 2) AS avg_value
+              date_trunc('hour', performed_at) AS hour,
+              ROUND(AVG(calculated_value) FILTER (WHERE test_type = 'Brix')::numeric, 2)   AS brix,
+              ROUND(AVG(calculated_value) FILTER (WHERE test_type = 'Purity')::numeric, 2) AS purity,
+              ROUND(AVG(calculated_value) FILTER (WHERE test_type = 'Colour')::numeric, 2) AS color
             FROM tests
             WHERE test_type IN ('Brix', 'Purity', 'Colour')
               AND status      IN ('COMPLETED', 'APPROVED')
               AND performed_at >= NOW() - INTERVAL '24 hours'
-            GROUP BY date_trunc('hour', performed_at), test_type
+            GROUP BY date_trunc('hour', performed_at)
             ORDER BY hour ASC
           `);
 
-          // Pivot into { time, brix, purity, color }
-          const buckets = new Map<string, HourlyQualityPoint>();
-
-          for (const row of rows) {
-            const time = new Date(row.hour).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            });
-
-            if (!buckets.has(time)) {
-              buckets.set(time, {
-                time,
-                brix: null,
-                purity: null,
-                color: null,
-              });
-            }
-
-            const pt = buckets.get(time)!;
-            const v = Number(row.avg_value);
-            if (row.test_type === "Brix") pt.brix = v;
-            if (row.test_type === "Purity") pt.purity = v;
-            if (row.test_type === "Colour") pt.color = v;
-          }
-
-          return Array.from(buckets.values());
+          return rows.map((row) => ({
+            time: new Date(row.hour).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            brix: row.brix !== null ? Number(row.brix) : null,
+            purity: row.purity !== null ? Number(row.purity) : null,
+            color: row.color !== null ? Number(row.color) : null,
+          }));
         } catch (err: any) {
           logger.error({ err }, "AnalyticsService.getQualityData failed");
           return [];

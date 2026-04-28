@@ -21,7 +21,7 @@ export const TABLE_CONFIG = {
   },
   employees: {
     pk: "employee_number",
-    columns: ["name", "role", "is_active"],
+    columns: ["name", "role", "department", "email", "status"],
   },
   instruments: {
     pk: "id",

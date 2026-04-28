@@ -3,7 +3,6 @@ import path from "path";
 import { logger, requestContext } from "../logger";
 import { PGlite } from "@electric-sql/pglite";
 import { fileURLToPath } from "url";
-import { tr } from "zod/v4/locales";
 
 const { Pool } = pg;
 
@@ -30,6 +29,7 @@ if (DB_MODE === "pglite") {
 
 // ─── PGlite singleton ─────────────────────────────────────────────
 let _pgliteInstance: PGlite | null = null;
+let _pgliteTxLock: Promise<void> = Promise.resolve();
 
 function getPGLiteInstance(): PGlite {
   if (!_pgliteInstance) {
@@ -47,11 +47,20 @@ class MockPool {
 
   async connect() {
     const pglite = getPGLiteInstance();
+    let releaseLock!: () => void;
     return {
       query: async (text: string, params?: any[]) => pglite.query(text, params),
-      release: () => {},
+      release: () => {
+        if (releaseLock) releaseLock();
+      },
+      
 
       beginTransaction: async () => {
+        await new Promise<void>((resolve) => {
+          const pre = _pgliteTxLock;
+          _pgliteTxLock = new Promise<void>((r) => { releaseLock = r; });
+          pre.then(resolve);
+        })
         await pglite.query("BEGIN");
       },
 

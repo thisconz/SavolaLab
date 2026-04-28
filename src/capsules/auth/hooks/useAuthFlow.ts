@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "../../../orchestrator/state/auth.store";
 import { AuthApi } from "../api/auth.api";
@@ -24,6 +24,7 @@ export const useAuthFlow = ({ onSuccess, isOpen = true }: UseAuthFlowOptions = {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const fetchController = useRef<AbortController | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -39,17 +40,20 @@ export const useAuthFlow = ({ onSuccess, isOpen = true }: UseAuthFlowOptions = {
       setLoading(false);
     }
   }, []);
-
+  
   useEffect(() => {
     if (isOpen) {
+      fetchController.current?.abort();
+      fetchController.current = new AbortController();
       fetchUsers();
     } else {
+      fetchController.current?.abort();
       setSelectedUser(null);
       setInputValue("");
       setError("");
       setIsRegistering(false);
     }
-  }, [isOpen, fetchUsers]);
+  }, [isOpen]);
 
   const handleUserSelect = useCallback(
     (user: User) => {

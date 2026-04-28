@@ -161,14 +161,27 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     mountedRef.current = true;
     if (autoConnect && isAuthenticated) connect();
 
+    const handleVisibilityChange = () => {
+      if (
+        document.visibilityState === "visible" &&
+        isAuthenticated &&
+        esRef.current?.readyState !== EventSource.OPEN
+      ) {
+        retryRef.current = 0; // reset backoff
+        connect();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       mountedRef.current = false;
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearTimeout(retryTimerRef.current ?? undefined);
       esRef.current?.close();
       esRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, autoConnect]);
+  }, [isAuthenticated, autoConnect, connect]);
 
   // ── Disconnect when auth is lost ─────────────────────────────────────────
 

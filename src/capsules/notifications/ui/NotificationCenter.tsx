@@ -59,7 +59,7 @@ export const NotificationCenter: React.FC = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="absolute right-0 mt-4 w-400px bg-(--color-zenthar-carbon)/95 backdrop-blur-2xl border border-brand-sage/20 rounded-2rem shadow-2xl z-50 overflow-hidden"
+              className="absolute right-0 mt-4 w-400px bg-(--color-zenthar-carbon)/95 backdrop-blur-2xl border border-brand-sage/20 rounded-[2rem] shadow-2xl z-50 overflow-hidden"
             >
               {/* Decorative Header Background */}
               <div className="absolute top-0 left-0 right-0 h-24 bg-linear-to-b from-brand-primary/10 via-(--color-zenthar-graphite)/50 to-transparent pointer-events-none" />
@@ -84,7 +84,7 @@ export const NotificationCenter: React.FC = () => {
                 )}
               </div>
 
-              <div className="max-h-32rem overflow-auto custom-scrollbar relative z-10">
+              <div className="max-h-[32rem] overflow-auto custom-scrollbar relative z-10">
                 {notifications.length === 0 ? (
                   <div className="p-12 text-center text-brand-sage opacity-50 flex flex-col items-center">
                     <div className="w-16 h-16 rounded-2xl bg-(--color-zenthar-graphite)/50 flex items-center justify-center mb-4">

@@ -103,10 +103,15 @@ app.delete("/:table/:id", authenticateToken, requireRoles("ADMIN", "HEAD_MANAGER
   if (!DELETABLE_TABLES.has(table))
     return c.json({ success: false, error: `Table '${table}' does not support deletion` }, 403);
 
+  if (!id || id.trim().length === 0) {
+    return c.json({ success: false, error: "Invalid ID parameter" }, 400);
+  }
+  
+  const pkCol = table === "system_preferences" ? "key" : "id";
+  if (pkCol === "id" && !/^\d+$/.test(id)) {
+    return c.json({ success: false, error: "ID must be a positive integer" }, 400);
+  }
   try {
-    // Determine PK column
-    const pkCol =
-      table === "employees" ? "employee_number" : table === "system_preferences" ? "key" : "id";
     const { db } = await import("../../core/database");
     await db.execute(`DELETE FROM ${table} WHERE ${pkCol} = $1`, [id]);
 

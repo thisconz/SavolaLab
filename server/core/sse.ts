@@ -79,7 +79,7 @@ interface SSEClient {
 // Event Bus
 // ─────────────────────────────────────────────
 
-class SSEBus extends EventEmitter {
+class SSEBus {
   private clients = new Map<string, SSEClient>();
 
   /**
