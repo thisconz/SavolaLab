@@ -31,7 +31,6 @@ function collectTypeFiles(dir: string): TypeFile[] {
     } else if (entry.isFile() && /(\.types\.ts|types\.ts)$/i.test(entry.name)) {
       results.push({ name: entry.name, path: fullPath });
     }
-    console.log("Scanning:", dir);
   }
 
   return results;

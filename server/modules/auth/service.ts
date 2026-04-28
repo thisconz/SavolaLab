@@ -287,7 +287,7 @@ export const AuthService = {
     return (first + last).toUpperCase();
   },
 
-  verifyEmployee: async (employeeNumber: string, nationalId: string, dob: string) => {
+  verifyEmployee: async (employeeNumber: string, nationalId: string, dob: string, ip = "unknown") => {
     const records = await dbOrm.select().from(employees).where(and(eq(employees.employee_number, employeeNumber), eq(employees.national_id, nationalId), eq(employees.dob, dob)));
     const employee = records[0];
 
@@ -296,7 +296,7 @@ export const AuthService = {
         employeeNumber,
         "VERIFICATION_FAILED",
         "Invalid identity credentials",
-        "127.0.0.1",
+        ip,
       );
       return null;
     }
@@ -317,13 +317,13 @@ export const AuthService = {
     return { employee_number: employeeNumber };
   },
 
-  confirmOtp: async (employeeNumber: string, code: string): Promise<boolean> => {
+  confirmOtp: async (employeeNumber: string, code: string, ip = "unknown"): Promise<boolean> => {
     const valid = await verifyOtp(employeeNumber, code);
     await AuditService.createLog(
       employeeNumber,
       "OTP_CONFIRMATION",
       valid ? "OTP confirmed successfully" : "OTP failed or expired",
-      "127.0.0.1",
+      ip,
     );
     return valid;
   },
@@ -364,6 +364,7 @@ export const AuthService = {
     employeeNumber: string,
     password?: string,
     pin?: string,
+    ip = "unknown"
   ): Promise<{ token: string; refreshToken: string; user: UserPayload } | null> => {
     try {
       const rows = await dbOrm
@@ -411,7 +412,7 @@ export const AuthService = {
             employeeNumber,
             "ACCOUNT_LOCKED",
             "Locked after 5 failed attempts",
-            "127.0.0.1",
+            ip
           );
           throw new Error("Account locked for 30 minutes after 5 failed attempts.");
         }
@@ -421,7 +422,7 @@ export const AuthService = {
           employeeNumber,
           "LOGIN_FAILED",
           "Incorrect credentials",
-          "127.0.0.1",
+          ip
         );
         return null;
       }
@@ -546,6 +547,11 @@ export const AuthService = {
       .set({ revoked_at: new Date() })
       .where(eq(refreshTokens.token_hash, tokenHash));
   },
+
+  getPublicUsers: async (): Promise<Pick<UserPayload, 'id' | 'name' | 'initials' | 'role'>[]> => {
+    const users = await AuthService.getUsers();
+    return users.map(({ id, name, initials, role }) => ({ id, name, initials, role }));
+  }
 };
 
 // ─────────────────────────────────────────────

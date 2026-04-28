@@ -33,14 +33,22 @@ export const NotificationService = {
 
         const message = `Test ${test.test_type} for Batch ${test.batch_id} is overdue.`;
 
-        await client.execute(
-          `INSERT INTO notifications (employee_number, type, message)
-           VALUES ($1, 'OVERDUE_TEST', $2)
-           ON CONFLICT (employee_number, type, DATE_TRUNC('hour', CURRENT_TIMESTAMP))
-           WHERE type = 'OVERDUE_TEST'
-           DO NOTHING`,
-          [recipientId, message],
+        const alreadyNotified = await client.queryOne<{ id: number }>(
+          `SELECT id FROM notifications
+          WHERE employee_number = $1
+            AND type = 'OVERDUE_TEST'
+            AND created_at >= DATE_TRUNC('hour', CURRENT_TIMESTAMP)
+          LIMIT 1`,
+          [recipientId],
         );
+
+        if (!alreadyNotified) {
+          await client.execute(
+            `INSERT INTO notifications (employee_number, type, message)
+             VALUES ($1, 'OVERDUE_TEST', $2)`,
+            [recipientId, message],
+          );
+        }
 
         // Push SSE to the technician so their bell updates instantly
         sseBus.sendTo(recipientId, "NOTIFICATION_PUSHED", {

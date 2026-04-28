@@ -75,7 +75,6 @@ function jitteredDelay(attempt: number): number {
 
 export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
   const { onConnect, onReconnect, onGiveUp, maxRetries = 8, autoConnect = true } = options;
-
   const isAuthenticated = useAuthStore((s) => !!s.currentUser);
 
   const [status, setStatus] = useState<SSEStatus>("disconnected");
@@ -99,12 +98,21 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     });
   }, []);
 
+  const cleanupInternal = useCallback(() => {
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+    if (esRef.current) {
+      esRef.current.close();
+      esRef.current = null;
+    }
+  }, []);
+
   const connect = useCallback(() => {
     if (!mountedRef.current || !isAuthenticated) return;
-    if (esRef.current?.readyState === EventSource.OPEN) return;
 
-    // Clean up any stale connection
-    esRef.current?.close();
+    cleanupInternal();
 
     setStatus(retryRef.current > 0 ? "reconnecting" : "connecting");
 
@@ -116,11 +124,14 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
         es.close();
         return;
       }
+      console.log("[SSE] Connected successfully");
       setStatus("connected");
       retryRef.current = 0;
     };
 
     ALL_EVENTS.forEach((type) => {
+      const eventName = type === "connected" ? "CONNECTED" : type;
+
       es.addEventListener(type, (e: MessageEvent) => {
         if (!mountedRef.current) return;
         let parsed: any;
@@ -129,23 +140,30 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
         } catch {
           parsed = e.data;
         }
-        if (type === "connected" && parsed?.connectionId) onConnect?.(parsed);
+
+        if (eventName === "CONNECTED" && parsed?.userId) {
+          onConnect?.(parsed);
+        }
+        
         emit(type, parsed);
       });
     });
 
-    es.onerror = () => {
+    es.onerror = (err) => {
       if (!mountedRef.current) return;
-      es.close();
-      esRef.current = null;
+
+      cleanupInternal();
       setStatus("disconnected");
 
       if (retryRef.current >= maxRetries) {
+        console.error("[SSE] Max retries reached.");
         onGiveUp?.();
         return;
       }
 
       const delay = jitteredDelay(retryRef.current);
+      console.warn(`[SSE] Error. Retrying in ${delay}ms (Attempt ${retryRef.current + 1})`);
+
       retryRef.current++;
       onReconnect?.(retryRef.current);
 
@@ -153,7 +171,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
         if (mountedRef.current) connect();
       }, delay);
     };
-  }, [isAuthenticated, emit, onConnect, onReconnect, onGiveUp, maxRetries]);
+  }, [isAuthenticated, maxRetries, onConnect, onReconnect, onGiveUp, cleanupInternal, emit]);
 
   // ── Connect on mount / auth change ───────────────────────────────────────
 

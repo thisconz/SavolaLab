@@ -64,16 +64,33 @@ export class TTLCache {
   }
 
   get size(): number {
+  return this.store.size;
+}
+
+  get LiveSize(): number {
     this.sweep();
     return this.store.size;
   }
 
+  private readonly inflight = new Map<string, Promise<any>>();
+
   async getOrSet<T>(key: string, fn: () => Promise<T>, ttlMs: number): Promise<T> {
     const cached = this.get<T>(key);
     if (cached !== undefined) return cached;
-    const value = await fn();
-    this.set(key, value, ttlMs);
-    return value;
+
+    const existing = this.inflight.get(key);
+    if (existing) return existing as Promise<T>;
+    const promise = fn().then((value) => {
+      this.set(key, value, ttlMs);
+      this.inflight.delete(key);
+      return value;
+    }).catch((err) => {
+      this.inflight.delete(key);
+      throw err;
+    });
+
+    this.inflight.set(key, promise);
+    return promise;
   }
 
   private sweep(): void {
@@ -86,6 +103,7 @@ export class TTLCache {
   destroy(): void {
     clearInterval(this.cleanupInterval);
     this.store.clear();
+    this.inflight.clear();
   }
 }
 

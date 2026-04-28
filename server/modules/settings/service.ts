@@ -175,7 +175,7 @@ export const SettingsService = {
     if (table === "system_preferences") {
       await createNotification(
         "ADMIN",
-        "SAMPLE_COMPLETED",
+        "SETTINGS_CHANGED",
         `Preference ${fields.join(", ")} created`
       );
     }

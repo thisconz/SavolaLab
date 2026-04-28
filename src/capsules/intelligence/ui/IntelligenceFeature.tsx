@@ -16,7 +16,6 @@ import { AlertCard } from "../../../shared/components/AlertCard";
 import { api } from "../../../core/http/client";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import clsx from "@/src/lib/clsx";
-import { da } from "zod/v4/locales";
 
 interface PlantData {
   metrics: { oee: string; yield: string; energy: number; activeAlarms: number };

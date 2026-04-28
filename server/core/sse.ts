@@ -81,6 +81,7 @@ interface SSEClient {
 
 class SSEBus {
   private clients = new Map<string, SSEClient>();
+  private debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   /**
    * Register a new SSE client connection.
@@ -165,6 +166,12 @@ class SSEBus {
       if (c.employeeNumber === employeeNumber) count++;
     }
     return count;
+  }
+
+  publishDebounced(event: ZentharEvent, windowMs = 250): void {
+    const key = `${event.type}:${event.target ?? 'all'}`;
+    clearTimeout(this.debounceTimers.get(key));
+    this.debounceTimers.set(key, setTimeout(() => this.publish(event), windowMs));
   }
 }
 

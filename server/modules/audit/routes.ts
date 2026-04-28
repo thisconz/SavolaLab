@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, Context } from "hono";
 import type { Variables } from "../../core/types";
 import { AuditFilters, AuditService } from "./service";
 import { authenticateToken, requireRoles } from "../../core/middleware";
@@ -14,20 +14,30 @@ const TRUSTED_PROXIES = new Set(
 /**
  * Extract safe IP (proxy-aware)
  */
-function getClientIp(c: any): string {
-  const remoteAddr =
-    c.req.header("x-real-ip") ??    // set by nginx
-    "127.0.0.1";
+function getClientIp(c: Context): string {
+  let socketIp = "unknown";
 
-    if (TRUSTED_PROXIES.has(remoteAddr)) {
-      const forwarded = c.req.header("x-forwarded-for");
-      if (typeof forwarded === "string") {
-        // Take the leftmost (client) address
-        return forwarded.split(",")[0].trim();
-      }
-    }
+  const raw = c.req.raw as any;
 
-    return remoteAddr;
+  // Node.js / Bun (if available)
+  if (raw && raw.socket && typeof raw.socket.remoteAddress === "string") {
+    socketIp = raw.socket.remoteAddress;
+  }
+
+  // Edge runtimes (Cloudflare, etc.)
+  else if (c.env && typeof (c.env as any).remoteAddress === "string") {
+    socketIp = (c.env as any).remoteAddress;
+  }
+
+  if (TRUSTED_PROXIES.has(socketIp)) {
+    const forwarded = c.req.header("x-forwarded-for");
+    if (forwarded) return forwarded.split(",")[0].trim();
+
+    const realIp = c.req.header("x-real-ip");
+    if (realIp) return realIp;
+  }
+
+  return socketIp;
 }
 
 /**
@@ -78,7 +88,7 @@ app.post("/", authenticateToken, async (c) => {
 
     // Fire-and-forget pattern (audit should not block request)
     try {
-      await AuditService.createLog(
+      void AuditService.createLog(
         user.employee_number,
         parsedBody.action,
         detailsStr,

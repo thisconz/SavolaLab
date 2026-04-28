@@ -65,7 +65,7 @@ const COOKIE_OPTS_BASE = {
 
 // ── Routes ─────────────────────────────────────────────────────────────────
 
-app.get("/users", async (c) => {
+app.get("/users", authenticateToken, async (c) => {
   const requestId = c.get("requestId");
   try {
     const users = await AuthService.getUsers();
@@ -85,6 +85,7 @@ app.post("/verify-employee", async (c) => {
       parsed.employee_number,
       parsed.national_id,
       parsed.dob,
+      getClient(c)
     );
     if (!result)
       return c.json({
@@ -103,7 +104,7 @@ app.post("/confirm-otp", async (c) => {
   try {
     const body = await c.req.json();
     const parsed = ConfirmOtpSchema.parse(body);
-    const valid = await AuthService.confirmOtp(parsed.employee_number, parsed.code);
+    const valid = await AuthService.confirmOtp(parsed.employee_number, parsed.code, getClient(c));
     if (!valid) return c.json({ success: false, error: "Invalid or expired OTP" });
     return c.json({ success: true, message: "Identity confirmed" });
   } catch (err) {
@@ -130,7 +131,7 @@ app.post("/login", async (c) => {
   try {
     const body = await c.req.json();
     const parsed = LoginSchema.parse(body);
-    const result = await AuthService.login(parsed.employee_number, parsed.password, parsed.pin);
+    const result = await AuthService.login(parsed.employee_number, parsed.password, parsed.pin, getClient(c));
 
     if (!result) return c.json({ success: false, error: "Invalid credentials" }, 401);
 
@@ -167,7 +168,9 @@ app.post("/refresh", authRateLimit, async (c) => {
   const refresh = getCookie(c, "refresh_token");
   if (!refresh) return c.json({ success: false, error: "No refresh token" }, 401);
 
-  const result = await AuthService.refreshAccess(refresh);
+  const result = await AuthService.refreshAccess(
+    refresh,
+  );
   if (!result) return c.json({ success: false, error: "Invalid or expired refresh token" }, 401);
 
   const isProd = process.env.NODE_ENV === "production";
@@ -221,6 +224,15 @@ app.post("/logout", async (c) => {
   deleteCookie(c, "token", { ...COOKIE_OPTS_BASE, secure: isProd });
   deleteCookie(c, "refresh_token", { ...COOKIE_OPTS_BASE, secure: isProd });
   return c.json({ success: true });
+});
+
+app.get("/users/public", async (c) => {
+  try {
+    const users = await AuthService.getPublicUsers();
+    return c.json({ success: true, data: users });
+  } catch (err) {
+    return c.json({ success: false, error: toMsg(err) }, 400);
+  }
 });
 
 export default app;
