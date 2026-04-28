@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { Variables } from "../../core/types";
 import { TestService } from "./service";
-import { authenticateToken } from "../../core/middleware";
+import { authenticateToken, handleRouteError } from "../../core/middleware";
 import {
   CreateTestRequestSchema,
   UpdateTestRequestSchema,
@@ -19,7 +19,7 @@ app.get("/", authenticateToken, async (c) => {
     return c.json({ success: true, data: tests });
   } catch (err: any) {
     logger.error({ reqId, err }, "Error fetching tests");
-    return c.json({ success: false, error: err.message }, 500);
+    return handleRouteError(err, c, "TestService.getTests");
   }
 });
 
@@ -104,7 +104,7 @@ app.delete("/:id", authenticateToken, async (c) => {
     );
   } catch (err: any) {
     logger.error({ reqId, err }, "Error logging deletion attempt");
-    return c.json({ success: false, error: err.message }, 500);
+    return handleRouteError(err, c, "TestService.logDeletionAttempt");
   }
 });
 

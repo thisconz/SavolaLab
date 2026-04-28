@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { AnalyticsService } from "./service";
-import { authenticateToken } from "../../core/middleware";
+import { authenticateToken, handleRouteError } from "../../core/middleware";
 import { logger } from "../../core/logger";
 import type { Variables } from "../../core/types";
 
@@ -14,7 +14,7 @@ function wrap<T>(fn: () => Promise<T>) {
       return c.json({ success: true, data });
     } catch (err: any) {
       logger.error({ reqId, err }, "Analytics route error");
-      return c.json({ success: false, error: err.message }, 500);
+      return handleRouteError(err, c, "AnalyticsRoutes.wrap");
     }
   };
 }

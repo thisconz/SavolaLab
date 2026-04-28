@@ -1,5 +1,6 @@
 import { createNotification } from "../../core/db/events";
 import { db } from "../../core/database";
+import { domainBus } from "../../core/events/domain-bus";
 import { StatRepository } from "./repository";
 import { sseBus } from "../../core/sse";
 import { analyticsCache } from "../../core/cache";
@@ -31,11 +32,13 @@ export const StatService = {
     }
 
     // Broadcast to all — critical stats shown as toast in the frontend
-    sseBus.broadcast("STAT_CREATED", {
-      id: statId,
-      department: data.department,
-      urgency: data.urgency ?? "NORMAL",
-    });
+    domainBus.publish({ 
+      type: "STAT_CREATED", 
+      payload: {
+        id: statId,
+        department: data.department,
+        urgency: data.urgency ?? "NORMAL",
+      }});
 
     // Invalidate sample-count analytics cache (STAT changes active queue view)
     analyticsCache.invalidate("analytics:samples:status");
@@ -63,11 +66,13 @@ export const StatService = {
       );
     }
 
-    sseBus.broadcast("STAT_UPDATED", {
-      id: statId,
-      status,
-      updated_by: employeeNumber ?? "SYSTEM",
-    });
+    domainBus.publish({ 
+      type: "STAT_UPDATED", 
+      payload: {
+        id: statId,
+        status,
+        updated_by: employeeNumber ?? "SYSTEM",
+    }});
 
     return true;
   },

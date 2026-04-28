@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { Variables } from "../../core/types";
 import { DispatchService } from "./service";
-import { authenticateToken } from "../../core/middleware";
+import { authenticateToken, handleRouteError } from "../../core/middleware";
 import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
@@ -13,7 +13,7 @@ app.get("/", authenticateToken, async (c) => {
     return c.json({ success: true, data });
   } catch (err: any) {
     logger.error({ reqId, err }, "Error fetching dispatch data");
-    return c.json({ success: false, error: err.message }, 500);
+    return handleRouteError(err, c, "DispatchService.getDispatchData");
   }
 });
 

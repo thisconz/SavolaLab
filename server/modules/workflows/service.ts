@@ -1,4 +1,5 @@
 import { db } from "../../core/database";
+import { domainBus } from "../../core/events/domain-bus";
 import { sseBus } from "../../core/sse";
 
 export type WorkflowStepInput = {
@@ -123,14 +124,16 @@ export const WorkflowService = {
         rowParams,
       );
 
-      sseBus.broadcast("WORKFLOW_STARTED", {
-        execution_id: executionId,
-        workflow_id: workflowId,
-        workflow_name: (workflow as any).name,
-        sample_id: sampleId,
-        batch_id: (sample as any).batch_id,
-        steps: stepRows.length,
-      });
+      domainBus.publish({ 
+        type: "WORKFLOW_STARTED", 
+        payload: {
+          execution_id: executionId,
+          workflow_id: workflowId,
+          workflow_name: (workflow as any).name,
+          sample_id: sampleId,
+          batch_id: (sample as any).batch_id,
+          steps: stepRows.length,
+      }});
 
       return executionId;
     });
@@ -194,9 +197,11 @@ export const WorkflowService = {
           [executionId],
         );
 
-        sseBus.broadcast("WORKFLOW_COMPLETED", {
-          execution_id: executionId,
-        });
+        domainBus.publish({ 
+          type: "WORKFLOW_COMPLETED",
+          payload: {
+            execution_id: executionId,
+        }});
       }
 
       return true;

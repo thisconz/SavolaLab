@@ -1,5 +1,6 @@
 import { db } from "../../core/database";
 import { TestRepository } from "./repository";
+import { domainBus } from "../../core/events/domain-bus";
 import { sseBus } from "../../core/sse";
 
 const updateWorkflowStep = async (
@@ -50,10 +51,12 @@ const updateWorkflowStep = async (
         [exec.id],
       );
       // Emit workflow completion
-      sseBus.broadcast("WORKFLOW_COMPLETED", {
-        execution_id: exec.id,
-        sample_id: sampleId,
-      });
+      domainBus.publish({ 
+        type: "WORKFLOW_COMPLETED", 
+        payload: {
+          execution_id: exec.id,
+          sample_id: sampleId,
+      }});
     }
   } catch (err: any) {
     if (err.message === "Database not connected") return;
@@ -119,14 +122,16 @@ export const TestService = {
         );
 
         // Emit SSE — broadcast to all so dashboard/queue can update
-        sseBus.broadcast("TEST_SUBMITTED", {
-          id: testId,
-          sample_id: sampleId,
-          test_type,
-          raw_value: raw_value ?? null,
-          status: status ?? "PENDING",
-          performer_id: performerId,
-        });
+        domainBus.publish({ 
+          type: "TEST_SUBMITTED", 
+          payload: {
+            id: testId,
+            sample_id: sampleId,
+            test_type,
+            raw_value: raw_value ?? null,
+            status: status ?? "PENDING",
+            performer_id: performerId,
+        }});
 
         return testId;
       });
@@ -167,13 +172,15 @@ export const TestService = {
           [performerId, `Updated test ${numId} (sample: ${test.sample_id})`, ip],
         );
 
-        sseBus.broadcast("TEST_UPDATED", {
-          id: numId,
-          sample_id: test.sample_id,
-          test_type: test.test_type,
-          status: data.status ?? test.status,
-          updated_by: performerId,
-        });
+        domainBus.publish({ 
+          type: "TEST_UPDATED",
+          payload: {
+            id: numId,
+            sample_id: test.sample_id,
+            test_type: test.test_type,
+            status: data.status ?? test.status,
+            updated_by: performerId,
+        }});
 
         return true;
       });
@@ -230,13 +237,15 @@ export const TestService = {
     }
 
     // Also broadcast to all so queues update
-    sseBus.broadcast("TEST_REVIEWED", {
-      id: numId,
-      sample_id: test.sample_id,
-      test_type: test.test_type,
-      status: data.status,
-      reviewed_by: reviewerId,
-    });
+    domainBus.publish({ 
+      type: "TEST_REVIEWED", 
+      payload: {
+        id: numId,
+        sample_id: test.sample_id,
+        test_type: test.test_type,
+        status: data.status,
+        reviewed_by: reviewerId,
+    }});
 
     return true;
   },

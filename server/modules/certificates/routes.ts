@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { Variables } from "../../core/types";
-import { authenticateToken, requireRoles } from "../../core/middleware";
+import { authenticateToken, handleRouteError, requireRoles } from "../../core/middleware";
 import { db } from "../../core/database";
 import { logger } from "../../core/logger";
 
@@ -22,7 +22,7 @@ app.get("/", authenticateToken, async (c) => {
     return c.json({ success: true, data: rows });
   } catch (err: any) {
     logger.error({ err }, "Failed to list certificates");
-    return c.json({ success: false, error: err.message }, 500);
+    return handleRouteError(err, c, "CertificatesRoutes.list");
   }
 });
 
@@ -79,7 +79,7 @@ app.get("/:id", authenticateToken, async (c) => {
     return c.json({ success: true, data: { ...cert, samples, tests } });
   } catch (err: any) {
     logger.error({ err, id }, "Failed to fetch certificate");
-    return c.json({ success: false, error: err.message }, 500);
+    return handleRouteError(err, c, "CertificatesRoutes.get:id");
   }
 });
 
@@ -146,7 +146,7 @@ app.get("/:id/pdf", authenticateToken, async (c) => {
     return c.body(htmlContent);
   } catch (err: any) {
     logger.error({ err, id }, "Failed to generate certificate PDF");
-    return c.json({ success: false, error: err.message }, 500);
+    return handleRouteError(err, c, "CertificatesRoutes.get:id/pdf");
   }
 });
 
@@ -188,7 +188,7 @@ app.put(
       return c.json({ success: true });
     } catch (err: any) {
       logger.error({ err, id }, "Failed to approve certificate");
-      return c.json({ success: false, error: err.message }, 500);
+      return handleRouteError(err, c, "CertificatesRoutes.put:id/approve");
     }
   },
 );
