@@ -63,6 +63,14 @@ const COOKIE_OPTS_BASE = {
   path: "/",
 };
 
+function extractClientIp(c: any): string {
+  const forwarded = c.req.header("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  const realIp = c.req.header("x-real-ip");
+  if (realIp) return realIp;
+  return "unknown";
+}
+
 // ── Routes ─────────────────────────────────────────────────────────────────
 
 app.get("/users", authenticateToken, async (c) => {
@@ -85,7 +93,7 @@ app.post("/verify-employee", async (c) => {
       parsed.employee_number,
       parsed.national_id,
       parsed.dob,
-      getClient(c)
+      extractClientIp(c),
     );
     if (!result)
       return c.json({
@@ -104,7 +112,11 @@ app.post("/confirm-otp", async (c) => {
   try {
     const body = await c.req.json();
     const parsed = ConfirmOtpSchema.parse(body);
-    const valid = await AuthService.confirmOtp(parsed.employee_number, parsed.code, getClient(c));
+    const valid = await AuthService.confirmOtp(
+      parsed.employee_number,
+      parsed.code,
+      extractClientIp(c),
+    );
     if (!valid) return c.json({ success: false, error: "Invalid or expired OTP" });
     return c.json({ success: true, message: "Identity confirmed" });
   } catch (err) {
@@ -131,7 +143,12 @@ app.post("/login", async (c) => {
   try {
     const body = await c.req.json();
     const parsed = LoginSchema.parse(body);
-    const result = await AuthService.login(parsed.employee_number, parsed.password, parsed.pin, getClient(c));
+    const result = await AuthService.login(
+      parsed.employee_number,
+      parsed.password,
+      parsed.pin,
+      extractClientIp(c),
+    );
 
     if (!result) return c.json({ success: false, error: "Invalid credentials" }, 401);
 
@@ -168,9 +185,7 @@ app.post("/refresh", authRateLimit, async (c) => {
   const refresh = getCookie(c, "refresh_token");
   if (!refresh) return c.json({ success: false, error: "No refresh token" }, 401);
 
-  const result = await AuthService.refreshAccess(
-    refresh,
-  );
+  const result = await AuthService.refreshAccess(refresh);
   if (!result) return c.json({ success: false, error: "Invalid or expired refresh token" }, 401);
 
   const isProd = process.env.NODE_ENV === "production";
@@ -183,18 +198,24 @@ app.post("/refresh", authRateLimit, async (c) => {
   return c.json({ success: true, token: result.token });
 });
 
-app.post("/reset-credentials/:id", authenticateToken, requireRoles("ADMIN", "HEAD_MANAGER"), async (c) => {
-  const requestId = c.get("requestId");
-  try {
-    const employeeNumber = c.req.param("id");
-    if (!employeeNumber) return c.json({ success: false, error: "Employee number is required" }, 400);
-    await AuthService.resetCredentials(employeeNumber);
-    return c.json({ success: true, message: "Credentials reset. Temp PIN: 0000" });
-  } catch (err) {
-    logger.error({ err, requestId }, "reset-credentials failed");
-    return c.json({ success: false, error: toMsg(err) }, 400);
-  }
-});
+app.post(
+  "/reset-credentials/:id",
+  authenticateToken,
+  requireRoles("ADMIN", "HEAD_MANAGER"),
+  async (c) => {
+    const requestId = c.get("requestId");
+    try {
+      const employeeNumber = c.req.param("id");
+      if (!employeeNumber)
+        return c.json({ success: false, error: "Employee number is required" }, 400);
+      await AuthService.resetCredentials(employeeNumber);
+      return c.json({ success: true, message: "Credentials reset. Temp PIN: 0000" });
+    } catch (err) {
+      logger.error({ err, requestId }, "reset-credentials failed");
+      return c.json({ success: false, error: toMsg(err) }, 400);
+    }
+  },
+);
 
 app.get("/me", authenticateToken, async (c) => {
   const requestId = c.get("requestId");
@@ -220,7 +241,7 @@ app.post("/logout", async (c) => {
       // Non-fatal — cookie deletion still proceeds
     }
   }
-  
+
   deleteCookie(c, "token", { ...COOKIE_OPTS_BASE, secure: isProd });
   deleteCookie(c, "refresh_token", { ...COOKIE_OPTS_BASE, secure: isProd });
   return c.json({ success: true });

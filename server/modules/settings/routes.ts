@@ -56,7 +56,7 @@ app.post("/:table", authenticateToken, async (c) => {
       user.employee_number,
       "SETTINGS_UPDATED",
       `Inserted record into ${table} (ID/Key: ${result.id})`,
-      c.get("clientIp") as string
+      c.get("clientIp") as string,
     );
 
     return c.json({ success: true, data: result }, 201);
@@ -83,7 +83,7 @@ app.put("/:table/:id", authenticateToken, async (c) => {
       user.employee_number,
       "SETTINGS_UPDATED",
       `Updated record ${id} in ${table}`,
-      c.get("clientIp") as string
+      c.get("clientIp") as string,
     );
 
     return c.json({ success: true, data: result });
@@ -106,7 +106,7 @@ app.delete("/:table/:id", authenticateToken, requireRoles("ADMIN", "HEAD_MANAGER
   if (!id || id.trim().length === 0) {
     return c.json({ success: false, error: "Invalid ID parameter" }, 400);
   }
-  
+
   const pkCol = table === "system_preferences" ? "key" : "id";
   if (pkCol === "id" && !/^\d+$/.test(id)) {
     return c.json({ success: false, error: "ID must be a positive integer" }, 400);
@@ -119,13 +119,10 @@ app.delete("/:table/:id", authenticateToken, requireRoles("ADMIN", "HEAD_MANAGER
       user.employee_number,
       "SETTINGS_UPDATED",
       `Deleted record ${id} from ${table}`,
-      c.get("clientIp") as string
+      c.get("clientIp") as string,
     );
 
-    logger.info(
-      { table, id, user: user.employee_number },
-      "Record deleted via settings API",
-    );
+    logger.info({ table, id, user: user.employee_number }, "Record deleted via settings API");
     return c.json({ success: true });
   } catch (err: any) {
     logger.error({ reqId, err, table, id });

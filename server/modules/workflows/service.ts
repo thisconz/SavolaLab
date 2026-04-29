@@ -124,8 +124,8 @@ export const WorkflowService = {
         rowParams,
       );
 
-      domainBus.publish({ 
-        type: "WORKFLOW_STARTED", 
+      domainBus.publish({
+        type: "WORKFLOW_STARTED",
         payload: {
           execution_id: executionId,
           workflow_id: workflowId,
@@ -133,7 +133,8 @@ export const WorkflowService = {
           sample_id: sampleId,
           batch_id: (sample as any).batch_id,
           steps: stepRows.length,
-      }});
+        },
+      });
 
       return executionId;
     });
@@ -197,11 +198,12 @@ export const WorkflowService = {
           [executionId],
         );
 
-        domainBus.publish({ 
+        domainBus.publish({
           type: "WORKFLOW_COMPLETED",
           payload: {
             execution_id: executionId,
-        }});
+          },
+        });
       }
 
       return true;

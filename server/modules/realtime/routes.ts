@@ -15,7 +15,7 @@ app.get("/stream", sseRateLimit, authenticateToken, async (c) => {
   const userId = user.employee_number;
 
   // Set Nginx/Proxy headers manually if not handled by middleware
-  c.header("X-Accel-Buffering", "no"); 
+  c.header("X-Accel-Buffering", "no");
 
   logger.info({ userId }, "SSE client connection attempt");
 
@@ -80,7 +80,7 @@ app.get("/stream", sseRateLimit, authenticateToken, async (c) => {
 // ── Admin broadcast (ADMIN only) ─────────────────────────────────────────────
 app.post("/broadcast", authenticateToken, async (c) => {
   const user = c.get("user");
-  
+
   if (!["ADMIN", "HEAD_MANAGER"].includes(user.role)) {
     return c.json({ success: false, error: "Forbidden" }, 403);
   }

@@ -171,28 +171,28 @@ export const StatFeature: React.FC = memo(() => {
       {/* Metrics */}
       <div className="grid grid-cols-3 gap-4 shrink-0 mb-6">
         <MetricCard
-            label="Active STATs"
-            value={active}
-            trend="Awaiting QC"
-            icon={Activity}
-            variant="primary"
-          />
+          label="Active STATs"
+          value={active}
+          trend="Awaiting QC"
+          icon={Activity}
+          variant="primary"
+        />
 
-          <MetricCard
-            label="Critical"
-            value={critical}
-            trend="Awaiting QC"
-            icon={AlertCircle}
-            variant="error"
-          />
+        <MetricCard
+          label="Critical"
+          value={critical}
+          trend="Awaiting QC"
+          icon={AlertCircle}
+          variant="error"
+        />
 
-          <MetricCard
-            label="Avg Response"
-            value={"12 min"}
-            trend="Awaiting QC"
-            icon={Clock}
-            variant="success"
-          />
+        <MetricCard
+          label="Avg Response"
+          value={"12 min"}
+          trend="Awaiting QC"
+          icon={Clock}
+          variant="success"
+        />
       </div>
 
       <div className="flex-1 grid grid-cols-12 gap-6 min-h-0">

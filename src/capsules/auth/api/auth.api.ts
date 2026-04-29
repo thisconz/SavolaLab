@@ -15,7 +15,10 @@ export const AuthApi = {
   },
 
   resetCredentials: async (id: string) => {
-    return api.post<{ success: boolean; message: string }>(`/v1/directory/reset-credentials/${id}`, {});
+    return api.post<{ success: boolean; message: string }>(
+      `/v1/directory/reset-credentials/${id}`,
+      {},
+    );
   },
 
   login: async (payload: { employee_number: string | number; pin?: string; password?: string }) => {

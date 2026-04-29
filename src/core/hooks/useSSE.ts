@@ -144,7 +144,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
         if (eventName === "CONNECTED" && parsed?.userId) {
           onConnect?.(parsed);
         }
-        
+
         emit(type, parsed);
       });
     });

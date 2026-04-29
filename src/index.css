@@ -9,25 +9,25 @@
   /* --- Brand Palette (Technical Obsidian + Rose/Cyan accents) --- */
   --color-brand-primary: #f43f5e; /* Rose 500 */
   --brand-primary-rgb: 244, 63, 94;
-  --color-brand-accent: #fb7185;  /* Rose 400 */
-  --color-brand-sage: #b4afd4;    /* Muted lavender — readable on dark */
-  
+  --color-brand-accent: #fb7185; /* Rose 400 */
+  --color-brand-sage: #b4afd4; /* Muted lavender — readable on dark */
+
   /* Instrumental / Status Accents */
-  --color-lab-laser: #22d3ee;     /* Cyan 400 — high-tech highlight */
-  --color-lab-toxic: #4ade80;     /* Green 400 — success/normal */
-  --color-lab-plasma: #a855f7;    /* Purple 500 — alternative status */
-  --color-lab-warning: #fbbf24;   /* Amber 400 */
+  --color-lab-laser: #22d3ee; /* Cyan 400 — high-tech highlight */
+  --color-lab-toxic: #4ade80; /* Green 400 — success/normal */
+  --color-lab-plasma: #a855f7; /* Purple 500 — alternative status */
+  --color-lab-warning: #fbbf24; /* Amber 400 */
 
   /* --- Surface Scale (Deep Laboratory Obsidian) --- */
-  --color-zenthar-void: #030310;     /* Absolute page background */
-  --color-zenthar-carbon: #070718;   /* Component background */
+  --color-zenthar-void: #030310; /* Absolute page background */
+  --color-zenthar-carbon: #070718; /* Component background */
   --color-zenthar-graphite: #0c0c22; /* Elevated surface / hover */
   --color-zenthar-steel: rgba(148, 163, 184, 0.12); /* Standard border */
 
   /* --- Text Scale --- */
-  --color-zenthar-text-primary: #f8fafc;   /* Slate 50 - headings */
+  --color-zenthar-text-primary: #f8fafc; /* Slate 50 - headings */
   --color-zenthar-text-secondary: #94a3b8; /* Slate 400 - body/labels */
-  --color-zenthar-text-muted: #475569;     /* Slate 600 - placeholders */
+  --color-zenthar-text-muted: #475569; /* Slate 600 - placeholders */
 
   /* --- Safe Area Utilities --- */
   --safe-area-top: env(safe-area-inset-top);
@@ -37,12 +37,21 @@
 
   /* --- Animations --- */
   @keyframes scanline {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100%); }
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(100%);
+    }
   }
   @keyframes aura-pulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.6; }
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.6;
+    }
   }
 }
 
@@ -50,7 +59,7 @@
   body {
     @apply bg-(--color-zenthar-void) text-(--color-zenthar-text-primary) antialiased selection:bg-brand-primary/30;
   }
-  
+
   /* Scrollbar override */
   ::-webkit-scrollbar {
     @apply w-1.5 h-1.5;
@@ -69,9 +78,9 @@
   }
 
   .instrument-grid {
-    background-image: 
-      linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 

@@ -33,14 +33,20 @@ export const TelemetryService = {
 
       // ── DB metrics ─────────────────────────────────────────────────────
       const timeConstraintAudit = hasFilter
-        ? and(gte(auditLogs.created_at, new Date(filter!.startDate!)), lte(auditLogs.created_at, new Date(filter!.endDate ?? new Date())))
+        ? and(
+            gte(auditLogs.created_at, new Date(filter!.startDate!)),
+            lte(auditLogs.created_at, new Date(filter!.endDate ?? new Date())),
+          )
         : gte(auditLogs.created_at, sql`NOW() - interval '24 hours'`);
 
       const timeConstraintTest = hasFilter
-        ? and(gte(tests.updated_at, new Date(filter!.startDate!)), lte(tests.updated_at, new Date(filter!.endDate ?? new Date())))
+        ? and(
+            gte(tests.updated_at, new Date(filter!.startDate!)),
+            lte(tests.updated_at, new Date(filter!.endDate ?? new Date())),
+          )
         : gte(tests.updated_at, sql`NOW() - interval '24 hours'`);
 
-      const activeUsersConstraintAudit = hasFilter 
+      const activeUsersConstraintAudit = hasFilter
         ? timeConstraintAudit
         : gte(auditLogs.created_at, sql`NOW() - interval '1 hour'`);
 
@@ -57,13 +63,40 @@ export const TelemetryService = {
 
       try {
         const [sr, pt, la, au, tl, el, ct] = await Promise.all([
-          dbOrm.select({ count: sql`COUNT(*)::text` }).from(samples).where(notInArray(samples.status, ['COMPLETED', 'ARCHIVED'])),
-          dbOrm.select({ count: sql`COUNT(*)::text` }).from(tests).where(eq(tests.status, 'PENDING')),
-          dbOrm.select({ created_at: auditLogs.created_at }).from(auditLogs).orderBy(sql`${auditLogs.created_at} DESC`).limit(1),
-          dbOrm.select({ count: sql`COUNT(DISTINCT ${auditLogs.employee_number})::text` }).from(auditLogs).where(activeUsersConstraintAudit as any),
-          dbOrm.select({ count: sql`COUNT(*)::text` }).from(auditLogs).where(timeConstraintAudit as any),
-          dbOrm.select({ count: sql`COUNT(*)::text` }).from(auditLogs).where(and(or(like(auditLogs.action, '%FAILURE%'), like(auditLogs.action, '%ERROR%')) as any, timeConstraintAudit as any)),
-          dbOrm.select({ count: sql`COUNT(*)::text` }).from(tests).where(and(eq(tests.status, 'COMPLETED'), timeConstraintTest as any)),
+          dbOrm
+            .select({ count: sql`COUNT(*)::text` })
+            .from(samples)
+            .where(notInArray(samples.status, ["COMPLETED", "ARCHIVED"])),
+          dbOrm
+            .select({ count: sql`COUNT(*)::text` })
+            .from(tests)
+            .where(eq(tests.status, "PENDING")),
+          dbOrm
+            .select({ created_at: auditLogs.created_at })
+            .from(auditLogs)
+            .orderBy(sql`${auditLogs.created_at} DESC`)
+            .limit(1),
+          dbOrm
+            .select({ count: sql`COUNT(DISTINCT ${auditLogs.employee_number})::text` })
+            .from(auditLogs)
+            .where(activeUsersConstraintAudit as any),
+          dbOrm
+            .select({ count: sql`COUNT(*)::text` })
+            .from(auditLogs)
+            .where(timeConstraintAudit as any),
+          dbOrm
+            .select({ count: sql`COUNT(*)::text` })
+            .from(auditLogs)
+            .where(
+              and(
+                or(like(auditLogs.action, "%FAILURE%"), like(auditLogs.action, "%ERROR%")) as any,
+                timeConstraintAudit as any,
+              ),
+            ),
+          dbOrm
+            .select({ count: sql`COUNT(*)::text` })
+            .from(tests)
+            .where(and(eq(tests.status, "COMPLETED"), timeConstraintTest as any)),
         ]);
 
         dbSync = "ACTIVE";

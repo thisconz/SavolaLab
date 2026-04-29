@@ -40,7 +40,7 @@ export const useAuthFlow = ({ onSuccess, isOpen = true }: UseAuthFlowOptions = {
       setLoading(false);
     }
   }, []);
-  
+
   useEffect(() => {
     if (isOpen) {
       fetchController.current?.abort();

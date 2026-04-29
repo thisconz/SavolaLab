@@ -67,7 +67,8 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
 
     // ── Measure first card height once rendered ───────────────────────────
     useEffect(() => {
-      if (firstCardRef.current) { // stable: only re-measure when filtered length changes
+      if (firstCardRef.current) {
+        // stable: only re-measure when filtered length changes
         const h = firstCardRef.current.getBoundingClientRect().height;
         if (h > 0) setCardHeight(h + 12); // +12 for gap
       }

@@ -1,7 +1,17 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "@/src/lib/motion";
-import { X, LogOut, ChevronRight, Fingerprint, ShieldCheck, Globe, Radio, Zap, RefreshCw } from "lucide-react";
+import {
+  X,
+  LogOut,
+  ChevronRight,
+  Fingerprint,
+  ShieldCheck,
+  Globe,
+  Radio,
+  Zap,
+  RefreshCw,
+} from "lucide-react";
 import { useAuthStore } from "../../../orchestrator/state/auth.store";
 import { useAuthFlow } from "../hooks/useAuthFlow";
 import clsx from "@/src/lib/clsx";
@@ -13,21 +23,21 @@ interface QuickSwitchProps {
 
 export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => {
   const { currentUser, logout } = useAuthStore();
-  const { 
-    users, 
-    selectedUser, 
-    handleUserSelect, 
-    inputValue, 
-    setInputValue, 
-    handleSubmit, 
-    loading, 
+  const {
+    users,
+    selectedUser,
+    handleUserSelect,
+    inputValue,
+    setInputValue,
+    handleSubmit,
+    loading,
     error,
-    resetState 
+    resetState,
   } = useAuthFlow({
     onSuccess: () => {
       onClose();
     },
-    isOpen
+    isOpen,
   });
 
   const isBrowser = typeof window !== "undefined";
@@ -126,10 +136,12 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                           {selectedUser.name}
                         </h3>
                         <p className="text-[10px] text-brand-sage font-bold uppercase tracking-widest opacity-60">
-                          {typeof selectedUser.role === "string" ? selectedUser.role : (selectedUser.role as any)?.name}
+                          {typeof selectedUser.role === "string"
+                            ? selectedUser.role
+                            : (selectedUser.role as any)?.name}
                         </p>
                       </div>
-                      <button 
+                      <button
                         onClick={() => resetState()}
                         className="p-2 text-brand-sage hover:text-brand-primary transition-colors"
                       >
@@ -152,9 +164,9 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                             onChange={(e) => setInputValue(e.target.value)}
                             className={clsx(
                               "w-full bg-(--color-zenthar-graphite)/30 border-2 rounded-2xl py-6 px-4 text-center text-3xl font-mono tracking-[0.8em] focus:outline-none transition-all",
-                              error 
-                                ? "border-brand-primary/50 bg-brand-primary/5 text-brand-primary ring-4 ring-brand-primary/10" 
-                                : "border-brand-sage/10 focus:border-brand-primary focus:bg-(--color-zenthar-graphite) focus:ring-4 focus:ring-brand-primary/10 text-(--color-zenthar-text-primary)"
+                              error
+                                ? "border-brand-primary/50 bg-brand-primary/5 text-brand-primary ring-4 ring-brand-primary/10"
+                                : "border-brand-sage/10 focus:border-brand-primary focus:bg-(--color-zenthar-graphite) focus:ring-4 focus:ring-brand-primary/10 text-(--color-zenthar-text-primary)",
                             )}
                             placeholder="••••"
                           />
@@ -173,10 +185,12 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
                           "w-full py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] transition-all flex items-center justify-center gap-3",
                           inputValue.length < 4 || loading
                             ? "bg-(--color-zenthar-graphite) text-brand-sage opacity-50"
-                            : "bg-brand-primary text-(--color-zenthar-void) shadow-2xl shadow-brand-primary/20 hover:-translate-y-0.5 active:scale-95"
+                            : "bg-brand-primary text-(--color-zenthar-void) shadow-2xl shadow-brand-primary/20 hover:-translate-y-0.5 active:scale-95",
                         )}
                       >
-                        {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : (
+                        {loading ? (
+                          <RefreshCw className="w-5 h-5 animate-spin" />
+                        ) : (
                           <>
                             <Zap className="w-4 h-4" />
                             <span>Confirm Swap</span>

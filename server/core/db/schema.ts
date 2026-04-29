@@ -7,14 +7,7 @@
  * type-safe queries where applicable.
  */
 
-import {
-  pgTable,
-  serial,
-  text,
-  integer,
-  doublePrecision,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, doublePrecision, timestamp } from "drizzle-orm/pg-core";
 
 // ─── Permissions ─────────────────────────────────────────────────────────────
 
@@ -175,12 +168,12 @@ export const systemPreferences = pgTable("system_preferences", {
 // ─── Refresh Tokens ───────────────────────────────────────────────────────────
 
 export const refreshTokens = pgTable("refresh_tokens", {
-  id:               serial("id").primaryKey(),
-  employee_number:  text("employee_number").notNull(),
-  token_hash:       text("token_hash").notNull().unique(),
-  created_at:       timestamp("created_at").defaultNow(),
-  expires_at:       timestamp("expires_at").notNull(),
-  revoked_at:       timestamp("revoked_at"),
-  user_agent:       text("user_agent"),
-  ip_address:       text("ip_address"),
+  id: serial("id").primaryKey(),
+  employee_number: text("employee_number").notNull(),
+  token_hash: text("token_hash").notNull().unique(),
+  created_at: timestamp("created_at").defaultNow(),
+  expires_at: timestamp("expires_at").notNull(),
+  revoked_at: timestamp("revoked_at"),
+  user_agent: text("user_agent"),
+  ip_address: text("ip_address"),
 });

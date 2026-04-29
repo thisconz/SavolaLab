@@ -1,9 +1,14 @@
 import ExcelJS from "exceljs";
 import { ExportType, ExportOptions } from "../../core/types";
 import { dbOrm } from "../../core/db/orm";
-import { 
-  samples, tests, auditLogs, certificates, 
-  instruments, inventory, employees 
+import {
+  samples,
+  tests,
+  auditLogs,
+  certificates,
+  instruments,
+  inventory,
+  employees,
 } from "../../core/db/schema";
 import { logger } from "../../core/logger";
 import { eq, desc, asc } from "drizzle-orm";
@@ -42,7 +47,7 @@ async function fetchRows(opts: ExportOptions): Promise<any[]> {
           performed_at: tests.performed_at,
           performer_name: employees.name, // Will alias correctly when processed
           review_comment: tests.review_comment,
-          notes: tests.notes
+          notes: tests.notes,
         })
         .from(tests)
         .innerJoin(samples, eq(tests.sample_id, samples.id))

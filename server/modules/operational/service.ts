@@ -82,7 +82,7 @@ export const OperationalService = {
           // Dynamically shift status if there are recent alarms
           const hasRecentError = activeAlarms > 2 && hash % 3 === 0;
           const status = hasRecentError ? "Warning" : hash % 7 === 0 ? "Stopped" : "Running";
-          
+
           const uptime =
             status === "Running"
               ? `${(98 + (hash % 2)).toFixed(1)}%`
@@ -99,11 +99,11 @@ export const OperationalService = {
         });
 
         return {
-          metrics: { 
-            oee: `${oeeVal.toFixed(1)}%`, 
-            yield: `${yieldVal.toFixed(1)}%`, 
-            energy: 42.1 + (Math.random() * 2 - 1), 
-            activeAlarms 
+          metrics: {
+            oee: `${oeeVal.toFixed(1)}%`,
+            yield: `${yieldVal.toFixed(1)}%`,
+            energy: 42.1,
+            activeAlarms,
           },
           lines: lineStatuses,
         };

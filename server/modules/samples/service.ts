@@ -80,14 +80,15 @@ export const SampleService = {
 
       // Broadcast status change to all
       domainBus.publish({
-        type: "SAMPLE_STATUS_CHANGED", 
-        payload:{
+        type: "SAMPLE_STATUS_CHANGED",
+        payload: {
           id: sampleId,
           batch_id: oldSample.batch_id,
           old_status: oldSample.status,
           new_status: data.status,
           changed_by: employeeNumber,
-      }});
+        },
+      });
     }
 
     if (data.batch_id && data.batch_id !== oldSample.batch_id)
@@ -104,14 +105,15 @@ export const SampleService = {
         ip,
       );
       // Broadcast general update
-      domainBus.publish({ 
-        type: "SAMPLE_UPDATED", 
+      domainBus.publish({
+        type: "SAMPLE_UPDATED",
         payload: {
           id: sampleId,
           batch_id: oldSample.batch_id,
           changed_by: employeeNumber,
           changes,
-      }});
+        },
+      });
     }
 
     return true;
@@ -135,15 +137,16 @@ export const SampleService = {
       technician_id: technicianId,
     });
 
-    domainBus.publish({ 
-      type: "SAMPLE_CREATED", 
+    domainBus.publish({
+      type: "SAMPLE_CREATED",
       payload: {
         id: newId,
         batch_id: `${existing.batch_id}-R`,
         priority: existing.priority,
         source_stage: existing.source_stage,
         technician_id: technicianId,
-    }});
+      },
+    });
 
     return newId;
   },

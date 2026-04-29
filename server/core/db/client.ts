@@ -18,9 +18,7 @@ export type DbMode = "postgres" | "pglite";
 const connectionString = process.env.DATABASE_URL;
 
 export const DB_MODE: DbMode =
-  process.env.DB_MODE === "pglite" || !connectionString
-    ? "pglite"
-    : "postgres";
+  process.env.DB_MODE === "pglite" || !connectionString ? "pglite" : "postgres";
 
 if (DB_MODE === "pglite") {
   logger.warn("⚠️ Running in PGlite mode");
@@ -53,14 +51,15 @@ class MockPool {
       release: () => {
         if (releaseLock) releaseLock();
       },
-      
 
       beginTransaction: async () => {
         await new Promise<void>((resolve) => {
           const pre = _pgliteTxLock;
-          _pgliteTxLock = new Promise<void>((r) => { releaseLock = r; });
+          _pgliteTxLock = new Promise<void>((r) => {
+            releaseLock = r;
+          });
           pre.then(resolve);
-        })
+        });
         await pglite.query("BEGIN");
       },
 
@@ -69,7 +68,11 @@ class MockPool {
       },
 
       rollbackTransaction: async () => {
-        try { await pglite.exec("ROLLBACK"); } catch { /* ignore */ }
+        try {
+          await pglite.exec("ROLLBACK");
+        } catch {
+          /* ignore */
+        }
       },
     };
   }
@@ -126,14 +129,14 @@ export const db: DatabaseClient = {
 
       if (duration > 50) {
         logger.warn({
-        type: "SLOW_QUERY",
-        duration: `${duration.toFixed(2)}ms`,
-        sql: sql.trim().slice(0, 200), // truncate for log safety
-        paramCount: params.length,
-        rowCount: result.rows.length,
-        requestId,
-      });
-    }
+          type: "SLOW_QUERY",
+          duration: `${duration.toFixed(2)}ms`,
+          sql: sql.trim().slice(0, 200), // truncate for log safety
+          paramCount: params.length,
+          rowCount: result.rows.length,
+          requestId,
+        });
+      }
       return result.rows as T[];
     } catch (err: any) {
       logger.error({
@@ -156,7 +159,7 @@ export const db: DatabaseClient = {
   },
 
   async transaction<T>(fn: (client: TransactionClient) => Promise<T>): Promise<T> {
-    const client = await pool.connect() as any;
+    const client = (await pool.connect()) as any;
 
     try {
       if (client.beginTransaction) {
@@ -192,7 +195,11 @@ export const db: DatabaseClient = {
       if (client.rollbackTransaction) {
         await client.rollbackTransaction();
       } else {
-        try { await client.query("ROLLBACK"); } catch { /* ignore */ }
+        try {
+          await client.query("ROLLBACK");
+        } catch {
+          /* ignore */
+        }
       }
       throw err;
     } finally {
@@ -205,6 +212,4 @@ export const db: DatabaseClient = {
 // Init log
 // ─────────────────────────────────────────────
 
-logger.info(
-  `DB initialized (mode: ${DB_MODE === "pglite" ? "PGlite" : "PostgreSQL"})`,
-);
+logger.info(`DB initialized (mode: ${DB_MODE === "pglite" ? "PGlite" : "PostgreSQL"})`);

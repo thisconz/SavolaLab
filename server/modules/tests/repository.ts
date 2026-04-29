@@ -65,15 +65,16 @@ export const TestRepository = {
   },
 
   create: async (tx: any, data: any): Promise<number> => {
-    const paramsStr = data.params != null
-      ? typeof data.params === "string"
-        ? data.params
-        : JSON.stringify(data.params)
-      : null;
+    const paramsStr =
+      data.params != null
+        ? typeof data.params === "string"
+          ? data.params
+          : JSON.stringify(data.params)
+        : null;
 
     // Use tx (which is assumed to either be a Drizzle transaction, or fallback to raw client)
-    // Actually we will use raw client for 'tx' because the service uses db.transaction which yields raw sql client. 
-    // We will incrementally move transaction to dbOrm when possible. 
+    // Actually we will use raw client for 'tx' because the service uses db.transaction which yields raw sql client.
+    // We will incrementally move transaction to dbOrm when possible.
     // To support `tx` as a raw sql client for now:
     if (tx && tx.query) {
       const rows = (await tx.query(
@@ -99,7 +100,7 @@ export const TestRepository = {
           paramsStr,
         ],
       )) as Array<{ id: number }>;
-  
+
       if (!rows[0]?.id) throw new Error("INSERT tests did not return an id");
       return rows[0].id;
     }
@@ -129,11 +130,12 @@ export const TestRepository = {
   },
 
   update: async (tx: any, id: string | number, data: any): Promise<void> => {
-    const paramsStr = data.params != null
-      ? typeof data.params === "string"
-        ? data.params
-        : JSON.stringify(data.params)
-      : null;
+    const paramsStr =
+      data.params != null
+        ? typeof data.params === "string"
+          ? data.params
+          : JSON.stringify(data.params)
+        : null;
 
     if (tx && tx.query) {
       await tx.query(
@@ -156,7 +158,7 @@ export const TestRepository = {
       );
       return;
     }
-    
+
     await dbOrm
       .update(tests)
       .set({

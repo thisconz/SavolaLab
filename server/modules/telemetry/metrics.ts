@@ -8,7 +8,7 @@ export interface SystemMetrics {
 
   // Database
   db_query_count: number;
-  db_slow_queries: number;        // >100ms
+  db_slow_queries: number; // >100ms
   db_pool_size: number;
   db_pool_idle: number;
 

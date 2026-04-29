@@ -23,10 +23,12 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
 
   // ─── Load tests ──────────────────────────────────────────────────────────
 
-    useEffect(() => {
-     mountedRef.current = true;
-     return () => { mountedRef.current = false; };
-   }, []);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const loadTests = useCallback(async () => {
     setLoading(true);
@@ -82,13 +84,15 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
     } finally {
       setLoading(false);
     }
-    
+
     return () => abortCtrl.abort();
   }, [sample.id, sample.source_stage]);
 
   useEffect(() => {
     let cleanup: (() => void) | void;
-    loadTests().then((c) => { cleanup = c; });
+    loadTests().then((c) => {
+      cleanup = c;
+    });
     return () => {
       if (typeof cleanup === "function") cleanup();
     };

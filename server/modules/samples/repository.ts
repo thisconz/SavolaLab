@@ -33,7 +33,7 @@ export const SampleRepository = {
             WHEN 'NORMAL' THEN 3
             ELSE 4
           END ASC`,
-          desc(samples.created_at)
+          desc(samples.created_at),
         );
       return results;
     } catch (error: any) {
@@ -77,11 +77,7 @@ export const SampleRepository = {
 
   async findById(id: number): Promise<any | null> {
     try {
-      const result = await dbOrm
-        .select()
-        .from(samples)
-        .where(eq(samples.id, id))
-        .limit(1);
+      const result = await dbOrm.select().from(samples).where(eq(samples.id, id)).limit(1);
       return result[0] || null;
     } catch (error: any) {
       if (error.message === "Database not connected") {
@@ -153,8 +149,8 @@ export const SampleRepository = {
           and(
             eq(samples.source_stage, stage),
             eq(tests.test_type, testType),
-            eq(tests.status, "COMPLETED")
-          )
+            eq(tests.status, "COMPLETED"),
+          ),
         )
         .orderBy(desc(tests.performed_at))
         .limit(limit);

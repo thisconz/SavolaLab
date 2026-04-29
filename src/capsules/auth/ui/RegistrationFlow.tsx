@@ -33,13 +33,7 @@ type FieldProps = {
   onChange: (value: string) => void;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">;
 
-const Field: React.FC<FieldProps> = ({
-  label,
-  icon,
-  value,
-  onChange,
-  ...rest
-}) => (
+const Field: React.FC<FieldProps> = ({ label, icon, value, onChange, ...rest }) => (
   <div className="space-y-1.5">
     <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">
       {label}
@@ -164,8 +158,6 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
       setLoading(false);
     }
   };
-
-  
 
   if (isSuccess) {
     return (

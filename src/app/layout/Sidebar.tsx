@@ -150,190 +150,192 @@ const NAV_CONFIG = [
 // Sidebar
 // ─────────────────────────────────────────────
 
-export const Sidebar: React.FC<{ activeTab: AppTab; onTabChange: (tab: AppTab) => void; }> = memo(({ activeTab, onTabChange }) => {
-  const { currentUser, logout } = useAuthStore();
-  const [isSwitchOpen, setSwitch] = useState(false);
+export const Sidebar: React.FC<{ activeTab: AppTab; onTabChange: (tab: AppTab) => void }> = memo(
+  ({ activeTab, onTabChange }) => {
+    const { currentUser, logout } = useAuthStore();
+    const [isSwitchOpen, setSwitch] = useState(false);
 
-  const filteredNav = useMemo(
-    () =>
-      NAV_CONFIG.map((section) => ({
-        ...section,
-        items: section.items.filter(({ tab }) =>
-          currentUser ? isTabAllowed(currentUser.role, tab as AppTab) : tab === "dashboard",
-        ),
-      })).filter((s) => s.items.length > 0),
-    [currentUser],
-  );
+    const filteredNav = useMemo(
+      () =>
+        NAV_CONFIG.map((section) => ({
+          ...section,
+          items: section.items.filter(({ tab }) =>
+            currentUser ? isTabAllowed(currentUser.role, tab as AppTab) : tab === "dashboard",
+          ),
+        })).filter((s) => s.items.length > 0),
+      [currentUser],
+    );
 
-  return (
-    <nav
-      className="w-[272px] h-full flex flex-col bg-(--color-zenthar-carbon)
+    return (
+      <nav
+        className="w-[272px] h-full flex flex-col bg-(--color-zenthar-carbon)
                     border-r border-(--color-zenthar-steel) z-50 relative overflow-hidden"
-    >
-      {/* Subtle background texture */}
-      <div className="absolute inset-0 instrument-grid opacity-100 pointer-events-none" />
-      {/* Top glow */}
-      <div
-        className="absolute -top-20 -left-20 w-64 h-64 bg-brand-primary/5
-                      blur-[80px] rounded-full pointer-events-none"
-      />
-
-      {/* ── Brand mark ── */}
-      <div className="relative z-10 px-8 pt-8 pb-6">
-        <LogoRoot size="md" variant="dark">
-          <LogoIcon animated />
-        </LogoRoot>
-        <div className="mt-3 flex items-center gap-2 overflow-hidden">
-          <div className="h-px flex-1 bg-linear-to-r from-brand-primary/30 to-transparent" />
-          <span className="text-[7px] font-mono text-(--color-zenthar-text-muted) tracking-[0.5em] uppercase shrink-0">
-            {import.meta.env.VITE_ZENTHAR_VERSION ?? "v2"}_sys
-          </span>
-        </div>
-      </div>
-
-      {/* ── Navigation ── */}
-      <div className="flex-1 px-3 overflow-y-auto no-scrollbar space-y-6 pb-4 relative z-10">
-        {filteredNav.map((section, idx) => (
-          <div key={section.section}>
-            <header className="px-4 mb-1.5 flex items-center justify-between opacity-50">
-              <span
-                className="text-[8px] font-black text-(--color-zenthar-text-muted)
-                               uppercase tracking-[0.4em]"
-              >
-                {section.section}
-              </span>
-              <span className="text-[7px] font-mono text-brand-primary/60">
-                [{section.code}-0{idx + 1}]
-              </span>
-            </header>
-            <div className="flex flex-col gap-0.5">
-              {section.items.map(({ icon, tab, label }) => (
-                <NavItem
-                  key={tab}
-                  icon={icon}
-                  active={activeTab === tab}
-                  onClick={() => onTabChange(tab as AppTab)}
-                  label={label}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Footer utility pod ── */}
-      <div className="relative z-10 p-4 space-y-3 border-t border-(--color-zenthar-steel)">
-        {/* Quick links */}
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => onTabChange("settings")}
-            className="flex flex-col items-center justify-center p-3 rounded-2xl
-                       bg-(--color-zenthar-graphite) border border-(--color-zenthar-steel)
-                       hover:bg-brand-primary/10 hover:border-brand-primary/20
-                       transition-all group"
-          >
-            <Settings
-              size={13}
-              className="text-(--color-zenthar-text-muted) group-hover:text-brand-primary
-                                           transition-colors mb-1"
-            />
-            <span
-              className="text-[7px] font-black text-(--color-zenthar-text-muted) group-hover:text-(--color-zenthar-text-primary)
-                             uppercase tracking-widest transition-colors"
-            >
-              Config
-            </span>
-          </button>
-          <button
-            onClick={() => onTabChange("archive")}
-            className="flex flex-col items-center justify-center p-3 rounded-2xl
-                       bg-(--color-zenthar-graphite) border border-(--color-zenthar-steel)
-                       hover:bg-brand-primary/10 hover:border-brand-primary/20
-                       transition-all group"
-          >
-            <Archive
-              size={13}
-              className="text-(--color-zenthar-text-muted) group-hover:text-brand-primary
-                                          transition-colors mb-1"
-            />
-            <span
-              className="text-[7px] font-black text-(--color-zenthar-text-muted) group-hover:text-(--color-zenthar-text-primary)
-                             uppercase tracking-widest transition-colors"
-            >
-              Vault
-            </span>
-          </button>
-        </div>
-
-        {/* User identity module */}
+      >
+        {/* Subtle background texture */}
+        <div className="absolute inset-0 instrument-grid opacity-100 pointer-events-none" />
+        {/* Top glow */}
         <div
-          className="relative p-4 rounded-2xl bg-(--color-zenthar-graphite)/70
-                        border border-(--color-zenthar-steel) overflow-hidden group/user"
-        >
-          {/* Animated scan line */}
-          <div className="absolute top-0 left-0 h-px w-full bg-(--color-zenthar-steel)">
-            <motion.div
-              animate={{ x: ["-100%", "100%"] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              className="h-full w-1/3 bg-brand-primary/40 blur-[1px]"
-            />
-          </div>
+          className="absolute -top-20 -left-20 w-64 h-64 bg-brand-primary/5
+                      blur-[80px] rounded-full pointer-events-none"
+        />
 
-          <div className="flex items-center gap-3">
-            {/* Avatar */}
-            <button
-              onClick={() => setSwitch(true)}
-              className="relative w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20
-                         flex items-center justify-center shrink-0 overflow-hidden group/av"
-            >
-              <Fingerprint
-                size={17}
-                className="text-brand-primary group-hover/av:opacity-0 transition-opacity"
-              />
-              <div
-                className="absolute inset-0 flex items-center justify-center bg-brand-primary
-                              opacity-0 group-hover/av:opacity-100 transition-opacity"
-              >
-                <RefreshCw
-                  size={13}
-                  className="text-white animate-spin"
-                  style={{ animationDuration: "2s" }}
-                />
-              </div>
-            </button>
-
-            {/* User info */}
-            <div className="flex-1 min-w-0">
-              <p
-                className="text-[10px] font-black text-(--color-zenthar-text-primary) truncate
-                            uppercase tracking-wide leading-none mb-1"
-              >
-                {currentUser?.name ?? "GUEST_USER"}
-              </p>
-              <div className="flex items-center gap-1.5 opacity-70">
-                <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                <p className="text-[7px] font-mono text-emerald-400 uppercase tracking-widest">
-                  Secure_Session
-                </p>
-              </div>
-            </div>
-
-            {/* Logout */}
-            <button
-              onClick={logout}
-              aria-label="Log out"
-              className="p-2 text-(--color-zenthar-text-muted) hover:text-red-400
-                         hover:bg-red-400/10 rounded-lg transition-all shrink-0"
-            >
-              <LogOut size={13} />
-            </button>
+        {/* ── Brand mark ── */}
+        <div className="relative z-10 px-8 pt-8 pb-6">
+          <LogoRoot size="md" variant="dark">
+            <LogoIcon animated />
+          </LogoRoot>
+          <div className="mt-3 flex items-center gap-2 overflow-hidden">
+            <div className="h-px flex-1 bg-linear-to-r from-brand-primary/30 to-transparent" />
+            <span className="text-[7px] font-mono text-(--color-zenthar-text-muted) tracking-[0.5em] uppercase shrink-0">
+              {import.meta.env.VITE_ZENTHAR_VERSION ?? "v2"}_sys
+            </span>
           </div>
         </div>
-      </div>
 
-      <QuickSwitch isOpen={isSwitchOpen} onClose={() => setSwitch(false)} />
-    </nav>
-  );
-});
+        {/* ── Navigation ── */}
+        <div className="flex-1 px-3 overflow-y-auto no-scrollbar space-y-6 pb-4 relative z-10">
+          {filteredNav.map((section, idx) => (
+            <div key={section.section}>
+              <header className="px-4 mb-1.5 flex items-center justify-between opacity-50">
+                <span
+                  className="text-[8px] font-black text-(--color-zenthar-text-muted)
+                               uppercase tracking-[0.4em]"
+                >
+                  {section.section}
+                </span>
+                <span className="text-[7px] font-mono text-brand-primary/60">
+                  [{section.code}-0{idx + 1}]
+                </span>
+              </header>
+              <div className="flex flex-col gap-0.5">
+                {section.items.map(({ icon, tab, label }) => (
+                  <NavItem
+                    key={tab}
+                    icon={icon}
+                    active={activeTab === tab}
+                    onClick={() => onTabChange(tab as AppTab)}
+                    label={label}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Footer utility pod ── */}
+        <div className="relative z-10 p-4 space-y-3 border-t border-(--color-zenthar-steel)">
+          {/* Quick links */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => onTabChange("settings")}
+              className="flex flex-col items-center justify-center p-3 rounded-2xl
+                       bg-(--color-zenthar-graphite) border border-(--color-zenthar-steel)
+                       hover:bg-brand-primary/10 hover:border-brand-primary/20
+                       transition-all group"
+            >
+              <Settings
+                size={13}
+                className="text-(--color-zenthar-text-muted) group-hover:text-brand-primary
+                                           transition-colors mb-1"
+              />
+              <span
+                className="text-[7px] font-black text-(--color-zenthar-text-muted) group-hover:text-(--color-zenthar-text-primary)
+                             uppercase tracking-widest transition-colors"
+              >
+                Config
+              </span>
+            </button>
+            <button
+              onClick={() => onTabChange("archive")}
+              className="flex flex-col items-center justify-center p-3 rounded-2xl
+                       bg-(--color-zenthar-graphite) border border-(--color-zenthar-steel)
+                       hover:bg-brand-primary/10 hover:border-brand-primary/20
+                       transition-all group"
+            >
+              <Archive
+                size={13}
+                className="text-(--color-zenthar-text-muted) group-hover:text-brand-primary
+                                          transition-colors mb-1"
+              />
+              <span
+                className="text-[7px] font-black text-(--color-zenthar-text-muted) group-hover:text-(--color-zenthar-text-primary)
+                             uppercase tracking-widest transition-colors"
+              >
+                Vault
+              </span>
+            </button>
+          </div>
+
+          {/* User identity module */}
+          <div
+            className="relative p-4 rounded-2xl bg-(--color-zenthar-graphite)/70
+                        border border-(--color-zenthar-steel) overflow-hidden group/user"
+          >
+            {/* Animated scan line */}
+            <div className="absolute top-0 left-0 h-px w-full bg-(--color-zenthar-steel)">
+              <motion.div
+                animate={{ x: ["-100%", "100%"] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                className="h-full w-1/3 bg-brand-primary/40 blur-[1px]"
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Avatar */}
+              <button
+                onClick={() => setSwitch(true)}
+                className="relative w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20
+                         flex items-center justify-center shrink-0 overflow-hidden group/av"
+              >
+                <Fingerprint
+                  size={17}
+                  className="text-brand-primary group-hover/av:opacity-0 transition-opacity"
+                />
+                <div
+                  className="absolute inset-0 flex items-center justify-center bg-brand-primary
+                              opacity-0 group-hover/av:opacity-100 transition-opacity"
+                >
+                  <RefreshCw
+                    size={13}
+                    className="text-white animate-spin"
+                    style={{ animationDuration: "2s" }}
+                  />
+                </div>
+              </button>
+
+              {/* User info */}
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-[10px] font-black text-(--color-zenthar-text-primary) truncate
+                            uppercase tracking-wide leading-none mb-1"
+                >
+                  {currentUser?.name ?? "GUEST_USER"}
+                </p>
+                <div className="flex items-center gap-1.5 opacity-70">
+                  <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                  <p className="text-[7px] font-mono text-emerald-400 uppercase tracking-widest">
+                    Secure_Session
+                  </p>
+                </div>
+              </div>
+
+              {/* Logout */}
+              <button
+                onClick={logout}
+                aria-label="Log out"
+                className="p-2 text-(--color-zenthar-text-muted) hover:text-red-400
+                         hover:bg-red-400/10 rounded-lg transition-all shrink-0"
+              >
+                <LogOut size={13} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <QuickSwitch isOpen={isSwitchOpen} onClose={() => setSwitch(false)} />
+      </nav>
+    );
+  },
+);
 
 Sidebar.displayName = "Sidebar";

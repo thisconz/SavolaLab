@@ -14,7 +14,11 @@ export const PredictionApi = {
   predictBatchQuality: async (_sampleId: number): Promise<QualityPrediction> => {
     throw new Error("PredictionApi.predictBatchQuality: not yet implemented");
   },
-  detectAnomaly: async (_testType: string, _value: number, _stage: string): Promise<AnomalyResult> => {
+  detectAnomaly: async (
+    _testType: string,
+    _value: number,
+    _stage: string,
+  ): Promise<AnomalyResult> => {
     throw new Error("PredictionApi.detectAnomaly: not yet implemented");
   },
 };

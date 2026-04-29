@@ -219,7 +219,9 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                         icon={Cpu}
                         label="Equipment_ID"
                         value={editedSample.equipment_id}
-                        onChange={(v: string) => setEditedSample((p) => ({ ...p, equipment_id: v }))}
+                        onChange={(v: string) =>
+                          setEditedSample((p) => ({ ...p, equipment_id: v }))
+                        }
                       />
                       <EditField
                         icon={Clock}
@@ -231,7 +233,9 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                         icon={User}
                         label="Assignee_ID"
                         value={editedSample.technician_id}
-                        onChange={(v: string) => setEditedSample((p) => ({ ...p, technician_id: v }))}
+                        onChange={(v: string) =>
+                          setEditedSample((p) => ({ ...p, technician_id: v }))
+                        }
                       />
                     </motion.div>
                   ) : (

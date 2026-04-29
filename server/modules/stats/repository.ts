@@ -14,7 +14,7 @@ export const StatRepository = {
             WHEN 'HIGH' THEN 2
             ELSE 3
           END ASC`,
-          desc(statRequests.created_at)
+          desc(statRequests.created_at),
         );
       return results as any;
     } catch (error: any) {
@@ -37,9 +37,6 @@ export const StatRepository = {
   },
 
   updateStatus: async (id: number, status: string) => {
-    await dbOrm
-      .update(statRequests)
-      .set({ status })
-      .where(eq(statRequests.id, id));
+    await dbOrm.update(statRequests).set({ status }).where(eq(statRequests.id, id));
   },
 };

@@ -51,12 +51,13 @@ const updateWorkflowStep = async (
         [exec.id],
       );
       // Emit workflow completion
-      domainBus.publish({ 
-        type: "WORKFLOW_COMPLETED", 
+      domainBus.publish({
+        type: "WORKFLOW_COMPLETED",
         payload: {
           execution_id: exec.id,
           sample_id: sampleId,
-      }});
+        },
+      });
     }
   } catch (err: any) {
     if (err.message === "Database not connected") return;
@@ -122,8 +123,8 @@ export const TestService = {
         );
 
         // Emit SSE — broadcast to all so dashboard/queue can update
-        domainBus.publish({ 
-          type: "TEST_SUBMITTED", 
+        domainBus.publish({
+          type: "TEST_SUBMITTED",
           payload: {
             id: testId,
             sample_id: sampleId,
@@ -131,7 +132,8 @@ export const TestService = {
             raw_value: raw_value ?? null,
             status: status ?? "PENDING",
             performer_id: performerId,
-        }});
+          },
+        });
 
         return testId;
       });
@@ -172,7 +174,7 @@ export const TestService = {
           [performerId, `Updated test ${numId} (sample: ${test.sample_id})`, ip],
         );
 
-        domainBus.publish({ 
+        domainBus.publish({
           type: "TEST_UPDATED",
           payload: {
             id: numId,
@@ -180,7 +182,8 @@ export const TestService = {
             test_type: test.test_type,
             status: data.status ?? test.status,
             updated_by: performerId,
-        }});
+          },
+        });
 
         return true;
       });
@@ -237,15 +240,16 @@ export const TestService = {
     }
 
     // Also broadcast to all so queues update
-    domainBus.publish({ 
-      type: "TEST_REVIEWED", 
+    domainBus.publish({
+      type: "TEST_REVIEWED",
       payload: {
         id: numId,
         sample_id: test.sample_id,
         test_type: test.test_type,
         status: data.status,
         reviewed_by: reviewerId,
-    }});
+      },
+    });
 
     return true;
   },

@@ -26,21 +26,14 @@ export const useAppStore = create<AppState>()(
       (set) => ({
         ...initialState,
 
-        setActiveTab: (tab) =>
-          set({ activeTab: tab }, false, "app/setActiveTab"),
+        setActiveTab: (tab) => set({ activeTab: tab }, false, "app/setActiveTab"),
 
         toggleSidebar: () =>
-          set(
-            (state) => ({ isSidebarOpen: !state.isSidebarOpen }),
-            false,
-            "app/toggleSidebar",
-          ),
+          set((state) => ({ isSidebarOpen: !state.isSidebarOpen }), false, "app/toggleSidebar"),
 
-        setSidebarOpen: (open) =>
-          set({ isSidebarOpen: open }, false, "app/setSidebarOpen"),
+        setSidebarOpen: (open) => set({ isSidebarOpen: open }, false, "app/setSidebarOpen"),
 
-        resetStore: () =>
-          set({ ...initialState }, false, "app/reset"),
+        resetStore: () => set({ ...initialState }, false, "app/reset"),
       }),
       {
         name: "savola-app-storage",
@@ -60,22 +53,16 @@ export const useAppStore = create<AppState>()(
  * Using custom hooks as selectors improves performance by preventing
  * components from re-rendering when unrelated state changes.
  */
-export const useActiveTab = () =>
-  useAppStore((state) => state.activeTab);
+export const useActiveTab = () => useAppStore((state) => state.activeTab);
 
-export const useIsSidebarOpen = () =>
-  useAppStore((state) => state.isSidebarOpen);
+export const useIsSidebarOpen = () => useAppStore((state) => state.isSidebarOpen);
 
-export const useSetActiveTab = () =>
-  useAppStore((state) => state.setActiveTab);
+export const useSetActiveTab = () => useAppStore((state) => state.setActiveTab);
 
-export const useToggleSidebar = () =>
-  useAppStore((state) => state.toggleSidebar);
+export const useToggleSidebar = () => useAppStore((state) => state.toggleSidebar);
 
-export const useSetSidebarOpen = () =>
-  useAppStore((state) => state.setSidebarOpen);
+export const useSetSidebarOpen = () => useAppStore((state) => state.setSidebarOpen);
 
-export const useResetAppStore = () =>
-  useAppStore((state) => state.resetStore);
+export const useResetAppStore = () => useAppStore((state) => state.resetStore);
 
 export type { AppTab };

@@ -19,7 +19,7 @@ export class TTLCache {
   private readonly cleanupInterval: ReturnType<typeof setInterval>;
   private readonly maxSize: number;
 
-  constructor(cleanupIntervalMs = 60_000, maxSize = 1000,) { 
+  constructor(cleanupIntervalMs = 60_000, maxSize = 1000) {
     this.maxSize = maxSize;
     this.cleanupInterval = setInterval(() => this.sweep(), cleanupIntervalMs);
     if (this.cleanupInterval.unref) this.cleanupInterval.unref();
@@ -64,8 +64,8 @@ export class TTLCache {
   }
 
   get size(): number {
-  return this.store.size;
-}
+    return this.store.size;
+  }
 
   get LiveSize(): number {
     this.sweep();
@@ -80,14 +80,16 @@ export class TTLCache {
 
     const existing = this.inflight.get(key);
     if (existing) return existing as Promise<T>;
-    const promise = fn().then((value) => {
-      this.set(key, value, ttlMs);
-      this.inflight.delete(key);
-      return value;
-    }).catch((err) => {
-      this.inflight.delete(key);
-      throw err;
-    });
+    const promise = fn()
+      .then((value) => {
+        this.set(key, value, ttlMs);
+        this.inflight.delete(key);
+        return value;
+      })
+      .catch((err) => {
+        this.inflight.delete(key);
+        throw err;
+      });
 
     this.inflight.set(key, promise);
     return promise;

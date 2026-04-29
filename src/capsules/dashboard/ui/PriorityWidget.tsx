@@ -20,7 +20,7 @@ interface Props {
 const PRIORITY_CONFIG = {
   NORMAL: { color: "rgba(148,163,184,0.4)", label: "Normal" },
   HIGH: { color: "var(--color-brand-primary)", label: "High" },
-  STAT: { color: "#ef4444", label: "Critical" },
+  STAT: { color: "#ef4444", label: "Stat" },
 } as const;
 
 const TOOLTIP_STYLE = {

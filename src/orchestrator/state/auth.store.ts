@@ -59,5 +59,4 @@ export const useAuthStore = create<AuthState>()(
   ),
 );
 
-export const useIsAuthenticated = () =>
-  useAuthStore((s) => !!s.currentUser);
+export const useIsAuthenticated = () => useAuthStore((s) => !!s.currentUser);

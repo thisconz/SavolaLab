@@ -24,7 +24,6 @@ import { fileURLToPath } from "url";
 import { readFile } from "fs/promises";
 import os from "os";
 
-
 import { initDatabase } from "./core/database";
 import { logger } from "./core/logger";
 import { auth } from "./core/auth";
@@ -144,7 +143,7 @@ async function startServer(): Promise<void> {
 
   // ── Server-Sent Events ────────────────────────────────────────────────────
   initSseSubscriber();
-  
+
   // ── API Routes ────────────────────────────────────────────────────────────
   const api = "/api";
 

@@ -25,20 +25,21 @@ export const StatService = {
     if (employeeNumber) {
       await AuditService.createLog(
         employeeNumber,
-        'STAT_REQUEST_CREATED',
+        "STAT_REQUEST_CREATED",
         `Created STAT request #${statId} for department: ${data.department}`,
-        ip ?? "127.0.0.1"
+        ip ?? "127.0.0.1",
       );
     }
 
     // Broadcast to all — critical stats shown as toast in the frontend
-    domainBus.publish({ 
-      type: "STAT_CREATED", 
+    domainBus.publish({
+      type: "STAT_CREATED",
       payload: {
         id: statId,
         department: data.department,
         urgency: data.urgency ?? "NORMAL",
-      }});
+      },
+    });
 
     // Invalidate sample-count analytics cache (STAT changes active queue view)
     analyticsCache.invalidate("analytics:samples:status");
@@ -60,19 +61,20 @@ export const StatService = {
     if (employeeNumber) {
       await AuditService.createLog(
         employeeNumber,
-        'STAT_REQUEST_UPDATED',
+        "STAT_REQUEST_UPDATED",
         `Updated STAT request #${statId} → ${status}`,
-        ip ?? "127.0.0.1"
+        ip ?? "127.0.0.1",
       );
     }
 
-    domainBus.publish({ 
-      type: "STAT_UPDATED", 
+    domainBus.publish({
+      type: "STAT_UPDATED",
       payload: {
         id: statId,
         status,
         updated_by: employeeNumber ?? "SYSTEM",
-    }});
+      },
+    });
 
     return true;
   },

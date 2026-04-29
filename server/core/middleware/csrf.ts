@@ -11,9 +11,7 @@ function generateCsrfToken(sessionId: string): string {
   // Rotating hourly prevents token replay beyond 1 hour
   const hourSlot = Math.floor(Date.now() / 3_600_000);
   const secret = process.env.JWT_SECRET ?? "insecure-dev-secret";
-  return createHmac("sha256", secret)
-    .update(`${sessionId}:${hourSlot}`)
-    .digest("hex");
+  return createHmac("sha256", secret).update(`${sessionId}:${hourSlot}`).digest("hex");
 }
 
 function verifyCsrfToken(sessionId: string, submittedToken: string): boolean {
@@ -21,28 +19,20 @@ function verifyCsrfToken(sessionId: string, submittedToken: string): boolean {
   const hourSlot = Math.floor(Date.now() / 3_600_000);
 
   for (const slot of [hourSlot, hourSlot - 1]) {
-    const expected = createHmac("sha256", secret)
-      .update(`${sessionId}:${slot}`)
-      .digest("hex");
+    const expected = createHmac("sha256", secret).update(`${sessionId}:${slot}`).digest("hex");
 
     const expectedBuf = Buffer.from(expected, "hex");
     const submittedBuf = Buffer.from(submittedToken, "hex");
 
     // Constant-time comparison
-    if (
-      expectedBuf.length === submittedBuf.length &&
-      timingSafeEqual(expectedBuf, submittedBuf)
-    ) {
+    if (expectedBuf.length === submittedBuf.length && timingSafeEqual(expectedBuf, submittedBuf)) {
       return true;
     }
   }
   return false;
 }
 
-export const csrfProtection: MiddlewareHandler = async (
-  c: Context,
-  next: Next
-) => {
+export const csrfProtection: MiddlewareHandler = async (c: Context, next: Next) => {
   const method = c.req.method.toUpperCase();
 
   // Safe methods don't need CSRF protection
@@ -64,10 +54,7 @@ export const csrfProtection: MiddlewareHandler = async (
   const submittedToken = c.req.header(CSRF_HEADER) ?? "";
 
   if (!submittedToken || !verifyCsrfToken(sessionId, submittedToken)) {
-    return c.json(
-      { error: "CSRF token invalid or missing", code: "CSRF_REJECTED" },
-      403
-    );
+    return c.json({ error: "CSRF token invalid or missing", code: "CSRF_REJECTED" }, 403);
   }
 
   await next();

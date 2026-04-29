@@ -12,7 +12,7 @@ export const NotificationRepository = {
         .where(eq(notifications.employee_number, employeeNumber))
         .orderBy(desc(notifications.created_at))
         .limit(50);
-      
+
       return rows.map((row: any) => ({
         ...row,
         created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
@@ -28,7 +28,9 @@ export const NotificationRepository = {
     await dbOrm
       .update(notifications)
       .set({ is_read: 1 })
-      .where(and(eq(notifications.id, Number(id)), eq(notifications.employee_number, employeeNumber)));
+      .where(
+        and(eq(notifications.id, Number(id)), eq(notifications.employee_number, employeeNumber)),
+      );
     return true;
   },
 
@@ -41,13 +43,11 @@ export const NotificationRepository = {
   },
 
   async create(employeeNumber: string, type: string, message: string): Promise<void> {
-    await dbOrm
-      .insert(notifications)
-      .values({
-        employee_number: employeeNumber,
-        type: type,
-        message: message,
-      });
+    await dbOrm.insert(notifications).values({
+      employee_number: employeeNumber,
+      type: type,
+      message: message,
+    });
   },
 
   async findOverdueTests(): Promise<any[]> {
@@ -61,10 +61,7 @@ export const NotificationRepository = {
         .from(tests)
         .innerJoin(samples, eq(tests.sample_id, samples.id))
         .where(
-          and(
-            eq(tests.status, "PENDING"),
-            lt(tests.updated_at, sql`NOW() - interval '4 hours'`)
-          )
+          and(eq(tests.status, "PENDING"), lt(tests.updated_at, sql`NOW() - interval '4 hours'`)),
         );
 
       return rows.map((row) => ({
@@ -78,4 +75,3 @@ export const NotificationRepository = {
     }
   },
 };
-

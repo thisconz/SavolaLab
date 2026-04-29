@@ -54,8 +54,7 @@ export const TABLE_CONFIG = {
 } as const;
 
 type TableName = keyof typeof TABLE_CONFIG;
-type ColumnOf<T extends TableName> =
-  (typeof TABLE_CONFIG)[T]["columns"][number];
+type ColumnOf<T extends TableName> = (typeof TABLE_CONFIG)[T]["columns"][number];
 
 /**
  * Get validated table config
@@ -73,7 +72,7 @@ function getTableConfig(table: string) {
  */
 function filterAllowedColumns<T extends TableName>(
   table: T,
-  data: Record<string, any>
+  data: Record<string, any>,
 ): [ColumnOf<T>, any][] {
   const config = getTableConfig(table);
   const allowed = config.columns as readonly string[];
@@ -104,9 +103,7 @@ export const SettingsService = {
     let rows: any[] = [];
 
     try {
-      rows = (await db.query(
-        `SELECT * FROM system_preferences`
-      )) as any[];
+      rows = (await db.query(`SELECT * FROM system_preferences`)) as any[];
     } catch (error: any) {
       if (error.message !== "Database not connected") {
         throw error;
@@ -134,9 +131,7 @@ export const SettingsService = {
     const pk = config.pk;
 
     try {
-      return await db.query(
-        `SELECT * FROM ${table} ORDER BY ${pk} DESC`
-      );
+      return await db.query(`SELECT * FROM ${table} ORDER BY ${pk} DESC`);
     } catch (error: any) {
       if (error.message === "Database not connected") return [];
       throw error;
@@ -176,26 +171,19 @@ export const SettingsService = {
       await createNotification(
         "ADMIN",
         "SETTINGS_CHANGED",
-        `Preference ${fields.join(", ")} created`
+        `Preference ${fields.join(", ")} created`,
       );
     }
 
     return {
-      id:
-        rows[0].id ||
-        rows[0].key ||
-        rows[0].employee_number,
+      id: rows[0].id || rows[0].key || rows[0].employee_number,
     };
   },
 
   /**
    * UPDATE
    */
-  update: async (
-    table: string,
-    id: string | number,
-    data: Record<string, any>
-  ) => {
+  update: async (table: string, id: string | number, data: Record<string, any>) => {
     const config = getTableConfig(table);
     const pk = config.pk;
 
@@ -212,9 +200,7 @@ export const SettingsService = {
     const fields = entries.map(([k]) => k);
     const values = entries.map(([, v]) => v);
 
-    const setClause = fields
-      .map((f, i) => `${f} = $${i + 1}`)
-      .join(", ");
+    const setClause = fields.map((f, i) => `${f} = $${i + 1}`).join(", ");
 
     const sql = `
       UPDATE ${table}
@@ -224,14 +210,8 @@ export const SettingsService = {
 
     await db.execute(sql, [...values, id]);
 
-    if (
-      ["system_preferences", "notification_rules"].includes(table)
-    ) {
-      await createNotification(
-        "ADMIN",
-        "WORKFLOW_FAILURE",
-        `Record ${id} updated in ${table}`
-      );
+    if (["system_preferences", "notification_rules"].includes(table)) {
+      await createNotification("ADMIN", "SETTINGS_CHANGED", `Record ${id} updated in ${table}`);
     }
 
     return { success: true };

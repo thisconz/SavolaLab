@@ -169,9 +169,12 @@ class SSEBus {
   }
 
   publishDebounced(event: ZentharEvent, windowMs = 250): void {
-    const key = `${event.type}:${event.target ?? 'all'}`;
+    const key = `${event.type}:${event.target ?? "all"}`;
     clearTimeout(this.debounceTimers.get(key));
-    this.debounceTimers.set(key, setTimeout(() => this.publish(event), windowMs));
+    this.debounceTimers.set(
+      key,
+      setTimeout(() => this.publish(event), windowMs),
+    );
   }
 }
 

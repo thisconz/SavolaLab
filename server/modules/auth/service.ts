@@ -49,12 +49,12 @@ function getSecret(): string {
     if (process.env.NODE_ENV === "production") {
       throw new Error(
         "JWT_SECRET environment variable must be set and non-empty in production. " +
-        "Generate one with: openssl rand -base64 64"
+          "Generate one with: openssl rand -base64 64",
       );
     }
     logger.warn(
       "JWT_SECRET not configured - using insecure development default. " +
-      "This MUST NOT be used in production."
+        "This MUST NOT be used in production.",
     );
     return "insecure-dev-secret-DO-NOT-USE-IN-PRODUCTION";
   }
@@ -62,8 +62,8 @@ function getSecret(): string {
   if (process.env.NODE_ENV === "production" && s.length < 32) {
     throw new Error(
       `JWT_SECRET is too short (${s.length} chars). ` +
-      "Minimum 32 characters required in production. " +
-      "Generate one with: openssl rand -base64 64"
+        "Minimum 32 characters required in production. " +
+        "Generate one with: openssl rand -base64 64",
     );
   }
   return s;
@@ -225,9 +225,9 @@ export const AuthService = {
         .from(users)
         .innerJoin(employees, eq(users.employee_number, employees.employee_number))
         .innerJoin(userPermissions, eq(employees.role, userPermissions.role as any))
-        .where(eq(users.status, 'ACTIVE'))
+        .where(eq(users.status, "ACTIVE"))
         .orderBy(asc(employees.name));
-        
+
       return rows.map(mapToPayload);
     } catch (err: any) {
       if (err.message === "Database not connected") return mockUsers();
@@ -242,14 +242,19 @@ export const AuthService = {
     const tempPinHash = await hashPassword("0000");
     await dbOrm
       .update(users)
-      .set({ password_hash: null as any, pin_hash: tempPinHash, failed_attempts: 0, locked_until: null as any })
+      .set({
+        password_hash: null as any,
+        pin_hash: tempPinHash,
+        failed_attempts: 0,
+        locked_until: null as any,
+      })
       .where(eq(users.employee_number, employeeNumber));
 
     await AuditService.createLog(
       employeeNumber,
       "ACCOUNT_RESET",
       "Administrator initiated credential reset",
-      "127.0.0.1"
+      "127.0.0.1",
     );
 
     return true;
@@ -271,7 +276,7 @@ export const AuthService = {
         .from(employees)
         .innerJoin(userPermissions, eq(employees.role, userPermissions.role as any))
         .where(eq(employees.employee_number, employeeNumber));
-        
+
       if (!rows.length) throw new Error("User not found");
       return mapToPayload(rows[0]);
     } catch (err: any) {
@@ -287,8 +292,22 @@ export const AuthService = {
     return (first + last).toUpperCase();
   },
 
-  verifyEmployee: async (employeeNumber: string, nationalId: string, dob: string, ip = "unknown") => {
-    const records = await dbOrm.select().from(employees).where(and(eq(employees.employee_number, employeeNumber), eq(employees.national_id, nationalId), eq(employees.dob, dob)));
+  verifyEmployee: async (
+    employeeNumber: string,
+    nationalId: string,
+    dob: string,
+    ip = "unknown",
+  ) => {
+    const records = await dbOrm
+      .select()
+      .from(employees)
+      .where(
+        and(
+          eq(employees.employee_number, employeeNumber),
+          eq(employees.national_id, nationalId),
+          eq(employees.dob, dob),
+        ),
+      );
     const employee = records[0];
 
     if (!employee) {
@@ -300,7 +319,10 @@ export const AuthService = {
       );
       return null;
     }
-    const usrRecords = await dbOrm.select().from(users).where(eq(users.employee_number, employeeNumber));
+    const usrRecords = await dbOrm
+      .select()
+      .from(users)
+      .where(eq(users.employee_number, employeeNumber));
     const existingUser = usrRecords[0];
 
     if (existingUser?.status === "ACTIVE") throw new Error("Account already active. Please login.");
@@ -312,7 +334,7 @@ export const AuthService = {
       employeeNumber,
       "OTP_SENT",
       "OTP generated for identity verification",
-      "127.0.0.1",
+      ip,
     );
     return { employee_number: employeeNumber };
   },
@@ -335,22 +357,25 @@ export const AuthService = {
   ): Promise<boolean> => {
     const passwordHash = await hashPassword(password);
     const pinHash = pin ? await hashPassword(pin) : null;
-    
+
     // UPSERT polyfill using Drizzle depending on postgres dialect
-    await dbOrm.insert(users).values({
-      employee_number: employeeNumber,
-      password_hash: passwordHash,
-      pin_hash: pinHash,
-      status: 'ACTIVE'
-    }).onConflictDoUpdate({
-      target: users.employee_number,
-      set: {
+    await dbOrm
+      .insert(users)
+      .values({
+        employee_number: employeeNumber,
         password_hash: passwordHash,
         pin_hash: pinHash,
-        status: 'ACTIVE'
-      }
-    });
-    
+        status: "ACTIVE",
+      })
+      .onConflictDoUpdate({
+        target: users.employee_number,
+        set: {
+          password_hash: passwordHash,
+          pin_hash: pinHash,
+          status: "ACTIVE",
+        },
+      });
+
     await AuditService.createLog(
       employeeNumber,
       "ACCOUNT_ACTIVATED",
@@ -364,7 +389,7 @@ export const AuthService = {
     employeeNumber: string,
     password?: string,
     pin?: string,
-    ip = "unknown"
+    ip = "unknown",
   ): Promise<{ token: string; refreshToken: string; user: UserPayload } | null> => {
     try {
       const rows = await dbOrm
@@ -406,34 +431,38 @@ export const AuthService = {
         const attempts = (row.failed_attempts || 0) + 1;
         if (attempts >= 5) {
           const lockUntil = new Date(Date.now() + 30 * 60_000);
-          await dbOrm.update(users).set({ failed_attempts: attempts, locked_until: lockUntil }).where(eq(users.employee_number, employeeNumber));
-          
+          await dbOrm
+            .update(users)
+            .set({ failed_attempts: attempts, locked_until: lockUntil })
+            .where(eq(users.employee_number, employeeNumber));
+
           await AuditService.createLog(
             employeeNumber,
             "ACCOUNT_LOCKED",
             "Locked after 5 failed attempts",
-            ip
+            ip,
           );
           throw new Error("Account locked for 30 minutes after 5 failed attempts.");
         }
-        await dbOrm.update(users).set({ failed_attempts: attempts }).where(eq(users.employee_number, employeeNumber));
-        
-        await AuditService.createLog(
-          employeeNumber,
-          "LOGIN_FAILED",
-          "Incorrect credentials",
-          ip
-        );
+        await dbOrm
+          .update(users)
+          .set({ failed_attempts: attempts })
+          .where(eq(users.employee_number, employeeNumber));
+
+        await AuditService.createLog(employeeNumber, "LOGIN_FAILED", "Incorrect credentials", ip);
         return null;
       }
 
-      await dbOrm.update(users).set({ failed_attempts: 0, locked_until: null, last_login: new Date() }).where(eq(users.employee_number, employeeNumber));
+      await dbOrm
+        .update(users)
+        .set({ failed_attempts: 0, locked_until: null, last_login: new Date() })
+        .where(eq(users.employee_number, employeeNumber));
 
       const payload = mapToPayload(row);
       const token = signToken(payload as any);
       const refresh = signRefreshToken({ sub: employeeNumber, employee_number: employeeNumber });
-      await AuditService.createLog(employeeNumber, "LOGIN_SUCCESS", "User logged in", "127.0.0.1");
-      await AuthService.persistRefreshToken(employeeNumber, refresh, undefined, "127.0.0.1");
+      await AuditService.createLog(employeeNumber, "LOGIN_SUCCESS", "User logged in", ip);
+      await AuthService.persistRefreshToken(employeeNumber, refresh, undefined, ip);
       return { token, refreshToken: refresh, user: payload };
     } catch (err: any) {
       if (err.message?.includes("locked") || err.message?.includes("Invalid")) throw err;
@@ -448,7 +477,7 @@ export const AuthService = {
         const DEV_PIN = "1111";
         const credentialValid = password === DEV_PASSWORD || pin === DEV_PIN;
         if (!credentialValid) return null;
-        
+
         const token = signToken(mockUser as any);
         const refresh = signRefreshToken({
           sub: mockUser.employee_number,
@@ -467,9 +496,9 @@ export const AuthService = {
     const tokenHash = hashRefreshToken(refreshToken);
 
     try {
-      const stored  = await dbOrm
-      .select({ id: refreshTokens.id })
-      .from(refreshTokens)
+      const stored = await dbOrm
+        .select({ id: refreshTokens.id })
+        .from(refreshTokens)
         .where(
           and(
             eq(refreshTokens.token_hash, tokenHash),
@@ -484,7 +513,7 @@ export const AuthService = {
         // Token was revoked, already used, or never persisted — reject
         return null;
       }
-      
+
       const rows = await dbOrm
         .select({
           employee_number: employees.employee_number,
@@ -499,22 +528,17 @@ export const AuthService = {
         .from(users)
         .innerJoin(employees, eq(users.employee_number, employees.employee_number))
         .innerJoin(userPermissions, eq(employees.role, userPermissions.role as any))
-        .where(
-          and(
-            eq(users.employee_number, payload.employee_number),
-            eq(users.status, "ACTIVE"),
-          ),
-        );
+        .where(and(eq(users.employee_number, payload.employee_number), eq(users.status, "ACTIVE")));
 
       const row = rows[0];
       if (!row) return null;
 
       await dbOrm
-      .update(refreshTokens)
-      .set({ revoked_at: new Date() })
-      .where(eq(refreshTokens.token_hash, tokenHash));
+        .update(refreshTokens)
+        .set({ revoked_at: new Date() })
+        .where(eq(refreshTokens.token_hash, tokenHash));
 
-    return { token: signToken(mapToPayload(row) as any) };
+      return { token: signToken(mapToPayload(row) as any) };
     } catch (err: any) {
       if (err.message === "Database not connected") return null;
       throw err;
@@ -548,10 +572,10 @@ export const AuthService = {
       .where(eq(refreshTokens.token_hash, tokenHash));
   },
 
-  getPublicUsers: async (): Promise<Pick<UserPayload, 'id' | 'name' | 'initials' | 'role'>[]> => {
+  getPublicUsers: async (): Promise<Pick<UserPayload, "id" | "name" | "initials" | "role">[]> => {
     const users = await AuthService.getUsers();
     return users.map(({ id, name, initials, role }) => ({ id, name, initials, role }));
-  }
+  },
 };
 
 // ─────────────────────────────────────────────
