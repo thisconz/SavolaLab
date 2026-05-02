@@ -23,13 +23,29 @@ export interface RequestConfig extends RequestInit {
 
 const BASE_URL = "/api";
 
+function getCsrfTokenFromCookie(): string {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
 class ApiClient {
   private static instance: ApiClient;
   private refreshPromise: Promise<boolean> | null = null;
+  private onLogout: () => void = () => {};
 
   static getInstance(): ApiClient {
     if (!ApiClient.instance) ApiClient.instance = new ApiClient();
     return ApiClient.instance;
+  }
+
+  setLogoutHandler(fn: () => void): void {
+    this.onLogout = fn;
+  }
+
+  private setToken: (token: string) => void = () => {};
+  setTokenHandler(fn: (token: string) => void): void {
+    this.setToken = fn;
   }
 
   private async request<T>(path: string, config: RequestConfig = {}): Promise<T> {
@@ -37,6 +53,9 @@ class ApiClient {
 
     const url = `${BASE_URL}${path}`;
     const method = (init.method ?? "GET").toUpperCase();
+    const csrfToken = ["POST", "PUT", "PATCH", "DELETE"].includes(method)
+      ? getCsrfTokenFromCookie()
+      : "";
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
 
@@ -61,7 +80,7 @@ class ApiClient {
         if (refreshed) {
           return this.request<T>(path, { ...config, _noRefresh: true });
         }
-        useAuthStore.getState().logout();
+        this.onLogout();
         throw this.makeError(response, { error: "Session expired. Please log in again." });
       }
 
@@ -110,7 +129,7 @@ class ApiClient {
         if (!res.ok) return false;
         const data = await res.json();
         if (data.success && data.token) {
-          useAuthStore.getState().setToken(data.token);
+          this.setToken(data.token);
           return true;
         }
         return false;

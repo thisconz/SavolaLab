@@ -50,6 +50,7 @@ export const NotificationRepository = {
     });
   },
 
+  /** @deprecated Use the inline query in NotificationService.checkOverdueTests for transactional consistency */
   async findOverdueTests(): Promise<any[]> {
     try {
       const rows = await dbOrm

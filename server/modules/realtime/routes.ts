@@ -1,11 +1,11 @@
 import { Hono } from "hono";
-import { streamSSE } from "hono/streaming"; // Use the specialized SSE helper
+import { streamSSE } from "hono/streaming";
 import { sseBus, ZentharEvent } from "../../core/sse";
 import { authenticateToken } from "../../core/middleware";
 import { logger } from "../../core/logger";
 import type { Variables } from "../../core/types";
 import { v4 as uuidv4 } from "uuid";
-import { sseRateLimit } from "@/server/core/rateLimit";
+import { sseRateLimit } from "../../core/rateLimit";
 
 const app = new Hono<{ Variables: Variables }>();
 

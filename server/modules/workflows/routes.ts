@@ -3,7 +3,7 @@ import type { Variables } from "../../core/types";
 import { WorkflowService } from "./service";
 import { authenticateToken } from "../../core/middleware";
 import { logger } from "../../core/logger";
-import { requireParam, requireIntParam } from "@/server/core/utils/params";
+import { requireParam, requireIntParam } from "../../core/utils/params";
 
 const app = new Hono();
 

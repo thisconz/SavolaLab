@@ -67,7 +67,7 @@ export class TTLCache {
     return this.store.size;
   }
 
-  get LiveSize(): number {
+  get liveSize(): number {
     this.sweep();
     return this.store.size;
   }

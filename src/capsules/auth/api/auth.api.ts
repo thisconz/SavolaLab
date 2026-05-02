@@ -4,13 +4,18 @@ import { User } from "../../../core/types";
 export const AuthApi = {
   getUsers: async () => {
     console.log("[DEBUG] AuthApi.getUsers calling /v1/directory/users");
-    const response = await api.get<{ success: boolean; data: User[] }>("/v1/directory/users");
+    const response = await api.get<{ success: boolean; data: User[] }>(
+      "/v1/directory/users/public",
+    );
     console.log("[DEBUG] AuthApi.getUsers response:", response);
     return response.data || [];
   },
 
   getMe: async () => {
-    const response = await api.get<{ success: boolean; data: User }>("/v1/directory/me");
+    const response = await api.get<{ success: boolean; data: User }>(
+      "/v1/directory/me"
+    );
+    console.log("[DEBUG] AuthApi.getMe response:", response);
     return response.data;
   },
 

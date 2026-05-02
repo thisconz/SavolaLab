@@ -47,13 +47,24 @@ export interface TestPassRate {
 // Spec limits (configurable per test type)
 // ─────────────────────────────────────────────
 
-const SPECS: Record<string, { usl: number; lsl: number }> = {
-  Brix: { lsl: 60, usl: 70 },
-  Purity: { lsl: 95, usl: 100 },
-  Colour: { lsl: 0, usl: 60 },
-  Pol: { lsl: 95, usl: 100 },
-  pH: { lsl: 6.5, usl: 8.5 },
-};
+async function getSpecLimits(): Promise<Record<string, { usl: number; lsl: number }>> {
+  return analyticsCache.getOrSet(
+    "analytics:spec_limits",
+    async () => {
+      const rows = await db.query<{
+        test_type: string;
+        usl: number;
+        lsl: number;
+      }>(
+        `SELECT test_type, usl, lsl
+         FROM spec_limits
+         WHERE is_active = 1`,
+      );
+      return Object.fromEntries(rows.map((r) => [r.test_type, { usl: r.usl, lsl: r.lsl }]));
+    },
+    TTL.MINUTES_15,
+  );
+}
 
 function calcCpk(mean: number, stddev: number, usl: number, lsl: number): number {
   if (stddev <= 0) return 0;
@@ -159,6 +170,8 @@ export const AnalyticsService = {
       "analytics:capability:30d",
       async () => {
         try {
+          const specs = await getSpecLimits();
+
           const rows = await db.query<{
             test_type: string;
             mean: number;
@@ -190,13 +203,14 @@ export const AnalyticsService = {
 
             if (stddev <= 0 || n < 10) continue; // need at least 10 pts
 
-            const type = row.test_type;
-            const spec = SPECS[type] ?? SPECS["Brix"];
+            const spec = specs[row.test_type] ?? specs["Brix"];
+            if (!spec) continue;
+
             const val = calcCpk(mean, stddev, spec.usl, spec.lsl);
 
-            if (type === "Brix") cpk.brixCpk = Number(val.toFixed(2));
-            if (type === "Purity") cpk.purityCpk = Number(val.toFixed(2));
-            if (type === "Colour") cpk.colorCpk = Number(val.toFixed(2));
+            if (row.test_type === "Brix") cpk.brixCpk = Number(val.toFixed(2));
+            if (row.test_type === "Purity") cpk.purityCpk = Number(val.toFixed(2));
+            if (row.test_type === "Colour") cpk.colorCpk = Number(val.toFixed(2));
           }
 
           return cpk;

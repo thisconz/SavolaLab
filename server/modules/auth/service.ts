@@ -473,9 +473,17 @@ export const AuthService = {
         const mockUser = mockUsers().find((u) => u.employee_number === employeeNumber);
         if (!mockUser) return null;
 
-        const DEV_PASSWORD = "Z3nthar!2025";
-        const DEV_PIN = "1111";
-        const credentialValid = password === DEV_PASSWORD || pin === DEV_PIN;
+        const devPassword = process.env.DEV_DEFAULT_PASSWORD;
+        const devPin = process.env.DEV_DEFAULT_PIN;
+
+        if (!devPassword || !devPin) {
+          throw new Error(
+            "DEV_DEFAULT_PASSWORD and DEV_DEFAULT_PIN must be set in .env for PGlite mode. " +
+              "Copy .env.example to .env and fill in the values.",
+          );
+        }
+
+        const credentialValid = password === devPassword || pin === devPin;
         if (!credentialValid) return null;
 
         const token = signToken(mockUser as any);
@@ -483,13 +491,25 @@ export const AuthService = {
           sub: mockUser.employee_number,
           employee_number: mockUser.employee_number,
         });
+
+        try {
+          await AuthService.persistRefreshToken(mockUser.employee_number, refresh);
+        } catch {
+          // Non-fatal in dev mode — refresh will fail gracefully
+          logger.warn("Dev mock: failed to persist refresh token");
+        }
+
         return { token, refreshToken: refresh, user: mockUser };
       }
       throw err;
     }
   },
 
-  refreshAccess: async (refreshToken: string): Promise<{ token: string } | null> => {
+  refreshAccess: async (
+    refreshToken: string,
+    userAgent?: string,
+    ip?: string,
+  ): Promise<{ token: string; newRefreshToken: string } | null> => {
     const payload = verifyRefreshToken(refreshToken);
     if (!payload) return null;
 
@@ -509,10 +529,7 @@ export const AuthService = {
         )
         .limit(1);
 
-      if (!stored.length) {
-        // Token was revoked, already used, or never persisted — reject
-        return null;
-      }
+      if (!stored.length) return null;
 
       const rows = await dbOrm
         .select({
@@ -538,7 +555,16 @@ export const AuthService = {
         .set({ revoked_at: new Date() })
         .where(eq(refreshTokens.token_hash, tokenHash));
 
-      return { token: signToken(mapToPayload(row) as any) };
+      const newAccessToken = signToken(mapToPayload(row) as any);
+
+      const newRawRefreshToken = signRefreshToken({
+        sub: row.employee_number,
+        employee_number: row.employee_number,
+      });
+
+      await AuthService.persistRefreshToken(row.employee_number, newRawRefreshToken, userAgent, ip);
+
+      return { token: newAccessToken, newRefreshToken: newRawRefreshToken };
     } catch (err: any) {
       if (err.message === "Database not connected") return null;
       throw err;

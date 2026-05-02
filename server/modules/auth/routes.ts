@@ -84,7 +84,7 @@ app.get("/users", authenticateToken, async (c) => {
   }
 });
 
-app.post("/verify-employee", async (c) => {
+app.post("/verify-employee", authRateLimit, async (c) => {
   const requestId = c.get("requestId");
   try {
     const body = await c.req.json();
@@ -107,7 +107,7 @@ app.post("/verify-employee", async (c) => {
   }
 });
 
-app.post("/confirm-otp", async (c) => {
+app.post("/confirm-otp", authRateLimit, async (c) => {
   const requestId = c.get("requestId");
   try {
     const body = await c.req.json();
@@ -138,7 +138,7 @@ app.post("/setup-credentials", async (c) => {
   }
 });
 
-app.post("/login", async (c) => {
+app.post("/login", authRateLimit, async (c) => {
   const requestId = c.get("requestId");
   try {
     const body = await c.req.json();
@@ -185,14 +185,23 @@ app.post("/refresh", authRateLimit, async (c) => {
   const refresh = getCookie(c, "refresh_token");
   if (!refresh) return c.json({ success: false, error: "No refresh token" }, 401);
 
-  const result = await AuthService.refreshAccess(refresh);
+  const ua = c.req.header("user-agent");
+  const ip = extractClientIp(c);
+  const result = await AuthService.refreshAccess(refresh, ua, ip);
   if (!result) return c.json({ success: false, error: "Invalid or expired refresh token" }, 401);
 
   const isProd = process.env.NODE_ENV === "production";
+
   setCookie(c, "token", result.token, {
     ...COOKIE_OPTS_BASE,
     secure: isProd,
     maxAge: 8 * 60 * 60,
+  });
+
+  setCookie(c, "refresh_token", result.newRefreshToken, {
+    ...COOKIE_OPTS_BASE,
+    secure: isProd,
+    maxAge: 30 * 24 * 60 * 60,
   });
 
   return c.json({ success: true, token: result.token });
@@ -223,6 +232,20 @@ app.get("/me", authenticateToken, async (c) => {
     const user = c.get("user");
     if (!user) throw new Error("Unauthorized");
     const me = await AuthService.getMe(user.employee_number);
+
+    // Generate a CSRF token bound to this session and set it in a readable cookie
+    // The cookie is NOT httpOnly so the client JS can read it
+    const { generateCsrfToken } = await import("../../core/middleware/csrf");
+    const sessionId = getCookie(c, "token") ?? "";
+    const csrfToken = generateCsrfToken(sessionId);
+    setCookie(c, "csrf_token", csrfToken, {
+      sameSite: "lax" as const,
+      path: "/",
+      httpOnly: false, // must be readable by JS
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 8 * 60 * 60,
+    });
+
     return c.json(GetMeResponseSchema.parse({ success: true, data: me }));
   } catch (err) {
     logger.error({ err, requestId }, "get /me failed");

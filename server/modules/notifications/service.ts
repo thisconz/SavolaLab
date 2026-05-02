@@ -23,10 +23,26 @@ export const NotificationService = {
    * immediately without polling.
    */
   checkOverdueTests: async () => {
-    const overdueTests = await NotificationRepository.findOverdueTests();
-    if (overdueTests.length === 0) return 0;
+    const sseQueue: Array<{ recipientId: string; message: string }> = [];
+    let count = 0;
 
     await db.transaction(async (client) => {
+      const overdueTests = (await client.query<{
+        id: number;
+        test_type: string;
+        batch_id: string | null;
+        performer_id: string | null;
+        technician_id: string | null;
+      }>(
+        `SELECT t.id, t.test_type, s.batch_id, t.performer_id, s.technician_id
+        FROM tests t
+        INNER JOIN samples s ON t.sample_id = s.id
+        WHERE t.status = 'PENDING'
+          AND t.updated_at < NOW() - interval '4 hours'`,
+      )) as any[];
+
+      if (overdueTests.length === 0) return;
+
       for (const test of overdueTests) {
         const recipientId = test.performer_id || test.technician_id;
         if (!recipientId) continue;
@@ -50,16 +66,24 @@ export const NotificationService = {
           );
         }
 
-        // Push SSE to the technician so their bell updates instantly
-        sseBus.sendTo(recipientId, "NOTIFICATION_PUSHED", {
-          type: "OVERDUE_TEST",
-          message,
-        });
+        // Queue SSE — fire only after COMMIT
+        sseQueue.push({ recipientId, message });
+        count++;
       }
     });
 
-    logger.info({ count: overdueTests.length }, "Overdue test notifications generated");
-    return overdueTests.length;
+    // Transaction committed — now safe to push SSE events
+    for (const { recipientId, message } of sseQueue) {
+      sseBus.sendTo(recipientId, "NOTIFICATION_PUSHED", {
+        type: "OVERDUE_TEST",
+        message,
+      });
+    }
+
+    if (count > 0) {
+      logger.info({ count }, "Overdue test notifications generated");
+    }
+    return count;
   },
 
   /**

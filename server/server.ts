@@ -26,9 +26,7 @@ import os from "os";
 
 import { initDatabase } from "./core/database";
 import { logger } from "./core/logger";
-import { auth } from "./core/auth";
 import { requestId } from "./core/middleware/requestId";
-import { csrfProtection } from "./core/middleware/csrf";
 
 // Route modules
 import { authRoutes } from "./modules/auth";
@@ -98,9 +96,6 @@ async function startServer(): Promise<void> {
   // ── Request ID ───────────────────────────────────────────────────────────
   app.use("*", requestId);
 
-  // ── CSRF Protection ───────────────────────────────────────────────────────
-  app.use("/api/*", csrfProtection);
-
   // ── CORS (dev only) ───────────────────────────────────────────────────────
   if (!IS_PROD) {
     app.use(
@@ -149,7 +144,7 @@ async function startServer(): Promise<void> {
 
   // Directory / auth
   app.route(`${api}/v1/directory`, authRoutes);
-  app.all("/api/auth/*", (c) => auth.handler(c.req.raw));
+  app.all("/api/auth/*", (c) => c.json({ error: "Not found", code: "NOT_FOUND" }, 404));
 
   // Domain modules
   app.route(`${api}/notifications`, notificationRoutes);

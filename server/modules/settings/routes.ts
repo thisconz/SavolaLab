@@ -4,7 +4,7 @@ import { SettingsService, TABLE_CONFIG } from "./service";
 import { OperationalService } from "../operational/service";
 import { authenticateToken, requireRoles } from "../../core/middleware";
 import { logger } from "../../core/logger";
-import { requireParam, requireIntParam } from "@/server/core/utils/params";
+import { requireParam, requireIntParam } from "../../core/utils/params";
 import { AuditService } from "../audit/service";
 
 const app = new Hono<{ Variables: Variables }>();

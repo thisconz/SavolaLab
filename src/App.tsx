@@ -1,12 +1,19 @@
 import React, { Suspense } from "react";
+import { api } from "./core/http/client";
 import { Toaster } from "sonner";
 import { AppShell } from "./app/AppShell";
 import { FeatureRouter } from "./app/router/router";
+import { useAuthStore } from "./orchestrator/state/auth.store";
 import { ErrorBoundary } from "./shared/components/ErrorBoundary";
 import { RealtimeProvider } from "./core/providers/RealtimeProvider";
 import { motion } from "@/src/lib/motion";
 import { Terminal } from "lucide-react";
 
+  const { logout, setToken } = useAuthStore.getState();
+
+  api.setLogoutHandler(logout);
+  api.setTokenHandler(setToken);
+  
 export default function App() {
   return (
     <ErrorBoundary name="App Root">
