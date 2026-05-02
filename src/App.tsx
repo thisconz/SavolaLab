@@ -1,25 +1,21 @@
-import React, { Suspense } from "react";
-import { api } from "./core/http/client";
+import React, { Suspense, useEffect } from "react";
 import { Toaster } from "sonner";
 import { AppShell } from "./app/AppShell";
 import { FeatureRouter } from "./app/router/router";
-import { useAuthStore } from "./orchestrator/state/auth.store";
 import { ErrorBoundary } from "./shared/components/ErrorBoundary";
+import { initializeApi } from "./orchestrator/initializer"
 import { RealtimeProvider } from "./core/providers/RealtimeProvider";
-import { motion } from "@/src/lib/motion";
+import { motion } from "./lib/motion";
 import { Terminal } from "lucide-react";
-
-const initializeExternalDependencies = () => {
-  const { logout, setToken } = useAuthStore.getState();
   
-  // Registering handlers to the decoupled ApiClient
-  api.setLogoutHandler(logout);
-  api.setTokenHandler(setToken);
-};
-  
-initializeExternalDependencies();
+initializeApi()
 
 export default function App() {
+
+  useEffect(() => {
+    initializeApi()
+  }, []);
+  
   return (
     <ErrorBoundary name="App Root">
       {/* Global toast notifications */}

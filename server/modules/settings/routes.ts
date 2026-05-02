@@ -9,8 +9,9 @@ import { AuditService } from "../audit/service";
 
 const app = new Hono<{ Variables: Variables }>();
 
-const DELETABLE_TABLES = new Set(["sample_types", "clients", "inventory"]);
+const DELETABLE_TABLES = new Set(["sample_types", "clients", "inventory", "spec_limits"]);
 const OPERATIONAL_TABLES = new Set(["production_lines", "instruments", "inventory"]);
+const ANALYTICS_TABLES = new Set(["spec_limits"]);
 
 const validateTable = (t: string) => t in TABLE_CONFIG;
 
@@ -50,6 +51,11 @@ app.post("/:table", authenticateToken, async (c) => {
     const result = await SettingsService.create(table, body);
     if (OPERATIONAL_TABLES.has(table)) {
       OperationalService.invalidate();
+    }
+
+    if (ANALYTICS_TABLES.has(table)) {
+      const { AnalyticsService } = await import("../analytics/service");
+      AnalyticsService.invalidateAll();
     }
 
     await AuditService.createLog(

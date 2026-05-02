@@ -1,35 +1,17 @@
 import React, { memo, useState, useEffect, useCallback, useMemo } from "react";
 import {
-  ShieldAlert,
-  Search,
-  Download,
-  RefreshCw,
-  AlertTriangle,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Shield,
-  LogIn,
-  LogOut,
-  FileEdit,
-  Trash2,
-  Database,
-  Zap,
-  Activity,
-  User,
-  Clock,
-  X,
-  Eye,
-  Info,
-  Wifi,
+  ShieldAlert, Search, Download, RefreshCw, AlertTriangle,
+  CheckCircle2, ChevronLeft, ChevronRight, Shield, LogIn,
+  LogOut, FileEdit, Trash2, Database, Zap, Activity,
+  User, Clock, X, Eye, Info, Wifi, Filter, MoreHorizontal
 } from "lucide-react";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion, AnimatePresence } from "../../../lib/motion";
 import { MetricCard } from "../../../shared/components/MetricCard";
 import { TableSkeleton } from "../../../shared/components/Skeletons";
 import { api } from "../../../core/http/client";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import { AuditLog } from "../model/audit.model";
-import clsx from "@/src/lib/clsx";
+import clsx from "../../../lib/clsx";
 import { toast } from "sonner";
 
 // ─────────────────────────────────────────────
@@ -39,134 +21,39 @@ import { toast } from "sonner";
 interface ActionConfig {
   color: string;
   bg: string;
+  border: string;
   icon: React.ElementType;
-  category: string;
 }
 
-const ACTIONS: Record<string, ActionConfig> = {
-  LOGIN_SUCCESS: {
-    color: "text-lab-toxic",
-    bg: "bg-lab-toxic/10 border-lab-toxic/30",
-    icon: LogIn,
-    category: "Auth",
-  },
-  LOGIN_FAILED: {
-    color: "text-brand-primary",
-    bg: "bg-brand-primary/10 border-brand-primary/30",
-    icon: AlertTriangle,
-    category: "Auth",
-  },
-  LOGOUT: {
-    color: "text-zenthar-text-secondary",
-    bg: "bg-zenthar-steel/40 border-zenthar-steel",
-    icon: LogOut,
-    category: "Auth",
-  },
-  OTP_SENT: {
-    color: "text-lab-laser",
-    bg: "bg-lab-laser/10 border-lab-laser/30",
-    icon: Shield,
-    category: "Auth",
-  },
-  OTP_CONFIRMATION: {
-    color: "text-lab-laser",
-    bg: "bg-lab-laser/10 border-lab-laser/30",
-    icon: Shield,
-    category: "Auth",
-  },
-  ACCOUNT_ACTIVATED: {
-    color: "text-lab-toxic",
-    bg: "bg-lab-toxic/10 border-lab-toxic/30",
-    icon: CheckCircle2,
-    category: "Auth",
-  },
-  ACCOUNT_LOCKED: {
-    color: "text-brand-primary font-bold animate-pulse",
-    bg: "bg-brand-primary/20 border-brand-primary/50",
-    icon: ShieldAlert,
-    category: "Security",
-  },
-  SAMPLE_UPDATED: {
-    color: "text-lab-laser",
-    bg: "bg-lab-laser/10 border-lab-laser/30",
-    icon: FileEdit,
-    category: "Sample",
-  },
-  TEST_CREATED: {
-    color: "text-lab-plasma",
-    bg: "bg-lab-plasma/10 border-lab-plasma/30",
-    icon: Database,
-    category: "Test",
-  },
-  TEST_UPDATED: {
-    color: "text-lab-plasma",
-    bg: "bg-lab-plasma/10 border-lab-plasma/30",
-    icon: FileEdit,
-    category: "Test",
-  },
-  TEST_DELETE_ATTEMPT: {
-    color: "text-brand-primary",
-    bg: "bg-brand-primary/10 border-brand-primary/30",
-    icon: Trash2,
-    category: "Security",
-  },
-  STAT_REQUEST_CREATED: {
-    color: "text-lab-warning",
-    bg: "bg-lab-warning/10 border-lab-warning/30",
-    icon: Zap,
-    category: "STAT",
-  },
-  STAT_REQUEST_UPDATED: {
-    color: "text-lab-warning",
-    bg: "bg-lab-warning/10 border-lab-warning/30",
-    icon: Zap,
-    category: "STAT",
-  },
-  VERIFICATION_FAILED: {
-    color: "text-brand-primary",
-    bg: "bg-brand-primary/10 border-brand-primary/30",
-    icon: AlertTriangle,
-    category: "Security",
-  },
-  EXPORT_GENERATED: {
-    color: "text-brand-sage",
-    bg: "bg-brand-sage/10 border-brand-sage/30",
-    icon: Download,
-    category: "System",
-  },
-  SETTINGS_UPDATED: {
-    color: "text-zenthar-steel",
-    bg: "bg-zenthar-steel/10 border-zenthar-steel/30",
-    icon: Activity,
-    category: "System",
-  },
+const ACTIONS_MAP: Record<string, ActionConfig> = {
+  SECURITY: { color: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/20", icon: ShieldAlert },
+  SUCCESS: { color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20", icon: CheckCircle2 },
+  WARNING: { color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/20", icon: AlertTriangle },
+  NEUTRAL: { color: "text-slate-500", bg: "bg-slate-500/10", border: "border-slate-500/20", icon: Activity },
 };
 
-const DEFAULT_ACTION: ActionConfig = {
-  color: "text-zenthar-text-secondary",
-  bg: "bg-zenthar-steel/20 border-zenthar-steel",
-  icon: Activity,
-  category: "System",
+const getActionStyle = (action: string) => {
+  if (action.includes("FAILED") || action.includes("LOCKED") || action.includes("ATTEMPT")) return ACTIONS_MAP.SECURITY;
+  if (action.includes("SUCCESS") || action.includes("ACTIVATED") || action.includes("CREATED")) return ACTIONS_MAP.SUCCESS;
+  if (action.includes("UPDATED") || action.includes("SENT")) return ACTIONS_MAP.WARNING;
+  return ACTIONS_MAP.NEUTRAL;
 };
-const getAction = (a: string) => ACTIONS[a] || DEFAULT_ACTION;
 
 // ─────────────────────────────────────────────
 // Sub-components
 // ─────────────────────────────────────────────
 
-const ActionBadge: React.FC<{ action: string }> = ({ action }) => {
-  const cfg = getAction(action);
-  const Icon = cfg.icon;
+const ActionBadge = ({ action }: { action: string }) => {
+  const style = getActionStyle(action);
+  const Icon = style.icon;
   return (
-    <span
-      className={clsx(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-wider backdrop-blur-md transition-all shadow-sm",
-        cfg.bg,
-        cfg.color,
-      )}
-    >
-      <Icon className="w-3 h-3 shrink-0" /> {action.replace(/_/g, " ")}
-    </span>
+    <div className={clsx(
+      "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold tracking-tight uppercase",
+      style.bg, style.color, style.border
+    )}>
+      <Icon size={12} strokeWidth={2.5} />
+      {action.replace(/_/g, " ")}
+    </div>
   );
 };
 
@@ -174,7 +61,6 @@ const ActionBadge: React.FC<{ action: string }> = ({ action }) => {
 // Constants
 // ─────────────────────────────────────────────
 
-const PAGE_SIZE = 25;
 const ANOMALY_ACTIONS = new Set([
   "LOGIN_FAILED",
   "TEST_DELETE_ATTEMPT",
@@ -198,16 +84,12 @@ export const AuditFeature: React.FC = memo(() => {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [page, setPage] = useState(0);
-  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [filters, setFilters] = useState({ search: "", action: "", employee_number: "", start_date: "", end_date: "" });
   const [selected, setSelected] = useState<AuditLog | null>(null);
-  const [stats, setStats] = useState({
-    total: 0,
-    today: 0,
-    uniqueUsers: 0,
-    anomalies: 0,
-  });
+  const [stats, setStats] = useState({ total: 0, today: 0, uniqueUsers: 0, anomalies: 0 });
 
   const { on } = useRealtime();
+  const PAGE_SIZE = 15;
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchLogs = useCallback(
@@ -478,7 +360,7 @@ export const AuditFeature: React.FC = memo(() => {
       </div>
 
       {/* Table */}
-      <div className="flex-1 bg-white/80 backdrop-blur-xl rounded-3xl border border-white shadow-sm overflow-hidden flex flex-col min-h-0">
+      <div className="flex-1 bg-zenthar-void/50 backdrop-blur-xl rounded-3xl border border-white shadow-sm overflow-hidden flex flex-col min-h-0">
         <div className="px-7 py-5 border-b border-zenthar-steel flex items-center justify-between shrink-0 bg-white/50">
           <div className="flex items-center gap-3">
             <ShieldAlert className="w-5 h-5 text-brand-primary" />
@@ -650,14 +532,6 @@ export const AuditFeature: React.FC = memo(() => {
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-brand-primary/10 rounded-xl border border-brand-primary/20">
                     <Info className="w-4 h-4 text-brand-primary" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-zenthar-text-primary uppercase tracking-wider">
-                      Event #{selected.id}
-                    </h4>
-                    <p className="text-[9px] font-mono text-brand-sage">
-                      {getAction(selected.action).category}
-                    </p>
                   </div>
                 </div>
                 <button

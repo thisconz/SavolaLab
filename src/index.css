@@ -91,7 +91,17 @@
   .text-hud {
     @apply font-mono text-[10px] uppercase tracking-[0.2em] font-black;
   }
-}
+
+  @keyframes glitch {
+    0%   { text-shadow:  2px 0 0 #ff0055, -2px 0 0 #00ffff; }
+    50%  { text-shadow: -2px 0 0 #ff0055,  2px 0 0 #00ffff; }
+    100% { text-shadow:  2px 0 0 #ff0055, -2px 0 0 #00ffff; }
+  }
+
+  .glitch-text {
+    animation: glitch 0.3s steps(2) infinite;
+  }
+  }
 
 .custom-scrollbar {
   scrollbar-width: thin;

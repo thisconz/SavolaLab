@@ -312,15 +312,6 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
             </motion.div>
           </main>
-
-          <style>{`
-            .glitch-text { animation: glitch 0.3s steps(2) infinite; }
-            @keyframes glitch {
-              0% { text-shadow: 2px 0 0 #ff0055, -2px 0 0 #00ffff; }
-              50% { text-shadow: -2px 0 0 #ff0055, 2px 0 0 #00ffff; }
-              100% { text-shadow: 2px 0 0 #ff0055, -2px 0 0 #00ffff; }
-            }
-          `}</style>
         </div>
       );
     }

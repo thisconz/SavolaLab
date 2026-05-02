@@ -27,8 +27,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
     const [statusFilter, setStatusFilter] = useState("ALL");
     const [scrollTop, setScrollTop] = useState(0);
 
-    // FIX: measured values instead of hardcoded
-    const [containerHeight, setContainerHeight] = useState(DEFAULT_CARD_HEIGHT * 4);
+    const sentinelRef = useRef<HTMLDivElement>(null);
     const [cardHeight, setCardHeight] = useState(DEFAULT_CARD_HEIGHT);
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -41,7 +40,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
 
       resizeObserver.current = new ResizeObserver((entries) => {
         for (const entry of entries) {
-          setContainerHeight(entry.contentRect.height);
+          setCardHeight(entry.contentRect.height);
         }
       });
 
@@ -86,7 +85,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
     const startIndex = Math.max(0, Math.floor(scrollTop / cardHeight) - OVERSCAN);
     const endIndex = Math.min(
       filtered.length - 1,
-      Math.floor((scrollTop + containerHeight) / cardHeight) + OVERSCAN,
+      Math.floor((scrollTop + innerHeight) / cardHeight) + OVERSCAN,
     );
     const visibleItems = filtered.slice(startIndex, endIndex + 1);
 
@@ -102,7 +101,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
       const itemTop = idx * cardHeight;
       const itemBot = itemTop + cardHeight;
       const viewTop = scrollTop;
-      const viewBot = scrollTop + containerHeight;
+      const viewBot = scrollTop + innerHeight;
       if (itemTop < viewTop || itemBot > viewBot) {
         containerRef.current.scrollTo({
           top: itemTop - cardHeight,
@@ -142,6 +141,24 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
         className="flex flex-col h-full w-full bg-(--color-zenthar-graphite)/80 backdrop-blur-xl rounded-4xl overflow-hidden ring-1 ring-inset ring-white/5"
         onKeyDown={handleKeyDown}
       >
+        {/* Stable measurement sentinel — always rendered, never visible */}
+        {filtered[0] && (
+          <div
+            ref={sentinelRef}
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              visibility: "hidden",
+              pointerEvents: "none",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: -1,
+            }}
+          >
+            <SampleCard sample={filtered[0]} active={false} onClick={() => {}} />
+          </div>
+        )}
         {/* Header */}
         <header className="flex-none p-5 pb-3 border-b border-brand-sage/5 space-y-3">
           <div className="flex items-center justify-between">
@@ -248,14 +265,12 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
               )}
             </div>
           ) : (
-            // FIX: phantom container uses measured cardHeight, not hardcoded 132
             <div style={{ height: totalHeight, position: "relative" }}>
               {visibleItems.map((sample, localIdx) => {
                 const absoluteIdx = startIndex + localIdx;
                 return (
                   <div
                     key={sample.id}
-                    ref={absoluteIdx === 0 ? firstCardRef : undefined}
                     style={{
                       position: "absolute",
                       top: absoluteIdx * cardHeight,
@@ -263,6 +278,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
                       right: 0,
                       paddingBottom: 12,
                     }}
+                    ref={absoluteIdx === 0 ? firstCardRef : undefined}
                     role="option"
                     aria-selected={selectedSampleId === sample.id}
                   >
