@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useMemo, useEffect } from "react";
 import { ShieldAlert, Loader2, Lock, Fingerprint } from "lucide-react";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion, AnimatePresence } from "../../lib/motion";
 import { useAppStore, AppTab } from "../../orchestrator/state/app.store";
 import { useAuthStore } from "../../orchestrator/state/auth.store";
 import { isTabAllowed } from "../../core/rbac";
@@ -39,6 +39,20 @@ export const FeatureRouter: React.FC = () => {
     // Example: Always pre-fetch Lab if the user is a chemist
     if (currentUser?.role === "CHEMIST") {
       import("../../capsules/lab");
+      import("../../capsules/stat");
+    }
+
+    // Example: Always pre-fetch Analytics if the user is a manager
+    if (currentUser?.role === "HEAD_MANAGER") {
+      import("../../capsules/analytics");
+      import("../../capsules/workflows");
+      import("../../capsules/audit");
+    }
+
+    // Example: Always pre-fetch Settings if the user is an admin
+    if (currentUser?.role === "ADMIN") {
+      import("../../capsules/settings");
+      import("../../capsules/audit");
     }
   }, [currentUser]);
 

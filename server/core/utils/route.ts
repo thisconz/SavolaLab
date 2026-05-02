@@ -8,6 +8,7 @@ import { logger } from "../logger";
  */
 export function toMsg(err: unknown): string {
   if (err instanceof Error) return err.message;
+  logger.error({ err }, "Unexpected error");
   return "An unexpected error occurred.";
 }
 
@@ -19,6 +20,7 @@ export function extractClientIp(c: Context): string {
   const forwarded = c.req.header("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0].trim();
   const realIp = c.req.header("x-real-ip");
+  logger.debug({ forwarded, realIp }, "Extracted client IP");
   if (realIp) return realIp;
   return "unknown";
 }
@@ -27,14 +29,15 @@ export function extractClientIp(c: Context): string {
  * Handles AppError and generic errors in a consistent way.
  * Re-exported from middleware.ts but duplicated in several route files.
  */
-export function handleRouteError(err: unknown, c: Context, context: string): Response {
+export function handleRouteError(err: unknown, c: any, context: string): Response {
   if (err instanceof AppError) {
-    if (err.httpStatus >= 500) logger.error({ err, context }, "Application error");
+    if (err.httpStatus >= 500) {
+      logger.error({ err, context }, "Application error");
+    }
     return c.json(err.toResponse(), err.httpStatus);
   }
   logger.error({ err, context }, "Unhandled route error");
-  return c.json(
-    { success: false, error: "Internal Server Error", code: "INTERNAL_ERROR" },
-    500,
-  );
+  return c.json({ success: false, error: "Internal Server Error", code: "INTERNAL_ERROR" }, 500);
 }
+
+export default { toMsg, extractClientIp, handleRouteError };

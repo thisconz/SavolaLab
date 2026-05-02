@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import type { Variables } from "../../core/types";
 import { setCookie, deleteCookie, getCookie } from "hono/cookie";
 import { AuthService, verifyRefreshToken } from "./service";
+import { extractClientIp, toMsg } from "../../core/utils/route";
 import { authenticateToken, requireRoles } from "../../core/middleware";
 import { authRateLimit } from "../../core/rateLimit";
 import { z } from "zod";
@@ -53,23 +54,11 @@ const LoginSchema = z
 
 // ── Helper ─────────────────────────────────────────────────────────────────
 
-function toMsg(err: unknown): string {
-  return err instanceof Error ? err.message : "An unexpected error occurred.";
-}
-
 const COOKIE_OPTS_BASE = {
   httpOnly: true,
   sameSite: "lax" as const,
   path: "/",
 };
-
-function extractClientIp(c: any): string {
-  const forwarded = c.req.header("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  const realIp = c.req.header("x-real-ip");
-  if (realIp) return realIp;
-  return "unknown";
-}
 
 // ── Routes ─────────────────────────────────────────────────────────────────
 
@@ -232,19 +221,7 @@ app.get("/me", authenticateToken, async (c) => {
     const user = c.get("user");
     if (!user) throw new Error("Unauthorized");
     const me = await AuthService.getMe(user.employee_number);
-
-    // Generate a CSRF token bound to this session and set it in a readable cookie
-    // The cookie is NOT httpOnly so the client JS can read it
-    const { generateCsrfToken } = await import("../../core/middleware/csrf");
-    const sessionId = getCookie(c, "token") ?? "";
-    const csrfToken = generateCsrfToken(sessionId);
-    setCookie(c, "csrf_token", csrfToken, {
-      sameSite: "lax" as const,
-      path: "/",
-      httpOnly: false, // must be readable by JS
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 8 * 60 * 60,
-    });
+    if (!me) throw new Error("User not found");
 
     return c.json(GetMeResponseSchema.parse({ success: true, data: me }));
   } catch (err) {

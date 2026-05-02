@@ -5,17 +5,6 @@ import { verifyToken } from "../modules/auth/service";
 import { AppError } from "./errors";
 import { logger } from "./logger";
 
-export function handleRouteError(err: unknown, c: any, context: string): Response {
-  if (err instanceof AppError) {
-    if (err.httpStatus >= 500) {
-      logger.error({ err, context }, "Application error");
-    }
-    return c.json(err.toResponse(), err.httpStatus);
-  }
-  logger.error({ err, context }, "Unhandled route error");
-  return c.json({ success: false, error: "Internal Server Error", code: "INTERNAL_ERROR" }, 500);
-}
-
 function extractToken(c: Context): string | null {
   const auth = c.req.header("authorization");
   if (auth?.startsWith("Bearer ")) return auth.slice(7);

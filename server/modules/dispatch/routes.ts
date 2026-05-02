@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import type { Variables } from "../../core/types";
 import { DispatchService } from "./service";
-import { authenticateToken, handleRouteError } from "../../core/middleware";
+import { authenticateToken } from "../../core/middleware";
+import { handleRouteError } from "../../core/utils/route"
 import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();

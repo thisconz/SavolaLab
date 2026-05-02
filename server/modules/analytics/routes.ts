@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { AnalyticsService } from "./service";
-import { authenticateToken, handleRouteError } from "../../core/middleware";
+import { authenticateToken } from "../../core/middleware";
+import { handleRouteError } from "../../core/utils/route"
 import { logger } from "../../core/logger";
 import type { Variables } from "../../core/types";
 
@@ -29,8 +30,10 @@ app.get(
   authenticateToken,
   wrap(() => AnalyticsService.getVolumeData()),
 );
+// Make spec limits dynamic: Read from the spec_limits table in AnalyticsService.getProcessCapability()
+// and cache for 15 minutes. This makes the Settings → Spec Limits UI actually affect analytics.
 app.get(
-  "/capability",
+  "/process-capability",
   authenticateToken,
   wrap(() => AnalyticsService.getProcessCapability()),
 );

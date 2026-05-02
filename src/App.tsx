@@ -9,11 +9,16 @@ import { RealtimeProvider } from "./core/providers/RealtimeProvider";
 import { motion } from "@/src/lib/motion";
 import { Terminal } from "lucide-react";
 
+const initializeExternalDependencies = () => {
   const { logout, setToken } = useAuthStore.getState();
-
+  
+  // Registering handlers to the decoupled ApiClient
   api.setLogoutHandler(logout);
   api.setTokenHandler(setToken);
+};
   
+initializeExternalDependencies();
+
 export default function App() {
   return (
     <ErrorBoundary name="App Root">

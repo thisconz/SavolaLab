@@ -51,16 +51,24 @@ async function getSpecLimits(): Promise<Record<string, { usl: number; lsl: numbe
   return analyticsCache.getOrSet(
     "analytics:spec_limits",
     async () => {
-      const rows = await db.query<{
-        test_type: string;
-        usl: number;
-        lsl: number;
-      }>(
-        `SELECT test_type, usl, lsl
-         FROM spec_limits
-         WHERE is_active = 1`,
-      );
-      return Object.fromEntries(rows.map((r) => [r.test_type, { usl: r.usl, lsl: r.lsl }]));
+      try {
+        const rows = await db.query<{
+          test_type: string;
+          usl: number;
+          lsl: number;
+        }>(
+          `SELECT test_type, usl, lsl
+           FROM spec_limits
+           WHERE is_active = 1`,
+        );
+        
+        return Object.fromEntries(
+          rows.map((r) => [r.test_type, { usl: Number(r.usl), lsl: Number(r.lsl) }])
+        );
+      } catch (err) {
+        logger.error({ err }, "Failed to fetch dynamic spec limits");
+        return {};
+      }
     },
     TTL.MINUTES_15,
   );
@@ -70,7 +78,7 @@ function calcCpk(mean: number, stddev: number, usl: number, lsl: number): number
   if (stddev <= 0) return 0;
   const cpu = (usl - mean) / (3 * stddev);
   const cpl = (mean - lsl) / (3 * stddev);
-  return Math.min(cpu, cpl);
+  return Math.max(0, Math.min(cpu, cpl)); // Cpk is the minimum of the two, floored at 0
 }
 
 // ─────────────────────────────────────────────
@@ -170,6 +178,7 @@ export const AnalyticsService = {
       "analytics:capability:30d",
       async () => {
         try {
+          // Fetch dynamic limits (cached for 15m internally)
           const specs = await getSpecLimits();
 
           const rows = await db.query<{
@@ -191,9 +200,9 @@ export const AnalyticsService = {
           `);
 
           const cpk: CpkResult = {
-            brixCpk: 1.33,
-            purityCpk: 1.33,
-            colorCpk: 1.33,
+            brixCpk: 0,
+            purityCpk: 0,
+            colorCpk: 0,
           };
 
           for (const row of rows) {
@@ -201,10 +210,14 @@ export const AnalyticsService = {
             const stddev = Number(row.stddev);
             const n = Number(row.n);
 
-            if (stddev <= 0 || n < 10) continue; // need at least 10 pts
+            if (stddev <= 0 || n < 10) continue; 
 
-            const spec = specs[row.test_type] ?? specs["Brix"];
-            if (!spec) continue;
+            // Match spec by test type; fallback logic if missing
+            const spec = specs[row.test_type];
+            if (!spec) {
+              logger.warn({ test_type: row.test_type }, "No active spec limit found for test type");
+              continue;
+            }
 
             const val = calcCpk(mean, stddev, spec.usl, spec.lsl);
 
@@ -219,7 +232,7 @@ export const AnalyticsService = {
           return { brixCpk: 0, purityCpk: 0, colorCpk: 0 };
         }
       },
-      TTL.HOURS_1,
+      TTL.HOURS_1, // The calculation result remains cached for 1 hour
     );
   },
 
@@ -321,5 +334,6 @@ export const AnalyticsService = {
   /** Manually bust all analytics caches (call after bulk imports) */
   invalidateAll(): void {
     analyticsCache.invalidatePrefix("analytics:");
+    logger.info("All analytics and spec_limit caches invalidated");
   },
 };

@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import type { Variables } from "../../core/types";
 import { SampleService } from "./service";
 import { authenticateToken, requirePermission } from "../../core/middleware";
+import { toMsg } from "../../core/utils/route";
 import {
   CreateSampleRequestSchema,
   UpdateSampleRequestSchema,
@@ -14,11 +15,6 @@ const app = new Hono<{ Variables: Variables }>();
 
 function getIp(c: any): string {
   return (c.req.header("x-forwarded-for") ?? "127.0.0.1").split(",")[0].trim();
-}
-
-function toMsg(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  return "An unexpected error occurred.";
 }
 
 // GET /samples

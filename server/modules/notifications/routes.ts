@@ -2,15 +2,13 @@ import { Hono } from "hono";
 import type { Variables } from "../../core/types";
 import { NotificationService } from "./service";
 import { authenticateToken } from "../../core/middleware";
+import { toMsg } from "../../core/utils/route"
 import { GetNotificationsResponseSchema } from "../../../src/shared/schemas/notification.schema";
 import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
 
-function toMsg(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  return "An unexpected error occurred.";
-}
+// ── Routes ─────────────────────────────────────────────────────────────────
 
 app.get("/", authenticateToken, async (c) => {
   const requestId = c.get("requestId");

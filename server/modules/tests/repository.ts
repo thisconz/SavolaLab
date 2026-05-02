@@ -1,7 +1,11 @@
-import { db } from "../../core/db/client";
 import { dbOrm } from "../../core/db/orm";
 import { tests } from "../../core/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
+
+// Define the TransactionLike interface based on your raw SQL client usage
+export interface TransactionLike {
+  query: (sql: string, params?: any[]) => Promise<any>;
+}
 
 export const TestRepository = {
   findAll: async () => {
@@ -64,20 +68,18 @@ export const TestRepository = {
     }
   },
 
-  create: async (tx: any, data: any): Promise<number> => {
-    const paramsStr =
-      data.params != null
-        ? typeof data.params === "string"
-          ? data.params
-          : JSON.stringify(data.params)
-        : null;
+  /**
+   * Create a test record.
+   * @param tx - Injected transaction client or null to use standard ORM.
+   */
+  create: async (tx: TransactionLike | null | undefined, data: any): Promise<number> => {
+    const paramsStr = data.params && typeof data.params !== "string" 
+      ? JSON.stringify(data.params) 
+      : data.params || null;
 
-    // Use tx (which is assumed to either be a Drizzle transaction, or fallback to raw client)
-    // Actually we will use raw client for 'tx' because the service uses db.transaction which yields raw sql client.
-    // We will incrementally move transaction to dbOrm when possible.
-    // To support `tx` as a raw sql client for now:
-    if (tx && tx.query) {
-      const rows = (await tx.query(
+    // Use raw query if tx is provided (supporting legacy raw-SQL service calls)
+    if (tx?.query) {
+      const rows = await tx.query(
         `INSERT INTO tests
            (sample_id, test_type, raw_value, calculated_value, unit,
             status, performed_at, performer_id, reviewer_id,
@@ -99,37 +101,24 @@ export const TestRepository = {
           data.notes ?? null,
           paramsStr,
         ],
-      )) as Array<{ id: number }>;
+      ) as Array<{ id: number }>;
 
       if (!rows[0]?.id) throw new Error("INSERT tests did not return an id");
       return rows[0].id;
     }
 
-    // fallback if no tx interface
-    const rows = await dbOrm
+    // Fallback to Drizzle ORM
+    const [result] = await dbOrm
       .insert(tests)
-      .values({
-        sample_id: data.sample_id,
-        test_type: data.test_type,
-        raw_value: data.raw_value ?? null,
-        calculated_value: data.calculated_value ?? null,
-        unit: data.unit ?? null,
-        status: data.status ?? "PENDING",
-        performed_at: data.performed_at ? new Date(data.performed_at) : null,
-        performer_id: data.performer_id ?? null,
-        reviewer_id: data.reviewer_id ?? null,
-        review_at: data.review_at ? new Date(data.review_at) : null,
-        review_comment: data.review_comment ?? null,
-        notes: data.notes ?? null,
-        params: paramsStr,
-      } as any)
+      .values({ ...data, params: paramsStr } as any)
       .returning({ id: tests.id });
 
-    if (!rows[0]?.id) throw new Error("INSERT tests did not return an id");
-    return rows[0].id;
+    if (!result.id) throw new Error("INSERT tests did not return an id");
+    return result.id;
   },
 
-  update: async (tx: any, id: string | number, data: any): Promise<void> => {
+  // Update tx parameter to use TransactionLike or null/undefined
+  update: async (tx: TransactionLike | null | undefined, id: string | number, data: any): Promise<void> => {
     const paramsStr =
       data.params != null
         ? typeof data.params === "string"
