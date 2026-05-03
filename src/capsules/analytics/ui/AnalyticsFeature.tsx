@@ -16,7 +16,8 @@ import {
 import { LabPanel } from "../../../shared/components/LabPanel";
 import { api } from "../../../core/http/client";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
-import clsx from "@/src/lib/clsx";
+import clsx from "../../../lib/clsx";
+import { useSpecLimits } from "../hooks/useSpecLimits";
 import {
   LineChart,
   Line,
@@ -34,7 +35,7 @@ import {
   PieChart,
   Pie,
   ReferenceLine,
-} from "@/src/lib/recharts";
+} from "../../../lib/recharts";
 import { ChartSkeleton } from "../../../shared/components/Skeletons";
 
 // ─────────────────────────────────────────────
@@ -74,12 +75,6 @@ interface StatusBreakdown {
 // ─────────────────────────────────────────────
 // Spec limits — UCL/LCL for reference lines
 // ─────────────────────────────────────────────
-
-const SPEC_LIMITS: Record<string, { usl: number; lsl: number; label: string }> = {
-  Brix: { lsl: 60, usl: 70, label: "Brix %" },
-  Purity: { lsl: 95, usl: 100, label: "Purity %" },
-  Colour: { lsl: 0, usl: 60, label: "Colour IU" },
-};
 
 type TimeWindow = "24h" | "7d" | "30d";
 const TIME_LABELS: Record<TimeWindow, string> = {
@@ -287,6 +282,8 @@ export const AnalyticsFeature: React.FC = memo(() => {
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { on } = useRealtime();
+
+  const { limits: SPEC_LIMITS } = useSpecLimits();
 
   const fetchAll = useCallback(async () => {
     setLoading(true);

@@ -1,7 +1,6 @@
 import { db } from "../../core/database";
 import { TestRepository } from "./repository";
 import { domainBus } from "../../core/events/domain-bus";
-import { sseBus } from "../../core/sse";
 
 const updateWorkflowStep = async (
   sampleId: number,
@@ -44,19 +43,17 @@ const updateWorkflowStep = async (
        WHERE execution_id = $1 AND status NOT IN ('COMPLETED','FAILED')`,
       [exec.id],
     );
+
     if (Number(pending?.count ?? 1) === 0) {
       await db.execute(
         `UPDATE workflow_executions
-         SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP WHERE id = $1`,
+         SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
         [exec.id],
       );
-      // Emit workflow completion
       domainBus.publish({
         type: "WORKFLOW_COMPLETED",
-        payload: {
-          execution_id: exec.id,
-          sample_id: sampleId,
-        },
+        payload: { execution_id: exec.id, sample_id: sampleId },
       });
     }
   } catch (err: any) {
@@ -68,19 +65,15 @@ const updateWorkflowStep = async (
 export const TestService = {
   getTests: async () => TestRepository.findAll(),
 
-  createTestResult: async (sampleId: number, data: any, performerId: string, ip = "127.0.0.1") => {
+  createTestResult: async (
+    sampleId: number,
+    data: any,
+    performerId: string,
+    ip = "127.0.0.1",
+  ) => {
     const {
-      test_type,
-      raw_value,
-      calculated_value,
-      unit,
-      status,
-      performed_at,
-      reviewer_id,
-      review_at,
-      review_comment,
-      notes,
-      params,
+      test_type, raw_value, calculated_value, unit, status,
+      performed_at, reviewer_id, review_at, review_comment, notes, params,
     } = data;
 
     const timestamp = performed_at ?? new Date().toISOString();
@@ -93,19 +86,19 @@ export const TestService = {
         if (!sample) throw new Error(`Sample ${sampleId} not found`);
 
         const testId = await TestRepository.create(client, {
-          sample_id: sampleId,
+          sample_id:       sampleId,
           test_type,
-          raw_value: raw_value ?? null,
+          raw_value:       raw_value       ?? null,
           calculated_value: calculated_value ?? raw_value ?? null,
-          unit: unit ?? null,
-          status: status ?? "PENDING",
-          performed_at: timestamp,
-          performer_id: performerId,
-          reviewer_id: reviewer_id ?? null,
-          review_at: review_at ?? null,
-          review_comment: review_comment ?? null,
-          notes: notes ?? null,
-          params: paramsStr,
+          unit:            unit            ?? null,
+          status:          status          ?? "PENDING",
+          performed_at:    timestamp,
+          performer_id:    performerId,
+          reviewer_id:     reviewer_id     ?? null,
+          review_at:       review_at       ?? null,
+          review_comment:  review_comment  ?? null,
+          notes:           notes           ?? null,
+          params:          paramsStr,
         });
 
         if (raw_value != null) {
@@ -230,14 +223,19 @@ export const TestService = {
 
     // Notify the original performer
     if (test.performer_id) {
-      sseBus.sendTo(test.performer_id, "TEST_REVIEWED", {
-        id: numId,
-        sample_id: test.sample_id,
-        test_type: test.test_type,
-        status: data.status,
-        reviewed_by: reviewerId,
+      domainBus.publish({
+        type: "TEST_REVIEWED",
+        target: test.performer_id, // targeted to the original analyst
+        payload: {
+          id:          numId,
+          sample_id:   test.sample_id,
+          test_type:   test.test_type,
+          status:      data.status,
+          reviewed_by: reviewerId,
+        },
       });
     }
+
 
     // Also broadcast to all so queues update
     domainBus.publish({

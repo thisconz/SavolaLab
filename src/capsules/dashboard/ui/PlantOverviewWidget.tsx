@@ -8,8 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-} from "@/src/lib/recharts";
-import { motion } from "@/src/lib/motion";
+} from "../../../lib/recharts";
 import { Sample } from "../../../core/types";
 
 interface Props {

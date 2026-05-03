@@ -30,7 +30,12 @@ export const useAuthFlow = ({ onSuccess, isOpen = true }: UseAuthFlowOptions = {
     setLoading(true);
     try {
       const data = await AuthApi.getUsers();
-      setUsers(data || []);
+      setUsers(
+        (data || []).map((user: any) => ({
+          ...user,
+          employee_number: user.employee_number ?? String(user.id),
+        })),
+      );
     } catch (err: any) {
       if (err?.status !== 401) {
         console.warn("[useAuthFlow] fetchUsers error:", err);

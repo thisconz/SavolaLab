@@ -2,31 +2,25 @@ import { createNotification } from "../../core/db/events";
 import { domainBus } from "../../core/events/domain-bus";
 import { SampleRepository } from "./repository";
 import { AuditService } from "../audit/service";
-import { sseBus } from "../../core/sse";
 import { SampleData, TestResultSummary, SampleTest } from "../../core/types";
 
 const DEFAULT_TESTS: Record<string, string[]> = {
-  "Raw sugar": ["Pol", "Moisture", "Colour"],
-  "White sugar": ["Pol", "Moisture", "Colour", "Ash"],
-  "Brown sugar": ["Pol", "Moisture", "Colour", "Ash"],
-  "Raw Handling": ["Brix", "pH"],
-  Refining: ["Brix", "Purity", "Colour"],
-  Clarification: ["pH", "Brix"],
-  Evaporation: ["Brix", "pH"],
-  Crystallization: ["Brix", "Purity"],
-  Centrifuge: ["Pol", "Moisture"],
+  "Raw sugar":      ["Pol", "Moisture", "Colour"],
+  "White sugar":    ["Pol", "Moisture", "Colour", "Ash"],
+  "Brown sugar":    ["Pol", "Moisture", "Colour", "Ash"],
+  "Raw Handling":   ["Brix", "pH"],
+  Refining:         ["Brix", "Purity", "Colour"],
+  Clarification:    ["pH", "Brix"],
+  Evaporation:      ["Brix", "pH"],
+  Crystallization:  ["Brix", "Purity"],
+  Centrifuge:       ["Pol", "Moisture"],
 };
 
 export const SampleService = {
-  getSamples: async (): Promise<any[]> => {
-    return SampleRepository.findAll();
-  },
+  getSamples: async (): Promise<any[]> => SampleRepository.findAll(),
 
   createSample: async (data: SampleData, technicianId: string): Promise<number> => {
-    const id = await SampleRepository.create({
-      ...data,
-      technician_id: technicianId,
-    });
+    const id = await SampleRepository.create({ ...data, technician_id: technicianId });
 
     // Emit SSE event to all connected clients
     domainBus.publish({
@@ -72,9 +66,13 @@ export const SampleService = {
           `Sample ${oldSample.batch_id} analysis has been completed.`,
         );
         // Targeted SSE notification to the technician
-        sseBus.sendTo(oldSample.technician_id, "NOTIFICATION_PUSHED", {
-          type: "SAMPLE_COMPLETED",
-          message: `Sample ${oldSample.batch_id} has been completed.`,
+        domainBus.publish({
+          type: "NOTIFICATION_PUSHED",
+          target: oldSample.technician_id, // bridge routes this via sseBus.sendTo()
+          payload: {
+            type: "SAMPLE_COMPLETED",
+            message: `Sample ${oldSample.batch_id} has been completed.`,
+          },
         });
       }
 
@@ -82,8 +80,8 @@ export const SampleService = {
       domainBus.publish({
         type: "SAMPLE_STATUS_CHANGED",
         payload: {
-          id: sampleId,
-          batch_id: oldSample.batch_id,
+          id:         sampleId,
+          batch_id:   oldSample.batch_id,
           old_status: oldSample.status,
           new_status: data.status,
           changed_by: employeeNumber,
@@ -91,11 +89,13 @@ export const SampleService = {
       });
     }
 
-    if (data.batch_id && data.batch_id !== oldSample.batch_id)
+    if (data.batch_id && data.batch_id !== oldSample.batch_id) {
       changes.push(`Batch ID: ${oldSample.batch_id} → ${data.batch_id}`);
+    }
 
-    if (data.source_stage && data.source_stage !== oldSample.source_stage)
+    if (data.source_stage && data.source_stage !== oldSample.source_stage) {
       changes.push(`Stage: ${oldSample.source_stage} → ${data.source_stage}`);
+    }
 
     if (changes.length > 0) {
       await AuditService.createLog(

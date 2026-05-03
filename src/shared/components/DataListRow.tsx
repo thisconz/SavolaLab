@@ -1,6 +1,6 @@
 import React from "react";
 import { LucideIcon } from "lucide-react";
-import clsx from "@/src/lib/clsx";
+import clsx from "../../lib/clsx";
 
 interface DataListRowProps {
   id?: string;

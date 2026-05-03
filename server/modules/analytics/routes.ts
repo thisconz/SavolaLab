@@ -1,62 +1,82 @@
 import { Hono } from "hono";
 import { AnalyticsService } from "./service";
-import { authenticateToken } from "../../core/middleware";
-import { handleRouteError } from "../../core/utils/route"
-import { logger } from "../../core/logger";
+import { authenticateToken, requireRoles } from "../../core/middleware";
+import { routeHandler } from "../../core/utils/route";
 import type { Variables } from "../../core/types";
 
 const app = new Hono<{ Variables: Variables }>();
 
-function wrap<T>(fn: () => Promise<T>) {
-  return async (c: any) => {
-    const reqId = c.get("requestId");
-    try {
-      const data = await fn();
-      return c.json({ success: true, data });
-    } catch (err: any) {
-      logger.error({ reqId, err }, "Analytics route error");
-      return handleRouteError(err, c, "AnalyticsRoutes.wrap");
-    }
-  };
-}
-
+// ── Quality / SPC trend (last 24 h) ──────────────────────────────────────────
 app.get(
   "/quality",
   authenticateToken,
-  wrap(() => AnalyticsService.getQualityData()),
+  routeHandler("Analytics.quality", async (c) => {
+    const data = await AnalyticsService.getQualityData();
+    return c.json({ success: true, data });
+  }),
 );
+
+// ── Daily volume vs target (last 7 d) ────────────────────────────────────────
 app.get(
   "/volume",
   authenticateToken,
-  wrap(() => AnalyticsService.getVolumeData()),
+  routeHandler("Analytics.volume", async (c) => {
+    const data = await AnalyticsService.getVolumeData();
+    return c.json({ success: true, data });
+  }),
 );
-// Make spec limits dynamic: Read from the spec_limits table in AnalyticsService.getProcessCapability()
-// and cache for 15 minutes. This makes the Settings → Spec Limits UI actually affect analytics.
+
+// ── Process Capability Cpk/Ppk (last 30 d) ───────────────────────────────────
+// Dynamic spec limits are loaded from the spec_limits table inside the service.
 app.get(
   "/process-capability",
   authenticateToken,
-  wrap(() => AnalyticsService.getProcessCapability()),
+  routeHandler("Analytics.processCapability", async (c) => {
+    const data = await AnalyticsService.getProcessCapability();
+    return c.json({ success: true, data });
+  }),
 );
+
+// ── Sample status breakdown ───────────────────────────────────────────────────
 app.get(
   "/status",
   authenticateToken,
-  wrap(() => AnalyticsService.getSampleStatusBreakdown()),
+  routeHandler("Analytics.status", async (c) => {
+    const data = await AnalyticsService.getSampleStatusBreakdown();
+    return c.json({ success: true, data });
+  }),
 );
+
+// ── Test pass rates ───────────────────────────────────────────────────────────
 app.get(
   "/pass-rates",
   authenticateToken,
-  wrap(() => AnalyticsService.getTestPassRates()),
+  routeHandler("Analytics.passRates", async (c) => {
+    const data = await AnalyticsService.getTestPassRates();
+    return c.json({ success: true, data });
+  }),
 );
+
+// ── Stage efficiency ──────────────────────────────────────────────────────────
 app.get(
   "/efficiency",
   authenticateToken,
-  wrap(() => AnalyticsService.getStageEfficiency()),
+  routeHandler("Analytics.efficiency", async (c) => {
+    const data = await AnalyticsService.getStageEfficiency();
+    return c.json({ success: true, data });
+  }),
 );
 
-/** Admin: bust cache */
-app.post("/invalidate", authenticateToken, async (c) => {
-  AnalyticsService.invalidateAll();
-  return c.json({ success: true, message: "Analytics cache cleared" });
-});
+
+// ── Admin: bust analytics + spec_limits cache ─────────────────────────────────
+app.post(
+  "/invalidate",
+  authenticateToken,
+  requireRoles("ADMIN", "HEAD_MANAGER"),
+  routeHandler("Analytics.invalidate", async (c) => {
+    AnalyticsService.invalidateAll();
+    return c.json({ success: true, message: "Analytics cache cleared" });
+  }),
+);
 
 export default app;

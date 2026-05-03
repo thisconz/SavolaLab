@@ -3,10 +3,15 @@ import { ZentharEventType } from "../sse";
 
 type DomainEventPayload = Record<string, any>;
 
-interface DomainEvent {
+export interface DomainEvent {
+  /** Must be a valid ZentharEventType — enforces parity with SSE registry */
   type: ZentharEventType;
   payload: DomainEventPayload;
-  target?: string; // optional: targeted employee number
+  /**
+   * Optional: employee_number of the sole intended recipient.
+   * If omitted, the event is broadcast to all connected clients.
+   */
+  target?: string;
 }
 
 class DomainEventBus extends EventEmitter {
@@ -20,10 +25,19 @@ class DomainEventBus extends EventEmitter {
     return DomainEventBus.instance;
   }
 
+  /**
+   * Publish a domain event.
+   * The SSE subscriber bridge (sse-subscriber.ts) handles routing to
+   * either sseBus.sendTo() or sseBus.broadcast() automatically.
+   */
   publish(event: DomainEvent): void {
     this.emit("domain:event", event);
   }
 
+  /**
+   * Subscribe to domain events.
+   * Returns an unsubscribe function for clean teardown.
+   */
   subscribe(handler: (event: DomainEvent) => void): () => void {
     this.on("domain:event", handler);
     return () => this.off("domain:event", handler);
@@ -31,4 +45,3 @@ class DomainEventBus extends EventEmitter {
 }
 
 export const domainBus = DomainEventBus.getInstance();
-export type { DomainEvent };
