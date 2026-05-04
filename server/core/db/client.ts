@@ -7,18 +7,17 @@ import { fileURLToPath } from "url";
 const { Pool } = pg;
 
 // ─── Path resolution ─────────────────────────────────────────────
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
 
-const PGLITE_DATA_DIR = path.join(__dirname, "..", "..", "..", "pgdata");
+const PGLITE_DATA_DIR = path.join(_dirname, "..", "..", "..", "pgdata");
 
 // ─── DB Mode (strict, deterministic) ─────────────────────────────
 export type DbMode = "postgres" | "pglite";
 
 const connectionString = process.env.DATABASE_URL;
 
-export const DB_MODE: DbMode =
-  process.env.DB_MODE === "pglite" || !connectionString ? "pglite" : "postgres";
+export const DB_MODE: DbMode = process.env.DB_MODE === "pglite" || !connectionString ? "pglite" : "postgres";
 
 if (DB_MODE === "pglite") {
   logger.warn("⚠️ Running in PGlite mode");
@@ -26,7 +25,7 @@ if (DB_MODE === "pglite") {
 }
 
 // ─── PGlite singleton ─────────────────────────────────────────────
-let _pgliteInstance: PGlite | null = null;
+let _pgliteInstance: PGlite | undefined = undefined;
 let _pgliteTxLock: Promise<void> = Promise.resolve();
 
 function getPGLiteInstance(): PGlite {
@@ -103,13 +102,13 @@ if (DB_MODE === "postgres") {
 
 export interface TransactionClient {
   query<T = any>(sql: string, params?: any[]): Promise<T[]>;
-  queryOne<T = any>(sql: string, params?: any[]): Promise<T | null>;
+  queryOne<T = any>(sql: string, params?: any[]): Promise<T | undefined>;
   execute(sql: string, params?: any[]): Promise<void>;
 }
 
 export interface DatabaseClient {
   query<T = any>(sql: string, params?: any[]): Promise<T[]>;
-  queryOne<T = any>(sql: string, params?: any[]): Promise<T | null>;
+  queryOne<T = any>(sql: string, params?: any[]): Promise<T | undefined>;
   execute(sql: string, params?: any[]): Promise<void>;
   transaction<T>(fn: (client: TransactionClient) => Promise<T>): Promise<T>;
 }
@@ -149,9 +148,9 @@ export const db: DatabaseClient = {
     }
   },
 
-  async queryOne<T = any>(sql: string, params: any[] = []): Promise<T | null> {
+  async queryOne<T = any>(sql: string, params: any[] = []): Promise<T | undefined> {
     const rows = await this.query<T>(sql, params);
-    return rows[0] || null;
+    return rows[0] || undefined;
   },
 
   async execute(sql: string, params: any[] = []): Promise<void> {
@@ -175,7 +174,7 @@ export const db: DatabaseClient = {
         },
         queryOne: async (sql, params = []) => {
           const res = await client.query(sql, params);
-          return res.rows[0] || null;
+          return res.rows[0] || undefined;
         },
         execute: async (sql, params = []) => {
           await client.query(sql, params);

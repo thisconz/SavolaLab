@@ -25,17 +25,12 @@ export async function createNotification(employeeNumber: string, type: string, m
  * @param details detailed description
  * @param ip optional IP address
  */
-export async function createAuditLog(
-  employeeNumber: string,
-  action: string,
-  details: string,
-  ip?: string,
-) {
+export async function createAuditLog(employeeNumber: string, action: string, details: string, ip?: string) {
   await db.execute(
     `
     INSERT INTO audit_logs (employee_number, action, details, ip_address)
     VALUES ($1, $2, $3, $4)
   `,
-    [employeeNumber, action, details, ip ?? null],
+    [employeeNumber, action, details, ip ?? undefined],
   );
 }

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { Variables } from "../../core/types";
 import { authenticateToken, requireRoles } from "../../core/middleware";
-import { handleRouteError } from "../../core/utils/route"
+import { handleRouteError } from "../../core/utils/route";
 import { db } from "../../core/database";
 import { logger } from "../../core/logger";
 

@@ -7,14 +7,7 @@ import { AuditService } from "../audit/service";
 
 const app = new Hono<{ Variables: Variables }>();
 
-const ALLOWED_TYPES: ExportType[] = [
-  "samples",
-  "tests",
-  "audit",
-  "certificates",
-  "instruments",
-  "inventory",
-];
+const ALLOWED_TYPES: ExportType[] = ["samples", "tests", "audit", "certificates", "instruments", "inventory"];
 
 app.get(
   "/:type",

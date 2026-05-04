@@ -9,18 +9,41 @@
   "bracketSpacing": true,
   "bracketSameLine": false,
   "endOfLine": "lf",
-  "plugins": [],
+  "proseWrap": "always",
+  "htmlWhitespaceSensitivity": "css",
+  "plugins": ["prettier-plugin-tailwindcss"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx"],
       "options": {
-        "parser": "typescript"
+        "parser": "typescript",
+        "printWidth": 110
       }
     },
     {
-      "files": ["*.json"],
+      "files": ["*.css", "*.scss"],
       "options": {
-        "printWidth": 120
+        "singleQuote": true
+      }
+    },
+    {
+      "files": ["*.json", "package.json"],
+      "options": {
+        "printWidth": 120,
+        "tabWidth": 2
+      }
+    },
+    {
+      "files": ["*.md"],
+      "options": {
+        "printWidth": 80,
+        "proseWrap": "always"
+      }
+    },
+    {
+      "files": ["*.svg"],
+      "options": {
+        "parser": "html"
       }
     }
   ]

@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FlaskConical,
   Clock,
@@ -34,42 +34,34 @@ export const SampleCard: React.FC<SampleCardProps> = memo(({ sample, active, onC
       whileHover={{ x: 6 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className={`
-        relative w-full text-left rounded-[1.25rem] transition-all duration-300
-        group overflow-hidden outline-none border
-        ${
-          active
-            ? "bg-(--color-zenthar-graphite) border-brand-primary/40 shadow-xl shadow-brand-primary/10 ring-1 ring-brand-primary/5"
-            : "bg-(--color-zenthar-carbon)/80 border-brand-sage/10 hover:border-brand-primary/20 shadow-sm"
-        }
-      `}
+      className={`group relative w-full overflow-hidden rounded-[1.25rem] border text-left transition-all duration-300 outline-none ${
+        active
+          ? "border-brand-primary/40 shadow-brand-primary/10 ring-brand-primary/5 bg-(--color-zenthar-graphite) shadow-xl ring-1"
+          : "border-brand-sage/10 hover:border-brand-primary/20 bg-(--color-zenthar-carbon)/80 shadow-sm"
+      } `}
     >
       {/* STAT / ACTIVE / IDLE indicator strip */}
       <div
-        className={`
-          absolute left-0 top-0 bottom-0 w-1.5 transition-all duration-500 z-20
-          ${
-            isStat
-              ? "bg-lab-laser animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]"
-              : active
-                ? "bg-brand-primary"
-                : "bg-brand-sage/20"
-          }
-        `}
+        className={`absolute top-0 bottom-0 left-0 z-20 w-1.5 transition-all duration-500 ${
+          isStat
+            ? "bg-lab-laser animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+            : active
+              ? "bg-brand-primary"
+              : "bg-brand-sage/20"
+        } `}
       />
 
-      <div className="p-4 pl-6 relative z-10 flex flex-col gap-3">
+      <div className="relative z-10 flex flex-col gap-3 p-4 pl-6">
         {/* TOP ROW: ID & PRIORITY */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span
-              className={`text-[10px] font-black tracking-widest tabular-nums font-mono
-                ${active ? "text-white" : "text-brand-sage"}`}
+              className={`font-mono text-[10px] font-black tracking-widest tabular-nums ${active ? "text-white" : "text-brand-sage"}`}
             >
               #{sample.batch_id ?? `ID-${sample.id}`}
             </span>
             {isStat && (
-              <span className="flex items-center gap-1 bg-lab-laser/10 px-1.5 py-0.5 rounded text-[8px] font-black text-lab-laser uppercase tracking-tighter">
+              <span className="bg-lab-laser/10 text-lab-laser flex items-center gap-1 rounded px-1.5 py-0.5 text-[8px] font-black tracking-tighter uppercase">
                 <Zap size={8} fill="currentColor" />
                 STAT
               </span>
@@ -81,28 +73,24 @@ export const SampleCard: React.FC<SampleCardProps> = memo(({ sample, active, onC
         {/* MAIN ROW: ICON + TYPE */}
         <div className="flex items-center gap-4">
           <div
-            className={`
-              w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-500
-              ${
-                active
-                  ? isStat
-                    ? "bg-lab-laser text-white shadow-lg shadow-lab-laser/30"
-                    : "bg-brand-primary text-white shadow-lg shadow-brand-primary/30"
-                  : "bg-(--color-zenthar-void) text-brand-sage border border-brand-sage/5"
-              }
-            `}
+            className={`flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-500 ${
+              active
+                ? isStat
+                  ? "bg-lab-laser shadow-lab-laser/30 text-white shadow-lg"
+                  : "bg-brand-primary shadow-brand-primary/30 text-white shadow-lg"
+                : "text-brand-sage border-brand-sage/5 border bg-(--color-zenthar-void)"
+            } `}
           >
             <FlaskConical size={20} className={isTesting && active ? "animate-pulse" : ""} />
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <h4
-              className={`text-xs font-black uppercase tracking-tight truncate
-                ${active ? "text-white" : "text-white/70"}`}
+              className={`truncate text-xs font-black tracking-tight uppercase ${active ? "text-white" : "text-white/70"}`}
             >
               {sample.sample_type ?? "Unknown Type"}
             </h4>
-            <div className="flex items-center gap-2 mt-1 text-[10px] text-brand-sage/80 font-bold uppercase tracking-wider">
+            <div className="text-brand-sage/80 mt-1 flex items-center gap-2 text-[10px] font-bold tracking-wider uppercase">
               <Tag size={10} className="text-brand-primary/40 shrink-0" />
               <span className="truncate">{stageLabel}</span>
             </div>
@@ -111,10 +99,9 @@ export const SampleCard: React.FC<SampleCardProps> = memo(({ sample, active, onC
 
         {/* FOOTER ROW: TIME + TEST COUNT + STATUS */}
         <div
-          className={`flex items-center justify-between pt-3 border-t mt-1
-            ${active ? "border-brand-primary/10" : "border-brand-sage/5"}`}
+          className={`mt-1 flex items-center justify-between border-t pt-3 ${active ? "border-brand-primary/10" : "border-brand-sage/5"}`}
         >
-          <div className="flex items-center gap-3 text-brand-sage/60">
+          <div className="text-brand-sage/60 flex items-center gap-3">
             <div className="flex items-center gap-1">
               <Clock size={11} />
               <span className="text-[9px] font-black tabular-nums">
@@ -136,8 +123,7 @@ export const SampleCard: React.FC<SampleCardProps> = memo(({ sample, active, onC
             <StatusIndicator status={sample.status as SampleStatus} />
             <ChevronRight
               size={14}
-              className={`transition-all duration-300
-                ${active ? "translate-x-0 text-brand-primary" : "-translate-x-2 opacity-0"}`}
+              className={`transition-all duration-300 ${active ? "text-brand-primary translate-x-0" : "-translate-x-2 opacity-0"}`}
             />
           </div>
         </div>
@@ -150,7 +136,7 @@ export const SampleCard: React.FC<SampleCardProps> = memo(({ sample, active, onC
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-linear-to-r from-brand-primary/5 via-transparent to-transparent pointer-events-none"
+            className="from-brand-primary/5 pointer-events-none absolute inset-0 bg-linear-to-r via-transparent to-transparent"
           />
         )}
       </AnimatePresence>
@@ -164,16 +150,13 @@ const StatusIndicator = ({ status }: { status: SampleStatus }) => {
 
   return (
     <div
-      className={`
-        flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border
-        ${
-          isDone
-            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-            : isTesting
-              ? "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
-              : "bg-(--color-zenthar-void) border-brand-sage/10 text-brand-sage/70"
-        }
-      `}
+      className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[8px] font-black tracking-widest uppercase ${
+        isDone
+          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+          : isTesting
+            ? "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
+            : "border-brand-sage/10 text-brand-sage/70 bg-(--color-zenthar-void)"
+      } `}
     >
       {isDone ? (
         <CheckCircle2 size={10} strokeWidth={3} />

@@ -1,10 +1,6 @@
-import React, { memo, type FC, type ElementType } from "react";
-import { motion } from "@/src/lib/motion";
-import clsx from "@/src/lib/clsx";
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
+import { memo, type FC, type ElementType } from "react";
+import { motion } from "framer-motion";
+import clsx from "clsx";
 
 export type MetricVariant = "primary" | "secondary" | "success" | "warning" | "error" | "info";
 
@@ -19,168 +15,195 @@ interface MetricCardProps {
   loading?: boolean;
 }
 
-// ─────────────────────────────────────────────
-// Style maps — dark-theme consistent
-// ─────────────────────────────────────────────
+interface VariantStyle {
+  border: string;
+  iconBg: string;
+  iconColor: string;
+  valueColor: string;
+  dotColor: string;
+  glowColor: string;
+  bgAccent: string;
+  trendColor: string;
+}
 
-const STYLES: Record<
-  MetricVariant,
-  {
-    bg: string;
-    border: string;
-    iconBg: string;
-    icon: string;
-    value: string;
-    dot: string;
-    glow: string;
-  }
-> = {
+const VARIANT_STYLES: Record<MetricVariant, VariantStyle> = {
   primary: {
-    bg: "bg-(--color-zenthar-carbon)",
-    border: "border-(--color-zenthar-steel) hover:border-brand-primary/30",
-    iconBg: "bg-brand-primary/10 border-brand-primary/20",
-    icon: "text-brand-primary",
-    value: "text-brand-primary",
-    dot: "bg-brand-primary",
-    glow: "shadow-brand-primary/10",
+    border: "rgba(244,63,94,0.25)",
+    iconBg: "rgba(244,63,94,0.1)",
+    iconColor: "#f43f5e",
+    valueColor: "#f43f5e",
+    dotColor: "#f43f5e",
+    glowColor: "rgba(244,63,94,0.15)",
+    bgAccent: "rgba(244,63,94,0.04)",
+    trendColor: "rgba(244,63,94,0.7)",
   },
   secondary: {
-    bg: "bg-(--color-zenthar-carbon)",
-    border: "border-(--color-zenthar-steel) hover:border-(--color-zenthar-text-secondary)/20",
-    iconBg: "bg-(--color-zenthar-graphite) border-(--color-zenthar-steel)",
-    icon: "text-(--color-zenthar-text-secondary)",
-    value: "text-(--color-zenthar-text-primary)",
-    dot: "bg-(--color-zenthar-text-muted)",
-    glow: "shadow-transparent",
+    border: "rgba(100,120,200,0.2)",
+    iconBg: "rgba(100,120,200,0.08)",
+    iconColor: "#8892b0",
+    valueColor: "#f0f4ff",
+    dotColor: "#8892b0",
+    glowColor: "rgba(100,120,200,0.08)",
+    bgAccent: "rgba(100,120,200,0.03)",
+    trendColor: "#3d4a6b",
   },
   success: {
-    bg: "bg-lab-toxic/5",
-    border: "border-lab-toxic/15 hover:border-lab-toxic/30",
-    iconBg: "bg-lab-toxic/10 border-lab-toxic/20",
-    icon: "text-lab-toxic",
-    value: "text-lab-toxic",
-    dot: "bg-lab-toxic",
-    glow: "shadow-lab-toxic/10",
+    border: "rgba(16,185,129,0.3)",
+    iconBg: "rgba(16,185,129,0.1)",
+    iconColor: "#10b981",
+    valueColor: "#10b981",
+    dotColor: "#10b981",
+    glowColor: "rgba(16,185,129,0.12)",
+    bgAccent: "rgba(16,185,129,0.04)",
+    trendColor: "rgba(16,185,129,0.7)",
   },
   warning: {
-    bg: "bg-lab-warning/5",
-    border: "border-lab-warning/15 hover:border-lab-warning/30",
-    iconBg: "bg-lab-warning/10 border-lab-warning/20",
-    icon: "text-lab-warning",
-    value: "text-lab-warning",
-    dot: "bg-lab-warning",
-    glow: "shadow-lab-warning/10",
+    border: "rgba(245,158,11,0.3)",
+    iconBg: "rgba(245,158,11,0.1)",
+    iconColor: "#f59e0b",
+    valueColor: "#f59e0b",
+    dotColor: "#f59e0b",
+    glowColor: "rgba(245,158,11,0.12)",
+    bgAccent: "rgba(245,158,11,0.04)",
+    trendColor: "rgba(245,158,11,0.7)",
   },
   error: {
-    bg: "bg-brand-primary/5",
-    border: "border-brand-primary/15 hover:border-brand-primary/30",
-    iconBg: "bg-brand-primary/10 border-brand-primary/20",
-    icon: "text-brand-primary",
-    value: "text-brand-primary",
-    dot: "bg-brand-primary",
-    glow: "shadow-brand-primary/10",
+    border: "rgba(239,68,68,0.3)",
+    iconBg: "rgba(239,68,68,0.1)",
+    iconColor: "#ef4444",
+    valueColor: "#ef4444",
+    dotColor: "#ef4444",
+    glowColor: "rgba(239,68,68,0.12)",
+    bgAccent: "rgba(239,68,68,0.04)",
+    trendColor: "rgba(239,68,68,0.7)",
   },
   info: {
-    bg: "bg-lab-laser/5",
-    border: "border-lab-laser/15 hover:border-lab-laser/30",
-    iconBg: "bg-lab-laser/10 border-lab-laser/20",
-    icon: "text-lab-laser",
-    value: "text-lab-laser",
-    dot: "bg-lab-laser",
-    glow: "shadow-lab-laser/10",
+    border: "rgba(34,211,238,0.3)",
+    iconBg: "rgba(34,211,238,0.1)",
+    iconColor: "#22d3ee",
+    valueColor: "#22d3ee",
+    dotColor: "#22d3ee",
+    glowColor: "rgba(34,211,238,0.12)",
+    bgAccent: "rgba(34,211,238,0.04)",
+    trendColor: "rgba(34,211,238,0.7)",
   },
 };
 
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
-
 export const MetricCard: FC<MetricCardProps> = memo(
-  ({
-    label,
-    value,
-    icon: Icon,
-    trend,
-    variant = "primary",
-    onClick,
-    className,
-    loading = false,
-  }) => {
-    const s = STYLES[variant];
+  ({ label, value, icon: Icon, trend, variant = "primary", onClick, className, loading = false }) => {
+    const s = VARIANT_STYLES[variant];
 
     return (
       <motion.div
-        whileHover={onClick ? { scale: 1.02, y: -1 } : undefined}
-        whileTap={onClick ? { scale: 0.99 } : undefined}
+        whileHover={onClick ? { scale: 1.02, y: -2 } : undefined}
+        whileTap={onClick ? { scale: 0.98 } : undefined}
         onClick={onClick}
         className={clsx(
-          "relative overflow-hidden rounded-3xl border p-5 flex flex-col justify-between gap-4",
-          "transition-all duration-300 shadow-lg",
-          s.bg,
-          s.border,
-          s.glow,
+          "relative flex flex-col gap-3 overflow-hidden rounded-2xl p-5 transition-all duration-300",
           onClick && "cursor-pointer",
           className,
         )}
+        style={{
+          background: `linear-gradient(135deg, ${s.bgAccent} 0%, rgba(5,5,15,0.98) 100%)`,
+          border: `1px solid ${s.border}`,
+          boxShadow: `0 0 20px ${s.glowColor}, 0 4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)`,
+        }}
       >
-        {/* Decorative glow circle */}
+        {/* Corner accent */}
         <div
-          className={clsx(
-            "absolute -right-6 -top-6 w-24 h-24 rounded-full blur-2xl opacity-20 pointer-events-none",
-            s.dot.replace("bg-", "bg-"),
-          )}
+          className="absolute top-0 right-0 h-16 w-16 rounded-bl-full opacity-40"
+          style={{ background: `radial-gradient(circle at top right, ${s.glowColor}, transparent)` }}
         />
 
-        {/* Top row */}
-        <div className="flex items-start justify-between relative">
-          <div className="flex items-center gap-1.5">
-            <span className={clsx("w-1.5 h-1.5 rounded-full shrink-0", s.dot)} />
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-(--color-zenthar-text-muted)">
+        {/* Top grid decoration */}
+        <div className="instrument-grid pointer-events-none absolute inset-0 opacity-60" />
+
+        {/* Scan line animation on hover */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+          <motion.div
+            animate={{ y: ["-100%", "200%"] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            className="absolute right-0 left-0 h-px opacity-0 hover:opacity-100"
+            style={{ background: `linear-gradient(90deg, transparent, ${s.dotColor}, transparent)` }}
+          />
+        </div>
+
+        {/* Header row */}
+        <div className="relative z-10 flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <div
+              className="h-3 w-1 rounded-full"
+              style={{ background: s.dotColor, boxShadow: `0 0 6px ${s.dotColor}` }}
+            />
+            <span className="text-zenthar-text-muted text-[9px] font-black tracking-[0.3em] uppercase">
               {label}
             </span>
           </div>
+
           {Icon && (
             <div
-              className={clsx(
-                "w-9 h-9 rounded-2xl flex items-center justify-center border shrink-0",
-                s.iconBg,
-              )}
+              className="flex h-9 w-9 items-center justify-center rounded-xl"
+              style={{
+                background: s.iconBg,
+                border: `1px solid ${s.border}`,
+                boxShadow: `0 0 12px ${s.glowColor}`,
+              }}
             >
-              <Icon className={clsx("w-4 h-4", s.icon)} />
+              <Icon className="h-4 w-4" style={{ color: s.iconColor }} />
             </div>
           )}
         </div>
 
         {/* Value */}
-        <div className="relative">
+        <div className="relative z-10">
           {loading ? (
-            <div className="h-9 w-20 bg-(--color-zenthar-graphite) rounded-xl animate-pulse" />
+            <div className="bg-zenthar-graphite h-10 w-24 animate-pulse rounded-xl" />
           ) : (
             <motion.p
               key={String(value)}
-              initial={{ opacity: 0.5, y: 4 }}
+              initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              className={clsx(
-                "text-4xl font-light tracking-tighter leading-none tabular-nums",
-                s.value,
-              )}
+              className="text-4xl leading-none font-light tracking-tighter tabular-nums"
+              style={{
+                color: s.valueColor,
+                textShadow: `0 0 20px ${s.glowColor}`,
+              }}
             >
               {value}
             </motion.p>
           )}
+
           {trend && (
-            <p className="text-[9px] text-(--color-zenthar-text-muted) font-medium mt-1.5">
+            <p
+              className="mt-1.5 font-mono text-[9px] tracking-widest uppercase"
+              style={{ color: s.trendColor }}
+            >
               {trend}
             </p>
           )}
         </div>
+
+        {/* Bottom accent line */}
+        <div
+          className="absolute right-0 bottom-0 left-0 h-px"
+          style={{
+            background: `linear-gradient(90deg, transparent, ${s.dotColor}, transparent)`,
+            opacity: 0.4,
+          }}
+        />
       </motion.div>
     );
   },
 );
 
 export const MetricCardSkeleton: FC = () => (
-  <div className="animate-pulse h-28 rounded-3xl bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel)" />
+  <div
+    className="h-28 animate-pulse rounded-2xl"
+    style={{
+      background: "rgba(8,8,26,0.95)",
+      border: "1px solid rgba(100,120,200,0.1)",
+    }}
+  />
 );
 
 MetricCard.displayName = "MetricCard";

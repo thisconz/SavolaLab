@@ -76,11 +76,7 @@ function filterAllowedColumns<T extends TableName>(
 
   for (const [key, value] of Object.entries(data)) {
     if (!allowed.includes(key)) {
-      throw new AppError(
-        "VALIDATION_ERROR",
-        422,
-        `Column "${key}" is not permitted for table "${table}"`,
-      );
+      throw new AppError("VALIDATION_ERROR", 422, `Column "${key}" is not permitted for table "${table}"`);
     }
     entries.push([key as ColumnOf<T>, value]);
   }
@@ -168,10 +164,7 @@ export const SettingsService = {
     const values = entries.map(([, v]) => v);
     const setClause = fields.map((f, i) => `${f} = $${i + 1}`).join(", ");
 
-    await db.execute(
-      `UPDATE ${table} SET ${setClause} WHERE ${pk} = $${fields.length + 1}`,
-      [...values, id],
-    );
+    await db.execute(`UPDATE ${table} SET ${setClause} WHERE ${pk} = $${fields.length + 1}`, [...values, id]);
 
     if (["system_preferences", "notification_rules", "spec_limits"].includes(table)) {
       await createNotification("ADMIN", "SETTINGS_CHANGED", `Record ${id} updated in ${table}`);

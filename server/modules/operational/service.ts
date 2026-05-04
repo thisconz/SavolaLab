@@ -1,6 +1,6 @@
-import { db, createAuditLog } from "../../core/database";
+import { db } from "../../core/database";
 import { operationalCache, TTL } from "../../core/cache";
-import { Pagination, EquipmentFilter } from "../../core/types";
+import type { Pagination, EquipmentFilter } from "../../core/types";
 import { OperationalRepository } from "./repository";
 
 export const OperationalService = {

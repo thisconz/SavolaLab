@@ -9,7 +9,7 @@ import {
   RefreshCw,
   Wifi,
 } from "lucide-react";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { LabPanel } from "../../../shared/components/LabPanel";
 import { LabButton } from "../../../shared/components/LabButton";
 import { SampleQueue } from "./SampleQueue";
@@ -21,7 +21,7 @@ import { Sample, SampleStatus } from "../../../core/types";
 import { ErrorBoundary } from "../../../shared/components/ErrorBoundary";
 import { QCStatsWidget } from "../../dashboard/ui/QCStatsWidget";
 import { PriorityWidget } from "../../dashboard/ui/PriorityWidget";
-import clsx from "@/src/lib/clsx";
+import clsx from "clsx";
 
 export const LabFeature: React.FC = memo(() => {
   const { samples, loading, error, refresh, lastUpdated, isRefreshing } = useLabSamples();
@@ -51,40 +51,35 @@ export const LabFeature: React.FC = memo(() => {
   }, []);
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
+    <div className="flex h-full flex-col gap-6 overflow-hidden rounded-3xl bg-(--color-zenthar-graphite)/30 p-2">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 shrink-0 flex-wrap gap-3">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 px-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
-            <LayoutDashboard className="w-6 h-6 text-brand-primary" />
+          <h2 className="font-display flex items-center gap-2 text-xl font-bold text-(--color-zenthar-text-primary) md:text-2xl">
+            <LayoutDashboard className="text-brand-primary h-6 w-6" />
             Facility Hub
           </h2>
-          <div className="flex items-center gap-3 mt-0.5">
-            <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
+          <div className="mt-0.5 flex items-center gap-3">
+            <p className="text-brand-sage font-mono text-[10px] tracking-widest uppercase">
               Real-time lab queue
             </p>
             {isRefreshing && (
-              <span className="flex items-center gap-1 text-[9px] font-bold text-brand-primary uppercase">
+              <span className="text-brand-primary flex items-center gap-1 text-[9px] font-bold uppercase">
                 <RefreshCw size={9} className="animate-spin" /> Syncing
               </span>
             )}
             {lastUpdated && !isRefreshing && (
-              <span className="text-[9px] font-mono text-brand-sage/40">
+              <span className="text-brand-sage/40 font-mono text-[9px]">
                 Updated {lastUpdated.toLocaleTimeString()}
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex gap-3 flex-wrap items-center">
-          <div className="flex items-center gap-4 bg-(--color-zenthar-graphite)/60 backdrop-blur-md border border-brand-sage/10 px-5 py-2 rounded-2xl shadow-sm">
-            <StatItem
-              icon={Activity}
-              label="Testing"
-              value={activeCount}
-              color="text-emerald-400"
-            />
-            <div className="w-px h-4 bg-brand-sage/20" />
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="border-brand-sage/10 flex items-center gap-4 rounded-2xl border bg-(--color-zenthar-graphite)/60 px-5 py-2 shadow-sm backdrop-blur-md">
+            <StatItem icon={Activity} label="Testing" value={activeCount} color="text-emerald-400" />
+            <div className="bg-brand-sage/20 h-4 w-px" />
             <StatItem
               icon={FlaskConical}
               label="Queue"
@@ -99,9 +94,9 @@ export const LabFeature: React.FC = memo(() => {
       </div>
 
       {/* Workspace grid */}
-      <div className="flex-1 overflow-hidden grid grid-cols-12 gap-6">
+      <div className="grid flex-1 grid-cols-12 gap-6 overflow-hidden">
         {/* Queue */}
-        <div className="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col gap-4 overflow-hidden h-full">
+        <div className="col-span-12 flex h-full flex-col gap-4 overflow-hidden lg:col-span-5 xl:col-span-4">
           <LabPanel
             title="Processing Queue"
             icon={ClipboardList}
@@ -119,7 +114,7 @@ export const LabFeature: React.FC = memo(() => {
         </div>
 
         {/* Workspace */}
-        <div className="col-span-12 lg:col-span-7 xl:col-span-8 flex flex-col overflow-hidden h-full">
+        <div className="col-span-12 flex h-full flex-col overflow-hidden lg:col-span-7 xl:col-span-8">
           <AnimatePresence mode="wait">
             {!selectedSample ? (
               <EmptyWorkspace key="empty" samples={samples ?? []} />
@@ -181,10 +176,10 @@ const StatItem = ({ icon: Icon, label, value, color }: any) => (
   <div className="flex items-center gap-2">
     <Icon size={14} className={color} />
     <div className="flex flex-col">
-      <span className="text-[8px] font-black uppercase text-brand-sage/60 tracking-widest leading-none">
+      <span className="text-brand-sage/60 text-[8px] leading-none font-black tracking-widest uppercase">
         {label}
       </span>
-      <span className="text-sm font-black text-(--color-zenthar-text-primary) leading-tight mt-0.5">
+      <span className="mt-0.5 text-sm leading-tight font-black text-(--color-zenthar-text-primary)">
         {String(value).padStart(2, "0")}
       </span>
     </div>
@@ -192,12 +187,8 @@ const StatItem = ({ icon: Icon, label, value, color }: any) => (
 );
 
 const EmptyWorkspace = ({ samples }: { samples: Sample[] }) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="h-full flex flex-col gap-6"
-  >
-    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex h-full flex-col gap-6">
+    <div className="grid flex-1 grid-cols-1 gap-6 md:grid-cols-2">
       <LabPanel title="Quality Distribution" icon={Activity}>
         <QCStatsWidget samples={samples} />
       </LabPanel>
@@ -205,18 +196,16 @@ const EmptyWorkspace = ({ samples }: { samples: Sample[] }) => (
         <PriorityWidget samples={samples} />
       </LabPanel>
     </div>
-    <div className="flex flex-col items-center justify-center p-8 bg-(--color-zenthar-graphite)/30 rounded-[2.5rem] border-2 border-dashed border-brand-sage/10">
+    <div className="border-brand-sage/10 flex flex-col items-center justify-center rounded-[2.5rem] border-2 border-dashed bg-(--color-zenthar-graphite)/30 p-8">
       <div className="relative">
-        <div className="absolute inset-0 bg-brand-primary/5 rounded-full blur-3xl animate-pulse" />
-        <div className="relative p-8 bg-(--color-zenthar-carbon) rounded-full border border-brand-sage/5">
+        <div className="bg-brand-primary/5 absolute inset-0 animate-pulse rounded-full blur-3xl" />
+        <div className="border-brand-sage/5 relative rounded-full border bg-(--color-zenthar-carbon) p-8">
           <Microscope size={36} className="text-brand-primary/20" />
         </div>
       </div>
-      <div className="text-center max-w-sm mt-5">
-        <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary)">
-          Workspace Idle
-        </h2>
-        <p className="text-brand-sage text-sm mt-2 leading-relaxed">
+      <div className="mt-5 max-w-sm text-center">
+        <h2 className="font-display text-xl font-bold text-(--color-zenthar-text-primary)">Workspace Idle</h2>
+        <p className="text-brand-sage mt-2 text-sm leading-relaxed">
           Select a sample from the processing queue to begin analysis.
         </p>
       </div>

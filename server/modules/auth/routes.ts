@@ -6,10 +6,7 @@ import { extractClientIp, toMsg } from "../../core/utils/route";
 import { authenticateToken, requireRoles } from "../../core/middleware";
 import { authRateLimit } from "../../core/rateLimit";
 import { z } from "zod";
-import {
-  GetUsersResponseSchema,
-  GetMeResponseSchema,
-} from "../../../src/shared/schemas/auth.schema";
+import { GetUsersResponseSchema, GetMeResponseSchema } from "../../../src/shared/schemas/auth.schema";
 import { logger } from "../../core/logger";
 
 const app = new Hono<{ Variables: Variables }>();
@@ -101,11 +98,7 @@ app.post("/confirm-otp", authRateLimit, async (c) => {
   try {
     const body = await c.req.json();
     const parsed = ConfirmOtpSchema.parse(body);
-    const valid = await AuthService.confirmOtp(
-      parsed.employee_number,
-      parsed.code,
-      extractClientIp(c),
-    );
+    const valid = await AuthService.confirmOtp(parsed.employee_number, parsed.code, extractClientIp(c));
     if (!valid) return c.json({ success: false, error: "Invalid or expired OTP" });
     return c.json({ success: true, message: "Identity confirmed" });
   } catch (err) {
@@ -196,24 +189,18 @@ app.post("/refresh", authRateLimit, async (c) => {
   return c.json({ success: true, token: result.token });
 });
 
-app.post(
-  "/reset-credentials/:id",
-  authenticateToken,
-  requireRoles("ADMIN", "HEAD_MANAGER"),
-  async (c) => {
-    const requestId = c.get("requestId");
-    try {
-      const employeeNumber = c.req.param("id");
-      if (!employeeNumber)
-        return c.json({ success: false, error: "Employee number is required" }, 400);
-      await AuthService.resetCredentials(employeeNumber);
-      return c.json({ success: true, message: "Credentials reset. Temp PIN: 0000" });
-    } catch (err) {
-      logger.error({ err, requestId }, "reset-credentials failed");
-      return c.json({ success: false, error: toMsg(err) }, 400);
-    }
-  },
-);
+app.post("/reset-credentials/:id", authenticateToken, requireRoles("ADMIN", "HEAD_MANAGER"), async (c) => {
+  const requestId = c.get("requestId");
+  try {
+    const employeeNumber = c.req.param("id");
+    if (!employeeNumber) return c.json({ success: false, error: "Employee number is required" }, 400);
+    await AuthService.resetCredentials(employeeNumber);
+    return c.json({ success: true, message: "Credentials reset. Temp PIN: 0000" });
+  } catch (err) {
+    logger.error({ err, requestId }, "reset-credentials failed");
+    return c.json({ success: false, error: toMsg(err) }, 400);
+  }
+});
 
 app.get("/me", authenticateToken, async (c) => {
   const requestId = c.get("requestId");

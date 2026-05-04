@@ -78,11 +78,7 @@ export const getAllowedTabs = (role: Role | undefined | null): AppTab[] => {
  * Upgrade: Validates if a user can perform a specific action within a tab.
  * Example: isAuthorized(userRole, 'lab', 'WRITE')
  */
-export const isAuthorized = (
-  role: Role,
-  tab: AppTab,
-  requiredLevel: AccessLevel = "READ",
-): boolean => {
+export const isAuthorized = (role: Role, tab: AppTab, requiredLevel: AccessLevel = "READ"): boolean => {
   const allowed = isTabAllowed(role, tab);
   if (!allowed) return false;
 

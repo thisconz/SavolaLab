@@ -1,4 +1,4 @@
-﻿import React, { memo, useMemo, useState } from "react";
+import React, { memo, useMemo, useState } from "react";
 import {
   LayoutDashboard,
   Microscope,
@@ -10,23 +10,22 @@ import {
   Database,
   ShieldAlert,
   Settings,
-  ChevronRight,
   Archive,
   LogOut,
   RefreshCw,
   Fingerprint,
+  ChevronRight,
+  Activity,
 } from "lucide-react";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { LogoRoot, LogoIcon } from "../../shared/components/Logo";
 import { useAppStore, AppTab } from "../../orchestrator/state/app.store";
 import { useAuthStore } from "../../orchestrator/state/auth.store";
 import { QuickSwitch } from "../../capsules/auth";
 import { isTabAllowed } from "../../core/rbac";
-import clsx from "@/src/lib/clsx";
+import clsx from "clsx";
 
-// ─────────────────────────────────────────────
-// Nav item
-// ─────────────────────────────────────────────
+// ─── Nav Item ────────────────────────────────────────────────────────────────
 
 interface NavItemProps {
   icon: React.ElementType;
@@ -36,65 +35,71 @@ interface NavItemProps {
   variant?: "default" | "mini";
 }
 
-const NavItem: React.FC<NavItemProps> = ({
-  icon: Icon,
-  label,
-  active,
-  onClick,
-  variant = "default",
-}) => (
+const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, active, onClick, variant = "default" }) => (
   <button
     onClick={onClick}
     className={clsx(
-      "w-full flex items-center gap-3.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
-      variant === "mini" ? "px-4 py-2.5" : "px-4 py-3",
-      active
-        ? "text-(--color-zenthar-text-primary)"
-        : "text-(--color-zenthar-text-muted) hover:text-(--color-zenthar-text-secondary)",
+      "group relative flex w-full items-center gap-3.5 overflow-hidden rounded-xl transition-all duration-300",
+      variant === "mini" ? "px-3 py-2.5" : "px-4 py-3",
     )}
+    style={{
+      background: active
+        ? "linear-gradient(135deg, rgba(244,63,94,0.12) 0%, rgba(244,63,94,0.05) 100%)"
+        : "transparent",
+      border: active ? "1px solid rgba(244,63,94,0.2)" : "1px solid transparent",
+      boxShadow: active ? "0 0 20px rgba(244,63,94,0.08), inset 0 1px 0 rgba(255,255,255,0.04)" : "none",
+    }}
   >
-    {/* Active background */}
-    <AnimatePresence>
-      {active && (
-        <motion.div
-          layoutId="nav-active-bg"
-          className="absolute inset-0 bg-linear-to-r from-brand-primary/12 via-brand-primary/6 to-transparent"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        />
-      )}
-    </AnimatePresence>
-
-    {/* Left indicator */}
+    {/* Left indicator bar */}
     <AnimatePresence>
       {active && (
         <motion.div
           layoutId="nav-indicator"
-          className="absolute left-0 top-2 bottom-2 w-0.5 bg-brand-primary rounded-r-full
-                     shadow-[0_0_10px_rgba(218,98,125,0.6)]"
+          className="absolute top-2 bottom-2 left-0 w-0.5 rounded-r-full"
+          style={{ background: "#f43f5e", boxShadow: "0 0 8px rgba(244,63,94,0.8)" }}
+          initial={{ opacity: 0, scaleY: 0 }}
+          animate={{ opacity: 1, scaleY: 1 }}
+          exit={{ opacity: 0, scaleY: 0 }}
         />
       )}
     </AnimatePresence>
+
+    {/* Hover shimmer */}
+    <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl opacity-0 transition-opacity group-hover:opacity-100">
+      <motion.div
+        animate={{ x: ["-100%", "200%"] }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-y-0 w-1/3"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(244,63,94,0.06), transparent)" }}
+      />
+    </div>
 
     {/* Icon */}
     <div
       className={clsx(
         "relative z-10 transition-all duration-300",
-        active
-          ? "scale-110 text-brand-primary"
-          : "group-hover:scale-105 group-hover:text-(--color-zenthar-text-primary)",
+        active ? "scale-110" : "group-hover:scale-105",
       )}
     >
-      <Icon size={variant === "mini" ? 14 : 17} strokeWidth={active ? 2.5 : 2} />
+      <Icon
+        size={variant === "mini" ? 14 : 16}
+        strokeWidth={active ? 2.5 : 2}
+        style={{ color: active ? "#f43f5e" : "rgba(136,146,176,0.7)" }}
+        className="group-hover:!text-zenthar-text-primary transition-colors duration-300"
+      />
+      {active && (
+        <div className="absolute inset-0 -z-10 blur-md" style={{ background: "rgba(244,63,94,0.4)" }} />
+      )}
     </div>
 
     {/* Label */}
     <span
       className={clsx(
-        "font-black uppercase tracking-[0.18em] flex-1 text-left z-10 transition-all duration-200 truncate",
-        variant === "mini" ? "text-[8px]" : "text-[10px]",
-        active ? "translate-x-0.5 opacity-100" : "opacity-60 group-hover:opacity-90",
+        "z-10 flex-1 truncate text-left font-black uppercase transition-all duration-200",
+        variant === "mini" ? "text-[8px] tracking-[0.2em]" : "text-[10px] tracking-[0.18em]",
+        active
+          ? "text-zenthar-text-primary translate-x-0.5"
+          : "text-zenthar-text-muted group-hover:text-zenthar-text-secondary",
       )}
     >
       {label}
@@ -102,15 +107,16 @@ const NavItem: React.FC<NavItemProps> = ({
 
     {active && variant === "default" && (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="z-10 shrink-0">
-        <div className="w-1 h-1 rounded-full bg-brand-primary animate-pulse" />
+        <div
+          className="h-1.5 w-1.5 rounded-full"
+          style={{ background: "#f43f5e", boxShadow: "0 0 6px rgba(244,63,94,0.8)" }}
+        />
       </motion.div>
     )}
   </button>
 );
 
-// ─────────────────────────────────────────────
-// Nav config
-// ─────────────────────────────────────────────
+// ─── Nav Config ───────────────────────────────────────────────────────────────
 
 const NAV_CONFIG = [
   {
@@ -146,9 +152,7 @@ const NAV_CONFIG = [
   },
 ] as const;
 
-// ─────────────────────────────────────────────
-// Sidebar
-// ─────────────────────────────────────────────
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
 
 export const Sidebar: React.FC<{ activeTab: AppTab; onTabChange: (tab: AppTab) => void }> = memo(
   ({ activeTab, onTabChange }) => {
@@ -168,43 +172,69 @@ export const Sidebar: React.FC<{ activeTab: AppTab; onTabChange: (tab: AppTab) =
 
     return (
       <nav
-        className="w-[272px] h-full flex flex-col bg-(--color-zenthar-carbon)
-                    border-r border-(--color-zenthar-steel) z-50 relative overflow-hidden"
+        className="relative flex h-full w-[272px] flex-col overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, rgba(5,5,15,0.99) 0%, rgba(8,8,26,0.98) 100%)",
+          borderRight: "1px solid rgba(100,120,200,0.12)",
+        }}
       >
-        {/* Subtle background texture */}
-        <div className="absolute inset-0 instrument-grid opacity-100 pointer-events-none" />
-        {/* Top glow */}
+        {/* Background effects */}
+        <div className="instrument-grid pointer-events-none absolute inset-0 opacity-60" />
         <div
-          className="absolute -top-20 -left-20 w-64 h-64 bg-brand-primary/5
-                      blur-[80px] rounded-full pointer-events-none"
+          className="pointer-events-none absolute -top-32 -left-32 h-64 w-64 rounded-full blur-[80px]"
+          style={{ background: "rgba(244,63,94,0.04)" }}
+        />
+        <div
+          className="pointer-events-none absolute -right-20 -bottom-20 h-48 w-48 rounded-full blur-[60px]"
+          style={{ background: "rgba(139,92,246,0.04)" }}
         />
 
-        {/* ── Brand mark ── */}
-        <div className="relative z-10 px-8 pt-8 pb-6">
+        {/* Right border glow */}
+        <div
+          className="pointer-events-none absolute top-0 right-0 bottom-0 w-px"
+          style={{
+            background:
+              "linear-gradient(180deg, transparent 0%, rgba(244,63,94,0.3) 30%, rgba(139,92,246,0.3) 70%, transparent 100%)",
+          }}
+        />
+
+        {/* Brand mark */}
+        <div className="relative z-10 px-7 pt-7 pb-5">
           <LogoRoot size="md" variant="dark">
             <LogoIcon animated />
           </LogoRoot>
           <div className="mt-3 flex items-center gap-2 overflow-hidden">
-            <div className="h-px flex-1 bg-linear-to-r from-brand-primary/30 to-transparent" />
-            <span className="text-[7px] font-mono text-(--color-zenthar-text-muted) tracking-[0.5em] uppercase shrink-0">
-              {import.meta.env.VITE_ZENTHAR_VERSION ?? "v2"}_sys
+            <div
+              className="h-px flex-1"
+              style={{ background: "linear-gradient(90deg, rgba(244,63,94,0.4), transparent)" }}
+            />
+            <span className="text-zenthar-text-muted shrink-0 font-mono text-[7px] tracking-[0.5em] uppercase">
+              {import.meta.env.VITE_ZENTHAR_VERSION}
+            </span>
+          </div>
+
+          {/* Live status */}
+          <div className="mt-2 flex items-center gap-2">
+            <Activity size={9} className="animate-pulse text-emerald-400" />
+            <span className="font-mono text-[8px] font-bold tracking-widest text-emerald-400/70 uppercase">
+              System Online
             </span>
           </div>
         </div>
 
-        {/* ── Navigation ── */}
-        <div className="flex-1 px-3 overflow-y-auto no-scrollbar space-y-6 pb-4 relative z-10">
+        {/* Navigation */}
+        <div className="no-scrollbar relative z-10 flex-1 space-y-5 overflow-y-auto px-3 pb-4">
           {filteredNav.map((section, idx) => (
             <div key={section.section}>
-              <header className="px-4 mb-1.5 flex items-center justify-between opacity-50">
+              <header className="mb-2 flex items-center justify-between px-4">
                 <span
-                  className="text-[8px] font-black text-(--color-zenthar-text-muted)
-                               uppercase tracking-[0.4em]"
+                  className="text-zenthar-text-muted text-[8px] font-black tracking-[0.4em] uppercase"
+                  style={{ opacity: 0.5 }}
                 >
                   {section.section}
                 </span>
-                <span className="text-[7px] font-mono text-brand-primary/60">
-                  [{section.code}-0{idx + 1}]
+                <span className="font-mono text-[7px]" style={{ color: "rgba(244,63,94,0.5)" }}>
+                  [{section.code}-{String(idx + 1).padStart(2, "0")}]
                 </span>
               </header>
               <div className="flex flex-col gap-0.5">
@@ -222,61 +252,62 @@ export const Sidebar: React.FC<{ activeTab: AppTab; onTabChange: (tab: AppTab) =
           ))}
         </div>
 
-        {/* ── Footer utility pod ── */}
-        <div className="relative z-10 p-4 space-y-3 border-t border-(--color-zenthar-steel)">
+        {/* Footer utilities */}
+        <div
+          className="relative z-10 space-y-3 border-t p-4"
+          style={{ borderColor: "rgba(100,120,200,0.1)" }}
+        >
           {/* Quick links */}
           <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => onTabChange("settings")}
-              className="flex flex-col items-center justify-center p-3 rounded-2xl
-                       bg-(--color-zenthar-graphite) border border-(--color-zenthar-steel)
-                       hover:bg-brand-primary/10 hover:border-brand-primary/20
-                       transition-all group"
-            >
-              <Settings
-                size={13}
-                className="text-(--color-zenthar-text-muted) group-hover:text-brand-primary
-                                           transition-colors mb-1"
-              />
-              <span
-                className="text-[7px] font-black text-(--color-zenthar-text-muted) group-hover:text-(--color-zenthar-text-primary)
-                             uppercase tracking-widest transition-colors"
+            {[
+              { icon: Settings, tab: "settings", label: "Config" },
+              { icon: Archive, tab: "archive", label: "Vault" },
+            ].map(({ icon: Icon, tab, label }) => (
+              <button
+                key={tab}
+                onClick={() => onTabChange(tab as AppTab)}
+                className="group flex flex-col items-center justify-center rounded-xl p-3 transition-all"
+                style={{
+                  background: "rgba(8,8,26,0.8)",
+                  border: "1px solid rgba(100,120,200,0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(244,63,94,0.25)";
+                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(244,63,94,0.06)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(100,120,200,0.1)";
+                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(8,8,26,0.8)";
+                }}
               >
-                Config
-              </span>
-            </button>
-            <button
-              onClick={() => onTabChange("archive")}
-              className="flex flex-col items-center justify-center p-3 rounded-2xl
-                       bg-(--color-zenthar-graphite) border border-(--color-zenthar-steel)
-                       hover:bg-brand-primary/10 hover:border-brand-primary/20
-                       transition-all group"
-            >
-              <Archive
-                size={13}
-                className="text-(--color-zenthar-text-muted) group-hover:text-brand-primary
-                                          transition-colors mb-1"
-              />
-              <span
-                className="text-[7px] font-black text-(--color-zenthar-text-muted) group-hover:text-(--color-zenthar-text-primary)
-                             uppercase tracking-widest transition-colors"
-              >
-                Vault
-              </span>
-            </button>
+                <Icon
+                  size={13}
+                  className="text-zenthar-text-muted group-hover:text-brand-primary mb-1 transition-colors"
+                />
+                <span className="text-zenthar-text-muted group-hover:text-zenthar-text-primary text-[7px] font-black tracking-widest uppercase transition-colors">
+                  {label}
+                </span>
+              </button>
+            ))}
           </div>
 
-          {/* User identity module */}
+          {/* User identity pod */}
           <div
-            className="relative p-4 rounded-2xl bg-(--color-zenthar-graphite)/70
-                        border border-(--color-zenthar-steel) overflow-hidden group/user"
+            className="relative overflow-hidden rounded-xl p-4"
+            style={{
+              background: "linear-gradient(135deg, rgba(244,63,94,0.08) 0%, rgba(8,8,26,0.9) 100%)",
+              border: "1px solid rgba(244,63,94,0.15)",
+            }}
           >
-            {/* Animated scan line */}
-            <div className="absolute top-0 left-0 h-px w-full bg-(--color-zenthar-steel)">
+            {/* Scan line */}
+            <div className="absolute top-0 left-0 h-px w-full overflow-hidden">
               <motion.div
                 animate={{ x: ["-100%", "100%"] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                className="h-full w-1/3 bg-brand-primary/40 blur-[1px]"
+                className="h-full w-1/3"
+                style={{
+                  background: "linear-gradient(90deg, transparent, rgba(244,63,94,0.6), transparent)",
+                }}
               />
             </div>
 
@@ -284,36 +315,36 @@ export const Sidebar: React.FC<{ activeTab: AppTab; onTabChange: (tab: AppTab) =
               {/* Avatar */}
               <button
                 onClick={() => setSwitch(true)}
-                className="relative w-10 h-10 rounded-xl bg-brand-primary/10 border border-brand-primary/20
-                         flex items-center justify-center shrink-0 overflow-hidden group/av"
+                className="group/av relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl transition-all"
+                style={{
+                  background: "rgba(244,63,94,0.1)",
+                  border: "1px solid rgba(244,63,94,0.25)",
+                }}
               >
                 <Fingerprint
                   size={17}
-                  className="text-brand-primary group-hover/av:opacity-0 transition-opacity"
+                  className="text-brand-primary transition-opacity group-hover/av:opacity-0"
                 />
                 <div
-                  className="absolute inset-0 flex items-center justify-center bg-brand-primary
-                              opacity-0 group-hover/av:opacity-100 transition-opacity"
+                  className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover/av:opacity-100"
+                  style={{ background: "#f43f5e" }}
                 >
                   <RefreshCw
                     size={13}
-                    className="text-white animate-spin"
+                    className="animate-spin text-white"
                     style={{ animationDuration: "2s" }}
                   />
                 </div>
               </button>
 
-              {/* User info */}
-              <div className="flex-1 min-w-0">
-                <p
-                  className="text-[10px] font-black text-(--color-zenthar-text-primary) truncate
-                            uppercase tracking-wide leading-none mb-1"
-                >
+              {/* Info */}
+              <div className="min-w-0 flex-1">
+                <p className="text-zenthar-text-primary mb-1 truncate text-[10px] leading-none font-black tracking-wide uppercase">
                   {currentUser?.name ?? "GUEST_USER"}
                 </p>
-                <div className="flex items-center gap-1.5 opacity-70">
-                  <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                  <p className="text-[7px] font-mono text-emerald-400 uppercase tracking-widest">
+                <div className="flex items-center gap-1.5">
+                  <div className="h-1 w-1 animate-pulse rounded-full bg-emerald-500" />
+                  <p className="font-mono text-[7px] tracking-widest text-emerald-400 uppercase">
                     Secure_Session
                   </p>
                 </div>
@@ -323,8 +354,14 @@ export const Sidebar: React.FC<{ activeTab: AppTab; onTabChange: (tab: AppTab) =
               <button
                 onClick={logout}
                 aria-label="Log out"
-                className="p-2 text-(--color-zenthar-text-muted) hover:text-red-400
-                         hover:bg-red-400/10 rounded-lg transition-all shrink-0"
+                className="text-zenthar-text-muted rounded-lg p-2 transition-all hover:text-red-400"
+                style={{ background: "transparent" }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                }}
               >
                 <LogOut size={13} />
               </button>

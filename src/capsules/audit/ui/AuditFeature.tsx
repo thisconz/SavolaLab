@@ -1,17 +1,37 @@
 import React, { memo, useState, useEffect, useCallback, useMemo } from "react";
 import {
-  ShieldAlert, Search, Download, RefreshCw, AlertTriangle,
-  CheckCircle2, ChevronLeft, ChevronRight, Shield, LogIn,
-  LogOut, FileEdit, Trash2, Database, Zap, Activity,
-  User, Clock, X, Eye, Info, Wifi, Filter, MoreHorizontal
+  ShieldAlert,
+  Search,
+  Download,
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
+  LogIn,
+  LogOut,
+  FileEdit,
+  Trash2,
+  Database,
+  Zap,
+  Activity,
+  User,
+  Clock,
+  X,
+  Eye,
+  Info,
+  Wifi,
+  Filter,
+  MoreHorizontal,
 } from "lucide-react";
-import { motion, AnimatePresence } from "../../../lib/motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { MetricCard } from "../../../shared/components/MetricCard";
 import { TableSkeleton } from "../../../shared/components/Skeletons";
 import { api } from "../../../core/http/client";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import { AuditLog } from "../model/audit.model";
-import clsx from "../../../lib/clsx";
+import clsx from "clsx";
 import { toast } from "sonner";
 
 // ─────────────────────────────────────────────
@@ -27,14 +47,26 @@ interface ActionConfig {
 
 const ACTIONS_MAP: Record<string, ActionConfig> = {
   SECURITY: { color: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/20", icon: ShieldAlert },
-  SUCCESS: { color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20", icon: CheckCircle2 },
-  WARNING: { color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/20", icon: AlertTriangle },
+  SUCCESS: {
+    color: "text-emerald-500",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    icon: CheckCircle2,
+  },
+  WARNING: {
+    color: "text-amber-500",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/20",
+    icon: AlertTriangle,
+  },
   NEUTRAL: { color: "text-slate-500", bg: "bg-slate-500/10", border: "border-slate-500/20", icon: Activity },
 };
 
 const getActionStyle = (action: string) => {
-  if (action.includes("FAILED") || action.includes("LOCKED") || action.includes("ATTEMPT")) return ACTIONS_MAP.SECURITY;
-  if (action.includes("SUCCESS") || action.includes("ACTIVATED") || action.includes("CREATED")) return ACTIONS_MAP.SUCCESS;
+  if (action.includes("FAILED") || action.includes("LOCKED") || action.includes("ATTEMPT"))
+    return ACTIONS_MAP.SECURITY;
+  if (action.includes("SUCCESS") || action.includes("ACTIVATED") || action.includes("CREATED"))
+    return ACTIONS_MAP.SUCCESS;
   if (action.includes("UPDATED") || action.includes("SENT")) return ACTIONS_MAP.WARNING;
   return ACTIONS_MAP.NEUTRAL;
 };
@@ -47,10 +79,14 @@ const ActionBadge = ({ action }: { action: string }) => {
   const style = getActionStyle(action);
   const Icon = style.icon;
   return (
-    <div className={clsx(
-      "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold tracking-tight uppercase",
-      style.bg, style.color, style.border
-    )}>
+    <div
+      className={clsx(
+        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-tight uppercase",
+        style.bg,
+        style.color,
+        style.border,
+      )}
+    >
       <Icon size={12} strokeWidth={2.5} />
       {action.replace(/_/g, " ")}
     </div>
@@ -84,7 +120,13 @@ export const AuditFeature: React.FC = memo(() => {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [page, setPage] = useState(0);
-  const [filters, setFilters] = useState({ search: "", action: "", employee_number: "", start_date: "", end_date: "" });
+  const [filters, setFilters] = useState({
+    search: "",
+    action: "",
+    employee_number: "",
+    start_date: "",
+    end_date: "",
+  });
   const [selected, setSelected] = useState<AuditLog | null>(null);
   const [stats, setStats] = useState({ total: 0, today: 0, uniqueUsers: 0, anomalies: 0 });
 
@@ -201,9 +243,9 @@ export const AuditFeature: React.FC = memo(() => {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-6 h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
+    <div className="flex h-full flex-col gap-6 overflow-hidden rounded-3xl bg-(--color-zenthar-graphite)/30 p-2">
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+      <div className="grid shrink-0 grid-cols-2 gap-4 lg:grid-cols-4">
         <MetricCard
           label="Total Events"
           value={stats.total}
@@ -211,13 +253,7 @@ export const AuditFeature: React.FC = memo(() => {
           variant="primary"
           trend="Last fetch"
         />
-        <MetricCard
-          label="Today"
-          value={stats.today}
-          icon={Clock}
-          variant="secondary"
-          trend="24h window"
-        />
+        <MetricCard label="Today" value={stats.today} icon={Clock} variant="secondary" trend="24h window" />
         <MetricCard
           label="Unique Users"
           value={stats.uniqueUsers}
@@ -235,25 +271,25 @@ export const AuditFeature: React.FC = memo(() => {
       </div>
 
       {/* Filter bar */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white p-5 shadow-sm shrink-0">
-        <div className="flex flex-wrap gap-3 items-end">
-          <div className="flex-1 min-w-[180px]">
-            <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-1.5">
+      <div className="shrink-0 rounded-3xl border border-white bg-white/80 p-5 shadow-sm backdrop-blur-xl">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[180px] flex-1">
+            <label className="text-brand-sage mb-1.5 block text-[9px] font-black tracking-widest uppercase">
               Search
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage/40" />
+              <Search className="text-brand-sage/40 absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Action, employee, IP..."
                 value={filters.search}
                 onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-                className="w-full bg-zenthar-void border border-zenthar-steel rounded-xl pl-9 pr-3 py-2.5 text-xs focus:outline-none focus:border-brand-primary text-zenthar-text-primary"
+                className="bg-zenthar-void border-zenthar-steel focus:border-brand-primary text-zenthar-text-primary w-full rounded-xl border py-2.5 pr-3 pl-9 text-xs focus:outline-none"
               />
             </div>
           </div>
           <div className="w-48">
-            <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-1.5">
+            <label className="text-brand-sage mb-1.5 block text-[9px] font-black tracking-widest uppercase">
               Action Type
             </label>
             <select
@@ -262,7 +298,7 @@ export const AuditFeature: React.FC = memo(() => {
                 setFilters((f) => ({ ...f, action: e.target.value }));
                 setPage(0);
               }}
-              className="w-full bg-zenthar-void border border-zenthar-steel rounded-xl px-3 py-2.5 text-xs focus:outline-none text-zenthar-text-primary"
+              className="bg-zenthar-void border-zenthar-steel text-zenthar-text-primary w-full rounded-xl border px-3 py-2.5 text-xs focus:outline-none"
             >
               <option value="">All Actions</option>
               {uniqueActions.map((a) => (
@@ -273,11 +309,11 @@ export const AuditFeature: React.FC = memo(() => {
             </select>
           </div>
           <div className="w-36">
-            <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-1.5">
+            <label className="text-brand-sage mb-1.5 block text-[9px] font-black tracking-widest uppercase">
               Employee ID
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-brand-sage/40" />
+              <User className="text-brand-sage/40 absolute top-1/2 left-3 h-3 w-3 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="EMP-ID..."
@@ -289,12 +325,12 @@ export const AuditFeature: React.FC = memo(() => {
                   }));
                   setPage(0);
                 }}
-                className="w-full bg-zenthar-void border border-zenthar-steel rounded-xl pl-8 pr-3 py-2.5 text-xs focus:outline-none text-zenthar-text-primary"
+                className="bg-zenthar-void border-zenthar-steel text-zenthar-text-primary w-full rounded-xl border py-2.5 pr-3 pl-8 text-xs focus:outline-none"
               />
             </div>
           </div>
           <div className="w-32">
-            <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-1.5">
+            <label className="text-brand-sage mb-1.5 block text-[9px] font-black tracking-widest uppercase">
               From
             </label>
             <input
@@ -304,11 +340,11 @@ export const AuditFeature: React.FC = memo(() => {
                 setFilters((f) => ({ ...f, start_date: e.target.value }));
                 setPage(0);
               }}
-              className="w-full bg-zenthar-void border border-zenthar-steel rounded-xl px-3 py-2.5 text-xs focus:outline-none text-zenthar-text-primary"
+              className="bg-zenthar-void border-zenthar-steel text-zenthar-text-primary w-full rounded-xl border px-3 py-2.5 text-xs focus:outline-none"
             />
           </div>
           <div className="w-32">
-            <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-1.5">
+            <label className="text-brand-sage mb-1.5 block text-[9px] font-black tracking-widest uppercase">
               To
             </label>
             <input
@@ -318,17 +354,17 @@ export const AuditFeature: React.FC = memo(() => {
                 setFilters((f) => ({ ...f, end_date: e.target.value }));
                 setPage(0);
               }}
-              className="w-full bg-zenthar-void border border-zenthar-steel rounded-xl px-3 py-2.5 text-xs focus:outline-none text-zenthar-text-primary"
+              className="bg-zenthar-void border-zenthar-steel text-zenthar-text-primary w-full rounded-xl border px-3 py-2.5 text-xs focus:outline-none"
             />
           </div>
-          <div className="flex gap-2 ml-auto flex-wrap">
+          <div className="ml-auto flex flex-wrap gap-2">
             {hasFilters && (
               <button
                 onClick={() => {
                   setFilters(INITIAL_FILTERS);
                   setPage(0);
                 }}
-                className="px-3 py-2.5 text-xs font-bold text-brand-sage border border-zenthar-steel rounded-xl hover:bg-zenthar-void transition-all"
+                className="text-brand-sage border-zenthar-steel hover:bg-zenthar-void rounded-xl border px-3 py-2.5 text-xs font-bold transition-all"
               >
                 Reset
               </button>
@@ -336,81 +372,79 @@ export const AuditFeature: React.FC = memo(() => {
             <button
               onClick={exportCSV}
               disabled={!filtered.length}
-              className="flex items-center gap-1.5 px-3 py-2.5 bg-zenthar-text-primary text-white text-xs font-bold rounded-xl hover:opacity-90 disabled:opacity-30"
+              className="bg-zenthar-text-primary flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-bold text-white hover:opacity-90 disabled:opacity-30"
             >
-              <Download className="w-3.5 h-3.5" /> CSV
+              <Download className="h-3.5 w-3.5" /> CSV
             </button>
             <button
               onClick={exportXLSX}
               disabled={!filtered.length}
-              className="flex items-center gap-1.5 px-3 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-500 disabled:opacity-30"
+              className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-bold text-white hover:bg-emerald-500 disabled:opacity-30"
             >
-              <Download className="w-3.5 h-3.5" /> XLSX
+              <Download className="h-3.5 w-3.5" /> XLSX
             </button>
             <button
               onClick={() => fetchLogs(true)}
-              className="p-2.5 border border-zenthar-steel rounded-xl hover:bg-zenthar-void transition-all"
+              className="border-zenthar-steel hover:bg-zenthar-void rounded-xl border p-2.5 transition-all"
             >
-              <RefreshCw
-                className={clsx("w-4 h-4 text-brand-sage", isRefreshing && "animate-spin")}
-              />
+              <RefreshCw className={clsx("text-brand-sage h-4 w-4", isRefreshing && "animate-spin")} />
             </button>
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="flex-1 bg-zenthar-void/50 backdrop-blur-xl rounded-3xl border border-white shadow-sm overflow-hidden flex flex-col min-h-0">
-        <div className="px-7 py-5 border-b border-zenthar-steel flex items-center justify-between shrink-0 bg-white/50">
+      <div className="bg-zenthar-void/50 flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-white shadow-sm backdrop-blur-xl">
+        <div className="border-zenthar-steel flex shrink-0 items-center justify-between border-b bg-white/50 px-7 py-5">
           <div className="flex items-center gap-3">
-            <ShieldAlert className="w-5 h-5 text-brand-primary" />
-            <h3 className="text-xs font-black uppercase tracking-widest text-zenthar-text-primary">
+            <ShieldAlert className="text-brand-primary h-5 w-5" />
+            <h3 className="text-zenthar-text-primary text-xs font-black tracking-widest uppercase">
               Audit Trail
             </h3>
           </div>
           <div className="flex items-center gap-3">
             {isRefreshing && (
-              <span className="flex items-center gap-1 text-[9px] font-bold text-brand-primary">
+              <span className="text-brand-primary flex items-center gap-1 text-[9px] font-bold">
                 <Wifi size={10} className="animate-pulse" /> Live
               </span>
             )}
-            <span className="text-[10px] font-mono text-brand-sage">
+            <span className="text-brand-sage font-mono text-[10px]">
               {filtered.length.toLocaleString()} records · showing {page * PAGE_SIZE + 1}–
               {Math.min((page + 1) * PAGE_SIZE, filtered.length)}
             </span>
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto custom-scrollbar">
+        <div className="custom-scrollbar flex-1 overflow-auto">
           {loading ? (
             <TableSkeleton rows={8} columns={5} />
           ) : (
-            <table className="w-full text-left border-collapse">
-              <thead className="sticky top-0 bg-white/95 backdrop-blur-sm z-10">
-                <tr className="border-b border-zenthar-steel">
+            <table className="w-full border-collapse text-left">
+              <thead className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm">
+                <tr className="border-zenthar-steel border-b">
                   {["Employee", "Action", "Details", "IP", "Timestamp", ""].map((h) => (
                     <th
                       key={h}
-                      className="px-5 py-3.5 text-[9px] font-black uppercase tracking-widest text-brand-sage"
+                      className="text-brand-sage px-5 py-3.5 text-[9px] font-black tracking-widest uppercase"
                     >
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zenthar-steel/40">
+              <tbody className="divide-zenthar-steel/40 divide-y">
                 {paged.map((log) => (
                   <tr
                     key={log.id}
-                    className="hover:bg-zenthar-graphite/20 transition-colors group cursor-pointer"
+                    className="hover:bg-zenthar-graphite/20 group cursor-pointer transition-colors"
                     onClick={() => setSelected(log)}
                   >
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-[9px] font-black text-brand-primary">
+                        <div className="bg-brand-primary/10 border-brand-primary/20 text-brand-primary flex h-7 w-7 items-center justify-center rounded-lg border text-[9px] font-black">
                           {log.employee_number.slice(0, 2).toUpperCase()}
                         </div>
-                        <span className="text-xs font-bold text-zenthar-text-primary">
+                        <span className="text-zenthar-text-primary text-xs font-bold">
                           {log.employee_number}
                         </span>
                       </div>
@@ -418,26 +452,22 @@ export const AuditFeature: React.FC = memo(() => {
                     <td className="px-5 py-3.5">
                       <ActionBadge action={log.action} />
                     </td>
-                    <td className="px-5 py-3.5 max-w-xs">
-                      <span className="text-xs text-zenthar-text-secondary line-clamp-2">
-                        {log.details}
-                      </span>
+                    <td className="max-w-xs px-5 py-3.5">
+                      <span className="text-zenthar-text-secondary line-clamp-2 text-xs">{log.details}</span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className="text-[10px] font-mono text-brand-sage">
-                        {log.ip_address || "—"}
-                      </span>
+                      <span className="text-brand-sage font-mono text-[10px]">{log.ip_address || "—"}</span>
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-mono font-bold text-zenthar-text-primary">
+                        <span className="text-zenthar-text-primary font-mono text-[10px] font-bold">
                           {new Date(log.created_at).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                             second: "2-digit",
                           })}
                         </span>
-                        <span className="text-[9px] font-mono text-brand-sage/60">
+                        <span className="text-brand-sage/60 font-mono text-[9px]">
                           {new Date(log.created_at).toLocaleDateString([], {
                             day: "2-digit",
                             month: "short",
@@ -447,8 +477,8 @@ export const AuditFeature: React.FC = memo(() => {
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
-                      <button className="p-2 rounded-lg border border-transparent group-hover:border-zenthar-steel opacity-0 group-hover:opacity-100 transition-all">
-                        <Eye className="w-3.5 h-3.5 text-brand-sage" />
+                      <button className="group-hover:border-zenthar-steel rounded-lg border border-transparent p-2 opacity-0 transition-all group-hover:opacity-100">
+                        <Eye className="text-brand-sage h-3.5 w-3.5" />
                       </button>
                     </td>
                   </tr>
@@ -456,8 +486,8 @@ export const AuditFeature: React.FC = memo(() => {
                 {paged.length === 0 && !loading && (
                   <tr>
                     <td colSpan={6} className="px-6 py-16 text-center">
-                      <Shield className="w-8 h-8 text-brand-sage/20 mx-auto mb-2" />
-                      <p className="text-xs font-black text-brand-sage uppercase">
+                      <Shield className="text-brand-sage/20 mx-auto mb-2 h-8 w-8" />
+                      <p className="text-brand-sage text-xs font-black uppercase">
                         No records match your filters
                       </p>
                     </td>
@@ -469,17 +499,17 @@ export const AuditFeature: React.FC = memo(() => {
         </div>
 
         {/* Pagination */}
-        <div className="px-7 py-4 border-t border-zenthar-steel flex items-center justify-between bg-white/50 shrink-0">
-          <span className="text-[10px] font-mono text-brand-sage">
+        <div className="border-zenthar-steel flex shrink-0 items-center justify-between border-t bg-white/50 px-7 py-4">
+          <span className="text-brand-sage font-mono text-[10px]">
             Page {page + 1} of {Math.max(1, totalPages)}
           </span>
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="p-2 rounded-xl border border-zenthar-steel hover:bg-zenthar-void disabled:opacity-30 transition-all"
+              className="border-zenthar-steel hover:bg-zenthar-void rounded-xl border p-2 transition-all disabled:opacity-30"
             >
-              <ChevronLeft className="w-4 h-4 text-brand-sage" />
+              <ChevronLeft className="text-brand-sage h-4 w-4" />
             </button>
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               const num = Math.max(0, Math.min(page - 2, totalPages - 5)) + i;
@@ -489,10 +519,10 @@ export const AuditFeature: React.FC = memo(() => {
                   key={num}
                   onClick={() => setPage(num)}
                   className={clsx(
-                    "w-8 h-8 rounded-lg text-[10px] font-black transition-all",
+                    "h-8 w-8 rounded-lg text-[10px] font-black transition-all",
                     page === num
                       ? "bg-brand-primary text-white"
-                      : "border border-zenthar-steel text-brand-sage hover:bg-zenthar-void",
+                      : "border-zenthar-steel text-brand-sage hover:bg-zenthar-void border",
                   )}
                 >
                   {num + 1}
@@ -502,9 +532,9 @@ export const AuditFeature: React.FC = memo(() => {
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="p-2 rounded-xl border border-zenthar-steel hover:bg-zenthar-void disabled:opacity-30 transition-all"
+              className="border-zenthar-steel hover:bg-zenthar-void rounded-xl border p-2 transition-all disabled:opacity-30"
             >
-              <ChevronRight className="w-4 h-4 text-brand-sage" />
+              <ChevronRight className="text-brand-sage h-4 w-4" />
             </button>
           </div>
         </div>
@@ -526,44 +556,44 @@ export const AuditFeature: React.FC = memo(() => {
               exit={{ x: "100%", opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
-              className="h-full w-full max-w-sm bg-white shadow-2xl border-l border-zenthar-steel flex flex-col"
+              className="border-zenthar-steel flex h-full w-full max-w-sm flex-col border-l bg-white shadow-2xl"
             >
-              <div className="px-7 py-6 border-b border-zenthar-steel flex items-center justify-between shrink-0">
+              <div className="border-zenthar-steel flex shrink-0 items-center justify-between border-b px-7 py-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-brand-primary/10 rounded-xl border border-brand-primary/20">
-                    <Info className="w-4 h-4 text-brand-primary" />
+                  <div className="bg-brand-primary/10 border-brand-primary/20 rounded-xl border p-2.5">
+                    <Info className="text-brand-primary h-4 w-4" />
                   </div>
                 </div>
                 <button
                   onClick={() => setSelected(null)}
-                  className="p-2 rounded-xl hover:bg-zenthar-graphite/30 text-brand-sage transition-all"
+                  className="hover:bg-zenthar-graphite/30 text-brand-sage rounded-xl p-2 transition-all"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
-              <div className="px-7 py-5 border-b border-zenthar-steel bg-zenthar-graphite/20 shrink-0">
+              <div className="border-zenthar-steel bg-zenthar-graphite/20 shrink-0 border-b px-7 py-5">
                 <ActionBadge action={selected.action} />
               </div>
-              <div className="flex-1 overflow-y-auto p-7 space-y-5">
+              <div className="flex-1 space-y-5 overflow-y-auto p-7">
                 {[
                   ["Employee", selected.employee_number],
                   ["IP Address", selected.ip_address || "Not recorded"],
                   ["Timestamp", new Date(selected.created_at).toLocaleString()],
                 ].map(([label, value]) => (
                   <div key={label} className="flex flex-col gap-1">
-                    <span className="text-[9px] font-black text-brand-sage uppercase tracking-widest">
+                    <span className="text-brand-sage text-[9px] font-black tracking-widest uppercase">
                       {label}
                     </span>
-                    <span className="text-xs font-mono text-zenthar-text-primary bg-zenthar-graphite/30 px-3 py-2 rounded-xl border border-zenthar-steel break-all">
+                    <span className="text-zenthar-text-primary bg-zenthar-graphite/30 border-zenthar-steel rounded-xl border px-3 py-2 font-mono text-xs break-all">
                       {value}
                     </span>
                   </div>
                 ))}
                 <div className="flex flex-col gap-1">
-                  <span className="text-[9px] font-black text-brand-sage uppercase tracking-widest">
+                  <span className="text-brand-sage text-[9px] font-black tracking-widest uppercase">
                     Details
                   </span>
-                  <p className="text-xs text-zenthar-text-secondary bg-zenthar-graphite/30 px-4 py-3 rounded-xl border border-zenthar-steel leading-relaxed">
+                  <p className="text-zenthar-text-secondary bg-zenthar-graphite/30 border-zenthar-steel rounded-xl border px-4 py-3 text-xs leading-relaxed">
                     {selected.details}
                   </p>
                 </div>

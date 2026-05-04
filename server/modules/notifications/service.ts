@@ -2,17 +2,15 @@ import { db } from "../../core/database";
 import { logger } from "../../core/logger";
 import { NotificationRepository } from "./repository";
 import { domainBus } from "../../core/events/domain-bus";
-import { Notification } from "../../../src/shared/schemas/notification.schema";
+import { type Notification } from "../../../src/shared/schemas/notification.schema";
 
 export const NotificationService = {
   getNotifications: (employeeNumber: string): Promise<Notification[]> =>
     NotificationRepository.findByEmployeeNumber(employeeNumber),
 
-  markAsRead: (id: string, employeeNumber: string) =>
-    NotificationRepository.markAsRead(id, employeeNumber),
+  markAsRead: (id: string, employeeNumber: string) => NotificationRepository.markAsRead(id, employeeNumber),
 
-  markAllAsRead: (employeeNumber: string) =>
-    NotificationRepository.markAllAsRead(employeeNumber),
+  markAllAsRead: (employeeNumber: string) => NotificationRepository.markAllAsRead(employeeNumber),
 
   /**
    * Checks for overdue pending tests (> 4h) and creates notifications.
@@ -20,7 +18,7 @@ export const NotificationService = {
    * immediately without polling.
    */
   checkOverdueTests: async (): Promise<number> => {
-    const sseQueue: Array<{ recipientId: string; message: string }> = [];
+    const sseQueue: { recipientId: string; message: string }[] = [];
 
     await db.transaction(async (client) => {
       const overdueTests = await client.query<{
@@ -82,11 +80,7 @@ export const NotificationService = {
   /**
    * Create a targeted notification and immediately push SSE.
    */
-  pushNotification: async (
-    employeeNumber: string,
-    type: string,
-    message: string,
-  ): Promise<void> => {
+  pushNotification: async (employeeNumber: string, type: string, message: string): Promise<void> => {
     await NotificationRepository.create(employeeNumber, type, message);
     domainBus.publish({
       type: "NOTIFICATION_PUSHED",

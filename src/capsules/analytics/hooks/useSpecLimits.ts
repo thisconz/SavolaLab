@@ -10,14 +10,12 @@ export interface SpecLimit {
   unit: string | null;
 }
 
-interface SpecLimitsMap {
-  [testType: string]: { usl: number; lsl: number; label: string };
-}
+type SpecLimitsMap = Record<string, { usl: number; lsl: number; label: string }>;
 
 const FALLBACK_LIMITS: SpecLimitsMap = {
-  Brix:   { lsl: 60,  usl: 70,  label: "Brix %" },
-  Purity: { lsl: 95,  usl: 100, label: "Purity %" },
-  Colour: { lsl: 0,   usl: 60,  label: "Colour IU" },
+  Brix: { lsl: 60, usl: 70, label: "Brix %" },
+  Purity: { lsl: 95, usl: 100, label: "Purity %" },
+  Colour: { lsl: 0, usl: 60, label: "Colour IU" },
 };
 
 /**
@@ -48,8 +46,8 @@ export function useSpecLimits(): {
           // Stage-specific limits are used server-side for Cpk calculation.
           if (row.sample_stage !== null) continue;
           mapped[row.test_type] = {
-            usl:   row.usl,
-            lsl:   row.lsl,
+            usl: row.usl,
+            lsl: row.lsl,
             label: `${row.test_type}${row.unit ? ` (${row.unit})` : ""}`,
           };
         }

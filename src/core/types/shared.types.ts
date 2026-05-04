@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  SampleStatusSchema,
-  SamplePrioritySchema,
-  SampleSchema,
-} from "../../shared/schemas/sample.schema";
+import { SampleStatusSchema, SamplePrioritySchema, SampleSchema } from "../../shared/schemas/sample.schema";
 import { UserSchema } from "../../shared/schemas/auth.schema";
 import { TestResultSchema, TestStatusSchema } from "../../shared/schemas/test.schema";
 import {
@@ -12,12 +8,9 @@ import {
   StatRequestUrgencySchema,
 } from "../../shared/schemas/stat.schema";
 import { WorkflowSchema, WorkflowStepSchema } from "../../shared/schemas/workflow.schema";
-import {
-  NotificationSchema,
-  NotificationTypeSchema,
-} from "../../shared/schemas/notification.schema";
+import { NotificationSchema, NotificationTypeSchema } from "../../shared/schemas/notification.schema";
 import { AuditLogSchema } from "../../shared/schemas/audit.schema";
-import { TestType } from "./lab.types";
+import { type TestType } from "./lab.types";
 
 /** --- Enums from Schemas --- */
 export type SampleStatus = z.infer<typeof SampleStatusSchema>;

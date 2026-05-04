@@ -1,6 +1,6 @@
 import React, { createContext, useContext, memo } from "react";
 import { Hexagon } from "lucide-react";
-import clsx from "@/src/lib/clsx";
+import clsx from "clsx";
 
 /* ============================= */
 /* Types */
@@ -19,7 +19,7 @@ interface LogoContextValue {
 /* Context */
 /* ============================= */
 
-const LogoContext = createContext<LogoContextValue | null>(null);
+const LogoContext = createContext<LogoContextValue | undefined>(undefined);
 
 function useLogo() {
   const ctx = useContext(LogoContext);
@@ -98,15 +98,15 @@ export const LogoIcon: React.FC<LogoIconProps> = memo(
     return (
       <div
         className={clsx(
-          "relative flex items-center justify-center text-brand-primary transition-all duration-500 ease-out",
+          "text-brand-primary relative flex items-center justify-center transition-all duration-500 ease-out",
           "isolation-auto will-change-transform", // Performance optimization
-          interactive && "cursor-pointer hover:scale-110 active:scale-95 hover:rotate-3",
+          interactive && "cursor-pointer hover:scale-110 hover:rotate-3 active:scale-95",
           className,
         )}
       >
         {/* Ambient Glow - Subtle breathing effect behind the icon */}
         {animated && (
-          <div className="absolute inset-0 bg-current opacity-10 blur-xl animate-pulse rounded-full" />
+          <div className="absolute inset-0 animate-pulse rounded-full bg-current opacity-10 blur-xl" />
         )}
 
         {/* Rotating hex - Now using backface-visibility for smoother rendering */}
@@ -127,15 +127,15 @@ export const LogoIcon: React.FC<LogoIconProps> = memo(
         {/* Multi-stage Pulse - More premium than a single standard ping */}
         {animated && (
           <>
-            <span className="absolute h-full w-full rounded-full border border-current opacity-20 animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite]" />
-            <span className="absolute h-[70%] w-[70%] rounded-full border border-current opacity-10 animate-[ping_3.5s_linear_infinite]" />
+            <span className="absolute h-full w-full animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite] rounded-full border border-current opacity-20" />
+            <span className="absolute h-[70%] w-[70%] animate-[ping_3.5s_linear_infinite] rounded-full border border-current opacity-10" />
           </>
         )}
 
         {/* Core node - Enhanced with a blurred pseudo-glow */}
-        <div className="absolute inset-0 flex items-center justify-center z-20">
-          <div className="relative w-1.5 h-1.5 bg-current rounded-full shadow-[0_0_10px_currentColor]">
-            <div className="absolute inset-0 rounded-full bg-current animate-pulse blur-[2px] opacity-60" />
+        <div className="absolute inset-0 z-20 flex items-center justify-center">
+          <div className="relative h-1.5 w-1.5 rounded-full bg-current shadow-[0_0_10px_currentColor]">
+            <div className="absolute inset-0 animate-pulse rounded-full bg-current opacity-60 blur-[2px]" />
           </div>
         </div>
       </div>
@@ -172,11 +172,11 @@ export const LogoText: React.FC<LogoTextProps> = memo(
     return (
       <div className={clsx("flex flex-col leading-none", className)}>
         {/* Title */}
-        <span className={clsx("font-black uppercase tracking-tight", config.title, textColor)}>
+        <span className={clsx("font-black tracking-tight uppercase", config.title, textColor)}>
           {primary}
           <span className="text-brand-primary relative">
             {accent}
-            <span className="absolute inset-0 blur-sm opacity-30">{accent}</span>
+            <span className="absolute inset-0 opacity-30 blur-sm">{accent}</span>
           </span>
         </span>
 
@@ -184,7 +184,7 @@ export const LogoText: React.FC<LogoTextProps> = memo(
         {subtitle && (
           <span
             className={clsx(
-              "font-mono uppercase tracking-[0.3em] opacity-70 mt-1 text-[9px]",
+              "mt-1 font-mono text-[9px] tracking-[0.3em] uppercase opacity-70",
               config.subtitle,
               textColor,
             )}

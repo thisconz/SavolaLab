@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   UserPlus,
@@ -35,12 +35,10 @@ type FieldProps = {
 
 const Field: React.FC<FieldProps> = ({ label, icon, value, onChange, ...rest }) => (
   <div className="space-y-1.5">
-    <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">
-      {label}
-    </label>
+    <label className="text-brand-sage ml-1 text-[9px] font-black tracking-widest uppercase">{label}</label>
 
-    <div className="relative group">
-      <div className="absolute left-5 top-1/2 -translate-y-1/2 text-brand-sage group-focus-within:text-brand-primary transition-colors opacity-40">
+    <div className="group relative">
+      <div className="text-brand-sage group-focus-within:text-brand-primary absolute top-1/2 left-5 -translate-y-1/2 opacity-40 transition-colors">
         {icon}
       </div>
 
@@ -171,23 +169,23 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
             initial={{ scale: 0.5, rotate: -45 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            className="w-24 h-24 bg-emerald-500 rounded-4xl flex items-center justify-center shadow-[0_20px_50px_rgba(16,185,129,0.3)] border-4 border-(--color-zenthar-carbon)"
+            className="flex h-24 w-24 items-center justify-center rounded-4xl border-4 border-(--color-zenthar-carbon) bg-emerald-500 shadow-[0_20px_50px_rgba(16,185,129,0.3)]"
           >
-            <CheckCircle2 className="w-12 h-12 text-(--color-zenthar-void)" />
+            <CheckCircle2 className="h-12 w-12 text-(--color-zenthar-void)" />
           </motion.div>
           <motion.div
             animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.1, 0.3] }}
             transition={{ repeat: Infinity, duration: 3 }}
-            className="absolute inset-0 bg-emerald-500 blur-3xl -z-10"
+            className="absolute inset-0 -z-10 bg-emerald-500 blur-3xl"
           />
         </div>
-        <h2 className="text-xl font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.4em] mb-3">
+        <h2 className="mb-3 text-xl font-black tracking-[0.4em] text-(--color-zenthar-text-primary) uppercase">
           Sync Complete
         </h2>
-        <p className="text-[10px] text-brand-sage font-mono uppercase tracking-widest leading-relaxed opacity-70">
+        <p className="text-brand-sage font-mono text-[10px] leading-relaxed tracking-widest uppercase opacity-70">
           Handshake verified. Redirecting to secure terminal...
         </p>
-        <div className="mt-12 w-48 h-1 bg-(--color-zenthar-graphite) rounded-full overflow-hidden">
+        <div className="mt-12 h-1 w-48 overflow-hidden rounded-full bg-(--color-zenthar-graphite)">
           <motion.div
             initial={{ x: "-100%" }}
             animate={{ x: "0%" }}
@@ -206,9 +204,9 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
         <div className="flex items-center justify-between">
           <button
             onClick={onBack}
-            className="group flex items-center gap-2 text-[10px] font-black text-brand-sage uppercase tracking-widest hover:text-brand-primary transition-colors"
+            className="group text-brand-sage hover:text-brand-primary flex items-center gap-2 text-[10px] font-black tracking-widest uppercase transition-colors"
           >
-            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
             Abort Request
           </button>
 
@@ -216,12 +214,12 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
             {steps.map((_, idx) => (
               <div key={idx} className="relative">
                 <div
-                  className={`h-1.5 rounded-full transition-all duration-700 ${idx <= currentStepIndex ? "w-10 bg-brand-primary" : "w-4 bg-(--color-zenthar-graphite)"}`}
+                  className={`h-1.5 rounded-full transition-all duration-700 ${idx <= currentStepIndex ? "bg-brand-primary w-10" : "w-4 bg-(--color-zenthar-graphite)"}`}
                 />
                 {idx === currentStepIndex && (
                   <motion.div
                     layoutId="glow"
-                    className="absolute inset-0 bg-brand-primary blur-[6px] opacity-40"
+                    className="bg-brand-primary absolute inset-0 opacity-40 blur-[6px]"
                   />
                 )}
               </div>
@@ -229,19 +227,19 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
           </div>
         </div>
 
-        <div className="flex items-center gap-5 p-4 bg-(--color-zenthar-graphite)/30 rounded-2xl border border-brand-sage/10 relative overflow-hidden group">
-          <div className="w-12 h-12 rounded-xl bg-(--color-zenthar-void) flex items-center justify-center text-brand-primary shadow-lg transition-transform group-hover:scale-105">
-            <StepIcon className="w-6 h-6" />
+        <div className="border-brand-sage/10 group relative flex items-center gap-5 overflow-hidden rounded-2xl border bg-(--color-zenthar-graphite)/30 p-4">
+          <div className="text-brand-primary flex h-12 w-12 items-center justify-center rounded-xl bg-(--color-zenthar-void) shadow-lg transition-transform group-hover:scale-105">
+            <StepIcon className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-[11px] font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.3em]">
+            <h2 className="text-[11px] font-black tracking-[0.3em] text-(--color-zenthar-text-primary) uppercase">
               {steps[currentStepIndex].label} Layer
             </h2>
-            <p className="text-[9px] text-brand-sage font-mono uppercase tracking-widest opacity-60 mt-1">
+            <p className="text-brand-sage mt-1 font-mono text-[9px] tracking-widest uppercase opacity-60">
               {steps[currentStepIndex].desc}
             </p>
           </div>
-          <Cpu className="absolute right-4 opacity-[0.05] w-12 h-12 rotate-12" />
+          <Cpu className="absolute right-4 h-12 w-12 rotate-12 opacity-[0.05]" />
         </div>
       </div>
 
@@ -254,9 +252,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
           transition={{ duration: 0.3 }}
         >
           <form
-            onSubmit={
-              step === "verify" ? handleVerify : step === "otp" ? handleOtp : handleCredentials
-            }
+            onSubmit={step === "verify" ? handleVerify : step === "otp" ? handleOtp : handleCredentials}
             className="space-y-6"
           >
             {step === "verify" && (
@@ -266,17 +262,17 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
                   placeholder="EMP-00000"
                   value={employeeNumber}
                   onChange={setEmployeeNumber}
-                  icon={<ScanFace className="w-4 h-4" />}
+                  icon={<ScanFace className="h-4 w-4" />}
                 />
                 <Field
                   label="National Identity"
                   placeholder="Verification ID"
                   value={nationalId}
                   onChange={setNationalId}
-                  icon={<Lock className="w-4 h-4" />}
+                  icon={<Lock className="h-4 w-4" />}
                 />
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest ml-1">
+                  <label className="text-brand-sage ml-1 text-[9px] font-black tracking-widest uppercase">
                     Date of Registry
                   </label>
                   <input
@@ -292,15 +288,15 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
 
             {step === "otp" && (
               <div className="space-y-6">
-                <div className="p-6 bg-(--color-zenthar-void) rounded-4xl border border-brand-sage/10 text-center relative overflow-hidden shadow-2xl">
+                <div className="border-brand-sage/10 relative overflow-hidden rounded-4xl border bg-(--color-zenthar-void) p-6 text-center shadow-2xl">
                   <div className="relative z-10">
-                    <KeyRound className="w-6 h-6 text-brand-primary mx-auto mb-3 animate-pulse" />
-                    <p className="text-[9px] text-brand-sage font-mono uppercase tracking-widest leading-relaxed px-4 opacity-80">
+                    <KeyRound className="text-brand-primary mx-auto mb-3 h-6 w-6 animate-pulse" />
+                    <p className="text-brand-sage px-4 font-mono text-[9px] leading-relaxed tracking-widest uppercase opacity-80">
                       Transmission successful. Enter the 6-digit decryption token.
                     </p>
                   </div>
                   <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <ShieldAlert className="w-12 h-12 text-(--color-zenthar-text-primary)" />
+                    <ShieldAlert className="h-12 w-12 text-(--color-zenthar-text-primary)" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -310,7 +306,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
                     maxLength={6}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    className="w-full bg-(--color-zenthar-graphite)/30 border-2 border-brand-sage/10 rounded-2xl py-6 text-center text-4xl tracking-[0.5em] font-mono font-black text-(--color-zenthar-text-primary) focus:border-brand-primary focus:bg-(--color-zenthar-graphite) transition-all shadow-inner"
+                    className="border-brand-sage/10 focus:border-brand-primary w-full rounded-2xl border-2 bg-(--color-zenthar-graphite)/30 py-6 text-center font-mono text-4xl font-black tracking-[0.5em] text-(--color-zenthar-text-primary) shadow-inner transition-all focus:bg-(--color-zenthar-graphite)"
                     placeholder="•••••••"
                   />
                 </div>
@@ -325,7 +321,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
                   placeholder="••••••••"
                   value={password}
                   onChange={setPassword}
-                  icon={<KeyRound className="w-4 h-4" />}
+                  icon={<KeyRound className="h-4 w-4" />}
                 />
                 <Field
                   label="Confirm Master Password"
@@ -333,17 +329,15 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={setConfirmPassword}
-                  icon={<CheckCircle2 className="w-4 h-4" />}
+                  icon={<CheckCircle2 className="h-4 w-4" />}
                 />
 
-                <div className="pt-2 space-y-2">
-                  <div className="flex justify-between items-center px-1">
-                    <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest">
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center justify-between px-1">
+                    <label className="text-brand-sage text-[9px] font-black tracking-widest uppercase">
                       Rapid Access PIN
                     </label>
-                    <span className="text-[8px] font-mono text-brand-primary opacity-60">
-                      L-LEVEL 1
-                    </span>
+                    <span className="text-brand-primary font-mono text-[8px] opacity-60">L-LEVEL 1</span>
                   </div>
                   <input
                     type="password"
@@ -351,7 +345,7 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
                     required
                     value={pin}
                     onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                    className="w-full bg-(--color-zenthar-void) text-brand-primary border-2 border-brand-sage/10 rounded-2xl py-5 text-center text-3xl tracking-[0.8em] font-mono font-black focus:border-brand-primary transition-all shadow-2xl"
+                    className="text-brand-primary border-brand-sage/10 focus:border-brand-primary w-full rounded-2xl border-2 bg-(--color-zenthar-void) py-5 text-center font-mono text-3xl font-black tracking-[0.8em] shadow-2xl transition-all"
                     placeholder="••••"
                   />
                 </div>
@@ -362,30 +356,28 @@ export const RegistrationFlow: React.FC<RegistrationFlowProps> = ({ onBack, onSu
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl"
+                className="flex items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4"
               >
-                <ShieldAlert className="w-4 h-4 text-red-500" />
-                <p className="text-[9px] text-red-500 font-black uppercase tracking-widest">
-                  {error}
-                </p>
+                <ShieldAlert className="h-4 w-4 text-red-500" />
+                <p className="text-[9px] font-black tracking-widest text-red-500 uppercase">{error}</p>
               </motion.div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] transition-all duration-500 flex items-center justify-center gap-3 ${
+              className={`flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-[10px] font-black tracking-[0.3em] uppercase transition-all duration-500 ${
                 loading
-                  ? "bg-(--color-zenthar-graphite) text-brand-sage"
-                  : "bg-brand-primary text-(--color-zenthar-void) hover:bg-brand-primary/90 shadow-2xl shadow-brand-primary/20 active:scale-95"
+                  ? "text-brand-sage bg-(--color-zenthar-graphite)"
+                  : "bg-brand-primary hover:bg-brand-primary/90 shadow-brand-primary/20 text-(--color-zenthar-void) shadow-2xl active:scale-95"
               }`}
             >
               {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
                   <span>{step === "credentials" ? "Seal Registry" : "Proceed to Next Node"}</span>
-                  <ChevronRight className="w-4 h-4 opacity-50" />
+                  <ChevronRight className="h-4 w-4 opacity-50" />
                 </>
               )}
             </button>

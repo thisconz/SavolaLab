@@ -29,9 +29,7 @@ export const ArchiveApi = {
 
     const queryParams = new URLSearchParams(cleanFilters as any);
 
-    const res = await api.get<ArchiveResponse<T[]>>(
-      `/archive/${section}?${queryParams.toString()}`,
-    );
+    const res = await api.get<ArchiveResponse<T[]>>(`/archive/${section}?${queryParams.toString()}`);
 
     return res.data || [];
   },
@@ -40,10 +38,7 @@ export const ArchiveApi = {
    * Retrieves a single historical record by its archive ID.
    * Useful for "View Details" modals in the Archive UI.
    */
-  getRecordById: async <T = any>(
-    section: ArchiveSection,
-    id: string | number,
-  ): Promise<T | null> => {
+  getRecordById: async <T = any>(section: ArchiveSection, id: string | number): Promise<T | null> => {
     const res = await api.get<ArchiveResponse<T>>(`/archive/${section}/${id}`);
     return res.data || null;
   },

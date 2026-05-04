@@ -34,11 +34,11 @@ function backoffDelay(attempt: number): number {
 
 class ApiClient {
   private static instance: ApiClient;
-  private refreshPromise: Promise<boolean> | null = null;
-  
+  private refreshPromise: Promise<boolean> | undefined = undefined;
+
   // ── Injected dependencies (set once at app boot) ──────────────────────
-  private onLogout: () => void = () => {};
-  private onTokenUpdate: (token: string) => void = () => {};
+  private onLogout: () => void = () => { /* empty */ };
+  private onTokenUpdate: (token: string) => void = () => { /* empty */ };
 
   static getInstance(): ApiClient {
     if (!ApiClient.instance) ApiClient.instance = new ApiClient();
@@ -57,13 +57,7 @@ class ApiClient {
 
   // ── Core request ────────────────────────────────────────────────────────
   private async request<T>(path: string, config: RequestConfig = {}): Promise<T> {
-    const {
-      timeout = 30_000,
-      retries = 3,
-      _noRefresh = false,
-      _attempt = 1,
-      ...init
-    } = config;
+    const { timeout = 30_000, retries = 3, _noRefresh = false, _attempt = 1, ...init } = config;
 
     const url = `${BASE_URL}${path}`;
     const controller = new AbortController();
@@ -125,10 +119,9 @@ class ApiClient {
         return response.json() as Promise<T>;
       }
       return response.text() as unknown as Promise<T>;
-
     } catch (err: any) {
       clearTimeout(timer);
-    
+
       // Timeout — do not retry (the server may already be processing)
       if (err.name === "AbortError") {
         throw Object.assign(new Error(`Request timed out after ${timeout}ms: ${path}`), {
@@ -174,7 +167,7 @@ class ApiClient {
       } catch {
         return false;
       } finally {
-        this.refreshPromise = null;
+        this.refreshPromise = undefined;
       }
     })();
 

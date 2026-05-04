@@ -13,7 +13,7 @@ import {
   User,
   Tag,
 } from "lucide-react";
-import { motion } from "@/src/lib/motion";
+import { motion } from "framer-motion";
 import { ArchiveApi } from "../api/archive.api";
 import { Modal } from "../../../shared/components/Modal";
 import { TableSkeleton } from "../../../shared/components/Skeletons";
@@ -119,31 +119,31 @@ export const ArchivePage: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col gap-5 overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
+    <div className="flex h-full flex-col gap-5 overflow-hidden rounded-3xl bg-(--color-zenthar-graphite)/30 p-2">
       {/* ── Filter bar ── */}
-      <div className="bg-(--color-zenthar-carbon) p-6 rounded-3xl border border-brand-sage/10 shrink-0">
-        <form onSubmit={handleSearch} className="flex flex-wrap gap-3 items-end">
-          <div className="flex-1 min-w-[180px]">
-            <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-2">
+      <div className="border-brand-sage/10 shrink-0 rounded-3xl border bg-(--color-zenthar-carbon) p-6">
+        <form onSubmit={handleSearch} className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[180px] flex-1">
+            <label className="text-brand-sage mb-2 block text-[9px] font-black tracking-widest uppercase">
               Search
             </label>
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage/40" />
+              <Search className="text-brand-sage/40 absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Batch ID..."
-                className="w-full bg-(--color-zenthar-void) border border-brand-sage/10 rounded-xl pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-white"
+                className="border-brand-sage/10 focus:ring-brand-primary w-full rounded-xl border bg-(--color-zenthar-void) py-3 pr-4 pl-11 text-sm text-white outline-none focus:ring-2"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
           <div className="w-36">
-            <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-2">
+            <label className="text-brand-sage mb-2 block text-[9px] font-black tracking-widest uppercase">
               Status
             </label>
             <select
-              className="w-full bg-(--color-zenthar-void) border border-brand-sage/10 rounded-xl px-3 py-3 text-sm outline-none text-white"
+              className="border-brand-sage/10 w-full rounded-xl border bg-(--color-zenthar-void) px-3 py-3 text-sm text-white outline-none"
               value={filters.status}
               onChange={(e) => setFilters({ ...filters, status: e.target.value })}
             >
@@ -154,14 +154,14 @@ export const ArchivePage: React.FC = () => {
             </select>
           </div>
           <div className="w-36">
-            <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-2">
+            <label className="text-brand-sage mb-2 block text-[9px] font-black tracking-widest uppercase">
               Start Date
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage/40" />
+              <Calendar className="text-brand-sage/40 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <input
                 type="date"
-                className="w-full bg-(--color-zenthar-void) border border-brand-sage/10 rounded-xl pl-10 pr-3 py-3 text-sm outline-none text-white"
+                className="border-brand-sage/10 w-full rounded-xl border bg-(--color-zenthar-void) py-3 pr-3 pl-10 text-sm text-white outline-none"
                 value={filters.start_date}
                 onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
               />
@@ -169,7 +169,7 @@ export const ArchivePage: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="px-5 py-3 bg-(--color-zenthar-graphite) text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-brand-primary transition-all"
+            className="hover:bg-brand-primary rounded-xl bg-(--color-zenthar-graphite) px-5 py-3 text-xs font-bold tracking-widest text-white uppercase transition-all"
           >
             Filter
           </button>
@@ -177,30 +177,30 @@ export const ArchivePage: React.FC = () => {
       </div>
 
       {/* ── Content ── */}
-      <div className="flex-1 flex gap-6 overflow-hidden min-h-0">
+      <div className="flex min-h-0 flex-1 gap-6 overflow-hidden">
         {/* Section tabs */}
-        <div className="w-56 flex flex-col gap-2 shrink-0">
+        <div className="flex w-56 shrink-0 flex-col gap-2">
           {SECTIONS.map((s) => (
             <button
               key={s.id}
               onClick={() => setActiveSection(s.id as ArchiveSection)}
-              className={`flex items-center gap-3 px-5 py-4 rounded-3xl transition-all border text-left group ${
+              className={`group flex items-center gap-3 rounded-3xl border px-5 py-4 text-left transition-all ${
                 activeSection === s.id
-                  ? "bg-(--color-zenthar-carbon) border-brand-primary shadow-lg scale-[1.01]"
-                  : "bg-(--color-zenthar-carbon)/60 border-brand-sage/20 hover:border-brand-primary/40"
+                  ? "border-brand-primary scale-[1.01] bg-(--color-zenthar-carbon) shadow-lg"
+                  : "border-brand-sage/20 hover:border-brand-primary/40 bg-(--color-zenthar-carbon)/60"
               }`}
             >
               {activeSection === s.id && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-primary rounded-l-3xl"
+                  className="bg-brand-primary absolute top-0 bottom-0 left-0 w-1.5 rounded-l-3xl"
                 />
               )}
               <div
-                className={`p-2 rounded-xl transition-all ${activeSection === s.id ? "bg-(--color-zenthar-graphite)" : "bg-(--color-zenthar-void) border border-brand-sage/10"}`}
+                className={`rounded-xl p-2 transition-all ${activeSection === s.id ? "bg-(--color-zenthar-graphite)" : "border-brand-sage/10 border bg-(--color-zenthar-void)"}`}
               >
                 <s.icon
-                  className={`w-4 h-4 ${activeSection === s.id ? "text-brand-primary" : "text-brand-sage"}`}
+                  className={`h-4 w-4 ${activeSection === s.id ? "text-brand-primary" : "text-brand-sage"}`}
                 />
               </div>
               <span
@@ -213,19 +213,17 @@ export const ArchivePage: React.FC = () => {
         </div>
 
         {/* Table */}
-        <div className="flex-1 bg-(--color-zenthar-carbon) rounded-3xl border border-brand-sage/10 overflow-hidden flex flex-col min-h-0">
-          <div className="px-7 py-5 border-b border-brand-sage/10 flex items-center justify-between shrink-0">
+        <div className="border-brand-sage/10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border bg-(--color-zenthar-carbon)">
+          <div className="border-brand-sage/10 flex shrink-0 items-center justify-between border-b px-7 py-5">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-brand-primary/10 rounded-xl border border-brand-primary/20">
-                <Database className="w-4 h-4 text-brand-primary" />
+              <div className="bg-brand-primary/10 border-brand-primary/20 rounded-xl border p-2">
+                <Database className="text-brand-primary h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-white uppercase font-mono">
-                  {activeSection}
-                </h3>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
-                  <span className="text-[9px] font-bold text-brand-sage uppercase tracking-widest">
+                <h3 className="font-mono text-sm font-black text-white uppercase">{activeSection}</h3>
+                <div className="mt-0.5 flex items-center gap-2">
+                  <div className="bg-brand-primary h-1.5 w-1.5 animate-pulse rounded-full" />
+                  <span className="text-brand-sage text-[9px] font-bold tracking-widest uppercase">
                     {data.length} records
                   </span>
                 </div>
@@ -234,100 +232,97 @@ export const ArchivePage: React.FC = () => {
             <button
               onClick={handleExport}
               disabled={exporting || data.length === 0}
-              className="flex items-center gap-2 px-5 py-2.5 bg-(--color-zenthar-graphite) text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-brand-primary transition-all disabled:opacity-40 border border-brand-sage/10"
+              className="hover:bg-brand-primary border-brand-sage/10 flex items-center gap-2 rounded-2xl border bg-(--color-zenthar-graphite) px-5 py-2.5 text-xs font-bold tracking-widest text-white uppercase transition-all disabled:opacity-40"
             >
-              <Download className={`w-4 h-4 ${exporting ? "animate-bounce" : ""}`} />
+              <Download className={`h-4 w-4 ${exporting ? "animate-bounce" : ""}`} />
               {exporting ? "Exporting..." : "Export XLSX"}
             </button>
           </div>
 
-          <div className="flex-1 overflow-auto custom-scrollbar">
+          <div className="custom-scrollbar flex-1 overflow-auto">
             {loading ? (
               <TableSkeleton rows={8} columns={5} />
             ) : data.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-48 gap-3 text-brand-sage/40">
-                <Database className="w-10 h-10" />
-                <p className="text-xs font-black uppercase tracking-widest">No records found</p>
+              <div className="text-brand-sage/40 flex h-48 flex-col items-center justify-center gap-3">
+                <Database className="h-10 w-10" />
+                <p className="text-xs font-black tracking-widest uppercase">No records found</p>
               </div>
             ) : (
-              <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-(--color-zenthar-carbon) z-10">
-                  <tr className="border-b border-brand-sage/10">
+              <table className="w-full border-collapse text-left">
+                <thead className="sticky top-0 z-10 bg-(--color-zenthar-carbon)">
+                  <tr className="border-brand-sage/10 border-b">
                     {["ID / Batch", "Details", "Status", "Timestamp", ""].map((h) => (
                       <th
                         key={h}
-                        className="p-4 text-[9px] font-black text-brand-sage uppercase tracking-widest"
+                        className="text-brand-sage p-4 text-[9px] font-black tracking-widest uppercase"
                       >
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-brand-sage/5">
+                <tbody className="divide-brand-sage/5 divide-y">
                   {data.map((item, idx) => (
                     <tr
                       key={item.id ?? idx}
-                      className="hover:bg-(--color-zenthar-graphite)/50 transition-colors group"
+                      className="group transition-colors hover:bg-(--color-zenthar-graphite)/50"
                     >
                       <td className="p-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-(--color-zenthar-void) rounded flex items-center justify-center text-[9px] font-mono text-white border border-brand-sage/10">
+                          <div className="border-brand-sage/10 flex h-8 w-8 items-center justify-center rounded border bg-(--color-zenthar-void) font-mono text-[9px] text-white">
                             {item.id}
                           </div>
                           <div>
                             <div className="text-xs font-bold text-white uppercase">
                               {item.batch_id || "N/A"}
                             </div>
-                            <div className="text-[9px] text-brand-sage font-mono">
+                            <div className="text-brand-sage font-mono text-[9px]">
                               {item.test_type || item.type || "Record"}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="p-4 max-w-xs">
-                        <div className="text-xs text-white truncate">
+                      <td className="max-w-xs p-4">
+                        <div className="truncate text-xs text-white">
                           {item.details || item.message || item.reason || item.action || "—"}
                         </div>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <User className="w-3 h-3 text-brand-sage/40" />
-                          <span className="text-[9px] text-brand-sage">
-                            {item.technician_name ||
-                              item.performer_name ||
-                              item.employee_name ||
-                              "System"}
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <User className="text-brand-sage/40 h-3 w-3" />
+                          <span className="text-brand-sage text-[9px]">
+                            {item.technician_name || item.performer_name || item.employee_name || "System"}
                           </span>
                         </div>
                       </td>
                       <td className="p-4">
                         <span
-                          className={`px-2 py-1 rounded text-[9px] font-bold uppercase ${
+                          className={`rounded px-2 py-1 text-[9px] font-bold uppercase ${
                             ["COMPLETED", "APPROVED", "ACTIVE"].includes(item.status)
-                              ? "bg-emerald-900/30 text-emerald-400 border border-emerald-500/20"
-                              : "bg-(--color-zenthar-void) text-brand-sage border border-brand-sage/10"
+                              ? "border border-emerald-500/20 bg-emerald-900/30 text-emerald-400"
+                              : "text-brand-sage border-brand-sage/10 border bg-(--color-zenthar-void)"
                           }`}
                         >
                           {item.status || "—"}
                         </span>
                       </td>
                       <td className="p-4">
-                        <div className="flex items-center gap-1.5 text-[10px] text-brand-sage font-mono">
-                          <Clock className="w-3 h-3" />
+                        <div className="text-brand-sage flex items-center gap-1.5 font-mono text-[10px]">
+                          <Clock className="h-3 w-3" />
                           {new Date(item.created_at || item.performed_at).toLocaleString()}
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                           <button
                             onClick={() => setSelectedRecord(item)}
-                            className="p-2 bg-(--color-zenthar-void) text-brand-sage rounded-lg hover:bg-brand-primary hover:text-white transition-all border border-brand-sage/10"
+                            className="text-brand-sage hover:bg-brand-primary border-brand-sage/10 rounded-lg border bg-(--color-zenthar-void) p-2 transition-all hover:text-white"
                           >
-                            <Eye className="w-3.5 h-3.5" />
+                            <Eye className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => handleDownloadRecord(item)}
-                            className="p-2 bg-(--color-zenthar-void) text-brand-sage rounded-lg hover:bg-(--color-zenthar-graphite) hover:text-white transition-all border border-brand-sage/10"
+                            className="text-brand-sage border-brand-sage/10 rounded-lg border bg-(--color-zenthar-void) p-2 transition-all hover:bg-(--color-zenthar-graphite) hover:text-white"
                           >
-                            <Download className="w-3.5 h-3.5" />
+                            <Download className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </td>
@@ -348,23 +343,23 @@ export const ArchivePage: React.FC = () => {
         maxWidth="max-w-2xl"
       >
         <div className="space-y-5">
-          <div className="bg-(--color-zenthar-void) p-4 rounded-xl border border-brand-sage/20 overflow-x-auto custom-scrollbar max-h-96">
-            <pre className="text-[10px] font-mono text-brand-sage whitespace-pre-wrap">
+          <div className="border-brand-sage/20 custom-scrollbar max-h-96 overflow-x-auto rounded-xl border bg-(--color-zenthar-void) p-4">
+            <pre className="text-brand-sage font-mono text-[10px] whitespace-pre-wrap">
               {JSON.stringify(selectedRecord, null, 2)}
             </pre>
           </div>
           <div className="flex gap-3">
             <button
               onClick={() => setSelectedRecord(null)}
-              className="flex-1 px-5 py-3.5 text-[10px] font-black text-brand-sage hover:bg-(--color-zenthar-graphite) rounded-2xl transition-all border border-brand-sage/10 uppercase tracking-widest"
+              className="text-brand-sage border-brand-sage/10 flex-1 rounded-2xl border px-5 py-3.5 text-[10px] font-black tracking-widest uppercase transition-all hover:bg-(--color-zenthar-graphite)"
             >
               Close
             </button>
             <button
               onClick={() => handleDownloadRecord(selectedRecord)}
-              className="flex-1 flex items-center justify-center gap-2 px-5 py-3.5 bg-brand-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest"
+              className="bg-brand-primary flex flex-1 items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-[10px] font-black tracking-widest text-white uppercase"
             >
-              <Download className="w-3.5 h-3.5" /> Download JSON
+              <Download className="h-3.5 w-3.5" /> Download JSON
             </button>
           </div>
         </div>

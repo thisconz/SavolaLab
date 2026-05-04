@@ -48,7 +48,7 @@ export type TestSubmittedEvent = ZentharEvent<{
   id: number;
   sample_id: number;
   test_type: string;
-  raw_value: number | null;
+  raw_value: number | undefined;
   status: string;
   performer_id: string;
 }>;
@@ -105,10 +105,7 @@ class SSEBus {
 
     return () => {
       this.clients.delete(connectionId);
-      logger.info(
-        { connectionId, employeeNumber, total: this.clients.size },
-        "SSE client disconnected",
-      );
+      logger.info({ connectionId, employeeNumber, total: this.clients.size }, "SSE client disconnected");
     };
   }
 
@@ -136,10 +133,7 @@ class SSEBus {
       }
     }
 
-    logger.debug(
-      { type: payload.type, delivered, total: this.clients.size },
-      "SSE event published",
-    );
+    logger.debug({ type: payload.type, delivered, total: this.clients.size }, "SSE event published");
   }
 
   /** Convenience helpers */

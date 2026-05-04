@@ -5,7 +5,7 @@ import { initSecurityTriggers } from "./db/security";
 import { logger } from "./logger";
 
 let initialized = false;
-let initPromise: Promise<void> | null = null;
+let initPromise: Promise<void> | undefined = undefined;
 
 type InitStage = "instrumentation" | "migrations" | "security" | "seeding";
 
@@ -62,7 +62,7 @@ export async function initDatabase(): Promise<void> {
       logger.info("Database fully initialized");
     } catch (err) {
       initialized = false;
-      initPromise = null;
+      initPromise = undefined;
       logger.error({ err }, "DATABASE INITIALIZATION FAILED");
       throw err;
     }

@@ -1,13 +1,7 @@
 import { z } from "zod";
 import { TestTypeSchema } from "../../core/types/lab.types";
 
-export const TestStatusSchema = z.enum([
-  "PENDING",
-  "APPROVED",
-  "DISAPPROVED",
-  "COMPLETED",
-  "VALIDATING",
-]);
+export const TestStatusSchema = z.enum(["PENDING", "APPROVED", "DISAPPROVED", "COMPLETED", "VALIDATING"]);
 
 const nullableToOptional = <T extends z.ZodTypeAny>(schema: T) =>
   schema

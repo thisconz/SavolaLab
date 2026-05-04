@@ -27,14 +27,19 @@ _Deterministic workflows. Immutable data. Zero ambiguity._
 
 ## What Is Zenthar
 
-Zenthar is an enterprise-grade **Laboratory Information Management System (LIMS)** purpose-built for industrial sugar refinery quality-control divisions. It provides:
+Zenthar is an enterprise-grade **Laboratory Information Management System
+(LIMS)** purpose-built for industrial sugar refinery quality-control divisions.
+It provides:
 
-- **End-to-end sample lifecycle management** — registration → testing → validation → certification
-- **Real-time dashboards** with SSE-pushed updates, SPC charts, and Cpk/Ppk gauges
+- **End-to-end sample lifecycle management** — registration → testing →
+  validation → certification
+- **Real-time dashboards** with SSE-pushed updates, SPC charts, and Cpk/Ppk
+  gauges
 - **Role-based access control** across seven permission tiers
 - **Workflow automation** engine with step-by-step execution tracking
 - **Append-only, immutable audit trail** enforced at the database trigger level
-- **Dual database backend** — PostgreSQL in production, PGlite for offline/development
+- **Dual database backend** — PostgreSQL in production, PGlite for
+  offline/development
 
 ---
 
@@ -176,7 +181,8 @@ zenthar/
 ### Prerequisites
 
 - **Node.js** ≥ 20
-- **PostgreSQL** 15+ _(optional — PGlite is used automatically if `DATABASE_URL` is not set)_
+- **PostgreSQL** 15+ _(optional — PGlite is used automatically if `DATABASE_URL`
+  is not set)_
 
 ### 1 — Install dependencies
 
@@ -216,7 +222,8 @@ This starts the unified Hono server on **http://localhost:3000** with:
 - REST API at `/api/*`
 - SSE stream at `/api/realtime/stream`
 
-On first boot, migrations run automatically and seed data is inserted including three default accounts:
+On first boot, migrations run automatically and seed data is inserted including
+three default accounts:
 
 | Employee # | Password       | PIN  | Role          |
 | ---------- | -------------- | ---- | ------------- |
@@ -271,7 +278,8 @@ Test suites:
 REGISTERED → PENDING → TESTING → VALIDATING → COMPLETED / APPROVED
 ```
 
-Transitions are tracked, audited, and broadcast via SSE to all connected clients.
+Transitions are tracked, audited, and broadcast via SSE to all connected
+clients.
 
 ### Immutable Data Guarantee
 
@@ -284,7 +292,9 @@ Database triggers enforce:
 
 ### Real-time Updates
 
-All state changes (new sample, test submitted, review completed, STAT request) are pushed over a single SSE connection per user. The frontend uses debounced handlers to coalesce rapid events.
+All state changes (new sample, test submitted, review completed, STAT request)
+are pushed over a single SSE connection per user. The frontend uses debounced
+handlers to coalesce rapid events.
 
 ### Role-Based Access Control
 
@@ -302,7 +312,8 @@ All state changes (new sample, test submitted, review completed, STAT request) a
 
 ## Database Migrations
 
-Migrations are versioned integers running in order. New migrations are appended to `server/core/db/migrations.ts`:
+Migrations are versioned integers running in order. New migrations are appended
+to `server/core/db/migrations.ts`:
 
 ```ts
 {
@@ -313,7 +324,8 @@ Migrations are versioned integers running in order. New migrations are appended 
 }
 ```
 
-The runner acquires a Postgres advisory lock before applying, making it safe to run on multi-instance deployments simultaneously.
+The runner acquires a Postgres advisory lock before applying, making it safe to
+run on multi-instance deployments simultaneously.
 
 ---
 

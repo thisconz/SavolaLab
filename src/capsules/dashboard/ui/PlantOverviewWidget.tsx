@@ -1,14 +1,5 @@
 import React, { useMemo, memo } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "../../../lib/recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Sample } from "../../../core/types";
 
 interface Props {
@@ -87,12 +78,7 @@ export const PlantOverviewWidget: React.FC<Props> = memo(({ samples, loading = f
             domain={[0, maxVal + 2]}
           />
           <Tooltip {...TOOLTIP_STYLE} cursor={{ fill: "rgba(148,163,184,0.03)" }} />
-          <Bar
-            dataKey="value"
-            radius={[6, 6, 0, 0]}
-            animationDuration={1400}
-            animationEasing="ease-out"
-          >
+          <Bar dataKey="value" radius={[6, 6, 0, 0]} animationDuration={1400} animationEasing="ease-out">
             {data.map((_, i) => (
               <Cell key={i} fill={`rgba(14,165,233,${1 - i * 0.09})`} />
             ))}
@@ -104,11 +90,11 @@ export const PlantOverviewWidget: React.FC<Props> = memo(({ samples, loading = f
 });
 
 const PlantLoading = () => (
-  <div className="h-60 w-full flex items-end justify-around pb-6 px-4 gap-2">
+  <div className="flex h-60 w-full items-end justify-around gap-2 px-4 pb-6">
     {[...Array(7)].map((_, i) => (
       <div
         key={i}
-        className="flex-1 bg-(--color-zenthar-graphite) rounded-t-lg animate-pulse"
+        className="flex-1 animate-pulse rounded-t-lg bg-(--color-zenthar-graphite)"
         style={{ height: `${20 + i * 11}%`, opacity: 0.4 + i * 0.08 }}
       />
     ))}
@@ -116,10 +102,8 @@ const PlantLoading = () => (
 );
 
 const PlantEmpty = () => (
-  <div className="h-60 w-full flex flex-col items-center justify-center bg-(--color-zenthar-graphite)/50 rounded-2xl border border-dashed border-brand-sage/20">
-    <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest">
-      No throughput data
-    </p>
+  <div className="border-brand-sage/20 flex h-60 w-full flex-col items-center justify-center rounded-2xl border border-dashed bg-(--color-zenthar-graphite)/50">
+    <p className="text-brand-sage text-[10px] font-black tracking-widest uppercase">No throughput data</p>
   </div>
 );
 

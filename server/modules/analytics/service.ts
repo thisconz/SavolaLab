@@ -8,9 +8,9 @@ import { analyticsCache, TTL } from "../../core/cache";
 
 export interface HourlyQualityPoint {
   time: string;
-  brix: number | null;
-  purity: number | null;
-  color: number | null;
+  brix: number | undefined;
+  purity: number | undefined;
+  color: number | undefined;
 }
 
 export interface DailyVolumePoint {
@@ -61,10 +61,8 @@ async function getSpecLimits(): Promise<Record<string, { usl: number; lsl: numbe
            FROM spec_limits
            WHERE is_active = 1`,
         );
-        
-        return Object.fromEntries(
-          rows.map((r) => [r.test_type, { usl: Number(r.usl), lsl: Number(r.lsl) }])
-        );
+
+        return Object.fromEntries(rows.map((r) => [r.test_type, { usl: Number(r.usl), lsl: Number(r.lsl) }]));
       } catch (err) {
         logger.error({ err }, "Failed to fetch dynamic spec limits");
         return {};
@@ -97,9 +95,9 @@ export const AnalyticsService = {
         try {
           const rows = await db.query<{
             hour: string;
-            brix: number | null;
-            purity: number | null;
-            color: number | null;
+            brix: number | undefined;
+            purity: number | undefined;
+            color: number | undefined;
             avg_value: number;
           }>(`
             SELECT
@@ -117,9 +115,9 @@ export const AnalyticsService = {
 
           return rows.map((row) => ({
             time: new Date(row.hour).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            brix: row.brix !== null ? Number(row.brix) : null,
-            purity: row.purity !== null ? Number(row.purity) : null,
-            color: row.color !== null ? Number(row.color) : null,
+            brix: row.brix !== undefined ? Number(row.brix) : undefined,
+            purity: row.purity !== undefined ? Number(row.purity) : undefined,
+            color: row.color !== undefined ? Number(row.color) : undefined,
           }));
         } catch (err: any) {
           logger.error({ err }, "AnalyticsService.getQualityData failed");
@@ -210,7 +208,7 @@ export const AnalyticsService = {
             const stddev = Number(row.stddev);
             const n = Number(row.n);
 
-            if (stddev <= 0 || n < 10) continue; 
+            if (stddev <= 0 || n < 10) continue;
 
             // Match spec by test type; fallback logic if missing
             const spec = specs[row.test_type];
@@ -278,7 +276,7 @@ export const AnalyticsService = {
               COUNT(*) FILTER (WHERE status != 'PENDING')::int   AS total_tested,
               ROUND(
                 100.0 * COUNT(*) FILTER (WHERE status = 'APPROVED') /
-                NULLIF(COUNT(*) FILTER (WHERE status != 'PENDING'), 0),
+                undefinedIF(COUNT(*) FILTER (WHERE status != 'PENDING'), 0),
                 1
               )::float                                           AS pass_rate
             FROM tests

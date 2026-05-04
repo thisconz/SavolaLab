@@ -12,68 +12,62 @@ export type UserRole =
   | "ENGINEER"
   | "DISPATCH";
 
-export type User = {
+export interface User {
   employee_number: string;
   name: string;
   role: UserRole;
   dept: string;
   permissions: PermissionFlags;
-};
+}
 
-export type PermissionFlags = {
+export interface PermissionFlags {
   view_results: 0 | 1;
   input_data: 0 | 1;
   edit_formulas: 0 | 1;
   change_specs: 0 | 1;
-};
+}
 
 // --- Sample and Testing ---
-export type SampleType = {
+export interface SampleType {
   id?: number;
   name: string;
   category: "STAGE" | "PRODUCT" | "LIQUID" | "UTILITY";
   description?: string; // optional if not always used
-};
+}
 
-export type SampleData = {
+export interface SampleData {
   batch_id?: string;
   sample_type?: string;
   source_stage?: string;
   priority?: string;
-  line_id?: string | number | null;
-  equipment_id?: string | number | null;
-  shift_id?: string | number | null;
+  line_id?: string | number | undefined;
+  equipment_id?: string | number | undefined;
+  shift_id?: string | number | undefined;
   status?: string;
-};
+}
 
-export type TestResultSummary = {
+export interface TestResultSummary {
   raw_value: number;
   performed_at: string;
   batch_id: string;
-};
+}
 
-export type SampleTest = {
+export interface SampleTest {
   id: number;
   sample_id: number;
   test_type: string;
   status: "PENDING" | "APPROVED" | "DISAPPROVED" | "COMPLETED" | "VALIDATING";
-};
+}
 
 // --- Variables and Export ---
-export type Variables = {
+export interface Variables {
   user: User;
   requestId: string;
   clientIp?: string;
-};
+}
 
 // --- Export ---
-export type ExportType =
-  | "samples"
-  | "tests"
-  | "audit"
-  | "certificates"
-  | "instruments"
-  | "inventory";
+export type ExportType = "samples" | "tests" | "audit" | "certificates" | "instruments" | "inventory";
 
 export interface ExportOptions {
   type: ExportType;
@@ -94,7 +88,7 @@ export interface TelemetryMetrics {
   stats: {
     samples: number;
     pending: number;
-    lastAudit: string | null;
+    lastAudit: string | undefined;
   };
 }
 
@@ -104,14 +98,17 @@ export interface TelemetryFilter {
 }
 
 // --- Workflow ---
-export type WorkflowStepInput = {
+export interface WorkflowStepInput {
   test_type: string;
-  min_value?: number | null;
-  max_value?: number | null;
-};
+  min_value?: number | undefined;
+  max_value?: number | undefined;
+}
 
 // --- Operational Data ---
-export type Pagination = { limit?: number; offset?: number };
+export interface Pagination {
+  limit?: number;
+  offset?: number;
+}
 export type EquipmentFilter = { lineId?: string } & Pagination;
 // ─────────────────────────────────────────────
 // Permission helpers

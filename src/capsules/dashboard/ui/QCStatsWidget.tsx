@@ -1,6 +1,6 @@
 import React, { useMemo, memo } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "@/src/lib/recharts";
-import { motion } from "@/src/lib/motion";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { motion } from "framer-motion";
 import { Sample } from "../../../core/types";
 
 interface Props {
@@ -54,19 +54,17 @@ export const QCStatsWidget: React.FC<Props> = memo(({ samples, loading = false }
   if (!data.length) return <EmptyState />;
 
   return (
-    <div className="h-60 w-full relative">
+    <div className="relative h-60 w-full">
       {/* Centre total */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-10 z-10">
+      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center pb-10">
         <motion.span
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-3xl font-mono font-black text-(--color-zenthar-text-primary) tracking-tighter"
+          className="font-mono text-3xl font-black tracking-tighter text-(--color-zenthar-text-primary)"
         >
           {total}
         </motion.span>
-        <span className="text-[8px] font-black text-brand-sage/50 uppercase tracking-widest">
-          samples
-        </span>
+        <span className="text-brand-sage/50 text-[8px] font-black tracking-widest uppercase">samples</span>
       </div>
 
       <ResponsiveContainer width="100%" height="100%">
@@ -86,14 +84,11 @@ export const QCStatsWidget: React.FC<Props> = memo(({ samples, loading = false }
               <Cell
                 key={entry.name}
                 fill={STATUS_COLORS[entry.name] ?? "#64748b"}
-                className="hover:opacity-80 transition-opacity cursor-pointer"
+                className="cursor-pointer transition-opacity hover:opacity-80"
               />
             ))}
           </Pie>
-          <Tooltip
-            {...TOOLTIP_STYLE}
-            formatter={(v: number, name: string) => [`${v} samples`, name]}
-          />
+          <Tooltip {...TOOLTIP_STYLE} formatter={(v: number, name: string) => [`${v} samples`, name]} />
           <Legend
             verticalAlign="bottom"
             iconType="circle"
@@ -113,14 +108,14 @@ export const QCStatsWidget: React.FC<Props> = memo(({ samples, loading = false }
 });
 
 const SkeletonPie = () => (
-  <div className="h-60 w-full flex items-center justify-center">
-    <div className="w-32 h-32 rounded-full border-8 border-(--color-zenthar-steel) border-t-brand-primary animate-spin" />
+  <div className="flex h-60 w-full items-center justify-center">
+    <div className="border-t-brand-primary h-32 w-32 animate-spin rounded-full border-8 border-(--color-zenthar-steel)" />
   </div>
 );
 
 const EmptyState = () => (
-  <div className="h-60 w-full flex flex-col items-center justify-center gap-2 border border-dashed border-brand-sage/20 rounded-2xl bg-(--color-zenthar-graphite)/50">
-    <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest">No data yet</p>
+  <div className="border-brand-sage/20 flex h-60 w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed bg-(--color-zenthar-graphite)/50">
+    <p className="text-brand-sage text-[10px] font-black tracking-widest uppercase">No data yet</p>
   </div>
 );
 

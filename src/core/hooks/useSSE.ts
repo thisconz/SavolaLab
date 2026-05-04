@@ -53,7 +53,7 @@ interface UseSSEReturn {
   status: SSEStatus;
   isConnected: boolean;
   on: <T = any>(event: SSEEventType, callback: SSECallback<T>) => () => void;
-  lastEvent: { type: SSEEventType; data: any } | null;
+  lastEvent: { type: SSEEventType; data: any } | undefined;
   disconnect: () => void;
   reconnect: () => void;
 }
@@ -78,12 +78,12 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
   const isAuthenticated = useAuthStore((s) => !!s.currentUser);
 
   const [status, setStatus] = useState<SSEStatus>("disconnected");
-  const [lastEvent, setLastEvent] = useState<{ type: SSEEventType; data: any } | null>(null);
+  const [lastEvent, setLastEvent] = useState<{ type: SSEEventType; data: any } | undefined>(undefined);
 
-  const esRef = useRef<EventSource | null>(null);
+  const esRef = useRef<EventSource | undefined>(undefined);
   const listenersRef = useRef(new Map<SSEEventType, Set<SSECallback>>());
   const retryRef = useRef(0);
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const mountedRef = useRef(true);
 
   const emit = useCallback((type: SSEEventType, data: any) => {
@@ -101,11 +101,11 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
   const cleanupInternal = useCallback(() => {
     if (retryTimerRef.current) {
       clearTimeout(retryTimerRef.current);
-      retryTimerRef.current = null;
+      retryTimerRef.current = undefined;
     }
     if (esRef.current) {
       esRef.current.close();
-      esRef.current = null;
+      esRef.current = undefined;
     }
   }, []);
 
@@ -197,7 +197,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearTimeout(retryTimerRef.current ?? undefined);
       esRef.current?.close();
-      esRef.current = null;
+      esRef.current = undefined;
     };
   }, [isAuthenticated, autoConnect, connect]);
 
@@ -207,7 +207,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     if (!isAuthenticated) {
       clearTimeout(retryTimerRef.current ?? undefined);
       esRef.current?.close();
-      esRef.current = null;
+      esRef.current = undefined;
       setStatus("disconnected");
     }
   }, [isAuthenticated]);
@@ -218,7 +218,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
     if (!listenersRef.current.has(event)) {
       listenersRef.current.set(event, new Set());
     }
-    listenersRef.current.get(event)!.add(callback as SSECallback);
+    listenersRef.current.get(event)?.add(callback as SSECallback);
     return () => {
       listenersRef.current.get(event)?.delete(callback as SSECallback);
     };
@@ -227,7 +227,7 @@ export function useSSE(options: UseSSEOptions = {}): UseSSEReturn {
   const disconnect = useCallback(() => {
     clearTimeout(retryTimerRef.current ?? undefined);
     esRef.current?.close();
-    esRef.current = null;
+    esRef.current = undefined;
     setStatus("disconnected");
   }, []);
 

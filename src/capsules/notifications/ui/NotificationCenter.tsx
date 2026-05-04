@@ -3,7 +3,7 @@ import { Bell, Check, Trash2, AlertCircle, CheckCircle2, XCircle, Clock } from "
 import { NotificationApi } from "../api/notification.api";
 import { Notification } from "../../../core/types";
 import { useNotifications } from "../hooks/useNotifications";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export const NotificationCenter: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,13 +12,13 @@ export const NotificationCenter: React.FC = () => {
   const getIcon = (type: string) => {
     switch (type) {
       case "SAMPLE_COMPLETED":
-        return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
+        return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
       case "WORKFLOW_FAILURE":
-        return <XCircle className="w-4 h-4 text-lab-laser" />;
+        return <XCircle className="text-lab-laser h-4 w-4" />;
       case "OVERDUE_TEST":
-        return <Clock className="w-4 h-4 text-amber-500" />;
+        return <Clock className="h-4 w-4 text-amber-500" />;
       default:
-        return <AlertCircle className="w-4 h-4 text-brand-primary" />;
+        return <AlertCircle className="text-brand-primary h-4 w-4" />;
     }
   };
 
@@ -31,20 +31,20 @@ export const NotificationCenter: React.FC = () => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-3 rounded-2xl transition-all duration-300 group border overflow-hidden ${
+        className={`group relative overflow-hidden rounded-2xl border p-3 transition-all duration-300 ${
           unreadCount > 0
-            ? "bg-brand-primary/10 border-brand-primary/30 text-brand-primary shadow-xl shadow-brand-primary/20"
-            : "bg-(--color-zenthar-graphite)/80 backdrop-blur-sm border-brand-sage/20 text-white/70 hover:border-brand-primary/30 hover:text-brand-primary hover:shadow-lg hover:shadow-brand-primary/10"
+            ? "bg-brand-primary/10 border-brand-primary/30 text-brand-primary shadow-brand-primary/20 shadow-xl"
+            : "border-brand-sage/20 hover:border-brand-primary/30 hover:text-brand-primary hover:shadow-brand-primary/10 bg-(--color-zenthar-graphite)/80 text-white/70 backdrop-blur-sm hover:shadow-lg"
         }`}
       >
         {/* Hover Gradient */}
-        <div className="absolute inset-0 bg-linear-to-tr from-brand-primary/0 via-brand-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="from-brand-primary/0 via-brand-primary/5 pointer-events-none absolute inset-0 bg-linear-to-tr to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
         <Bell
-          className={`w-5 h-5 relative z-10 transition-transform duration-300 group-hover:scale-110 ${unreadCount > 0 ? "animate-pulse" : ""}`}
+          className={`relative z-10 h-5 w-5 transition-transform duration-300 group-hover:scale-110 ${unreadCount > 0 ? "animate-pulse" : ""}`}
         />
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-lab-laser text-(--color-zenthar-void) text-[10px] font-black flex items-center justify-center rounded-xl border border-white/20 shadow-lg z-20">
+          <span className="bg-lab-laser absolute -top-1.5 -right-1.5 z-20 flex h-5 w-5 items-center justify-center rounded-xl border border-white/20 text-[10px] font-black text-(--color-zenthar-void) shadow-lg">
             {unreadCount}
           </span>
         )}
@@ -59,77 +59,77 @@ export const NotificationCenter: React.FC = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="absolute right-0 mt-4 w-400px bg-(--color-zenthar-carbon)/95 backdrop-blur-2xl border border-brand-sage/20 rounded-[2rem] shadow-2xl z-50 overflow-hidden"
+              className="w-400px border-brand-sage/20 absolute right-0 z-50 mt-4 overflow-hidden rounded-[2rem] border bg-(--color-zenthar-carbon)/95 shadow-2xl backdrop-blur-2xl"
             >
               {/* Decorative Header Background */}
-              <div className="absolute top-0 left-0 right-0 h-24 bg-linear-to-b from-brand-primary/10 via-(--color-zenthar-graphite)/50 to-transparent pointer-events-none" />
-              <div className="absolute top-0 left-0 w-full h-1px bg-linear-to-r from-transparent via-brand-primary/30 to-transparent" />
+              <div className="from-brand-primary/10 pointer-events-none absolute top-0 right-0 left-0 h-24 bg-linear-to-b via-(--color-zenthar-graphite)/50 to-transparent" />
+              <div className="h-1px via-brand-primary/30 absolute top-0 left-0 w-full bg-linear-to-r from-transparent to-transparent" />
 
-              <div className="p-6 border-b border-brand-sage/10 flex items-center justify-between relative z-10">
+              <div className="border-brand-sage/10 relative z-10 flex items-center justify-between border-b p-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20 shadow-inner">
-                    <Bell className="w-4 h-4 text-brand-primary" />
+                  <div className="bg-brand-primary/10 border-brand-primary/20 flex h-8 w-8 items-center justify-center rounded-xl border shadow-inner">
+                    <Bell className="text-brand-primary h-4 w-4" />
                   </div>
-                  <h3 className="text-xs font-black text-(--color-zenthar-text-primary) uppercase tracking-[0.2em]">
+                  <h3 className="text-xs font-black tracking-[0.2em] text-(--color-zenthar-text-primary) uppercase">
                     System Alerts
                   </h3>
                 </div>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-[10px] font-black text-brand-primary hover:text-(--color-zenthar-text-secondary) uppercase tracking-widest transition-colors px-3 py-1.5 rounded-lg hover:bg-brand-primary/10"
+                    className="text-brand-primary hover:bg-brand-primary/10 rounded-lg px-3 py-1.5 text-[10px] font-black tracking-widest uppercase transition-colors hover:text-(--color-zenthar-text-secondary)"
                   >
                     Clear All
                   </button>
                 )}
               </div>
 
-              <div className="max-h-[32rem] overflow-auto custom-scrollbar relative z-10">
+              <div className="custom-scrollbar relative z-10 max-h-[32rem] overflow-auto">
                 {notifications.length === 0 ? (
-                  <div className="p-12 text-center text-brand-sage opacity-50 flex flex-col items-center">
-                    <div className="w-16 h-16 rounded-2xl bg-(--color-zenthar-graphite)/50 flex items-center justify-center mb-4">
-                      <Bell className="w-8 h-8 opacity-40" />
+                  <div className="text-brand-sage flex flex-col items-center p-12 text-center opacity-50">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-(--color-zenthar-graphite)/50">
+                      <Bell className="h-8 w-8 opacity-40" />
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">
+                    <p className="text-[10px] font-black tracking-[0.2em] uppercase">
                       No active notifications
                     </p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-brand-sage/5">
+                  <div className="divide-brand-sage/5 divide-y">
                     {notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        className={`p-5 transition-all duration-300 hover:bg-(--color-zenthar-graphite)/50 flex gap-4 group relative ${!notification.is_read ? "bg-brand-primary/5" : ""}`}
+                        className={`group relative flex gap-4 p-5 transition-all duration-300 hover:bg-(--color-zenthar-graphite)/50 ${!notification.is_read ? "bg-brand-primary/5" : ""}`}
                       >
                         {!notification.is_read && (
-                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary" />
+                          <div className="bg-brand-primary absolute top-0 bottom-0 left-0 w-1" />
                         )}
                         <div
-                          className={`mt-1 w-10 h-10 rounded-xl flex items-center justify-center shadow-inner ${
+                          className={`mt-1 flex h-10 w-10 items-center justify-center rounded-xl shadow-inner ${
                             notification.type === "WORKFLOW_FAILURE"
-                              ? "bg-lab-laser/10 border border-lab-laser/30"
+                              ? "bg-lab-laser/10 border-lab-laser/30 border"
                               : notification.type === "SAMPLE_COMPLETED"
-                                ? "bg-emerald-500/10 border border-emerald-500/30"
-                                : "bg-(--color-zenthar-graphite) border border-brand-sage/10"
+                                ? "border border-emerald-500/30 bg-emerald-500/10"
+                                : "border-brand-sage/10 border bg-(--color-zenthar-graphite)"
                           }`}
                         >
                           {getIcon(notification.type)}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p
-                            className={`text-[11px] leading-relaxed tracking-tight ${!notification.is_read ? "text-(--color-zenthar-text-primary) font-black" : "text-(--color-zenthar-text-primary)/70 font-bold"}`}
+                            className={`text-[11px] leading-relaxed tracking-tight ${!notification.is_read ? "font-black text-(--color-zenthar-text-primary)" : "font-bold text-(--color-zenthar-text-primary)/70"}`}
                           >
                             {notification.message}
                           </p>
-                          <div className="flex items-center justify-between mt-3">
-                            <div className="flex items-center gap-2 text-[9px] font-mono font-bold text-brand-sage uppercase tracking-tighter opacity-60">
-                              <Clock className="w-2.5 h-2.5" />
+                          <div className="mt-3 flex items-center justify-between">
+                            <div className="text-brand-sage flex items-center gap-2 font-mono text-[9px] font-bold tracking-tighter uppercase opacity-60">
+                              <Clock className="h-2.5 w-2.5" />
                               {formatTime(notification.created_at)}
                             </div>
                             {!notification.is_read && (
                               <button
                                 onClick={() => markAsRead(notification.id)}
-                                className="px-4 py-1.5 rounded-xl bg-(--color-zenthar-graphite) border border-brand-sage/20 text-brand-primary text-[9px] font-black uppercase tracking-widest hover:bg-brand-primary hover:text-(--color-zenthar-void) hover:border-brand-primary transition-all shadow-sm active:scale-95"
+                                className="border-brand-sage/20 text-brand-primary hover:bg-brand-primary hover:border-brand-primary rounded-xl border bg-(--color-zenthar-graphite) px-4 py-1.5 text-[9px] font-black tracking-widest uppercase shadow-sm transition-all hover:text-(--color-zenthar-void) active:scale-95"
                               >
                                 Acknowledge
                               </button>
@@ -142,9 +142,9 @@ export const NotificationCenter: React.FC = () => {
                 )}
               </div>
 
-              <div className="p-5 border-t border-brand-sage/10 bg-(--color-zenthar-graphite)/30 text-center relative z-10">
+              <div className="border-brand-sage/10 relative z-10 border-t bg-(--color-zenthar-graphite)/30 p-5 text-center">
                 <button
-                  className="text-[10px] font-black text-brand-sage hover:text-(--color-zenthar-text-primary) uppercase tracking-[0.2em] transition-all px-4 py-2 rounded-xl hover:bg-(--color-zenthar-graphite) border border-transparent hover:border-brand-sage/20 hover:shadow-sm"
+                  className="text-brand-sage hover:border-brand-sage/20 rounded-xl border border-transparent px-4 py-2 text-[10px] font-black tracking-[0.2em] uppercase transition-all hover:bg-(--color-zenthar-graphite) hover:text-(--color-zenthar-text-primary) hover:shadow-sm"
                   onClick={() => setIsOpen(false)}
                 >
                   Dismiss Panel

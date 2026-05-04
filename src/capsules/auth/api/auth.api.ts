@@ -1,4 +1,4 @@
-﻿import { api } from "../../../core/http/client";
+import { api } from "../../../core/http/client";
 import { User } from "../../../core/types";
 
 export const AuthApi = {
@@ -7,9 +7,7 @@ export const AuthApi = {
    * Uses the unauthenticated /public endpoint — no token required.
    */
   getUsers: async (): Promise<Pick<User, "id" | "name" | "role" | "initials">[]> => {
-    const response = await api.get<{ success: boolean; data: User[] }>(
-      "/v1/directory/users/public",
-    );
+    const response = await api.get<{ success: boolean; data: User[] }>("/v1/directory/users/public");
     return (response.data ?? []) as any;
   },
 
@@ -43,10 +41,7 @@ export const AuthApi = {
   },
 
   /** Step 2 of registration: confirm the 6-digit OTP. */
-  confirmOtp: async (
-    employeeNumber: string,
-    otp: string,
-  ): Promise<{ success: boolean }> => {
+  confirmOtp: async (employeeNumber: string, otp: string): Promise<{ success: boolean }> => {
     return api.post("/v1/directory/confirm-otp", {
       employee_number: employeeNumber,
       code: otp,

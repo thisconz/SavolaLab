@@ -17,8 +17,8 @@ import { LabApi } from "../../lab/api/lab.api";
 import { WorkflowApi } from "../api/workflow.api";
 import { WorkflowExecution, Sample } from "../../../core/types";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
-import { motion, AnimatePresence } from "@/src/lib/motion";
-import clsx from "@/src/lib/clsx";
+import { motion, AnimatePresence } from "framer-motion";
+import clsx from "clsx";
 
 type ExecutionWithWorkflow = WorkflowExecution & { workflow_name: string };
 
@@ -50,8 +50,8 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   return (
     <span
       className={clsx(
-        "text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest border",
-        styles[status] ?? "bg-(--color-zenthar-void) border-brand-sage/20 text-brand-sage",
+        "rounded border px-2 py-0.5 text-[9px] font-black tracking-widest uppercase",
+        styles[status] ?? "border-brand-sage/20 text-brand-sage bg-(--color-zenthar-void)",
       )}
     >
       {status}
@@ -143,58 +143,53 @@ export const WorkflowsFeature: React.FC = memo(() => {
   }, [samples, searchQuery]);
 
   const filteredExecutions = useMemo(
-    () =>
-      statusFilter === "ALL" ? executions : executions.filter((e) => e.status === statusFilter),
+    () => (statusFilter === "ALL" ? executions : executions.filter((e) => e.status === statusFilter)),
     [executions, statusFilter],
   );
 
   const statusIcon = (status: string) =>
     ({
-      COMPLETED: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
-      FAILED: <XCircle className="w-4 h-4 text-rose-500" />,
-      IN_PROGRESS: <Play className="w-4 h-4 text-brand-primary animate-pulse" />,
-    })[status] ?? <Clock className="w-4 h-4 text-brand-sage" />;
+      COMPLETED: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
+      FAILED: <XCircle className="h-4 w-4 text-rose-500" />,
+      IN_PROGRESS: <Play className="text-brand-primary h-4 w-4 animate-pulse" />,
+    })[status] ?? <Clock className="text-brand-sage h-4 w-4" />;
 
   return (
-    <div className="grid grid-cols-12 gap-6 h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-4 rounded-3xl">
+    <div className="grid h-full grid-cols-12 gap-6 overflow-hidden rounded-3xl bg-(--color-zenthar-graphite)/30 p-4">
       {/* Sample selector */}
-      <aside className="col-span-12 lg:col-span-4 flex flex-col gap-6 overflow-hidden">
+      <aside className="col-span-12 flex flex-col gap-6 overflow-hidden lg:col-span-4">
         <LabPanel title="Sample Queue" icon={History} loading={loading}>
-          <div className="flex flex-col h-full bg-(--color-zenthar-carbon)/50">
-            <div className="p-4 border-b border-brand-sage/10">
+          <div className="flex h-full flex-col bg-(--color-zenthar-carbon)/50">
+            <div className="border-brand-sage/10 border-b p-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage/40" />
+                <Search className="text-brand-sage/40 absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Filter batch ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-(--color-zenthar-void) border border-brand-sage/20 rounded-xl pl-9 pr-3 py-2.5 text-[10px] font-mono text-white focus:ring-2 focus:ring-brand-primary/20 outline-none transition-all"
+                  className="border-brand-sage/20 focus:ring-brand-primary/20 w-full rounded-xl border bg-(--color-zenthar-void) py-2.5 pr-3 pl-9 font-mono text-[10px] text-white transition-all outline-none focus:ring-2"
                 />
               </div>
             </div>
-            <div className="flex-1 overflow-auto custom-scrollbar p-3 space-y-2">
+            <div className="custom-scrollbar flex-1 space-y-2 overflow-auto p-3">
               {filteredSamples.map((sample) => (
                 <button
                   key={sample.id}
                   onClick={() => setSelectedSample(sample)}
                   className={clsx(
-                    "w-full text-left p-4 rounded-2xl transition-all border group",
+                    "group w-full rounded-2xl border p-4 text-left transition-all",
                     selectedSample?.id === sample.id
                       ? "bg-brand-primary border-brand-primary text-white shadow-lg"
-                      : "bg-(--color-zenthar-void) border-brand-sage/10 hover:border-brand-primary/30 text-white",
+                      : "border-brand-sage/10 hover:border-brand-primary/30 bg-(--color-zenthar-void) text-white",
                   )}
                 >
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="text-xs font-black font-mono tracking-wide">
-                      {sample.batch_id}
-                    </span>
+                  <div className="mb-1 flex items-start justify-between">
+                    <span className="font-mono text-xs font-black tracking-wide">{sample.batch_id}</span>
                     <span
                       className={clsx(
-                        "text-[8px] px-1.5 py-0.5 rounded font-black uppercase",
-                        selectedSample?.id === sample.id
-                          ? "bg-white/20"
-                          : "bg-(--color-zenthar-carbon)",
+                        "rounded px-1.5 py-0.5 text-[8px] font-black uppercase",
+                        selectedSample?.id === sample.id ? "bg-white/20" : "bg-(--color-zenthar-carbon)",
                       )}
                     >
                       {sample.priority}
@@ -202,7 +197,7 @@ export const WorkflowsFeature: React.FC = memo(() => {
                   </div>
                   <div
                     className={clsx(
-                      "text-[9px] uppercase font-bold opacity-70",
+                      "text-[9px] font-bold uppercase opacity-70",
                       selectedSample?.id === sample.id ? "text-white" : "text-brand-sage",
                     )}
                   >
@@ -216,30 +211,30 @@ export const WorkflowsFeature: React.FC = memo(() => {
       </aside>
 
       {/* Execution viewer */}
-      <main className="col-span-12 lg:col-span-8 flex flex-col gap-6 overflow-hidden">
+      <main className="col-span-12 flex flex-col gap-6 overflow-hidden lg:col-span-8">
         <LabPanel
           title={selectedSample ? `Traceability: ${selectedSample.batch_id}` : "Workflow Monitor"}
           icon={ListChecks}
           loading={exLoading}
         >
           {!selectedSample ? (
-            <div className="h-full flex flex-col items-center justify-center text-brand-sage gap-3">
-              <ListChecks className="w-12 h-12 opacity-20 text-brand-primary" />
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">
+            <div className="text-brand-sage flex h-full flex-col items-center justify-center gap-3">
+              <ListChecks className="text-brand-primary h-12 w-12 opacity-20" />
+              <p className="text-[10px] font-black tracking-[0.3em] text-white/40 uppercase">
                 Select a sample to view executions
               </p>
             </div>
           ) : (
-            <div className="flex flex-col h-full bg-(--color-zenthar-carbon)">
+            <div className="flex h-full flex-col bg-(--color-zenthar-carbon)">
               {/* Filter toolbar */}
-              <div className="p-4 border-b border-brand-sage/10 flex items-center justify-between flex-wrap gap-3">
-                <div className="flex gap-1 bg-(--color-zenthar-void) p-1 rounded-xl">
+              <div className="border-brand-sage/10 flex flex-wrap items-center justify-between gap-3 border-b p-4">
+                <div className="flex gap-1 rounded-xl bg-(--color-zenthar-void) p-1">
                   {["ALL", "IN_PROGRESS", "COMPLETED", "FAILED"].map((s) => (
                     <button
                       key={s}
                       onClick={() => setStatusFilter(s)}
                       className={clsx(
-                        "px-3 py-1.5 rounded-lg text-[9px] font-black transition-all uppercase",
+                        "rounded-lg px-3 py-1.5 text-[9px] font-black uppercase transition-all",
                         statusFilter === s
                           ? "bg-brand-primary text-white shadow-sm"
                           : "text-brand-sage hover:text-white",
@@ -249,19 +244,19 @@ export const WorkflowsFeature: React.FC = memo(() => {
                     </button>
                   ))}
                 </div>
-                <span className="text-[10px] font-mono text-brand-primary">
+                <span className="text-brand-primary font-mono text-[10px]">
                   {filteredExecutions.length} execution
                   {filteredExecutions.length !== 1 ? "s" : ""}
                 </span>
               </div>
 
               {/* Execution list */}
-              <div className="flex-1 overflow-auto custom-scrollbar p-5 space-y-5">
+              <div className="custom-scrollbar flex-1 space-y-5 overflow-auto p-5">
                 <AnimatePresence mode="popLayout">
                   {filteredExecutions.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-48 text-brand-sage gap-3">
-                      <ListChecks className="w-8 h-8 opacity-20" />
-                      <p className="text-[10px] font-black uppercase tracking-widest opacity-50">
+                    <div className="text-brand-sage flex h-48 flex-col items-center justify-center gap-3">
+                      <ListChecks className="h-8 w-8 opacity-20" />
+                      <p className="text-[10px] font-black tracking-widest uppercase opacity-50">
                         No executions found
                       </p>
                     </div>
@@ -274,18 +269,18 @@ export const WorkflowsFeature: React.FC = memo(() => {
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ delay: idx * 0.04 }}
                         className={clsx(
-                          "bg-(--color-zenthar-void) border rounded-3xl p-6 transition-all",
+                          "rounded-3xl border bg-(--color-zenthar-void) p-6 transition-all",
                           liveExIds.has(execution.id)
-                            ? "border-brand-primary/40 shadow-lg shadow-brand-primary/10"
+                            ? "border-brand-primary/40 shadow-brand-primary/10 shadow-lg"
                             : "border-brand-sage/15",
                         )}
                       >
                         {/* Execution header */}
-                        <div className="flex items-center justify-between mb-5">
+                        <div className="mb-5 flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div
                               className={clsx(
-                                "p-2.5 rounded-xl",
+                                "rounded-xl p-2.5",
                                 execution.status === "FAILED"
                                   ? "bg-rose-500/10"
                                   : "bg-(--color-zenthar-carbon)",
@@ -295,28 +290,26 @@ export const WorkflowsFeature: React.FC = memo(() => {
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <h4 className="text-sm font-black text-white uppercase tracking-tight">
+                                <h4 className="text-sm font-black tracking-tight text-white uppercase">
                                   {(execution as any).workflow_name}
                                 </h4>
                                 {liveExIds.has(execution.id) && (
-                                  <span className="flex items-center gap-1 text-[8px] font-black text-brand-primary uppercase bg-brand-primary/10 px-2 py-0.5 rounded-full">
+                                  <span className="text-brand-primary bg-brand-primary/10 flex items-center gap-1 rounded-full px-2 py-0.5 text-[8px] font-black uppercase">
                                     <Zap size={8} /> LIVE
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2 mt-1">
+                              <div className="mt-1 flex items-center gap-2">
                                 <StatusBadge status={execution.status} />
-                                <span className="text-[9px] font-mono text-brand-sage/40">
+                                <span className="text-brand-sage/40 font-mono text-[9px]">
                                   #{execution.id}
                                 </span>
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-[8px] font-black text-brand-sage/50 uppercase">
-                              Cycle Time
-                            </p>
-                            <p className="text-xs font-mono font-bold text-white">
+                            <p className="text-brand-sage/50 text-[8px] font-black uppercase">Cycle Time</p>
+                            <p className="font-mono text-xs font-bold text-white">
                               {getCycleTime(execution.started_at, execution.completed_at)}
                             </p>
                           </div>
@@ -327,12 +320,12 @@ export const WorkflowsFeature: React.FC = memo(() => {
                           {(execution as any).step_executions?.map((step: any) => (
                             <div
                               key={step.id}
-                              className="flex items-center justify-between p-3 rounded-xl bg-(--color-zenthar-carbon)/50 hover:bg-(--color-zenthar-carbon) transition-colors"
+                              className="flex items-center justify-between rounded-xl bg-(--color-zenthar-carbon)/50 p-3 transition-colors hover:bg-(--color-zenthar-carbon)"
                             >
                               <div className="flex items-center gap-3">
                                 <div
                                   className={clsx(
-                                    "w-2 h-2 rounded-full",
+                                    "h-2 w-2 rounded-full",
                                     step.status === "COMPLETED"
                                       ? "bg-emerald-500"
                                       : step.status === "FAILED"
@@ -345,15 +338,13 @@ export const WorkflowsFeature: React.FC = memo(() => {
                                 <span className="text-[10px] font-bold text-white uppercase">
                                   {step.test_type}
                                 </span>
-                                <span className="text-[8px] font-mono text-brand-sage/30">
+                                <span className="text-brand-sage/30 font-mono text-[8px]">
                                   step {step.sequence_order}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-4 text-[10px] font-mono">
+                              <div className="flex items-center gap-4 font-mono text-[10px]">
                                 {step.result_value != null && (
-                                  <span className="text-brand-primary font-bold">
-                                    {step.result_value}
-                                  </span>
+                                  <span className="text-brand-primary font-bold">{step.result_value}</span>
                                 )}
                                 <span className="text-brand-sage/50">
                                   {getCycleTime(step.started_at, step.completed_at)}

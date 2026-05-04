@@ -1,6 +1,6 @@
 import React from "react";
-import { LucideIcon } from "lucide-react";
-import clsx from "@/src/lib/clsx";
+import { type LucideIcon } from "lucide-react";
+import clsx from "clsx";
 
 interface AlertCardProps {
   title: string;
@@ -29,31 +29,29 @@ export const AlertCard: React.FC<AlertCardProps> = ({
   return (
     <div
       className={clsx(
-        "p-5 rounded-2xl border relative overflow-hidden group transition-all duration-300",
+        "group relative overflow-hidden rounded-2xl border p-5 transition-all duration-300",
         variants[type],
         className,
       )}
     >
       <div
         className={clsx(
-          "absolute right-0 top-0 w-24 h-24 bg-linear-to-br from-current/10 to-transparent rounded-full blur-xl -mr-12 -mt-12 pointer-events-none transition-transform duration-700 group-hover:scale-150",
+          "pointer-events-none absolute top-0 right-0 -mt-12 -mr-12 h-24 w-24 rounded-full bg-linear-to-br from-current/10 to-transparent blur-xl transition-transform duration-700 group-hover:scale-150",
         )}
       />
 
-      <div className="flex items-center justify-between mb-3 relative z-10">
+      <div className="relative z-10 mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={clsx("p-2 rounded-lg bg-current/10")}>
+          <div className={clsx("rounded-lg bg-current/10 p-2")}>
             <Icon size={16} />
           </div>
-          <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">{type}</h4>
+          <h4 className="text-[10px] font-black tracking-[0.2em] uppercase">{type}</h4>
         </div>
-        {timestamp && <span className="text-[8px] font-mono opacity-60">{timestamp}</span>}
+        {timestamp && <span className="font-mono text-[8px] opacity-60">{timestamp}</span>}
       </div>
 
-      <p className="text-sm text-white font-black mb-1 relative z-10 uppercase tracking-tight">
-        {title}
-      </p>
-      <p className="text-[11px] text-zenthar-text-secondary font-medium leading-relaxed relative z-10">
+      <p className="relative z-10 mb-1 text-sm font-black tracking-tight text-white uppercase">{title}</p>
+      <p className="text-zenthar-text-secondary relative z-10 text-[11px] leading-relaxed font-medium">
         {message}
       </p>
     </div>

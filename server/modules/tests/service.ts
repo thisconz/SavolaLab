@@ -65,20 +65,23 @@ const updateWorkflowStep = async (
 export const TestService = {
   getTests: async () => TestRepository.findAll(),
 
-  createTestResult: async (
-    sampleId: number,
-    data: any,
-    performerId: string,
-    ip = "127.0.0.1",
-  ) => {
+  createTestResult: async (sampleId: number, data: any, performerId: string, ip = "127.0.0.1") => {
     const {
-      test_type, raw_value, calculated_value, unit, status,
-      performed_at, reviewer_id, review_at, review_comment, notes, params,
+      test_type,
+      raw_value,
+      calculated_value,
+      unit,
+      status,
+      performed_at,
+      reviewer_id,
+      review_at,
+      review_comment,
+      notes,
+      params,
     } = data;
 
     const timestamp = performed_at ?? new Date().toISOString();
-    const paramsStr =
-      params != null ? (typeof params === "string" ? params : JSON.stringify(params)) : null;
+    const paramsStr = params != null ? (typeof params === "string" ? params : JSON.stringify(params)) : null;
 
     try {
       return await db.transaction(async (client) => {
@@ -86,19 +89,19 @@ export const TestService = {
         if (!sample) throw new Error(`Sample ${sampleId} not found`);
 
         const testId = await TestRepository.create(client, {
-          sample_id:       sampleId,
+          sample_id: sampleId,
           test_type,
-          raw_value:       raw_value       ?? null,
+          raw_value: raw_value ?? null,
           calculated_value: calculated_value ?? raw_value ?? null,
-          unit:            unit            ?? null,
-          status:          status          ?? "PENDING",
-          performed_at:    timestamp,
-          performer_id:    performerId,
-          reviewer_id:     reviewer_id     ?? null,
-          review_at:       review_at       ?? null,
-          review_comment:  review_comment  ?? null,
-          notes:           notes           ?? null,
-          params:          paramsStr,
+          unit: unit ?? null,
+          status: status ?? "PENDING",
+          performed_at: timestamp,
+          performer_id: performerId,
+          reviewer_id: reviewer_id ?? null,
+          review_at: review_at ?? null,
+          review_comment: review_comment ?? null,
+          notes: notes ?? null,
+          params: paramsStr,
         });
 
         if (raw_value != null) {
@@ -108,11 +111,7 @@ export const TestService = {
         await client.query(
           `INSERT INTO audit_logs (employee_number, action, details, ip_address)
            VALUES ($1, 'TEST_CREATED', $2, $3)`,
-          [
-            performerId,
-            `Created '${test_type}' test for sample ${sampleId} (value: ${raw_value})`,
-            ip,
-          ],
+          [performerId, `Created '${test_type}' test for sample ${sampleId} (value: ${raw_value})`, ip],
         );
 
         // Emit SSE — broadcast to all so dashboard/queue can update
@@ -227,15 +226,14 @@ export const TestService = {
         type: "TEST_REVIEWED",
         target: test.performer_id, // targeted to the original analyst
         payload: {
-          id:          numId,
-          sample_id:   test.sample_id,
-          test_type:   test.test_type,
-          status:      data.status,
+          id: numId,
+          sample_id: test.sample_id,
+          test_type: test.test_type,
+          status: data.status,
           reviewed_by: reviewerId,
         },
       });
     }
-
 
     // Also broadcast to all so queues update
     domainBus.publish({

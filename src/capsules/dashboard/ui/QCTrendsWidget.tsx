@@ -1,15 +1,6 @@
 import React, { useMemo, memo } from "react";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "@/src/lib/recharts";
-import { motion } from "@/src/lib/motion";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { motion } from "framer-motion";
 import { TestResult } from "../../../core/types";
 
 interface Props {
@@ -120,20 +111,20 @@ export const QCTrendsWidget: React.FC<Props> = memo(({ tests, loading = false })
 });
 
 const TrendLoading = () => (
-  <div className="h-60 w-full bg-(--color-zenthar-graphite)/50 animate-pulse rounded-2xl flex items-center justify-center">
-    <div className="w-1/2 h-0.5 bg-brand-primary/10 rounded-full overflow-hidden">
+  <div className="flex h-60 w-full animate-pulse items-center justify-center rounded-2xl bg-(--color-zenthar-graphite)/50">
+    <div className="bg-brand-primary/10 h-0.5 w-1/2 overflow-hidden rounded-full">
       <motion.div
         animate={{ x: ["-100%", "100%"] }}
         transition={{ repeat: Infinity, duration: 1.5 }}
-        className="w-1/3 h-full bg-brand-primary/30"
+        className="bg-brand-primary/30 h-full w-1/3"
       />
     </div>
   </div>
 );
 
 const TrendEmpty = () => (
-  <div className="h-60 w-full flex flex-col items-center justify-center border border-dashed border-brand-sage/20 rounded-2xl gap-2">
-    <span className="text-[9px] font-black text-brand-sage/40 uppercase tracking-[0.3em]">
+  <div className="border-brand-sage/20 flex h-60 w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed">
+    <span className="text-brand-sage/40 text-[9px] font-black tracking-[0.3em] uppercase">
       Waiting for data...
     </span>
   </div>

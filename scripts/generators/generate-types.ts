@@ -13,15 +13,15 @@ const IGNORE = new Set([
   "scripts/output",
 ]);
 
-type TypeFile = {
+interface TypeFile {
   name: string;
   path: string;
-};
+}
 
 // Recursively collect type files
 function collectTypeFiles(dir: string): TypeFile[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true }).filter((e) => !IGNORE.has(e.name));
-  let results: TypeFile[] = [];
+  const results: TypeFile[] = [];
 
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);

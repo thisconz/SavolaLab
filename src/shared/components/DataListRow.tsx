@@ -1,6 +1,6 @@
 import React from "react";
-import { LucideIcon } from "lucide-react";
-import clsx from "../../lib/clsx";
+import { type LucideIcon } from "lucide-react";
+import clsx from "clsx";
 
 interface DataListRowProps {
   id?: string;
@@ -41,22 +41,22 @@ export const DataListRow: React.FC<DataListRowProps> = ({
     <div
       onClick={onClick}
       className={clsx(
-        "flex items-center justify-between p-5 rounded-2xl border border-white/4 bg-zenthar-graphite/30 hover:bg-zenthar-graphite/50 hover:border-brand-primary/20 hover:shadow-md transition-all duration-300 group",
+        "bg-zenthar-graphite/30 hover:bg-zenthar-graphite/50 hover:border-brand-primary/20 group flex items-center justify-between rounded-2xl border border-white/4 p-5 transition-all duration-300 hover:shadow-md",
         onClick && "cursor-pointer",
         className,
       )}
     >
       <div className="flex items-center gap-5">
-        <div className="p-2.5 bg-zenthar-carbon rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300 border border-white/4">
-          <Icon className="w-5 h-5 text-brand-primary group-hover:text-white transition-colors" />
+        <div className="bg-zenthar-carbon rounded-xl border border-white/4 p-2.5 shadow-sm transition-transform duration-300 group-hover:scale-110">
+          <Icon className="text-brand-primary h-5 w-5 transition-colors group-hover:text-white" />
         </div>
         <div>
-          <h4 className="text-sm font-black text-white uppercase tracking-wider">
+          <h4 className="text-sm font-black tracking-wider text-white uppercase">
             {id ? `${id} - ` : ""}
             {title}
           </h4>
           {subtitle && (
-            <p className="text-[10px] text-zenthar-text-secondary font-mono font-bold uppercase tracking-[0.2em] mt-1">
+            <p className="text-zenthar-text-secondary mt-1 font-mono text-[10px] font-bold tracking-[0.2em] uppercase">
               {subtitle}
             </p>
           )}
@@ -68,7 +68,7 @@ export const DataListRow: React.FC<DataListRowProps> = ({
           <div className="text-right">
             <span
               className={clsx(
-                "px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.2em] border",
+                "rounded-md border px-2.5 py-1 text-[9px] font-black tracking-[0.2em] uppercase",
                 statusVariants[status.variant],
               )}
             >
@@ -80,12 +80,10 @@ export const DataListRow: React.FC<DataListRowProps> = ({
         {metrics &&
           metrics.map((metric, i) => (
             <React.Fragment key={i}>
-              <div className="w-px h-8 bg-white/4" />
+              <div className="h-8 w-px bg-white/4" />
               <div className="text-right">
-                <p className="text-lg font-black text-white tracking-tight leading-none">
-                  {metric.value}
-                </p>
-                <p className="text-[9px] text-zenthar-text-secondary font-bold uppercase tracking-[0.2em] mt-1">
+                <p className="text-lg leading-none font-black tracking-tight text-white">{metric.value}</p>
+                <p className="text-zenthar-text-secondary mt-1 text-[9px] font-bold tracking-[0.2em] uppercase">
                   {metric.label}
                 </p>
               </div>

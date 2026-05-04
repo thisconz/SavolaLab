@@ -1,11 +1,11 @@
 import fs from "fs";
 import path from "path";
 
-type TreeNode = {
+interface TreeNode {
   name: string;
   type: "file" | "directory";
   children?: TreeNode[];
-};
+}
 
 const IGNORE = new Set([
   "scripts/output",

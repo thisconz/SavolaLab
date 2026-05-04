@@ -1,15 +1,6 @@
 import React, { useMemo, memo } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "@/src/lib/recharts";
-import { motion } from "@/src/lib/motion";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { motion } from "framer-motion";
 import { Sample } from "../../../core/types";
 
 interface Props {
@@ -108,9 +99,7 @@ export const EfficiencyWidget: React.FC<Props> = memo(({ samples, loading = fals
             {data.map((_, i) => (
               <Cell
                 key={i}
-                fill={
-                  i === 0 ? "var(--color-brand-primary)" : `rgba(14,165,233,${0.55 - i * 0.07})`
-                }
+                fill={i === 0 ? "var(--color-brand-primary)" : `rgba(14,165,233,${0.55 - i * 0.07})`}
               />
             ))}
           </Bar>
@@ -121,12 +110,12 @@ export const EfficiencyWidget: React.FC<Props> = memo(({ samples, loading = fals
 });
 
 const EfficiencyLoading = () => (
-  <div className="h-60 w-full flex flex-col gap-4 py-4">
+  <div className="flex h-60 w-full flex-col gap-4 py-4">
     {[...Array(5)].map((_, i) => (
       <div key={i} className="flex items-center gap-4">
-        <div className="w-16 h-2 bg-brand-sage/10 rounded animate-pulse" />
+        <div className="bg-brand-sage/10 h-2 w-16 animate-pulse rounded" />
         <div
-          className="flex-1 h-3 bg-(--color-zenthar-graphite) rounded animate-pulse"
+          className="h-3 flex-1 animate-pulse rounded bg-(--color-zenthar-graphite)"
           style={{ width: `${95 - i * 12}%` }}
         />
       </div>
@@ -135,10 +124,8 @@ const EfficiencyLoading = () => (
 );
 
 const EfficiencyEmpty = () => (
-  <div className="h-60 w-full flex flex-col items-center justify-center border border-dashed border-brand-sage/20 rounded-2xl">
-    <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest">
-      No efficiency data
-    </p>
+  <div className="border-brand-sage/20 flex h-60 w-full flex-col items-center justify-center rounded-2xl border border-dashed">
+    <p className="text-brand-sage text-[10px] font-black tracking-widest uppercase">No efficiency data</p>
   </div>
 );
 

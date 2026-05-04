@@ -1,68 +1,79 @@
 import React, { memo, useMemo, type FC } from "react";
-import { Activity, ChevronRight, Zap, ShieldCheck, type LucideIcon, Home } from "lucide-react";
+import { Activity, ChevronRight, Zap, ShieldCheck, type LucideIcon, Home, Cpu } from "lucide-react";
 import { useAppStore } from "../../orchestrator/state/app.store";
 import { NotificationCenter } from "../../capsules/notifications";
 import { LogoRoot, LogoText } from "../../shared/components/Logo";
 import { RealtimeStatusBadge } from "../../core/providers/RealtimeProvider";
-import { motion, AnimatePresence } from "../../lib/motion";
-import clsx from "../../lib/clsx";
+import { motion, AnimatePresence } from "framer-motion";
+import clsx from "clsx";
 
 interface HeaderProps {
   onMenuToggle?: () => void;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Header Component
-// ─────────────────────────────────────────────────────────────────────────────
-
 export const Header: FC<HeaderProps> = memo(({ onMenuToggle }) => {
   const { activeTab } = useAppStore();
-
   const breadcrumb = useMemo(() => ["ZENTHAR", activeTab?.toUpperCase() ?? "SYSTEM"], [activeTab]);
 
   return (
     <header
-      className="sticky top-0 h-[calc(64px+var(--safe-area-top))] w-full shrink-0 z-50
-                 border-b border-(--color-zenthar-steel)/50
-                 bg-(--color-zenthar-void)/80 backdrop-blur-md
-                 flex items-center justify-between px-6 md:px-8"
+      className="relative sticky top-0 z-50 flex h-[calc(60px+var(--safe-area-top))] w-full shrink-0 items-center justify-between px-6 md:px-8"
+      style={{
+        background: "linear-gradient(180deg, rgba(5,5,15,0.98) 0%, rgba(5,5,15,0.90) 100%)",
+        borderBottom: "1px solid rgba(100,120,200,0.1)",
+        backdropFilter: "blur(24px) saturate(180%)",
+      }}
     >
-      {/* Laser-cut top accent */}
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-linear-to-r from-transparent via-brand-primary/40 to-transparent opacity-50" />
+      {/* Top accent line */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 0%, rgba(244,63,94,0.6) 30%, rgba(139,92,246,0.6) 70%, transparent 100%)",
+        }}
+      />
 
-      {/* ── LEFT: Identity & Navigation ── */}
-      <div className="flex items-center gap-6 min-w-0">
-        <motion.div 
+      {/* Grid overlay */}
+      <div className="instrument-grid pointer-events-none absolute inset-0 opacity-30" />
+
+      {/* ── LEFT ── */}
+      <div className="relative z-10 flex min-w-0 items-center gap-5">
+        <motion.div
           initial={false}
-          whileHover={{ filter: "brightness(1.2)" }}
-          className="hidden md:block cursor-pointer"
+          whileHover={{ filter: "brightness(1.3)" }}
+          className="hidden cursor-pointer md:block"
         >
           <LogoRoot size="sm" variant="light">
-            <LogoText className="tracking-[0.5em] font-black" subtitle="" />
+            <LogoText className="font-black tracking-[0.5em]" subtitle="" />
           </LogoRoot>
         </motion.div>
 
-        {/* Vertical Separator */}
-        <div className="hidden md:block h-6 w-px bg-linear-to-b from-transparent via-(--color-zenthar-steel) to-transparent" />
+        <div
+          className="hidden h-6 w-px md:block"
+          style={{ background: "linear-gradient(180deg, transparent, rgba(100,120,200,0.3), transparent)" }}
+        />
 
-        {/* Dynamic Breadcrumbs */}
-        <nav className="flex items-center gap-2" aria-label="Breadcrumb">
-          <Home className="w-3.5 h-3.5 text-(--color-zenthar-text-muted) hover:text-brand-primary transition-colors cursor-pointer" />
-          
+        {/* Breadcrumbs */}
+        <nav className="flex items-center gap-1.5" aria-label="Breadcrumb">
+          <Home className="text-zenthar-text-muted hover:text-brand-primary h-3 w-3 cursor-pointer transition-colors" />
+
           <AnimatePresence mode="popLayout">
             {breadcrumb.map((seg, i) => (
-              <motion.div 
+              <motion.div
                 key={`${seg}-${i}`}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 8 }}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1.5"
               >
-                <ChevronRight className="w-3 h-3 text-(--color-zenthar-steel)" />
-                <span className={clsx(
-                  "text-[10px] font-mono font-bold tracking-[0.2em] transition-colors",
-                  i === breadcrumb.length - 1 ? "text-brand-primary" : "text-(--color-zenthar-text-muted)"
-                )}>
+                <ChevronRight className="text-zenthar-steel-bright h-3 w-3" />
+                <span
+                  className={clsx(
+                    "font-mono text-[10px] font-bold tracking-[0.2em] transition-colors",
+                    i === breadcrumb.length - 1 ? "text-brand-primary" : "text-zenthar-text-muted",
+                  )}
+                  style={i === breadcrumb.length - 1 ? { textShadow: "0 0 10px rgba(244,63,94,0.5)" } : {}}
+                >
                   {seg}
                 </span>
               </motion.div>
@@ -71,39 +82,42 @@ export const Header: FC<HeaderProps> = memo(({ onMenuToggle }) => {
         </nav>
       </div>
 
-      {/* ── RIGHT: System Telemetry & Actions ── */}
-      <div className="flex items-center gap-4">
-        {/* SSE / Realtime Status */}
+      {/* ── RIGHT ── */}
+      <div className="relative z-10 flex items-center gap-3">
         <RealtimeStatusBadge className="hidden sm:flex" />
 
-        {/* Telemetry Dashboard Pill */}
-        <div className="hidden lg:flex items-center gap-5 px-5 py-2 rounded-full 
-                        bg-(--color-zenthar-carbon)/40 border border-(--color-zenthar-steel)/30
-                        hover:border-brand-primary/20 transition-all group/telemetry">
+        {/* Telemetry pill */}
+        <div
+          className="hidden items-center gap-4 rounded-xl px-4 py-2 lg:flex"
+          style={{
+            background: "rgba(8,8,26,0.8)",
+            border: "1px solid rgba(100,120,200,0.12)",
+          }}
+        >
           <TelemetryItem icon={Activity} label="Load" value="Optimal" status="success" percent={24} />
+          <div className="h-5 w-px" style={{ background: "rgba(100,120,200,0.15)" }} />
           <TelemetryItem icon={Zap} label="Ping" value="12ms" status="info" percent={88} />
-          <TelemetryItem icon={ShieldCheck} label="Sec" value="Encrypted" status="success" />
+          <div className="h-5 w-px" style={{ background: "rgba(100,120,200,0.15)" }} />
+          <TelemetryItem icon={ShieldCheck} label="Sec" value="AES-256" status="success" percent={100} />
         </div>
 
-        {/* Notifications */}
-        <motion.div 
+        {/* Notification bell */}
+        <motion.div
           whileTap={{ scale: 0.95 }}
-          className="relative p-2 rounded-xl bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel)
-                     hover:border-brand-primary/40 hover:shadow-[0_0_15px_rgba(var(--brand-primary-rgb),0.1)] 
-                     transition-all cursor-pointer group"
+          className="group relative cursor-pointer rounded-xl p-2 transition-all"
+          style={{
+            background: "rgba(8,8,26,0.8)",
+            border: "1px solid rgba(100,120,200,0.12)",
+          }}
         >
           <NotificationCenter />
-          {/* Subtle notification "ping" animation */}
-          <div className="absolute top-0 right-0 w-2 h-2 bg-brand-primary rounded-full animate-ping opacity-75" />
         </motion.div>
       </div>
     </header>
   );
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Telemetry Mini-Module
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Telemetry Item ────────────────────────────────────────────────────────────
 
 interface TelemetryItemProps {
   icon: LucideIcon;
@@ -114,38 +128,44 @@ interface TelemetryItemProps {
 }
 
 const TelemetryItem: FC<TelemetryItemProps> = ({ icon: Icon, label, value, status, percent = 100 }) => {
-  const isSuccess = status === "success";
-  
+  const colors = {
+    success: "#10b981",
+    info: "#f43f5e",
+    warning: "#f59e0b",
+  };
+  const color = colors[status];
+
   return (
-    <div className="flex items-center gap-3">
-      {/* Radial Progress Ring */}
-      <div className="relative w-7 h-7">
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 32 32">
-          <circle cx="16" cy="16" r="13" fill="none" className="stroke-(--color-zenthar-steel)/20" strokeWidth="2.5" />
+    <div className="flex items-center gap-2.5">
+      {/* Mini ring */}
+      <div className="relative h-6 w-6">
+        <svg className="h-full w-full -rotate-90" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="rgba(100,120,200,0.15)" strokeWidth="2" />
           <motion.circle
-            cx="16" cy="16" r="13" fill="none"
-            className={clsx("stroke-current", isSuccess ? "text-emerald-500" : "text-brand-primary")}
-            strokeWidth="2.5"
-            strokeDasharray="81.6"
-            initial={{ strokeDashoffset: 81.6 }}
-            animate={{ strokeDashoffset: 81.6 - (percent / 100) * 81.6 }}
-            transition={{ duration: 1.5, ease: "circOut" }}
+            cx="12"
+            cy="12"
+            r="10"
+            fill="none"
+            strokeWidth="2"
+            strokeDasharray="62.8"
             strokeLinecap="round"
+            stroke={color}
+            initial={{ strokeDashoffset: 62.8 }}
+            animate={{ strokeDashoffset: 62.8 - (percent / 100) * 62.8 }}
+            transition={{ duration: 1.5, ease: "circOut" }}
+            style={{ filter: `drop-shadow(0 0 3px ${color})` }}
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <Icon className={clsx("w-3 h-3", isSuccess ? "text-emerald-400" : "text-brand-primary")} />
+          <Icon className="h-2.5 w-2.5" style={{ color }} />
         </div>
       </div>
 
-      {/* Text Data */}
-      <div className="flex flex-col justify-center">
-        <span className="text-[8px] font-black text-(--color-zenthar-text-muted) uppercase tracking-tighter leading-none opacity-70">
+      <div className="flex flex-col">
+        <span className="text-zenthar-text-muted text-[7px] leading-none font-black tracking-tighter uppercase opacity-60">
           {label}
         </span>
-        <span className="text-[10px] font-mono font-bold text-(--color-zenthar-text-primary) tabular-nums">
-          {value}
-        </span>
+        <span className="text-zenthar-text-primary font-mono text-[9px] font-bold tabular-nums">{value}</span>
       </div>
     </div>
   );

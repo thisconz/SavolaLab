@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { Variables } from "../../core/types";
 import { NotificationService } from "./service";
 import { authenticateToken } from "../../core/middleware";
-import { toMsg } from "../../core/utils/route"
+import { toMsg } from "../../core/utils/route";
 import { GetNotificationsResponseSchema } from "../../../src/shared/schemas/notification.schema";
 import { logger } from "../../core/logger";
 

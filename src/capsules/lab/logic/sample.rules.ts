@@ -22,7 +22,7 @@ export const SampleRules = {
     if (!trimmed) return "Batch ID is required";
     if (trimmed.length < 5) return "Batch ID must be at least 5 characters";
     // Regex check for alphanumeric batch IDs if required by your lab standard
-    if (!/^[a-zA-Z0-9-]+$/.test(trimmed)) return "Invalid characters in Batch ID";
+    if (!/^[a-z0-9-]+$/i.test(trimmed)) return "Invalid characters in Batch ID";
     return null;
   },
 

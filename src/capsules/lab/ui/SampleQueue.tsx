@@ -1,12 +1,4 @@
-import React, {
-  memo,
-  useState,
-  useMemo,
-  useRef,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-} from "react";
+import React, { memo, useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { Search, RotateCcw, SlidersHorizontal, Beaker, ChevronUp, ChevronDown } from "lucide-react";
 import { SampleCard } from "./SampleCard";
 import { Sample, SampleStatus } from "../../../core/types";
@@ -138,7 +130,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
 
     return (
       <div
-        className="flex flex-col h-full w-full bg-(--color-zenthar-graphite)/80 backdrop-blur-xl rounded-4xl overflow-hidden ring-1 ring-inset ring-white/5"
+        className="flex h-full w-full flex-col overflow-hidden rounded-4xl bg-(--color-zenthar-graphite)/80 ring-1 ring-white/5 backdrop-blur-xl ring-inset"
         onKeyDown={handleKeyDown}
       >
         {/* Stable measurement sentinel — always rendered, never visible */}
@@ -160,51 +152,51 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
           </div>
         )}
         {/* Header */}
-        <header className="flex-none p-5 pb-3 border-b border-brand-sage/5 space-y-3">
+        <header className="border-brand-sage/5 flex-none space-y-3 border-b p-5 pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-1 h-3 bg-brand-primary rounded-full" />
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white">
+              <div className="bg-brand-primary h-3 w-1 rounded-full" />
+              <span className="text-[10px] font-black tracking-[0.25em] text-white uppercase">
                 Live_Queue
               </span>
-              <span className="px-2 py-0.5 bg-(--color-zenthar-void) text-white rounded text-[9px] font-mono font-bold">
+              <span className="rounded bg-(--color-zenthar-void) px-2 py-0.5 font-mono text-[9px] font-bold text-white">
                 {filtered.length.toString().padStart(3, "0")}
               </span>
             </div>
             {activeFilterCount > 0 && (
               <button
                 onClick={resetFilters}
-                className="flex items-center gap-1.5 text-brand-primary hover:text-white transition-colors text-[9px] font-black uppercase"
+                className="text-brand-primary flex items-center gap-1.5 text-[9px] font-black uppercase transition-colors hover:text-white"
               >
-                <RotateCcw className="w-3 h-3" /> Reset
+                <RotateCcw className="h-3 w-3" /> Reset
               </button>
             )}
           </div>
 
           {/* Search */}
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-sage/40 group-focus-within:text-brand-primary transition-colors" />
+          <div className="group relative">
+            <Search className="text-brand-sage/40 group-focus-within:text-brand-primary absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 transition-colors" />
             <input
               type="text"
               placeholder="Filter by Batch, Stage, or ID…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Filter samples"
-              className="w-full bg-(--color-zenthar-carbon)/30 border border-brand-sage/5 rounded-xl pl-9 pr-4 py-2.5 text-xs font-mono focus:outline-none focus:ring-4 focus:ring-brand-primary/5 focus:border-brand-primary/20 transition-all placeholder:text-brand-sage/30 text-white"
+              className="border-brand-sage/5 focus:ring-brand-primary/5 focus:border-brand-primary/20 placeholder:text-brand-sage/30 w-full rounded-xl border bg-(--color-zenthar-carbon)/30 py-2.5 pr-4 pl-9 font-mono text-xs text-white transition-all focus:ring-4 focus:outline-none"
             />
           </div>
 
           {/* Filter chips */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
             {(["ALL", "STAT", "HIGH", "NORMAL"] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => setPriorityFilter(p)}
                 aria-pressed={priorityFilter === p}
-                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${
+                className={`rounded-lg border px-3 py-1.5 text-[9px] font-black tracking-widest uppercase transition-all ${
                   priorityFilter === p
-                    ? "bg-brand-primary border-brand-primary text-white shadow-lg shadow-brand-primary/20"
-                    : "bg-transparent border-brand-sage/10 text-brand-sage hover:border-brand-primary/40"
+                    ? "bg-brand-primary border-brand-primary shadow-brand-primary/20 text-white shadow-lg"
+                    : "border-brand-sage/10 text-brand-sage hover:border-brand-primary/40 bg-transparent"
                 }`}
               >
                 {p}
@@ -215,7 +207,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 aria-label="Filter by status"
-                className="bg-(--color-zenthar-carbon)/50 border border-brand-sage/10 text-brand-sage text-[9px] font-black uppercase pl-3 pr-7 py-1.5 rounded-lg appearance-none cursor-pointer focus:outline-none"
+                className="border-brand-sage/10 text-brand-sage cursor-pointer appearance-none rounded-lg border bg-(--color-zenthar-carbon)/50 py-1.5 pr-7 pl-3 text-[9px] font-black uppercase focus:outline-none"
               >
                 <option value="ALL">All Status</option>
                 {Object.values(SampleStatus).map((s) => (
@@ -224,13 +216,13 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
                   </option>
                 ))}
               </select>
-              <SlidersHorizontal className="absolute right-2 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-brand-sage pointer-events-none" />
+              <SlidersHorizontal className="text-brand-sage pointer-events-none absolute top-1/2 right-2 h-2.5 w-2.5 -translate-y-1/2" />
             </div>
           </div>
 
           {/* Keyboard hint */}
           {selectedSampleId != null && (
-            <div className="flex items-center gap-2 text-[8px] font-mono text-brand-sage/40">
+            <div className="text-brand-sage/40 flex items-center gap-2 font-mono text-[8px]">
               <ChevronUp size={10} />
               <ChevronDown size={10} />
               <span>Navigate with arrow keys</span>
@@ -241,25 +233,22 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
         {/* Virtualised list */}
         <div
           ref={containerRef}
-          className="flex-1 overflow-y-auto custom-scrollbar p-4"
+          className="custom-scrollbar flex-1 overflow-y-auto p-4"
           onScroll={handleScroll}
           role="listbox"
           aria-label="Sample queue"
           tabIndex={0}
         >
           {filtered.length === 0 ? (
-            <div className="h-48 flex flex-col items-center justify-center animate-in fade-in duration-300">
-              <div className="p-4 bg-(--color-zenthar-carbon)/20 rounded-full mb-3">
-                <Beaker className="w-7 h-7 text-brand-sage/20" />
+            <div className="animate-in fade-in flex h-48 flex-col items-center justify-center duration-300">
+              <div className="mb-3 rounded-full bg-(--color-zenthar-carbon)/20 p-4">
+                <Beaker className="text-brand-sage/20 h-7 w-7" />
               </div>
-              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-brand-sage/40">
+              <p className="text-brand-sage/40 text-[9px] font-black tracking-[0.3em] uppercase">
                 No Samples Found
               </p>
               {activeFilterCount > 0 && (
-                <button
-                  onClick={resetFilters}
-                  className="mt-3 text-[9px] text-brand-primary hover:underline"
-                >
+                <button onClick={resetFilters} className="text-brand-primary mt-3 text-[9px] hover:underline">
                   Clear filters
                 </button>
               )}

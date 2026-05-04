@@ -15,7 +15,7 @@ import { DataListRow } from "../../../shared/components/DataListRow";
 import { AlertCard } from "../../../shared/components/AlertCard";
 import { api } from "../../../core/http/client";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
-import clsx from "@/src/lib/clsx";
+import clsx from "clsx";
 
 interface PlantData {
   metrics: { oee: string; yield: string; energy: number; activeAlarms: number };
@@ -66,25 +66,25 @@ export const IntelligenceFeature: React.FC = memo(() => {
 
   if (loading || !data) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-primary" />
+      <div className="flex h-full items-center justify-center">
+        <div className="border-brand-primary h-10 w-10 animate-spin rounded-full border-b-2" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
-      <div className="flex items-center justify-between px-4 mb-4 shrink-0">
+    <div className="flex h-full flex-col overflow-hidden rounded-3xl bg-(--color-zenthar-graphite)/30 p-2">
+      <div className="mb-4 flex shrink-0 items-center justify-between px-4">
         <div>
-          <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
-            <Factory className="w-5 h-5 text-brand-primary" /> Plant Intelligence
+          <h2 className="font-display flex items-center gap-2 text-xl font-bold text-(--color-zenthar-text-primary)">
+            <Factory className="text-brand-primary h-5 w-5" /> Plant Intelligence
           </h2>
-          <div className="flex items-center gap-2 mt-0.5">
-            <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
+          <div className="mt-0.5 flex items-center gap-2">
+            <p className="text-brand-sage font-mono text-[10px] tracking-widest uppercase">
               Real-time OEE & line status
             </p>
             {isRefreshing && (
-              <span className="flex items-center gap-1 text-[9px] font-bold text-brand-primary">
+              <span className="text-brand-primary flex items-center gap-1 text-[9px] font-bold">
                 <RefreshCw size={9} className="animate-spin" /> Syncing
               </span>
             )}
@@ -92,20 +92,20 @@ export const IntelligenceFeature: React.FC = memo(() => {
         </div>
         <button
           onClick={() => fetchIntel(true)}
-          className="p-2 rounded-xl border border-brand-sage/20 bg-(--color-zenthar-graphite) hover:bg-(--color-zenthar-graphite)/80 transition-colors group"
+          className="border-brand-sage/20 group rounded-xl border bg-(--color-zenthar-graphite) p-2 transition-colors hover:bg-(--color-zenthar-graphite)/80"
         >
           <RefreshCw
             className={clsx(
-              "w-4 h-4 text-brand-sage group-hover:text-brand-primary",
+              "text-brand-sage group-hover:text-brand-primary h-4 w-4",
               isRefreshing && "animate-spin",
             )}
           />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 pb-6">
+      <div className="custom-scrollbar flex-1 space-y-6 overflow-y-auto pr-2 pb-6">
         {/* KPI metrics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+        <div className="grid shrink-0 grid-cols-2 gap-4 lg:grid-cols-4">
           <MetricCard
             label="OEE"
             value={data.metrics.oee}
@@ -136,15 +136,15 @@ export const IntelligenceFeature: React.FC = memo(() => {
           />
         </div>
 
-        <div className="grid grid-cols-12 gap-6 shrink-0">
+        <div className="grid shrink-0 grid-cols-12 gap-6">
           {/* Line status */}
           <div className="col-span-12 lg:col-span-8">
             <LabPanel title="Production Line Status" icon={Factory}>
               <div className="flex flex-col gap-3 p-4">
                 {data.lines.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-center">
-                    <Factory className="w-8 h-8 text-brand-sage/20 mx-auto mb-2" />
-                    <p className="text-sm font-bold text-white uppercase tracking-wider">
+                    <Factory className="text-brand-sage/20 mx-auto mb-2 h-8 w-8" />
+                    <p className="text-sm font-bold tracking-wider text-white uppercase">
                       No production lines configured
                     </p>
                   </div>

@@ -1,4 +1,4 @@
-import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Pool } from "pg";
 import { pool, DB_MODE } from "./client";
 

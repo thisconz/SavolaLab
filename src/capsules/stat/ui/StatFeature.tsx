@@ -11,13 +11,13 @@ import {
   Activity,
   RefreshCw,
 } from "lucide-react";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { LabPanel } from "../../../shared/components/LabPanel";
 import { MetricCard } from "../../../shared/components/MetricCard";
 import { StatApi } from "../api/stat.api";
 import { StatRequest } from "../../../core/types";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
-import clsx from "@/src/lib/clsx";
+import clsx from "clsx";
 import { toast } from "sonner";
 
 export const StatFeature: React.FC = memo(() => {
@@ -79,9 +79,7 @@ export const StatFeature: React.FC = memo(() => {
     });
 
     const unsubUpdated = on("STAT_UPDATED", (data) => {
-      setStats((prev) =>
-        prev.map((s) => (s.id === data.id ? { ...s, status: data.status as any } : s)),
-      );
+      setStats((prev) => prev.map((s) => (s.id === data.id ? { ...s, status: data.status as any } : s)));
       if (selectedStat?.id === data.id) {
         setSelectedStat((prev) => (prev ? { ...prev, status: data.status as any } : prev));
       }
@@ -129,27 +127,27 @@ export const StatFeature: React.FC = memo(() => {
 
   const statusIcon = (s: string) =>
     ({
-      CLOSED: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
-      IN_PROGRESS: <Clock className="w-5 h-5 text-amber-500" />,
-    })[s] ?? <AlertCircle className="w-5 h-5 text-brand-primary" />;
+      CLOSED: <CheckCircle2 className="h-5 w-5 text-emerald-500" />,
+      IN_PROGRESS: <Clock className="h-5 w-5 text-amber-500" />,
+    })[s] ?? <AlertCircle className="text-brand-primary h-5 w-5" />;
 
   const active = stats.filter((s) => s.status !== "CLOSED").length;
   const critical = stats.filter((s) => s.urgency === "CRITICAL" && s.status !== "CLOSED").length;
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
+    <div className="flex h-full flex-col overflow-hidden rounded-3xl bg-(--color-zenthar-graphite)/30 p-2">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 mb-4 shrink-0">
+      <div className="mb-4 flex shrink-0 items-center justify-between px-4">
         <div>
-          <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
-            <Zap className="w-5 h-5 text-brand-primary" /> STATs
+          <h2 className="font-display flex items-center gap-2 text-xl font-bold text-(--color-zenthar-text-primary)">
+            <Zap className="text-brand-primary h-5 w-5" /> STATs
           </h2>
-          <div className="flex items-center gap-2 mt-0.5">
-            <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
+          <div className="mt-0.5 flex items-center gap-2">
+            <p className="text-brand-sage font-mono text-[10px] tracking-widest uppercase">
               STAT requests for QC
             </p>
             {isRefreshing && (
-              <span className="flex items-center gap-1 text-[9px] font-bold text-brand-primary">
+              <span className="text-brand-primary flex items-center gap-1 text-[9px] font-bold">
                 <RefreshCw size={9} className="animate-spin" /> Syncing
               </span>
             )}
@@ -157,11 +155,11 @@ export const StatFeature: React.FC = memo(() => {
         </div>
         <button
           onClick={() => fetchStats(true)}
-          className="p-2 rounded-xl border border-brand-sage/20 bg-(--color-zenthar-graphite) hover:bg-(--color-zenthar-graphite)/80 transition-colors group"
+          className="border-brand-sage/20 group rounded-xl border bg-(--color-zenthar-graphite) p-2 transition-colors hover:bg-(--color-zenthar-graphite)/80"
         >
           <RefreshCw
             className={clsx(
-              "w-4 h-4 text-brand-sage group-hover:text-brand-primary",
+              "text-brand-sage group-hover:text-brand-primary h-4 w-4",
               isRefreshing && "animate-spin",
             )}
           />
@@ -169,7 +167,7 @@ export const StatFeature: React.FC = memo(() => {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-3 gap-4 shrink-0 mb-6">
+      <div className="mb-6 grid shrink-0 grid-cols-3 gap-4">
         <MetricCard
           label="Active STATs"
           value={active}
@@ -195,7 +193,7 @@ export const StatFeature: React.FC = memo(() => {
         />
       </div>
 
-      <div className="flex-1 grid grid-cols-12 gap-6 min-h-0">
+      <div className="grid min-h-0 flex-1 grid-cols-12 gap-6">
         {/* Queue */}
         <div className="col-span-5 flex flex-col gap-4 overflow-hidden">
           <LabPanel
@@ -204,24 +202,24 @@ export const StatFeature: React.FC = memo(() => {
             loading={loading}
             actions={
               <div className="flex items-center gap-2">
-                {isRefreshing && <RefreshCw size={12} className="animate-spin text-brand-sage" />}
+                {isRefreshing && <RefreshCw size={12} className="text-brand-sage animate-spin" />}
                 <button
                   onClick={() => {
                     setShowNewForm(true);
                     setSelectedStat(null);
                   }}
-                  className="flex items-center gap-2 px-3 py-2 bg-brand-primary text-(--color-zenthar-void) rounded-xl text-xs font-bold hover:bg-brand-primary/90 transition-all shadow-md"
+                  className="bg-brand-primary hover:bg-brand-primary/90 flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-(--color-zenthar-void) shadow-md transition-all"
                 >
-                  <Plus className="w-3.5 h-3.5" /> New
+                  <Plus className="h-3.5 w-3.5" /> New
                 </button>
               </div>
             }
           >
-            <div className="flex flex-col h-full overflow-y-auto custom-scrollbar pr-2 gap-3">
+            <div className="custom-scrollbar flex h-full flex-col gap-3 overflow-y-auto pr-2">
               {stats.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center gap-4 text-brand-sage py-10">
-                  <Zap className="w-10 h-10 opacity-20 text-brand-primary" />
-                  <p className="text-xs font-black uppercase tracking-widest text-(--color-zenthar-text-primary)">
+                <div className="text-brand-sage flex flex-1 flex-col items-center justify-center gap-4 py-10">
+                  <Zap className="text-brand-primary h-10 w-10 opacity-20" />
+                  <p className="text-xs font-black tracking-widest text-(--color-zenthar-text-primary) uppercase">
                     No STAT Requests
                   </p>
                 </div>
@@ -239,46 +237,46 @@ export const StatFeature: React.FC = memo(() => {
                         setShowNewForm(false);
                       }}
                       className={clsx(
-                        "p-4 rounded-2xl border transition-all duration-300 cursor-pointer group relative overflow-hidden",
-                        newStatIds.has(stat.id) && "ring-2 ring-brand-primary ring-offset-1",
+                        "group relative cursor-pointer overflow-hidden rounded-2xl border p-4 transition-all duration-300",
+                        newStatIds.has(stat.id) && "ring-brand-primary ring-2 ring-offset-1",
                         selectedStat?.id === stat.id
-                          ? "bg-(--color-zenthar-carbon) border-brand-primary shadow-lg scale-[1.01]"
-                          : "bg-(--color-zenthar-void) border-brand-sage/20 hover:border-brand-primary/40",
+                          ? "border-brand-primary scale-[1.01] bg-(--color-zenthar-carbon) shadow-lg"
+                          : "border-brand-sage/20 hover:border-brand-primary/40 bg-(--color-zenthar-void)",
                       )}
                     >
                       {selectedStat?.id === stat.id && (
                         <motion.div
                           layoutId="activeStat"
-                          className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-primary rounded-l-2xl"
+                          className="bg-brand-primary absolute top-0 bottom-0 left-0 w-1.5 rounded-l-2xl"
                         />
                       )}
                       {newStatIds.has(stat.id) && (
-                        <span className="absolute top-2 right-2 text-[7px] font-black text-brand-primary uppercase bg-brand-primary/10 px-1.5 py-0.5 rounded">
+                        <span className="text-brand-primary bg-brand-primary/10 absolute top-2 right-2 rounded px-1.5 py-0.5 text-[7px] font-black uppercase">
                           NEW
                         </span>
                       )}
-                      <div className="flex items-start justify-between mb-3">
+                      <div className="mb-3 flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           {statusIcon(stat.status)}
                           <div>
-                            <h4 className="text-sm font-bold text-(--color-zenthar-text-primary) group-hover:text-brand-primary transition-colors tracking-tight">
+                            <h4 className="group-hover:text-brand-primary text-sm font-bold tracking-tight text-(--color-zenthar-text-primary) transition-colors">
                               {stat.department}
                             </h4>
-                            <span className="text-[9px] font-mono text-brand-sage/60 uppercase">
+                            <span className="text-brand-sage/60 font-mono text-[9px] uppercase">
                               #{String(stat.id).padStart(4, "0")}
                             </span>
                           </div>
                         </div>
                         <span
                           className={clsx(
-                            "px-2.5 py-1 rounded-full text-[9px] font-black uppercase border",
+                            "rounded-full border px-2.5 py-1 text-[9px] font-black uppercase",
                             urgencyColor(stat.urgency),
                           )}
                         >
                           {stat.urgency ?? "NORMAL"}
                         </span>
                       </div>
-                      <p className="text-xs text-(--color-zenthar-text-muted) line-clamp-2 leading-relaxed pl-8">
+                      <p className="line-clamp-2 pl-8 text-xs leading-relaxed text-(--color-zenthar-text-muted)">
                         {stat.reason}
                       </p>
                     </motion.div>
@@ -298,30 +296,30 @@ export const StatFeature: React.FC = memo(() => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="h-full bg-(--color-zenthar-carbon) rounded-2xl border border-brand-sage/10 p-8 flex flex-col"
+                className="border-brand-sage/10 flex h-full flex-col rounded-2xl border bg-(--color-zenthar-carbon) p-8"
               >
-                <div className="flex items-center gap-4 mb-8 pb-6 border-b border-brand-sage/10">
-                  <div className="w-14 h-14 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
-                    <Zap className="w-7 h-7" />
+                <div className="border-brand-sage/10 mb-8 flex items-center gap-4 border-b pb-6">
+                  <div className="bg-brand-primary/10 border-brand-primary/20 text-brand-primary flex h-14 w-14 items-center justify-center rounded-2xl border">
+                    <Zap className="h-7 w-7" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-(--color-zenthar-text-primary) tracking-tight">
+                    <h2 className="text-2xl font-black tracking-tight text-(--color-zenthar-text-primary)">
                       New STAT Request
                     </h2>
-                    <p className="text-xs font-bold text-brand-sage uppercase tracking-widest mt-1">
+                    <p className="text-brand-sage mt-1 text-xs font-bold tracking-widest uppercase">
                       Priority Analysis Required
                     </p>
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-6">
+                <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-6">
                   <div className="grid grid-cols-2 gap-5">
                     <div>
-                      <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-2">
+                      <label className="text-brand-sage mb-2 block text-[9px] font-black tracking-widest uppercase">
                         Department *
                       </label>
                       <div className="relative">
-                        <Factory className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage/40" />
+                        <Factory className="text-brand-sage/40 absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
                         <input
                           required
                           type="text"
@@ -333,16 +331,16 @@ export const StatFeature: React.FC = memo(() => {
                             })
                           }
                           placeholder="e.g. Refining Line A"
-                          className="w-full bg-(--color-zenthar-void) border-2 border-brand-sage/20 rounded-xl pl-11 pr-4 py-3.5 text-sm font-bold text-(--color-zenthar-text-primary) focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 outline-none transition-all"
+                          className="border-brand-sage/20 focus:border-brand-primary focus:ring-brand-primary/10 w-full rounded-xl border-2 bg-(--color-zenthar-void) py-3.5 pr-4 pl-11 text-sm font-bold text-(--color-zenthar-text-primary) transition-all outline-none focus:ring-4"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-2">
+                      <label className="text-brand-sage mb-2 block text-[9px] font-black tracking-widest uppercase">
                         Urgency
                       </label>
                       <div className="relative">
-                        <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage/40" />
+                        <AlertCircle className="text-brand-sage/40 absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
                         <select
                           value={formData.urgency}
                           onChange={(e) =>
@@ -351,7 +349,7 @@ export const StatFeature: React.FC = memo(() => {
                               urgency: e.target.value,
                             })
                           }
-                          className="w-full bg-(--color-zenthar-void) border-2 border-brand-sage/20 rounded-xl pl-11 pr-4 py-3.5 text-sm font-bold text-(--color-zenthar-text-primary) focus:border-brand-primary outline-none appearance-none cursor-pointer"
+                          className="border-brand-sage/20 focus:border-brand-primary w-full cursor-pointer appearance-none rounded-xl border-2 bg-(--color-zenthar-void) py-3.5 pr-4 pl-11 text-sm font-bold text-(--color-zenthar-text-primary) outline-none"
                         >
                           <option value="NORMAL">Normal</option>
                           <option value="HIGH">High Priority</option>
@@ -362,17 +360,17 @@ export const StatFeature: React.FC = memo(() => {
                   </div>
 
                   <div>
-                    <label className="text-[9px] font-black text-brand-sage uppercase tracking-widest block mb-2">
+                    <label className="text-brand-sage mb-2 block text-[9px] font-black tracking-widest uppercase">
                       Reason *
                     </label>
                     <div className="relative">
-                      <FileText className="absolute left-4 top-4 w-4 h-4 text-brand-sage/40" />
+                      <FileText className="text-brand-sage/40 absolute top-4 left-4 h-4 w-4" />
                       <textarea
                         required
                         value={formData.reason}
                         onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                         placeholder="Provide detailed reason for the STAT request..."
-                        className="w-full bg-(--color-zenthar-void) border-2 border-brand-sage/20 rounded-xl pl-11 pr-4 py-3.5 text-sm font-bold text-(--color-zenthar-text-primary) focus:border-brand-primary outline-none resize-none min-h-[120px]"
+                        className="border-brand-sage/20 focus:border-brand-primary min-h-[120px] w-full resize-none rounded-xl border-2 bg-(--color-zenthar-void) py-3.5 pr-4 pl-11 text-sm font-bold text-(--color-zenthar-text-primary) outline-none"
                       />
                     </div>
                   </div>
@@ -381,16 +379,14 @@ export const StatFeature: React.FC = memo(() => {
                     <button
                       type="button"
                       onClick={() => setShowNewForm(false)}
-                      className="px-6 py-3 text-xs font-bold text-brand-sage hover:bg-(--color-zenthar-void) rounded-xl transition-colors"
+                      className="text-brand-sage rounded-xl px-6 py-3 text-xs font-bold transition-colors hover:bg-(--color-zenthar-void)"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      disabled={
-                        submitting || !formData.department.trim() || !formData.reason.trim()
-                      }
-                      className="flex items-center gap-2 px-6 py-3 bg-brand-primary text-(--color-zenthar-void) text-xs font-bold rounded-xl hover:bg-brand-primary/90 transition-all shadow-lg disabled:opacity-50"
+                      disabled={submitting || !formData.department.trim() || !formData.reason.trim()}
+                      className="bg-brand-primary hover:bg-brand-primary/90 flex items-center gap-2 rounded-xl px-6 py-3 text-xs font-bold text-(--color-zenthar-void) shadow-lg transition-all disabled:opacity-50"
                     >
                       {submitting ? (
                         <RefreshCw size={14} className="animate-spin" />
@@ -408,46 +404,46 @@ export const StatFeature: React.FC = memo(() => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="h-full bg-(--color-zenthar-carbon) rounded-2xl border border-brand-sage/10 p-8 flex flex-col relative overflow-hidden"
+                className="border-brand-sage/10 relative flex h-full flex-col overflow-hidden rounded-2xl border bg-(--color-zenthar-carbon) p-8"
               >
-                <div className="flex items-start justify-between mb-8 pb-6 border-b border-brand-sage/10">
+                <div className="border-brand-sage/10 mb-8 flex items-start justify-between border-b pb-6">
                   <div>
-                    <div className="flex items-center gap-3 mb-3">
+                    <div className="mb-3 flex items-center gap-3">
                       <span
                         className={clsx(
-                          "px-3 py-1.5 rounded-full text-[9px] font-black uppercase border",
+                          "rounded-full border px-3 py-1.5 text-[9px] font-black uppercase",
                           urgencyColor(selectedStat.urgency),
                         )}
                       >
                         {selectedStat.urgency ?? "NORMAL"}
                       </span>
-                      <span className="text-[9px] font-mono text-(--color-zenthar-text-muted)">
+                      <span className="font-mono text-[9px] text-(--color-zenthar-text-muted)">
                         STAT-{String(selectedStat.id).padStart(4, "0")}
                       </span>
                     </div>
-                    <h2 className="text-3xl font-black text-(--color-zenthar-text-primary) tracking-tight uppercase">
+                    <h2 className="text-3xl font-black tracking-tight text-(--color-zenthar-text-primary) uppercase">
                       {selectedStat.department}
                     </h2>
                   </div>
                   <div className="text-right">
-                    <p className="text-[9px] font-black text-brand-sage uppercase tracking-widest mb-1">
+                    <p className="text-brand-sage mb-1 text-[9px] font-black tracking-widest uppercase">
                       Submitted
                     </p>
-                    <p className="text-sm font-mono text-(--color-zenthar-text-primary)">
+                    <p className="font-mono text-sm text-(--color-zenthar-text-primary)">
                       {new Date(selectedStat.created_at).toLocaleString()}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex-1 grid grid-cols-12 gap-6 overflow-y-auto custom-scrollbar">
+                <div className="custom-scrollbar grid flex-1 grid-cols-12 gap-6 overflow-y-auto">
                   <div className="col-span-8 space-y-6">
                     <div>
-                      <h3 className="text-[9px] font-black text-brand-sage uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <h3 className="text-brand-sage mb-3 flex items-center gap-2 text-[9px] font-black tracking-widest uppercase">
                         <FileText size={12} /> Request Details
                       </h3>
-                      <div className="bg-(--color-zenthar-void) rounded-2xl p-6 border border-brand-sage/20 relative overflow-hidden">
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-primary/30" />
-                        <p className="text-sm text-(--color-zenthar-text-primary) leading-relaxed whitespace-pre-wrap pl-2">
+                      <div className="border-brand-sage/20 relative overflow-hidden rounded-2xl border bg-(--color-zenthar-void) p-6">
+                        <div className="bg-brand-primary/30 absolute top-0 bottom-0 left-0 w-1.5" />
+                        <p className="pl-2 text-sm leading-relaxed whitespace-pre-wrap text-(--color-zenthar-text-primary)">
                           {selectedStat.reason}
                         </p>
                       </div>
@@ -455,13 +451,13 @@ export const StatFeature: React.FC = memo(() => {
                   </div>
 
                   <div className="col-span-4">
-                    <div className="bg-(--color-zenthar-void) rounded-2xl p-5 border border-brand-sage/20">
-                      <h3 className="text-[9px] font-black text-brand-sage uppercase tracking-widest mb-4">
+                    <div className="border-brand-sage/20 rounded-2xl border bg-(--color-zenthar-void) p-5">
+                      <h3 className="text-brand-sage mb-4 text-[9px] font-black tracking-widest uppercase">
                         Status
                       </h3>
                       <div
                         className={clsx(
-                          "flex flex-col items-center text-center p-5 rounded-xl border",
+                          "flex flex-col items-center rounded-xl border p-5 text-center",
                           selectedStat.status === "CLOSED"
                             ? "border-emerald-500/30"
                             : selectedStat.status === "IN_PROGRESS"
@@ -479,10 +475,10 @@ export const StatFeature: React.FC = memo(() => {
                 </div>
 
                 {selectedStat.status !== "CLOSED" && (
-                  <div className="mt-6 pt-5 border-t border-brand-sage/10 flex justify-end">
+                  <div className="border-brand-sage/10 mt-6 flex justify-end border-t pt-5">
                     <button
                       onClick={handleAcknowledge}
-                      className="flex items-center gap-2 px-6 py-3 bg-brand-primary text-(--color-zenthar-void) text-sm font-bold rounded-2xl hover:bg-brand-primary/90 transition-all shadow-xl"
+                      className="bg-brand-primary hover:bg-brand-primary/90 flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold text-(--color-zenthar-void) shadow-xl transition-all"
                     >
                       {selectedStat.status === "OPEN" ? "Acknowledge" : "Mark Completed"}
                       <ArrowRight size={16} />
@@ -491,9 +487,9 @@ export const StatFeature: React.FC = memo(() => {
                 )}
               </motion.div>
             ) : (
-              <div className="h-full bg-(--color-zenthar-carbon) rounded-2xl border border-brand-sage/10 flex flex-col items-center justify-center text-brand-sage gap-4">
-                <Zap className="w-12 h-12 opacity-20 text-brand-primary" />
-                <p className="text-sm font-black text-(--color-zenthar-text-primary) uppercase tracking-widest">
+              <div className="border-brand-sage/10 text-brand-sage flex h-full flex-col items-center justify-center gap-4 rounded-2xl border bg-(--color-zenthar-carbon)">
+                <Zap className="text-brand-primary h-12 w-12 opacity-20" />
+                <p className="text-sm font-black tracking-widest text-(--color-zenthar-text-primary) uppercase">
                   Select a STAT Request
                 </p>
               </div>

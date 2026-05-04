@@ -1,7 +1,6 @@
-import { db } from "../../core/db/client";
 import { dbOrm } from "../../core/db/orm";
 import { samples, tests } from "../../core/db/schema";
-import { SampleData, TestResultSummary, SampleTest } from "../../core/types";
+import type { SampleData, TestResultSummary, SampleTest } from "../../core/types";
 import { eq, desc, asc, and, sql } from "drizzle-orm";
 
 export const SampleRepository = {
@@ -131,11 +130,7 @@ export const SampleRepository = {
     }
   },
 
-  async findPreviousResults(
-    stage: string,
-    testType: string,
-    limit: number,
-  ): Promise<TestResultSummary[]> {
+  async findPreviousResults(stage: string, testType: string, limit: number): Promise<TestResultSummary[]> {
     try {
       const results = await dbOrm
         .select({
@@ -146,11 +141,7 @@ export const SampleRepository = {
         .from(tests)
         .innerJoin(samples, eq(tests.sample_id, samples.id))
         .where(
-          and(
-            eq(samples.source_stage, stage),
-            eq(tests.test_type, testType),
-            eq(tests.status, "COMPLETED"),
-          ),
+          and(eq(samples.source_stage, stage), eq(tests.test_type, testType), eq(tests.status, "COMPLETED")),
         )
         .orderBy(desc(tests.performed_at))
         .limit(limit);

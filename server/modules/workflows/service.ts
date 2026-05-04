@@ -2,11 +2,11 @@ import { db } from "../../core/database";
 import { domainBus } from "../../core/events/domain-bus";
 import { sseBus } from "../../core/sse";
 
-export type WorkflowStepInput = {
+export interface WorkflowStepInput {
   test_type: string;
   min_value?: number | null;
   max_value?: number | null;
-};
+}
 
 export const WorkflowService = {
   getWorkflows: async () => {
@@ -61,7 +61,7 @@ export const WorkflowService = {
          VALUES ($1, $2, $3)
          RETURNING id`,
         [name.trim(), description ?? null, target_stage ?? null],
-      )) as Array<{ id: number }>;
+      )) as { id: number }[];
 
       const workflowId = wfRows[0].id;
 
@@ -81,9 +81,7 @@ export const WorkflowService = {
   },
 
   executeWorkflow: async (workflowId: string | number, sampleId: string | number) => {
-    const workflow = await db.queryOne("SELECT id, name FROM workflows WHERE id = $1", [
-      workflowId,
-    ]);
+    const workflow = await db.queryOne("SELECT id, name FROM workflows WHERE id = $1", [workflowId]);
 
     const sample = await db.queryOne("SELECT id, batch_id FROM samples WHERE id = $1", [sampleId]);
 
@@ -97,7 +95,7 @@ export const WorkflowService = {
          VALUES ($1, $2, 'IN_PROGRESS')
          RETURNING id`,
         [workflowId, sampleId],
-      )) as Array<{ id: number }>;
+      )) as { id: number }[];
 
       const executionId = execRows[0].id;
 
@@ -106,7 +104,7 @@ export const WorkflowService = {
          WHERE workflow_id = $1
          ORDER BY sequence_order ASC`,
         [workflowId],
-      )) as Array<{ id: number }>;
+      )) as { id: number }[];
 
       const rowParams: any[] = [];
       const placeholders: string[] = [];
@@ -165,7 +163,7 @@ export const WorkflowService = {
          FROM workflow_step_executions
          WHERE execution_id = $1 AND step_id = $2`,
         [executionId, stepId],
-      )) as Array<{ id: number }>;
+      )) as { id: number }[];
 
       if (!rows[0]) throw new Error("Step execution not found");
 
@@ -185,7 +183,7 @@ export const WorkflowService = {
         WHERE execution_id = $1
         AND status NOT IN ('COMPLETED','FAILED')`,
         [executionId],
-      )) as Array<{ count: number }>;
+      )) as { count: number }[];
 
       const remaining = Number(pendingRows[0]?.count ?? 0);
 

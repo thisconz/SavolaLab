@@ -214,8 +214,7 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
       if (activeExec) {
         for (const result of savedTests) {
           const stepIdx = localSteps.findIndex(
-            (s) =>
-              s.test_type === result.type && (s.status === "IN_PROGRESS" || s.status === "PENDING"),
+            (s) => s.test_type === result.type && (s.status === "IN_PROGRESS" || s.status === "PENDING"),
           );
           if (stepIdx === -1) continue;
 
@@ -250,11 +249,7 @@ export const useLabBench = (sample: Sample, onComplete?: () => void) => {
 
   // ─── Review ────────────────────────────────────────────────────────────────
 
-  const handleReview = async (
-    testId: number,
-    status: "APPROVED" | "DISAPPROVED",
-    comment?: string,
-  ) => {
+  const handleReview = async (testId: number, status: "APPROVED" | "DISAPPROVED", comment?: string) => {
     try {
       await LabApi.reviewTest(testId, status, comment);
       toast.success(`Test ${status.toLowerCase()} successfully.`);

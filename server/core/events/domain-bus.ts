@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { ZentharEventType } from "../sse";
+import { type ZentharEventType } from "../sse";
 
 type DomainEventPayload = Record<string, any>;
 

@@ -4,28 +4,28 @@ import { auditLogs } from "../../core/db/schema";
 import { logger } from "../../core/logger";
 import { eq, desc, and, gte, lte } from "drizzle-orm";
 
-export type AuditLog = {
+export interface AuditLog {
   id: number;
   employee_number: string;
   action: string;
   details: string;
   ip_address: string;
   created_at: string;
-};
+}
 
-export type AuditFilters = {
+export interface AuditFilters {
   employee_number?: string;
   action?: string;
   start_date?: string;
   end_date?: string;
   limit?: number;
   offset?: number;
-};
+}
 
 export const AuditService = {
   // Get audit logs with optional filtering & pagination
   getLogs: async (filters: AuditFilters = {}): Promise<AuditLog[]> => {
-    let conditions = [];
+    const conditions = [];
 
     if (filters.employee_number) {
       conditions.push(eq(auditLogs.employee_number, filters.employee_number));

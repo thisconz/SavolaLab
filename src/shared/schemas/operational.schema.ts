@@ -46,12 +46,7 @@ export const InventoryItemSchema = z.object({
   location: z.string().optional().nullable(),
 });
 
-export const CertificateStatusSchema = z.enum([
-  "DRAFT",
-  "PENDING_APPROVAL",
-  "APPROVED",
-  "RELEASED",
-]);
+export const CertificateStatusSchema = z.enum(["DRAFT", "PENDING_APPROVAL", "APPROVED", "RELEASED"]);
 export type CertificateStatus = z.infer<typeof CertificateStatusSchema>;
 
 export const CertificateSchema = z.object({

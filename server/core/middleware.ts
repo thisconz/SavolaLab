@@ -5,10 +5,10 @@ import { verifyToken } from "../modules/auth/service";
 import { AppError } from "./errors";
 import { logger } from "./logger";
 
-function extractToken(c: Context): string | null {
+function extractToken(c: Context): string | undefined {
   const auth = c.req.header("authorization");
   if (auth?.startsWith("Bearer ")) return auth.slice(7);
-  return getCookie(c, "token") ?? null;
+  return getCookie(c, "token") ?? undefined;
 }
 
 export const authenticateToken = async (
@@ -20,8 +20,7 @@ export const authenticateToken = async (
 
   const decoded = verifyToken(token);
   if (!decoded) return c.json({ error: "Invalid or expired session." }, 401);
-  if (!decoded.employee_number || !decoded.role)
-    return c.json({ error: "Malformed token payload." }, 403);
+  if (!decoded.employee_number || !decoded.role) return c.json({ error: "Malformed token payload." }, 403);
 
   c.set("user", {
     employee_number: decoded.employee_number,

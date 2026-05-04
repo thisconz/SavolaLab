@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
-import { AppTab } from "../../core/types/app.types";
+import { type AppTab } from "../../core/types/app.types";
 import { safeLocalStorage } from "../../core/utils/storage";
 
 interface AppState {

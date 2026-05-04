@@ -34,8 +34,7 @@ app.post("/", authenticateToken, async (c) => {
 app.post("/:id/execute", authenticateToken, async (c) => {
   try {
     const body = await c.req.json();
-    if (body.sample_id == null)
-      return c.json({ success: false, error: "sample_id is required" }, 400);
+    if (body.sample_id == null) return c.json({ success: false, error: "sample_id is required" }, 400);
     const id = requireIntParam(c.req.param("id"), "id");
     const executionId = await WorkflowService.executeWorkflow(id, body.sample_id);
     return c.json({ success: true, data: { executionId } }, 201);

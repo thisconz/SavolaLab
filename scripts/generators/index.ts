@@ -16,10 +16,7 @@ const OUTPUT_DIR = path.resolve(__dirname, "../output");
 const projectTree = generateStructure(ROOT_DIR);
 const projectOutputDir = path.join(OUTPUT_DIR, "projectStructure");
 if (!fs.existsSync(projectOutputDir)) fs.mkdirSync(projectOutputDir, { recursive: true });
-fs.writeFileSync(
-  path.join(projectOutputDir, "structure.json"),
-  JSON.stringify(projectTree, null, 2),
-);
+fs.writeFileSync(path.join(projectOutputDir, "structure.json"), JSON.stringify(projectTree, null, 2));
 fs.writeFileSync(path.join(projectOutputDir, "structure.txt"), renderTreeText(projectTree));
 console.log("Project structure generated.");
 

@@ -2,18 +2,18 @@ import { createNotification } from "../../core/db/events";
 import { domainBus } from "../../core/events/domain-bus";
 import { SampleRepository } from "./repository";
 import { AuditService } from "../audit/service";
-import { SampleData, TestResultSummary, SampleTest } from "../../core/types";
+import type { SampleData, TestResultSummary, SampleTest } from "../../core/types";
 
 const DEFAULT_TESTS: Record<string, string[]> = {
-  "Raw sugar":      ["Pol", "Moisture", "Colour"],
-  "White sugar":    ["Pol", "Moisture", "Colour", "Ash"],
-  "Brown sugar":    ["Pol", "Moisture", "Colour", "Ash"],
-  "Raw Handling":   ["Brix", "pH"],
-  Refining:         ["Brix", "Purity", "Colour"],
-  Clarification:    ["pH", "Brix"],
-  Evaporation:      ["Brix", "pH"],
-  Crystallization:  ["Brix", "Purity"],
-  Centrifuge:       ["Pol", "Moisture"],
+  "Raw sugar": ["Pol", "Moisture", "Colour"],
+  "White sugar": ["Pol", "Moisture", "Colour", "Ash"],
+  "Brown sugar": ["Pol", "Moisture", "Colour", "Ash"],
+  "Raw Handling": ["Brix", "pH"],
+  Refining: ["Brix", "Purity", "Colour"],
+  Clarification: ["pH", "Brix"],
+  Evaporation: ["Brix", "pH"],
+  Crystallization: ["Brix", "Purity"],
+  Centrifuge: ["Pol", "Moisture"],
 };
 
 export const SampleService = {
@@ -80,8 +80,8 @@ export const SampleService = {
       domainBus.publish({
         type: "SAMPLE_STATUS_CHANGED",
         payload: {
-          id:         sampleId,
-          batch_id:   oldSample.batch_id,
+          id: sampleId,
+          batch_id: oldSample.batch_id,
           old_status: oldSample.status,
           new_status: data.status,
           changed_by: employeeNumber,
@@ -151,11 +151,7 @@ export const SampleService = {
     return newId;
   },
 
-  getPreviousResults: async (
-    stage: string,
-    testType: string,
-    limit = 5,
-  ): Promise<TestResultSummary[]> => {
+  getPreviousResults: async (stage: string, testType: string, limit = 5): Promise<TestResultSummary[]> => {
     return SampleRepository.findPreviousResults(stage, testType, limit);
   },
 

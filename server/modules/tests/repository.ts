@@ -73,13 +73,12 @@ export const TestRepository = {
    * @param tx - Injected transaction client or null to use standard ORM.
    */
   create: async (tx: TransactionLike | null | undefined, data: any): Promise<number> => {
-    const paramsStr = data.params && typeof data.params !== "string" 
-      ? JSON.stringify(data.params) 
-      : data.params || null;
+    const paramsStr =
+      data.params && typeof data.params !== "string" ? JSON.stringify(data.params) : data.params || null;
 
     // Use raw query if tx is provided (supporting legacy raw-SQL service calls)
     if (tx?.query) {
-      const rows = await tx.query(
+      const rows = (await tx.query(
         `INSERT INTO tests
            (sample_id, test_type, raw_value, calculated_value, unit,
             status, performed_at, performer_id, reviewer_id,
@@ -101,7 +100,7 @@ export const TestRepository = {
           data.notes ?? null,
           paramsStr,
         ],
-      ) as Array<{ id: number }>;
+      )) as { id: number }[];
 
       if (!rows[0]?.id) throw new Error("INSERT tests did not return an id");
       return rows[0].id;

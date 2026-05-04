@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { ExportType, ExportOptions } from "../../core/types";
+import type { ExportOptions } from "../../core/types";
 import { dbOrm } from "../../core/db/orm";
 import {
   samples,

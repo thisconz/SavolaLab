@@ -1,15 +1,5 @@
 import React, { useState, memo } from "react";
-import {
-  Plus,
-  Beaker,
-  Layers,
-  Activity,
-  Hash,
-  Settings,
-  TestTube2,
-  AlertCircle,
-  Clock,
-} from "lucide-react";
+import { Plus, Beaker, Layers, Activity, Hash, Settings, TestTube2, AlertCircle, Clock } from "lucide-react";
 import { LabButton } from "../../../shared/components/LabButton";
 import { Modal } from "../../../shared/components/Modal";
 import { SamplePriority, SampleStatus } from "../../../core/types";
@@ -21,7 +11,7 @@ interface Props {
   onSuccess: () => void;
 }
 
-type FormState = {
+interface FormState {
   batch_id: string;
   sample_type: string;
   source_stage: string;
@@ -29,7 +19,7 @@ type FormState = {
   line_id: string;
   equipment_id: string;
   shift_id: string;
-};
+}
 
 const INITIAL: FormState = {
   batch_id: "",
@@ -70,8 +60,7 @@ export const RegisterSampleModal: React.FC<Props> = memo(({ isOpen, onClose, onS
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(INITIAL);
 
-  const set = (key: keyof FormState, value: string) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const set = (key: keyof FormState, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,9 +112,9 @@ export const RegisterSampleModal: React.FC<Props> = memo(({ isOpen, onClose, onS
     <Modal isOpen={isOpen} onClose={handleClose} title="Register_New_Sample" maxWidth="max-w-xl">
       <form onSubmit={handleSubmit} className="space-y-8 p-1">
         {error && (
-          <div className="p-4 bg-lab-laser/5 border border-lab-laser/20 rounded-2xl flex items-center gap-3 text-lab-laser">
+          <div className="bg-lab-laser/5 border-lab-laser/20 text-lab-laser flex items-center gap-3 rounded-2xl border p-4">
             <AlertCircle size={18} />
-            <span className="text-[10px] font-black uppercase tracking-widest">{error}</span>
+            <span className="text-[10px] font-black tracking-widest uppercase">{error}</span>
           </div>
         )}
 
@@ -200,8 +189,8 @@ export const RegisterSampleModal: React.FC<Props> = memo(({ isOpen, onClose, onS
         </div>
 
         {/* Section 3: Logistics (optional) */}
-        <div className="bg-(--color-zenthar-carbon)/20 p-6 rounded-4xl border border-brand-sage/5">
-          <p className="text-[9px] font-black text-brand-sage/50 uppercase tracking-widest mb-4">
+        <div className="border-brand-sage/5 rounded-4xl border bg-(--color-zenthar-carbon)/20 p-6">
+          <p className="text-brand-sage/50 mb-4 text-[9px] font-black tracking-widest uppercase">
             Optional — Logistics
           </p>
           <div className="grid grid-cols-3 gap-4">
@@ -214,7 +203,7 @@ export const RegisterSampleModal: React.FC<Props> = memo(({ isOpen, onClose, onS
                 value={form.line_id}
                 onChange={(e) => set("line_id", e.target.value)}
                 placeholder="L1"
-                className={`${inputStyle} py-3 px-4 text-center`}
+                className={`${inputStyle} px-4 py-3 text-center`}
               />
             </div>
             <div>
@@ -226,7 +215,7 @@ export const RegisterSampleModal: React.FC<Props> = memo(({ isOpen, onClose, onS
                 value={form.equipment_id}
                 onChange={(e) => set("equipment_id", e.target.value)}
                 placeholder="E01"
-                className={`${inputStyle} py-3 px-4 text-center`}
+                className={`${inputStyle} px-4 py-3 text-center`}
               />
             </div>
             <div>
@@ -236,7 +225,7 @@ export const RegisterSampleModal: React.FC<Props> = memo(({ isOpen, onClose, onS
               <select
                 value={form.shift_id}
                 onChange={(e) => set("shift_id", e.target.value)}
-                className={`${inputStyle} py-3 px-4 cursor-pointer text-center`}
+                className={`${inputStyle} cursor-pointer px-4 py-3 text-center`}
               >
                 <option value="">N/A</option>
                 <option value="1">Morning (07:00–15:00)</option>
@@ -248,14 +237,8 @@ export const RegisterSampleModal: React.FC<Props> = memo(({ isOpen, onClose, onS
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-6 border-t border-brand-sage/10 flex gap-4">
-          <LabButton
-            type="button"
-            variant="secondary"
-            fullWidth
-            onClick={handleClose}
-            disabled={loading}
-          >
+        <div className="border-brand-sage/10 flex gap-4 border-t pt-6">
+          <LabButton type="button" variant="secondary" fullWidth onClick={handleClose} disabled={loading}>
             Cancel
           </LabButton>
           <LabButton
@@ -264,7 +247,7 @@ export const RegisterSampleModal: React.FC<Props> = memo(({ isOpen, onClose, onS
             fullWidth
             loading={loading}
             icon={Plus}
-            className="shadow-xl shadow-brand-primary/20"
+            className="shadow-brand-primary/20 shadow-xl"
           >
             Register_Sample
           </LabButton>

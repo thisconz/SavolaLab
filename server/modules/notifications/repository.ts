@@ -1,6 +1,6 @@
 import { dbOrm } from "../../core/db/orm";
 import { notifications, tests, samples } from "../../core/db/schema";
-import { Notification } from "../../../src/shared/schemas/notification.schema";
+import { type Notification } from "../../../src/shared/schemas/notification.schema";
 import { eq, desc, and, lt, sql } from "drizzle-orm";
 
 export const NotificationRepository = {
@@ -28,9 +28,7 @@ export const NotificationRepository = {
     await dbOrm
       .update(notifications)
       .set({ is_read: 1 })
-      .where(
-        and(eq(notifications.id, Number(id)), eq(notifications.employee_number, employeeNumber)),
-      );
+      .where(and(eq(notifications.id, Number(id)), eq(notifications.employee_number, employeeNumber)));
     return true;
   },
 
@@ -45,8 +43,8 @@ export const NotificationRepository = {
   async create(employeeNumber: string, type: string, message: string): Promise<void> {
     await dbOrm.insert(notifications).values({
       employee_number: employeeNumber,
-      type: type,
-      message: message,
+      type,
+      message,
     });
   },
 
@@ -61,9 +59,7 @@ export const NotificationRepository = {
         })
         .from(tests)
         .innerJoin(samples, eq(tests.sample_id, samples.id))
-        .where(
-          and(eq(tests.status, "PENDING"), lt(tests.updated_at, sql`NOW() - interval '4 hours'`)),
-        );
+        .where(and(eq(tests.status, "PENDING"), lt(tests.updated_at, sql`NOW() - interval '4 hours'`)));
 
       return rows.map((row) => ({
         ...row.test,

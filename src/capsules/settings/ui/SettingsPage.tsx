@@ -26,27 +26,18 @@ import {
   Lock,
   RotateCcw,
 } from "lucide-react";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { SettingsApi } from "../api/settings.api";
 import { Modal } from "../../../shared/components/Modal";
 import { toast } from "sonner";
-import clsx from "@/src/lib/clsx";
+import clsx from "clsx";
 import { LabButton } from "../../../shared/components/LabButton";
 
 // ─────────────────────────────────────────────
 // Field + Column definitions (unchanged from original — keeping compact)
 // ─────────────────────────────────────────────
 
-type FieldType =
-  | "text"
-  | "textarea"
-  | "number"
-  | "select"
-  | "date"
-  | "toggle"
-  | "email"
-  | "tel"
-  | "readonly";
+type FieldType = "text" | "textarea" | "number" | "select" | "date" | "toggle" | "email" | "tel" | "readonly";
 
 interface FieldDef {
   key: string;
@@ -88,9 +79,9 @@ const STATUS_BADGE = (val: any) => {
   return (
     <span
       className={clsx(
-        "px-2 py-0.5 rounded-md text-[9px] font-black uppercase border",
+        "rounded-md border px-2 py-0.5 text-[9px] font-black uppercase",
         active
-          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
           : "bg-zenthar-graphite/40 border-zenthar-steel text-zenthar-text-muted",
       )}
     >
@@ -112,20 +103,18 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "id",
         label: "ID",
-        render: (v) => <span className="font-mono text-[10px] text-brand-sage">#{v}</span>,
+        render: (v) => <span className="text-brand-sage font-mono text-[10px]">#{v}</span>,
       },
       {
         key: "name",
         label: "Name",
-        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
+        render: (v) => <span className="text-zenthar-text-primary font-bold">{v}</span>,
       },
       {
         key: "description",
         label: "Description",
         render: (v) => (
-          <span className="text-xs text-zenthar-text-secondary truncate block max-w-[240px]">
-            {v || "—"}
-          </span>
+          <span className="text-zenthar-text-secondary block max-w-[240px] truncate text-xs">{v || "—"}</span>
         ),
       },
     ],
@@ -151,18 +140,18 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "name",
         label: "Method",
-        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
+        render: (v) => <span className="text-zenthar-text-primary font-bold">{v}</span>,
       },
       {
         key: "formula",
         label: "Formula",
-        render: (v) => <span className="font-mono text-[10px] text-brand-sage">{v || "—"}</span>,
+        render: (v) => <span className="text-brand-sage font-mono text-[10px]">{v || "—"}</span>,
       },
       {
         key: "min_range",
         label: "Range",
         render: (v, r) => (
-          <span className="text-xs text-zenthar-text-secondary">
+          <span className="text-zenthar-text-secondary text-xs">
             {v ?? "—"} – {r.max_range ?? "—"}
           </span>
         ),
@@ -194,17 +183,17 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "name",
         label: "Name",
-        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
+        render: (v) => <span className="text-zenthar-text-primary font-bold">{v}</span>,
       },
       {
         key: "model",
         label: "Model",
-        render: (v) => <span className="text-xs text-zenthar-text-secondary">{v || "—"}</span>,
+        render: (v) => <span className="text-zenthar-text-secondary text-xs">{v || "—"}</span>,
       },
       {
         key: "serial_number",
         label: "Serial",
-        render: (v) => <span className="font-mono text-[10px] text-brand-sage">{v || "—"}</span>,
+        render: (v) => <span className="text-brand-sage font-mono text-[10px]">{v || "—"}</span>,
       },
       {
         key: "status",
@@ -218,7 +207,7 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
           return (
             <span
               className={clsx(
-                "px-2 py-0.5 rounded border text-[9px] font-black uppercase",
+                "rounded border px-2 py-0.5 text-[9px] font-black uppercase",
                 map[v] || map.INACTIVE,
               )}
             >
@@ -231,13 +220,13 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
         key: "next_calibration",
         label: "Next Cal.",
         render: (v) => {
-          if (!v) return <span className="text-xs text-brand-sage/60">—</span>;
+          if (!v) return <span className="text-brand-sage/60 text-xs">—</span>;
           const overdue = new Date(v) < new Date();
           return (
             <span
               className={clsx(
-                "text-[10px] font-mono",
-                overdue ? "text-red-600 font-bold" : "text-zenthar-text-secondary",
+                "font-mono text-[10px]",
+                overdue ? "font-bold text-red-600" : "text-zenthar-text-secondary",
               )}
             >
               {new Date(v).toLocaleDateString()}
@@ -261,17 +250,17 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "name",
         label: "Client",
-        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
+        render: (v) => <span className="text-zenthar-text-primary font-bold">{v}</span>,
       },
       {
         key: "email",
         label: "Email",
-        render: (v) => <span className="text-xs text-zenthar-text-secondary">{v || "—"}</span>,
+        render: (v) => <span className="text-zenthar-text-secondary text-xs">{v || "—"}</span>,
       },
       {
         key: "phone",
         label: "Phone",
-        render: (v) => <span className="font-mono text-[10px] text-brand-sage">{v || "—"}</span>,
+        render: (v) => <span className="text-brand-sage font-mono text-[10px]">{v || "—"}</span>,
       },
     ],
   },
@@ -317,21 +306,17 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "employee_number",
         label: "Emp. #",
-        render: (v) => (
-          <span className="font-mono text-[10px] font-bold text-brand-primary">{v}</span>
-        ),
+        render: (v) => <span className="text-brand-primary font-mono text-[10px] font-bold">{v}</span>,
       },
       {
         key: "name",
         label: "Name",
-        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
+        render: (v) => <span className="text-zenthar-text-primary font-bold">{v}</span>,
       },
       {
         key: "role",
         label: "Role",
-        render: (v) => (
-          <span className="text-xs font-bold text-zenthar-text-secondary uppercase">{v}</span>
-        ),
+        render: (v) => <span className="text-zenthar-text-secondary text-xs font-bold uppercase">{v}</span>,
       },
       { key: "status", label: "Status", render: STATUS_BADGE },
     ],
@@ -347,17 +332,17 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "id",
         label: "ID",
-        render: (v) => <span className="font-mono text-[10px] text-brand-sage">#{v}</span>,
+        render: (v) => <span className="text-brand-sage font-mono text-[10px]">#{v}</span>,
       },
       {
         key: "name",
         label: "Line",
-        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
+        render: (v) => <span className="text-zenthar-text-primary font-bold">{v}</span>,
       },
       {
         key: "plant_id",
         label: "Plant",
-        render: (v) => <span className="text-xs text-zenthar-text-secondary">{v || "—"}</span>,
+        render: (v) => <span className="text-zenthar-text-secondary text-xs">{v || "—"}</span>,
       },
     ],
   },
@@ -382,7 +367,7 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "name",
         label: "Item",
-        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
+        render: (v) => <span className="text-zenthar-text-primary font-bold">{v}</span>,
       },
       {
         key: "quantity",
@@ -406,13 +391,13 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
         key: "expiry_date",
         label: "Expiry",
         render: (v) => {
-          if (!v) return <span className="text-xs text-brand-sage/60">—</span>;
+          if (!v) return <span className="text-brand-sage/60 text-xs">—</span>;
           const expired = new Date(v) < new Date();
           return (
             <span
               className={clsx(
-                "text-[10px] font-mono",
-                expired ? "text-red-600 font-bold" : "text-zenthar-text-secondary",
+                "font-mono text-[10px]",
+                expired ? "font-bold text-red-600" : "text-zenthar-text-secondary",
               )}
             >
               {new Date(v).toLocaleDateString()}
@@ -449,13 +434,13 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "name",
         label: "Rule",
-        render: (v) => <span className="font-bold text-zenthar-text-primary">{v}</span>,
+        render: (v) => <span className="text-zenthar-text-primary font-bold">{v}</span>,
       },
       {
         key: "action",
         label: "Action",
         render: (v) => (
-          <span className="text-xs font-bold text-brand-primary uppercase">
+          <span className="text-brand-primary text-xs font-bold uppercase">
             {v?.replace(/_/g, " ") || "—"}
           </span>
         ),
@@ -480,12 +465,12 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
       {
         key: "key",
         label: "Key",
-        render: (v) => <span className="font-mono text-sm font-bold text-brand-primary">{v}</span>,
+        render: (v) => <span className="text-brand-primary font-mono text-sm font-bold">{v}</span>,
       },
       {
         key: "value",
         label: "Value",
-        render: (v) => <span className="font-mono text-sm text-zenthar-text-secondary">{v}</span>,
+        render: (v) => <span className="text-zenthar-text-secondary font-mono text-sm">{v}</span>,
       },
     ],
   },
@@ -566,9 +551,7 @@ const FieldRenderer: React.FC<{
   const isReadonly = field.type === "readonly" || (isEditing && field.readonlyOnEdit);
   if (isReadonly)
     return (
-      <div
-        className={clsx(inputBase, "bg-zenthar-graphite/30 cursor-not-allowed text-brand-sage/80")}
-      >
+      <div className={clsx(inputBase, "bg-zenthar-graphite/30 text-brand-sage/80 cursor-not-allowed")}>
         {value || "—"}
       </div>
     );
@@ -579,16 +562,14 @@ const FieldRenderer: React.FC<{
         type="button"
         onClick={() => onChange(checked ? 0 : 1)}
         className={clsx(
-          "flex items-center gap-3 px-4 py-3 rounded-xl border transition-all",
+          "flex items-center gap-3 rounded-xl border px-4 py-3 transition-all",
           checked
             ? "bg-brand-primary/10 border-brand-primary/30 text-brand-primary"
             : "bg-zenthar-void border-zenthar-steel text-brand-sage",
         )}
       >
-        {checked ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
-        <span className="text-sm font-bold uppercase tracking-wider">
-          {checked ? "Enabled" : "Disabled"}
-        </span>
+        {checked ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
+        <span className="text-sm font-bold tracking-wider uppercase">{checked ? "Enabled" : "Disabled"}</span>
       </button>
     );
   }
@@ -627,11 +608,7 @@ const FieldRenderer: React.FC<{
       value={value ?? ""}
       onChange={(e) =>
         onChange(
-          field.type === "number"
-            ? e.target.value === ""
-              ? ""
-              : Number(e.target.value)
-            : e.target.value,
+          field.type === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value,
         )
       }
       placeholder={field.placeholder}
@@ -748,11 +725,11 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl gap-6">
+    <div className="flex h-full gap-6 overflow-hidden rounded-3xl bg-(--color-zenthar-graphite)/30 p-2">
       {/* ── MOBILE SIDEBAR TOGGLE ── */}
       <button
         onClick={() => setSidebarOpen((v) => !v)}
-        className="fixed bottom-6 right-6 z-50 lg:hidden w-14 h-14 bg-brand-primary text-white rounded-full shadow-2xl shadow-brand-primary/40 flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+        className="bg-brand-primary shadow-brand-primary/40 fixed right-6 bottom-6 z-50 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-2xl transition-all hover:scale-105 active:scale-95 lg:hidden"
       >
         {sidebarOpen ? <X size={20} /> : <SettingsIcon size={20} />}
       </button>
@@ -761,21 +738,21 @@ export const SettingsPage: React.FC = () => {
       <AnimatePresence>
         <aside
           className={clsx(
-            "flex-col gap-3 shrink-0 transition-opacity",
+            "shrink-0 flex-col gap-3 transition-opacity",
             !sidebarOpen && "hidden lg:flex",
-            sidebarOpen && "flex fixed inset-y-4 left-4 z-40 w-[240px] lg:static lg:w-auto",
+            sidebarOpen && "fixed inset-y-4 left-4 z-40 flex w-[240px] lg:static lg:w-auto",
           )}
         >
-          <div className="glass-panel p-5 flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar min-w-[220px] shadow-2xl lg:shadow-none border border-transparent lg:border-brand-primary/10">
-            <div className="flex items-center gap-4 px-3 pb-6 pt-2 border-b border-zenthar-steel/50 mb-4">
-              <div className="w-12 h-12 flex items-center justify-center bg-brand-primary/10 rounded-2xl shadow-inner border border-brand-primary/30">
-                <SettingsIcon className="w-6 h-6 text-brand-primary" />
+          <div className="glass-panel custom-scrollbar lg:border-brand-primary/10 flex min-w-[220px] flex-1 flex-col gap-2 overflow-y-auto border border-transparent p-5 shadow-2xl lg:shadow-none">
+            <div className="border-zenthar-steel/50 mb-4 flex items-center gap-4 border-b px-3 pt-2 pb-6">
+              <div className="bg-brand-primary/10 border-brand-primary/30 flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner">
+                <SettingsIcon className="text-brand-primary h-6 w-6" />
               </div>
               <div>
-                <h2 className="text-[12px] font-black text-zenthar-text-primary uppercase tracking-[0.15em] leading-tight">
+                <h2 className="text-zenthar-text-primary text-[12px] leading-tight font-black tracking-[0.15em] uppercase">
                   Control Panel
                 </h2>
-                <p className="text-[10px] text-brand-sage font-mono uppercase tracking-widest opacity-80 mt-1">
+                <p className="text-brand-sage mt-1 font-mono text-[10px] tracking-widest uppercase opacity-80">
                   Registry
                 </p>
               </div>
@@ -788,30 +765,30 @@ export const SettingsPage: React.FC = () => {
                   setSidebarOpen(false);
                 }}
                 className={clsx(
-                  "w-full flex items-center gap-4 px-4 py-3.5 rounded-[16px] transition-all duration-300 text-left group overflow-hidden relative",
+                  "group relative flex w-full items-center gap-4 overflow-hidden rounded-[16px] px-4 py-3.5 text-left transition-all duration-300",
                   activeModule === m.id
-                    ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/30 border border-brand-primary/20 scale-[1.02] z-10"
+                    ? "bg-brand-primary shadow-brand-primary/30 border-brand-primary/20 z-10 scale-[1.02] border text-white shadow-lg"
                     : "text-brand-sage hover:bg-zenthar-graphite/60 hover:text-zenthar-text-primary border border-transparent",
                 )}
               >
                 {activeModule === m.id && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent animate-[scanline_2.5s_linear_infinite]"
+                    className="absolute inset-0 animate-[scanline_2.5s_linear_infinite] bg-linear-to-r from-transparent via-white/10 to-transparent"
                   />
                 )}
 
                 <m.icon
                   className={clsx(
-                    "w-5 h-5 shrink-0 relative z-10 transition-transform duration-300 group-hover:scale-110",
+                    "relative z-10 h-5 w-5 shrink-0 transition-transform duration-300 group-hover:scale-110",
                     activeModule === m.id ? "text-white" : "opacity-60",
                   )}
                 />
-                <span className="text-[12px] font-bold tracking-wide leading-none relative z-10">
+                <span className="relative z-10 text-[12px] leading-none font-bold tracking-wide">
                   {m.label}
                 </span>
                 {activeModule === m.id && (
-                  <ChevronRight className="w-4 h-4 ml-auto text-white/80 relative z-10" />
+                  <ChevronRight className="relative z-10 ml-auto h-4 w-4 text-white/80" />
                 )}
               </button>
             ))}
@@ -820,59 +797,57 @@ export const SettingsPage: React.FC = () => {
       </AnimatePresence>
 
       {/* ── MAIN ── */}
-      <main className="flex-1 flex flex-col gap-6 overflow-hidden min-w-0">
+      <main className="flex min-w-0 flex-1 flex-col gap-6 overflow-hidden">
         {/* Header */}
-        <div className="glass-panel px-8 py-7 flex items-center justify-between shrink-0 flex-wrap gap-5 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-72 h-72 bg-brand-primary/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        <div className="glass-panel relative flex shrink-0 flex-wrap items-center justify-between gap-5 overflow-hidden px-8 py-7">
+          <div className="bg-brand-primary/10 pointer-events-none absolute top-0 right-0 h-72 w-72 translate-x-1/4 -translate-y-1/2 rounded-full blur-[80px]" />
 
-          <div className="flex items-center gap-5 relative z-10">
-            <div className="w-16 h-16 bg-zenthar-graphite/80 border border-zenthar-steel rounded-[20px] flex items-center justify-center text-brand-primary shadow-lg shadow-brand-primary/5">
-              <moduleInfo.icon className="w-7 h-7" />
+          <div className="relative z-10 flex items-center gap-5">
+            <div className="bg-zenthar-graphite/80 border-zenthar-steel text-brand-primary shadow-brand-primary/5 flex h-16 w-16 items-center justify-center rounded-[20px] border shadow-lg">
+              <moduleInfo.icon className="h-7 w-7" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-zenthar-text-primary tracking-tight leading-none mb-2">
+              <h2 className="text-zenthar-text-primary mb-2 text-2xl leading-none font-black tracking-tight">
                 {moduleInfo.label}
               </h2>
-              <p className="text-xs text-brand-sage uppercase tracking-[0.2em] font-mono opacity-80">
+              <p className="text-brand-sage font-mono text-xs tracking-[0.2em] uppercase opacity-80">
                 {moduleInfo.hint}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto mt-2 sm:mt-0">
+          <div className="relative z-10 mt-2 flex w-full items-center gap-4 sm:mt-0 sm:w-auto">
             <div className="relative flex-1 sm:flex-none">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-sage/50" />
+              <Search className="text-brand-sage/50 absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search registry..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full sm:w-64 bg-zenthar-graphite/40 backdrop-blur-sm border border-zenthar-steel rounded-[16px] pl-11 pr-8 py-3.5 text-sm focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10 text-zenthar-text-primary transition-all placeholder:text-brand-sage/40 font-medium"
+                className="bg-zenthar-graphite/40 border-zenthar-steel focus:border-brand-primary focus:ring-brand-primary/10 text-zenthar-text-primary placeholder:text-brand-sage/40 w-full rounded-[16px] border py-3.5 pr-8 pl-11 text-sm font-medium backdrop-blur-sm transition-all focus:ring-4 focus:outline-none sm:w-64"
               />
               {search && (
                 <button
                   onClick={() => setSearch("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-sage hover:text-zenthar-text-primary"
+                  className="text-brand-sage hover:text-zenthar-text-primary absolute top-1/2 right-4 -translate-y-1/2"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="h-4 w-4" />
                 </button>
               )}
             </div>
 
             <button
               onClick={fetchData}
-              className="p-3.5 bg-zenthar-graphite/40 backdrop-blur-sm border border-zenthar-steel rounded-[16px] hover:bg-zenthar-graphite transition-all shadow-sm"
+              className="bg-zenthar-graphite/40 border-zenthar-steel hover:bg-zenthar-graphite rounded-[16px] border p-3.5 shadow-sm backdrop-blur-sm transition-all"
               title="Refresh"
             >
-              <RefreshCw
-                className={clsx("w-5 h-5 text-brand-primary", loading && "animate-spin")}
-              />
+              <RefreshCw className={clsx("text-brand-primary h-5 w-5", loading && "animate-spin")} />
             </button>
             <LabButton
               variant="primary"
               onClick={openAdd}
               icon={Plus}
-              className="px-6 py-4 rounded-[16px] text-[10px]"
+              className="rounded-[16px] px-6 py-4 text-[10px]"
             >
               Add Entry
             </LabButton>
@@ -880,80 +855,80 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         {/* Table */}
-        <div className="flex-1 glass-panel border border-zenthar-steel/50 shadow-sm overflow-hidden flex flex-col min-h-0 relative">
+        <div className="glass-panel border-zenthar-steel/50 relative flex min-h-0 flex-1 flex-col overflow-hidden border shadow-sm">
           {/* subtle background details */}
-          <div className="absolute inset-0 instrument-grid opacity-30 pointer-events-none" />
+          <div className="instrument-grid pointer-events-none absolute inset-0 opacity-30" />
 
           {loading ? (
-            <div className="flex-1 flex items-center justify-center relative z-10">
-              <div className="w-8 h-8 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin" />
+            <div className="relative z-10 flex flex-1 items-center justify-center">
+              <div className="border-brand-primary/20 border-t-brand-primary h-8 w-8 animate-spin rounded-full border-4" />
             </div>
           ) : filteredData.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-4 py-16 relative z-10">
-              <div className="p-6 bg-zenthar-graphite/30 backdrop-blur-md rounded-[24px] border border-zenthar-steel shadow-inner">
-                <moduleInfo.icon className="w-12 h-12 text-brand-primary/30" />
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-4 py-16">
+              <div className="bg-zenthar-graphite/30 border-zenthar-steel rounded-[24px] border p-6 shadow-inner backdrop-blur-md">
+                <moduleInfo.icon className="text-brand-primary/30 h-12 w-12" />
               </div>
-              <p className="text-[13px] font-black text-zenthar-text-primary uppercase tracking-widest mt-2">
+              <p className="text-zenthar-text-primary mt-2 text-[13px] font-black tracking-widest uppercase">
                 {search ? "No results match your search" : `No ${moduleInfo.label} yet`}
               </p>
               {!search && (
                 <button
                   onClick={openAdd}
-                  className="text-[11px] font-bold text-brand-primary/80 hover:text-brand-primary hover:underline transition-colors uppercase tracking-widest"
+                  className="text-brand-primary/80 hover:text-brand-primary text-[11px] font-bold tracking-widest uppercase transition-colors hover:underline"
                 >
                   Add the first entry →
                 </button>
               )}
             </div>
           ) : (
-            <div className="flex-1 overflow-auto custom-scrollbar relative z-10">
-              <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-zenthar-void/80 backdrop-blur-xl z-20">
-                  <tr className="border-b border-zenthar-steel/40 shadow-sm">
+            <div className="custom-scrollbar relative z-10 flex-1 overflow-auto">
+              <table className="w-full border-collapse text-left">
+                <thead className="bg-zenthar-void/80 sticky top-0 z-20 backdrop-blur-xl">
+                  <tr className="border-zenthar-steel/40 border-b shadow-sm">
                     {config.columns.map((col) => (
                       <th
                         key={col.key}
-                        className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-brand-sage"
+                        className="text-brand-sage px-6 py-5 text-[10px] font-black tracking-[0.15em] uppercase"
                       >
                         {col.label}
                       </th>
                     ))}
-                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-brand-sage text-right">
+                    <th className="text-brand-sage px-6 py-5 text-right text-[10px] font-black tracking-[0.15em] uppercase">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zenthar-steel/20">
+                <tbody className="divide-zenthar-steel/20 divide-y">
                   {filteredData.map((item, idx) => (
                     <tr
                       key={item[config.pk] ?? idx}
-                      className="hover:bg-brand-primary/[0.02] transition-colors group"
+                      className="hover:bg-brand-primary/[0.02] group transition-colors"
                     >
                       {config.columns.map((col) => (
                         <td key={col.key} className="px-6 py-4">
                           {col.render ? (
                             col.render(item[col.key], item)
                           ) : (
-                            <span className="text-[13px] font-medium text-zenthar-text-primary/80">
+                            <span className="text-zenthar-text-primary/80 text-[13px] font-medium">
                               {String(item[col.key] ?? "—")}
                             </span>
                           )}
                         </td>
                       ))}
                       <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
                           <button
                             onClick={() => openEdit(item)}
-                            className="w-8 h-8 flex items-center justify-center rounded-[10px] border border-transparent group-hover:border-zenthar-steel hover:bg-zenthar-graphite/80 hover:text-brand-primary text-brand-sage transition-all shadow-sm"
+                            className="group-hover:border-zenthar-steel hover:bg-zenthar-graphite/80 hover:text-brand-primary text-brand-sage flex h-8 w-8 items-center justify-center rounded-[10px] border border-transparent shadow-sm transition-all"
                           >
-                            <Edit2 className="w-3.5 h-3.5" />
+                            <Edit2 className="h-3.5 w-3.5" />
                           </button>
                           {config.deletable && (
                             <button
                               onClick={() => setDeleteItem(item)}
-                              className="w-8 h-8 flex items-center justify-center rounded-[10px] border border-transparent group-hover:border-red-200 hover:bg-red-50 hover:text-red-500 text-brand-sage transition-all shadow-sm"
+                              className="text-brand-sage flex h-8 w-8 items-center justify-center rounded-[10px] border border-transparent shadow-sm transition-all group-hover:border-red-200 hover:bg-red-50 hover:text-red-500"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           )}
                         </div>
@@ -964,14 +939,14 @@ export const SettingsPage: React.FC = () => {
               </table>
             </div>
           )}
-          <div className="px-8 py-3.5 border-t border-zenthar-steel/40 bg-zenthar-void/60 backdrop-blur-md shrink-0 flex items-center justify-between relative z-20">
-            <span className="text-[10px] font-mono font-medium tracking-tight text-brand-sage/80 uppercase">
+          <div className="border-zenthar-steel/40 bg-zenthar-void/60 relative z-20 flex shrink-0 items-center justify-between border-t px-8 py-3.5 backdrop-blur-md">
+            <span className="text-brand-sage/80 font-mono text-[10px] font-medium tracking-tight uppercase">
               {filteredData.length}
               {search ? ` of ${data.length}` : ""} records
             </span>
             {data.length > 0 && (
-              <span className="flex items-center gap-2 text-[10px] font-bold text-emerald-600/90 tracking-widest uppercase">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />{" "}
+              <span className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-emerald-600/90 uppercase">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />{" "}
                 Live connection
               </span>
             )}
@@ -991,16 +966,14 @@ export const SettingsPage: React.FC = () => {
           {config.fields.map((field) => (
             <div key={field.key} className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black text-zenthar-text-primary uppercase tracking-widest flex items-center gap-1.5">
+                <label className="text-zenthar-text-primary flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase">
                   {field.label}
                   {field.required && (
-                    <span className="text-brand-primary text-[12px] leading-none mt-0.5">*</span>
+                    <span className="text-brand-primary mt-0.5 text-[12px] leading-none">*</span>
                   )}
                 </label>
                 {field.hint && (
-                  <span className="text-[10px] text-brand-sage/60 font-mono italic">
-                    {field.hint}
-                  </span>
+                  <span className="text-brand-sage/60 font-mono text-[10px] italic">{field.hint}</span>
                 )}
               </div>
               <FieldRenderer
@@ -1018,25 +991,25 @@ export const SettingsPage: React.FC = () => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="pt-6 border-t border-red-500/10 mt-6"
+                className="mt-6 border-t border-red-500/10 pt-6"
               >
-                <div className="flex items-center justify-between p-5 bg-red-500/5 border border-red-500/20 rounded-2xl">
+                <div className="flex items-center justify-between rounded-2xl border border-red-500/20 bg-red-500/5 p-5">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center">
-                      <Lock className="w-5 h-5 text-red-500" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10">
+                      <Lock className="h-5 w-5 text-red-500" />
                     </div>
                     <div>
-                      <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest">
+                      <h4 className="text-[10px] font-black tracking-widest text-red-500 uppercase">
                         Security_Reset
                       </h4>
-                      <p className="text-[9px] text-brand-sage uppercase font-mono mt-1 opacity-70">
+                      <p className="text-brand-sage mt-1 font-mono text-[9px] uppercase opacity-70">
                         Reset PIN to 0000 and clear password.
                       </p>
                     </div>
                   </div>
                   <LabButton
                     variant="secondary"
-                    className="text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white transition-all text-[9px] font-black tracking-widest"
+                    className="border-red-500/20 text-[9px] font-black tracking-widest text-red-500 transition-all hover:bg-red-500 hover:text-white"
                     onClick={async (e) => {
                       e.preventDefault();
                       if (!window.confirm("Reset credentials for this employee?")) return;
@@ -1049,7 +1022,7 @@ export const SettingsPage: React.FC = () => {
                       }
                     }}
                   >
-                    <RotateCcw className="w-3.5 h-3.5" />
+                    <RotateCcw className="h-3.5 w-3.5" />
                     Reset_Account
                   </LabButton>
                 </div>
@@ -1057,13 +1030,8 @@ export const SettingsPage: React.FC = () => {
             )}
           </AnimatePresence>
 
-          <div className="flex gap-4 pt-6 border-t border-zenthar-steel mt-6">
-            <LabButton
-              variant="ghost"
-              type="button"
-              onClick={closeForm}
-              className="flex-1 py-4 text-[11px]"
-            >
+          <div className="border-zenthar-steel mt-6 flex gap-4 border-t pt-6">
+            <LabButton variant="ghost" type="button" onClick={closeForm} className="flex-1 py-4 text-[11px]">
               Cancel
             </LabButton>
             <LabButton
@@ -1074,7 +1042,7 @@ export const SettingsPage: React.FC = () => {
               icon={saving ? undefined : Save}
             >
               {saving ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
               ) : null}
               {saving ? "Saving..." : isEditing ? "Save Changes" : "Create Entry"}
             </LabButton>
@@ -1090,13 +1058,13 @@ export const SettingsPage: React.FC = () => {
         maxWidth="max-w-sm"
       >
         <div className="space-y-6">
-          <div className="flex items-center gap-4 p-5 bg-red-500/5 border border-red-500/20 rounded-[20px]">
-            <div className="w-10 h-10 shrink-0 bg-red-500/10 rounded-full flex items-center justify-center">
-              <AlertCircle className="w-5 h-5 text-red-500" />
+          <div className="flex items-center gap-4 rounded-[20px] border border-red-500/20 bg-red-500/5 p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10">
+              <AlertCircle className="h-5 w-5 text-red-500" />
             </div>
-            <p className="text-sm text-zenthar-text-primary font-medium leading-relaxed">
-              Delete <span className="font-bold text-red-600">"{deleteItem?.[config.pk]}"</span>?
-              This action cannot be undone and will permanently remove this record.
+            <p className="text-zenthar-text-primary text-sm leading-relaxed font-medium">
+              Delete <span className="font-bold text-red-600">"{deleteItem?.[config.pk]}"</span>? This action
+              cannot be undone and will permanently remove this record.
             </p>
           </div>
           <div className="flex gap-4">
@@ -1109,7 +1077,7 @@ export const SettingsPage: React.FC = () => {
             </LabButton>
             <button
               onClick={() => handleDelete(deleteItem)}
-              className="flex-1 py-3 bg-red-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 shadow-md shadow-red-500/20 text-center"
+              className="flex-1 rounded-2xl bg-red-500 py-3 text-center text-[11px] font-black tracking-widest text-white uppercase shadow-md shadow-red-500/20 transition-all hover:bg-red-600 active:scale-95"
             >
               Delete Record
             </button>

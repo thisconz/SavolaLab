@@ -18,14 +18,14 @@ import {
   Calendar,
   ChevronDown,
 } from "lucide-react";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { LabPanel } from "../../../shared/components/LabPanel";
 import { NotificationApi } from "../../notifications";
 import { LabApi } from "../../lab";
 import { Notification, Sample, TestResult } from "../../../core/types";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import { useSetActiveTab } from "../../../orchestrator/state/app.store";
-import clsx from "@/src/lib/clsx";
+import clsx from "clsx";
 
 import { QCStatsWidget } from "./QCStatsWidget";
 import { QCTrendsWidget } from "./QCTrendsWidget";
@@ -56,7 +56,7 @@ const DateRangeSelector: React.FC<{
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-widest border border-brand-sage/20 rounded-xl bg-(--color-zenthar-carbon) hover:border-brand-primary/30 text-(--color-zenthar-text-muted) transition-all"
+        className="border-brand-sage/20 hover:border-brand-primary/30 flex items-center gap-2 rounded-xl border bg-(--color-zenthar-carbon) px-3 py-2 text-[10px] font-black tracking-widest text-(--color-zenthar-text-muted) uppercase transition-all"
       >
         <Calendar size={12} />
         {DATE_RANGE_LABELS[value]}
@@ -68,7 +68,7 @@ const DateRangeSelector: React.FC<{
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="absolute top-full right-0 mt-2 z-20 bg-(--color-zenthar-carbon) border border-brand-sage/20 rounded-2xl shadow-xl overflow-hidden min-w-[160px]"
+            className="border-brand-sage/20 absolute top-full right-0 z-20 mt-2 min-w-[160px] overflow-hidden rounded-2xl border bg-(--color-zenthar-carbon) shadow-xl"
           >
             {(["24h", "7d", "30d"] as DateRange[]).map((opt) => (
               <button
@@ -78,7 +78,7 @@ const DateRangeSelector: React.FC<{
                   setOpen(false);
                 }}
                 className={clsx(
-                  "w-full text-left px-4 py-3 text-[11px] font-bold transition-all",
+                  "w-full px-4 py-3 text-left text-[11px] font-bold transition-all",
                   value === opt
                     ? "bg-brand-primary/10 text-brand-primary"
                     : "text-(--color-zenthar-text-primary) hover:bg-(--color-zenthar-graphite)/40",
@@ -218,16 +218,16 @@ export const DashboardFeature: React.FC = memo(() => {
   const trends = useMemo(() => computeTrends(data.samples, data.tests), [data]);
 
   return (
-    <div className="h-full flex flex-col gap-6 overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
+    <div className="flex h-full flex-col gap-6 overflow-hidden rounded-3xl bg-(--color-zenthar-graphite)/30 p-2">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 shrink-0 flex-wrap gap-3">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 px-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
-            <LayoutDashboard className="w-6 h-6 text-brand-primary" />
+          <h2 className="font-display flex items-center gap-2 text-xl font-bold text-(--color-zenthar-text-primary) md:text-2xl">
+            <LayoutDashboard className="text-brand-primary h-6 w-6" />
             Dashboard
           </h2>
-          <div className="flex items-center gap-3 mt-1">
-            <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
+          <div className="mt-1 flex items-center gap-3">
+            <p className="text-brand-sage font-mono text-[10px] tracking-widest uppercase">
               Real-time · {isConnected ? "Live" : "Polling"}
             </p>
             <div
@@ -240,12 +240,12 @@ export const DashboardFeature: React.FC = memo(() => {
               {isConnected ? "Connected" : "Reconnecting"}
             </div>
             {lastUpdated && (
-              <span className="text-[9px] font-mono text-brand-sage/40">
+              <span className="text-brand-sage/40 font-mono text-[9px]">
                 Updated {lastUpdated.toLocaleTimeString()}
               </span>
             )}
             {isRefreshing && (
-              <span className="flex items-center gap-1 text-[9px] font-bold text-brand-primary">
+              <span className="text-brand-primary flex items-center gap-1 text-[9px] font-bold">
                 <RefreshCw size={9} className="animate-spin" /> Syncing
               </span>
             )}
@@ -256,11 +256,11 @@ export const DashboardFeature: React.FC = memo(() => {
           <DateRangeSelector value={dateRange} onChange={setDateRange} />
           <button
             onClick={() => fetchAll(true)}
-            className="p-2 rounded-xl border border-brand-sage/20 bg-(--color-zenthar-graphite) hover:bg-(--color-zenthar-graphite)/80 transition-colors group"
+            className="border-brand-sage/20 group rounded-xl border bg-(--color-zenthar-graphite) p-2 transition-colors hover:bg-(--color-zenthar-graphite)/80"
           >
             <RefreshCw
               className={clsx(
-                "w-4 h-4 text-brand-sage group-hover:text-brand-primary",
+                "text-brand-sage group-hover:text-brand-primary h-4 w-4",
                 isRefreshing && "animate-spin",
               )}
             />
@@ -268,18 +268,16 @@ export const DashboardFeature: React.FC = memo(() => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
+      <div className="custom-scrollbar flex-1 space-y-6 overflow-y-auto pr-2">
         {/* Metric cards — clickable to navigate */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => <MetricCardSkeleton key={i} />)
           ) : (
             <>
               <MetricCard
                 label="Active Samples"
-                value={
-                  data.samples.filter((s) => !["COMPLETED", "ARCHIVED"].includes(s.status)).length
-                }
+                value={data.samples.filter((s) => !["COMPLETED", "ARCHIVED"].includes(s.status)).length}
                 trend={trends.active}
                 icon={FlaskConical}
                 variant="primary"
@@ -313,8 +311,8 @@ export const DashboardFeature: React.FC = memo(() => {
         </div>
 
         {/* Analytics grid */}
-        <div className="grid grid-cols-12 gap-6 items-start">
-          <div className="col-span-12 lg:col-span-8 space-y-6">
+        <div className="grid grid-cols-12 items-start gap-6">
+          <div className="col-span-12 space-y-6 lg:col-span-8">
             <LabPanel
               title="Plant Throughput"
               icon={Activity}
@@ -324,7 +322,7 @@ export const DashboardFeature: React.FC = memo(() => {
               <PlantOverviewWidget samples={data.samples} />
             </LabPanel>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <LabPanel
                 title="Quality Distribution"
                 icon={PieChartIcon}
@@ -344,14 +342,14 @@ export const DashboardFeature: React.FC = memo(() => {
             </div>
           </div>
 
-          <div className="col-span-12 lg:col-span-4 space-y-6">
+          <div className="col-span-12 space-y-6 lg:col-span-4">
             <LabPanel
               title="Critical Alerts"
               icon={Bell}
               loading={alertsLoading}
               skeleton={<SampleQueueSkeleton count={3} />}
             >
-              <div className="flex flex-col min-h-[300px]">
+              <div className="flex min-h-[300px] flex-col">
                 {data.alerts.length === 0 ? (
                   <EmptyAlertsState />
                 ) : (
@@ -362,7 +360,7 @@ export const DashboardFeature: React.FC = memo(() => {
                     {data.alerts.length >= 5 && (
                       <button
                         onClick={() => setActiveTab("audit")}
-                        className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-brand-primary hover:text-brand-primary/80 transition-colors border border-dashed border-brand-primary/20 rounded-2xl mt-2"
+                        className="text-brand-primary hover:text-brand-primary/80 border-brand-primary/20 mt-2 w-full rounded-2xl border border-dashed py-3 text-[10px] font-black tracking-widest uppercase transition-colors"
                       >
                         View all in Audit Log →
                       </button>
@@ -392,7 +390,7 @@ export const DashboardFeature: React.FC = memo(() => {
             actions={
               <button
                 onClick={() => setActiveTab("analytics")}
-                className="text-[10px] font-black uppercase tracking-widest text-brand-primary hover:text-brand-primary/80 transition-colors px-3 py-1.5 border border-brand-primary/20 rounded-xl"
+                className="text-brand-primary hover:text-brand-primary/80 border-brand-primary/20 rounded-xl border px-3 py-1.5 text-[10px] font-black tracking-widest uppercase transition-colors"
               >
                 Full Analytics →
               </button>
@@ -413,36 +411,34 @@ export const DashboardFeature: React.FC = memo(() => {
 const AlertItem = ({ alert }: { alert: Notification }) => {
   const isCritical = alert.type.includes("FAILURE") || alert.type.includes("CRITICAL");
   return (
-    <div className="flex gap-4 p-4 rounded-xl border border-brand-sage/5 hover:border-brand-primary/20 hover:bg-(--color-zenthar-graphite)/50 transition-all group relative overflow-hidden cursor-default">
+    <div className="border-brand-sage/5 hover:border-brand-primary/20 group relative flex cursor-default gap-4 overflow-hidden rounded-xl border p-4 transition-all hover:bg-(--color-zenthar-graphite)/50">
       <div
         className={clsx(
-          "absolute left-0 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity",
+          "absolute top-0 bottom-0 left-0 w-1 opacity-0 transition-opacity group-hover:opacity-100",
           isCritical ? "bg-lab-laser" : "bg-brand-primary",
         )}
       />
       <div
         className={clsx(
-          "mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-          isCritical
-            ? "bg-lab-laser/10 text-lab-laser"
-            : "bg-(--color-zenthar-graphite) text-brand-primary",
+          "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
+          isCritical ? "bg-lab-laser/10 text-lab-laser" : "text-brand-primary bg-(--color-zenthar-graphite)",
         )}
       >
-        {isCritical ? <XCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+        {isCritical ? <XCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex justify-between items-start mb-1">
-          <p className="text-[11px] font-bold text-(--color-zenthar-text-primary) leading-tight group-hover:text-brand-primary transition-colors truncate pr-2">
+        <div className="mb-1 flex items-start justify-between">
+          <p className="group-hover:text-brand-primary truncate pr-2 text-[11px] leading-tight font-bold text-(--color-zenthar-text-primary) transition-colors">
             {alert.message}
           </p>
-          <span className="text-[8px] font-mono text-brand-sage/60 shrink-0">
+          <span className="text-brand-sage/60 shrink-0 font-mono text-[8px]">
             {new Date(alert.created_at).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
             })}
           </span>
         </div>
-        <p className="text-[8px] font-mono text-brand-sage uppercase tracking-wider">
+        <p className="text-brand-sage font-mono text-[8px] tracking-wider uppercase">
           {alert.type.replace(/_/g, " ")}
         </p>
       </div>
@@ -451,18 +447,14 @@ const AlertItem = ({ alert }: { alert: Notification }) => {
 };
 
 const EmptyAlertsState = () => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    className="m-auto text-center py-10"
-  >
-    <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
-      <CheckCircle2 className="w-6 h-6" />
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="m-auto py-10 text-center">
+    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+      <CheckCircle2 className="h-6 w-6" />
     </div>
-    <p className="text-[10px] font-black text-(--color-zenthar-text-primary) uppercase tracking-widest">
+    <p className="text-[10px] font-black tracking-widest text-(--color-zenthar-text-primary) uppercase">
       All Systems Nominal
     </p>
-    <p className="text-[9px] text-brand-sage mt-1">No pending alerts.</p>
+    <p className="text-brand-sage mt-1 text-[9px]">No pending alerts.</p>
   </motion.div>
 );
 

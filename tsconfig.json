@@ -1,49 +1,68 @@
 {
   "compilerOptions": {
+    /* Target & Environment */
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "ESNext.Disposable"],
+    "useDefineForClassFields": true,
 
-    /* Strictness */
+    /* Strictness (The Iron Wall) */
     "strict": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "exactOptionalPropertyTypes": false,
-    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
 
-    /* Module resolution */
+    /* Advanced Quality Checks */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    /* Module Resolution (Optimized for Bundlers) */
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
+    "allowArbitraryExtensions": true,
+    "allowJs": false,
+    "checkJs": false,
 
-    /* JSX */
+    /* JSX & Frameworks */
     "jsx": "react-jsx",
+    "jsxImportSource": "react",
 
-    /* Paths */
+    /* Paths (Zenthar Virtual File System) */
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"],
+      "@server/*": ["./server/*"],
+      "@tests/*": ["./tests/*"],
+      "@zenthar/core": ["./src/core/*"]
     },
 
-    /* Emit */
+    /* Emit & Performance */
     "noEmit": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.tsbuildinfo",
     "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
 
-    /* Decorators (xstate uses them) */
+    /* Decorators & Legacy Support */
     "experimentalDecorators": true,
-    "useDefineForClassFields": false
+    "emitDecoratorMetadata": false,
+    "verbatimModuleSyntax": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "server/**/*.ts",
-    "tests/**/*.ts",
-    "scripts/**/*.ts",
-    "vite.config.ts",
-    "vitest.config.ts",
-    "playwright.config.ts",
-    "env.d.ts"
-  ],
-  "exclude": ["node_modules", "dist", "build", "scripts/output"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "server/**/*.ts", "scripts/**/*.ts", "*.config.ts", "env.d.ts"],
+  "exclude": ["node_modules", "dist", "build", "scripts/output", "**/*.spec.ts"]
 }

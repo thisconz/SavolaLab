@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { Variables } from "../../core/types";
 import { TestService } from "./service";
 import { authenticateToken } from "../../core/middleware";
-import { handleRouteError } from "../../core/utils/route"
+import { handleRouteError } from "../../core/utils/route";
 import {
   CreateTestRequestSchema,
   UpdateTestRequestSchema,
@@ -34,12 +34,7 @@ app.post("/", authenticateToken, async (c) => {
     const performerId = user.employee_number;
     const ip = c.req.header("x-forwarded-for") || "127.0.0.1";
 
-    const id = await TestService.createTestResult(
-      parsedBody.sample_id,
-      parsedBody,
-      performerId,
-      ip,
-    );
+    const id = await TestService.createTestResult(parsedBody.sample_id, parsedBody, performerId, ip);
     return c.json({ success: true, id }, 201);
   } catch (err: any) {
     logger.error({ reqId, err }, "Error creating test");

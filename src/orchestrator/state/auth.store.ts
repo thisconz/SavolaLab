@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, devtools, persist } from "zustand/middleware";
-import { User } from "../../core/types/";
+import { type User } from "../../core/types/";
 import { safeLocalStorage } from "../../core/utils/storage";
 
 export interface AuthUser extends User {
@@ -10,8 +10,8 @@ export interface AuthUser extends User {
 }
 
 interface AuthState {
-  currentUser: AuthUser | null;
-  token: string | null;
+  currentUser: AuthUser | undefined;
+  token: string | undefined;
 
   login: (user: AuthUser, token?: string) => void;
   logout: () => void;
@@ -27,12 +27,12 @@ export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
       (set) => ({
-        currentUser: null,
+        currentUser: undefined,
         // token deliberately NOT persisted — lives in HTTP-only cookie only
         // We store it in memory only for same-tab API calls that need it
-        token: null,
-        login: (user, token) => set({ currentUser: user, token: token ?? null }),
-        logout: () => set({ currentUser: null, token: null }),
+        token: undefined,
+        login: (user, token) => set({ currentUser: user, token: token ?? undefined }),
+        logout: () => set({ currentUser: undefined, token: undefined }),
         setToken: (token) => set({ token }),
       }),
       {
@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>()(
                 initials: state.currentUser.initials,
                 permissions: state.currentUser.permissions,
               }
-            : null,
+            : undefined,
           // token: omitted intentionally
         }),
       },

@@ -1,21 +1,12 @@
 import React, { memo, useEffect, useState, useCallback, useRef } from "react";
-import {
-  Truck,
-  Package,
-  Clock,
-  AlertCircle,
-  CheckCircle2,
-  RefreshCw,
-  MapPin,
-  Wifi,
-} from "lucide-react";
+import { Truck, Package, Clock, AlertCircle, CheckCircle2, RefreshCw, MapPin, Wifi } from "lucide-react";
 import { LabPanel } from "../../../shared/components/LabPanel";
 import { MetricCard } from "../../../shared/components/MetricCard";
 import { DataListRow } from "../../../shared/components/DataListRow";
 import { api } from "../../../core/http/client";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
-import { motion, AnimatePresence } from "@/src/lib/motion";
-import clsx from "@/src/lib/clsx";
+import { motion, AnimatePresence } from "framer-motion";
+import clsx from "clsx";
 
 interface DispatchData {
   metrics: {
@@ -88,8 +79,8 @@ export const DispatchFeature: React.FC = memo(() => {
 
   if (loading || !data) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-primary" />
+      <div className="flex h-full items-center justify-center">
+        <div className="border-brand-primary h-10 w-10 animate-spin rounded-full border-b-2" />
       </div>
     );
   }
@@ -98,19 +89,19 @@ export const DispatchFeature: React.FC = memo(() => {
     (({ "In Transit": "success", Delayed: "warning", Critical: "error" })[s] ?? "info") as any;
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-(--color-zenthar-graphite)/30 p-2 rounded-3xl">
+    <div className="flex h-full flex-col overflow-hidden rounded-3xl bg-(--color-zenthar-graphite)/30 p-2">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 mb-4 shrink-0">
+      <div className="mb-4 flex shrink-0 items-center justify-between px-4">
         <div>
-          <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
-            <Truck className="w-5 h-5 text-brand-primary" /> Dispatch
+          <h2 className="font-display flex items-center gap-2 text-xl font-bold text-(--color-zenthar-text-primary)">
+            <Truck className="text-brand-primary h-5 w-5" /> Dispatch
           </h2>
-          <div className="flex items-center gap-2 mt-0.5">
-            <p className="text-[10px] font-mono text-brand-sage uppercase tracking-widest">
+          <div className="mt-0.5 flex items-center gap-2">
+            <p className="text-brand-sage font-mono text-[10px] tracking-widest uppercase">
               Logistics & QC Release
             </p>
             {isRefreshing && (
-              <span className="flex items-center gap-1 text-[9px] font-bold text-brand-primary">
+              <span className="text-brand-primary flex items-center gap-1 text-[9px] font-bold">
                 <RefreshCw size={9} className="animate-spin" /> Syncing
               </span>
             )}
@@ -118,20 +109,20 @@ export const DispatchFeature: React.FC = memo(() => {
         </div>
         <button
           onClick={() => fetchDispatch(true)}
-          className="p-2 rounded-xl border border-brand-sage/20 bg-(--color-zenthar-graphite) hover:bg-(--color-zenthar-graphite)/80 transition-colors group"
+          className="border-brand-sage/20 group rounded-xl border bg-(--color-zenthar-graphite) p-2 transition-colors hover:bg-(--color-zenthar-graphite)/80"
         >
           <RefreshCw
             className={clsx(
-              "w-4 h-4 text-brand-sage group-hover:text-brand-primary",
+              "text-brand-sage group-hover:text-brand-primary h-4 w-4",
               isRefreshing && "animate-spin",
             )}
           />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6 pb-6">
+      <div className="custom-scrollbar flex-1 space-y-6 overflow-y-auto pr-2 pb-6">
         {/* Metrics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+        <div className="grid shrink-0 grid-cols-2 gap-4 lg:grid-cols-4">
           <MetricCard
             label="Pending"
             value={data.metrics.pending}
@@ -162,7 +153,7 @@ export const DispatchFeature: React.FC = memo(() => {
           />
         </div>
 
-        <div className="grid grid-cols-12 gap-6 shrink-0">
+        <div className="grid shrink-0 grid-cols-12 gap-6">
           {/* Active shipments */}
           <div className="col-span-12 lg:col-span-7">
             <LabPanel title="Active Shipments" icon={Truck}>
@@ -209,24 +200,24 @@ export const DispatchFeature: React.FC = memo(() => {
                     return (
                       <div
                         key={i}
-                        className="p-5 bg-(--color-zenthar-carbon) border border-brand-sage/20 rounded-2xl hover:border-brand-primary/30 hover:shadow-sm transition-all group"
+                        className="border-brand-sage/20 hover:border-brand-primary/30 group rounded-2xl border bg-(--color-zenthar-carbon) p-5 transition-all hover:shadow-sm"
                       >
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-sm font-black text-white uppercase tracking-tight">
+                        <div className="mb-3 flex items-center justify-between">
+                          <h4 className="text-sm font-black tracking-tight text-white uppercase">
                             {item.batch}
                           </h4>
                           <span
                             className={clsx(
-                              "px-2.5 py-1 rounded-md text-[9px] font-black uppercase border",
+                              "rounded-md border px-2.5 py-1 text-[9px] font-black uppercase",
                               released
-                                ? "text-emerald-400 bg-emerald-900/30 border-emerald-500/20"
-                                : "text-amber-400 bg-amber-900/30 border-amber-500/20",
+                                ? "border-emerald-500/20 bg-emerald-900/30 text-emerald-400"
+                                : "border-amber-500/20 bg-amber-900/30 text-amber-400",
                             )}
                           >
                             {item.status}
                           </span>
                         </div>
-                        <div className="w-full bg-(--color-zenthar-void) rounded-full h-1.5 overflow-hidden mb-2">
+                        <div className="mb-2 h-1.5 w-full overflow-hidden rounded-full bg-(--color-zenthar-void)">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${item.progress}%` }}
@@ -237,7 +228,7 @@ export const DispatchFeature: React.FC = memo(() => {
                             )}
                           />
                         </div>
-                        <p className="text-[9px] text-brand-sage font-mono font-bold uppercase tracking-widest text-right">
+                        <p className="text-brand-sage text-right font-mono text-[9px] font-bold tracking-widest uppercase">
                           {released
                             ? "Ready for Dispatch"
                             : `${item.testsCompleted}/${item.totalTests} Tests`}
@@ -260,12 +251,12 @@ const EmptyState: React.FC<{
   title: string;
   subtitle: string;
 }> = ({ icon: Icon, title, subtitle }) => (
-  <div className="flex flex-col items-center justify-center py-12 text-brand-sage gap-4 relative overflow-hidden group">
-    <div className="p-6 bg-(--color-zenthar-void) rounded-full border border-brand-sage/20 relative z-10">
-      <Icon className="w-10 h-10 opacity-30 text-brand-primary" />
+  <div className="text-brand-sage group relative flex flex-col items-center justify-center gap-4 overflow-hidden py-12">
+    <div className="border-brand-sage/20 relative z-10 rounded-full border bg-(--color-zenthar-void) p-6">
+      <Icon className="text-brand-primary h-10 w-10 opacity-30" />
     </div>
-    <p className="text-sm font-black text-white uppercase tracking-widest">{title}</p>
-    <p className="text-[9px] font-mono text-brand-sage/60">{subtitle}</p>
+    <p className="text-sm font-black tracking-widest text-white uppercase">{title}</p>
+    <p className="text-brand-sage/60 font-mono text-[9px]">{subtitle}</p>
   </div>
 );
 

@@ -62,9 +62,7 @@ export async function runMigrations(): Promise<void> {
     await initMeta();
     const current = await getCurrentVersion();
 
-    const pending = migrations
-      .filter((m) => m.version > current)
-      .sort((a, b) => a.version - b.version);
+    const pending = migrations.filter((m) => m.version > current).sort((a, b) => a.version - b.version);
 
     if (pending.length === 0) {
       logger.info(`Migrations up-to-date (version ${current})`);
@@ -78,10 +76,10 @@ export async function runMigrations(): Promise<void> {
       await db.transaction(async (client) => {
         await migration.up(client);
         const elapsed = Date.now() - start;
-        await client.execute(
-          "INSERT INTO schema_migrations (version, execution_time_ms) VALUES ($1, $2)",
-          [migration.version, elapsed],
-        );
+        await client.execute("INSERT INTO schema_migrations (version, execution_time_ms) VALUES ($1, $2)", [
+          migration.version,
+          elapsed,
+        ]);
       });
       logger.info(`Migration v${migration.version} applied in ${Date.now() - start}ms`);
     }

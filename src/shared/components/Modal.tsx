@@ -1,8 +1,8 @@
 import React, { useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "@/src/lib/motion";
-import { X, Hexagon, Terminal, Activity, ShieldCheck, Zap, Radar, Fingerprint } from "lucide-react";
-import clsx from "@/src/lib/clsx";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Hexagon, Activity, ShieldCheck, Zap, Radar, Fingerprint } from "lucide-react";
+import clsx from "clsx";
 
 interface ModalProps {
   isOpen: boolean;
@@ -52,19 +52,19 @@ export const Modal: React.FC<ModalProps> = ({
   const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-9999 flex items-center justify-center p-4 md:p-8 lg:p-16 overflow-hidden perspective-[2000px]">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden p-4 perspective-[2000px] md:p-8 lg:p-16">
           {/* 1. ATMOSPHERIC BACKDROP */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/80 backdrop-blur-2xl cursor-zoom-out"
+            className="absolute inset-0 cursor-zoom-out bg-black/80 backdrop-blur-2xl"
           >
             {/* Vignette Overlay */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]" />
             {/* Grainy Texture */}
-            <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
           </motion.div>
 
           {/* 2. TACTICAL MODAL FRAME */}
@@ -77,7 +77,7 @@ export const Modal: React.FC<ModalProps> = ({
             exit={{ opacity: 0, scale: 0.95, y: 40, rotateX: -5 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className={clsx(
-              "relative w-full flex flex-col md:flex-row bg-[#080809] rounded-[3rem] shadow-[0_0_80px_-20px_rgba(0,0,0,1)]",
+              "relative flex w-full flex-col rounded-[3rem] bg-[#080809] shadow-[0_0_80px_-20px_rgba(0,0,0,1)] md:flex-row",
               "overflow-hidden border border-white/6 backdrop-blur-3xl",
               maxWidth,
             )}
@@ -87,37 +87,37 @@ export const Modal: React.FC<ModalProps> = ({
               initial={{ top: "-10%" }}
               animate={{ top: "110%" }}
               transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-              className="absolute left-0 right-0 h-[10%] bg-linear-to-b from-transparent via-brand-primary/5 to-transparent z-40 pointer-events-none border-t border-brand-primary/10"
+              className="via-brand-primary/5 border-brand-primary/10 pointer-events-none absolute right-0 left-0 z-40 h-[10%] border-t bg-linear-to-b from-transparent to-transparent"
             />
 
             {/* MAIN INTERFACE */}
-            <div className="flex-1 flex flex-col min-w-0 relative">
+            <div className="relative flex min-w-0 flex-1 flex-col">
               {/* Biometric Brackets */}
-              <div className="absolute top-6 left-6 w-3 h-3 border-t border-l border-white/10 rounded-tl-xs pointer-events-none" />
-              <div className="absolute top-6 right-6 w-3 h-3 border-t border-r border-white/10 rounded-tr-xs pointer-events-none" />
+              <div className="pointer-events-none absolute top-6 left-6 h-3 w-3 rounded-tl-xs border-t border-l border-white/10" />
+              <div className="pointer-events-none absolute top-6 right-6 h-3 w-3 rounded-tr-xs border-t border-r border-white/10" />
 
               {/* HEADER: COMMAND MODULE */}
-              <header className="relative z-10 flex items-center justify-between px-10 py-8 border-b border-white/3 bg-white/1">
+              <header className="relative z-10 flex items-center justify-between border-b border-white/3 bg-white/1 px-10 py-8">
                 <div className="flex items-center gap-6">
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-brand-primary/20 blur-xl rounded-full animate-pulse" />
-                    <div className="relative w-14 h-14 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
-                      <Hexagon className="w-6 h-6 text-brand-primary relative z-10" />
+                  <div className="group relative">
+                    <div className="bg-brand-primary/20 absolute inset-0 animate-pulse rounded-full blur-xl" />
+                    <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/60 transition-transform group-hover:scale-105">
+                      <Hexagon className="text-brand-primary relative z-10 h-6 w-6" />
                       <motion.div
                         animate={{ opacity: [0.1, 0.4, 0.1] }}
                         transition={{ duration: 3, repeat: Infinity }}
-                        className="absolute inset-0 bg-linear-to-tr from-brand-primary/40 to-transparent"
+                        className="from-brand-primary/40 absolute inset-0 bg-linear-to-tr to-transparent"
                       />
                     </div>
                   </div>
 
                   <div className="flex flex-col">
-                    <h3 className="text-[12px] font-black uppercase tracking-[0.6em] text-white leading-none mb-2">
+                    <h3 className="mb-2 text-[12px] leading-none font-black tracking-[0.6em] text-white uppercase">
                       {title}
                     </h3>
                     <div className="flex items-center gap-3">
-                      <Radar className="w-3.5 h-3.5 text-brand-primary/50 animate-pulse" />
-                      <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest leading-none">
+                      <Radar className="text-brand-primary/50 h-3.5 w-3.5 animate-pulse" />
+                      <span className="font-mono text-[10px] leading-none font-bold tracking-widest text-zinc-500 uppercase">
                         {subtitle || "Protocol_Initialized"}
                       </span>
                     </div>
@@ -126,35 +126,35 @@ export const Modal: React.FC<ModalProps> = ({
 
                 <div className="flex items-center gap-4">
                   {showShield && (
-                    <div className="hidden sm:flex items-center gap-2.5 px-4 py-2 bg-black/40 border border-brand-primary/10 rounded-full shadow-inner">
+                    <div className="border-brand-primary/10 hidden items-center gap-2.5 rounded-full border bg-black/40 px-4 py-2 shadow-inner sm:flex">
                       <ShieldCheck size={12} className="text-brand-primary" />
-                      <span className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">
+                      <span className="text-[9px] font-black tracking-widest text-zinc-400 uppercase">
                         Verified_Link
                       </span>
                     </div>
                   )}
                   <button
                     onClick={onClose}
-                    className="group relative p-3 rounded-2xl bg-white/3 text-zinc-500 hover:text-red-500 transition-all active:scale-90"
+                    className="group relative rounded-2xl bg-white/3 p-3 text-zinc-500 transition-all hover:text-red-500 active:scale-90"
                     title="Close Interface"
                   >
-                    <div className="absolute inset-0 bg-red-500/0 group-hover:bg-red-500/10 blur-md rounded-full transition-all" />
+                    <div className="absolute inset-0 rounded-full bg-red-500/0 blur-md transition-all group-hover:bg-red-500/10" />
                     <X size={20} className="relative z-10" />
                   </button>
                 </div>
               </header>
 
               {/* VIEWPORT ENGINE */}
-              <main className="relative flex-1 overflow-y-auto p-10 lg:p-14 custom-scrollbar bg-linear-to-b from-transparent to-black/20">
+              <main className="custom-scrollbar relative flex-1 overflow-y-auto bg-linear-to-b from-transparent to-black/20 p-10 lg:p-14">
                 <div className="relative z-10">{children}</div>
                 {/* Decorative Grid Shard */}
-                <div className="absolute bottom-0 right-0 w-64 h-64 bg-brand-primary/1 blur-3xl rounded-full pointer-events-none" />
+                <div className="bg-brand-primary/1 pointer-events-none absolute right-0 bottom-0 h-64 w-64 rounded-full blur-3xl" />
               </main>
 
               {/* FOOTER: TELEMETRY BAR */}
-              <footer className="relative z-10 px-10 py-5 bg-black/40 border-t border-white/3 flex items-center justify-between">
+              <footer className="relative z-10 flex items-center justify-between border-t border-white/3 bg-black/40 px-10 py-5">
                 <div className="flex items-center gap-8">
-                  <div className="flex items-center gap-3 opacity-40 hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-3 opacity-40 transition-opacity hover:opacity-100">
                     <Activity size={14} className="text-brand-primary animate-pulse" />
                     <div className="flex flex-col">
                       <span className="text-[7px] font-black text-zinc-600 uppercase">Stream</span>
@@ -162,7 +162,7 @@ export const Modal: React.FC<ModalProps> = ({
                     </div>
                   </div>
                   <div className="h-6 w-px bg-white/5" />
-                  <div className="flex items-center gap-3 opacity-40 hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-3 opacity-40 transition-opacity hover:opacity-100">
                     <Zap size={12} className="text-orange-400" />
                     <div className="flex flex-col">
                       <span className="text-[7px] font-black text-zinc-600 uppercase">Latency</span>
@@ -177,20 +177,20 @@ export const Modal: React.FC<ModalProps> = ({
 
             {/* OPTIONAL: SIDE UTILITY PANEL */}
             {sidePanel && (
-              <aside className="w-full md:w-80 bg-black/30 border-l border-white/4 flex flex-col relative">
+              <aside className="relative flex w-full flex-col border-l border-white/4 bg-black/30 md:w-80">
                 {/* Side Panel Header */}
-                <div className="px-8 py-6 border-b border-white/3 flex items-center gap-3">
+                <div className="flex items-center gap-3 border-b border-white/3 px-8 py-6">
                   <Fingerprint size={14} className="text-brand-primary/40" />
-                  <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+                  <span className="text-[9px] font-black tracking-widest text-zinc-500 uppercase">
                     Metadata_Buffer
                   </span>
                 </div>
                 {/* Side Panel Content */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">{sidePanel}</div>
+                <div className="custom-scrollbar flex-1 overflow-y-auto p-8">{sidePanel}</div>
                 {/* Side Panel Decorative Vents */}
-                <div className="p-4 flex gap-1 justify-center opacity-20">
+                <div className="flex justify-center gap-1 p-4 opacity-20">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-1 h-3 bg-white/20 rounded-full" />
+                    <div key={i} className="h-3 w-1 rounded-full bg-white/20" />
                   ))}
                 </div>
               </aside>
@@ -201,6 +201,6 @@ export const Modal: React.FC<ModalProps> = ({
     </AnimatePresence>
   );
 
-  if (typeof document === "undefined") return null;
+  if (typeof document === "undefined") return undefined;
   return createPortal(modalContent, document.body);
 };

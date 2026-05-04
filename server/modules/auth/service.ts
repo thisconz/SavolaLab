@@ -187,14 +187,14 @@ export function verifyRefreshToken(token: string): JWTPayload | null {
 // Types
 // ─────────────────────────────────────────────
 
-export type PermissionFlags = {
+export interface PermissionFlags {
   view_results: number;
   input_data: number;
   edit_formulas: number;
   change_specs: number;
-};
+}
 
-export type UserPayload = {
+export interface UserPayload {
   id: string;
   employee_number: string;
   name: string;
@@ -202,7 +202,7 @@ export type UserPayload = {
   dept: string;
   permissions: PermissionFlags;
   initials: string;
-};
+}
 
 // ─────────────────────────────────────────────
 // AuthService
@@ -292,12 +292,7 @@ export const AuthService = {
     return (first + last).toUpperCase();
   },
 
-  verifyEmployee: async (
-    employeeNumber: string,
-    nationalId: string,
-    dob: string,
-    ip = "unknown",
-  ) => {
+  verifyEmployee: async (employeeNumber: string, nationalId: string, dob: string, ip = "unknown") => {
     const records = await dbOrm
       .select()
       .from(employees)
@@ -311,18 +306,10 @@ export const AuthService = {
     const employee = records[0];
 
     if (!employee) {
-      await AuditService.createLog(
-        employeeNumber,
-        "VERIFICATION_FAILED",
-        "Invalid identity credentials",
-        ip,
-      );
+      await AuditService.createLog(employeeNumber, "VERIFICATION_FAILED", "Invalid identity credentials", ip);
       return null;
     }
-    const usrRecords = await dbOrm
-      .select()
-      .from(users)
-      .where(eq(users.employee_number, employeeNumber));
+    const usrRecords = await dbOrm.select().from(users).where(eq(users.employee_number, employeeNumber));
     const existingUser = usrRecords[0];
 
     if (existingUser?.status === "ACTIVE") throw new Error("Account already active. Please login.");
@@ -330,12 +317,7 @@ export const AuthService = {
     const otp = generateOtp();
     await storeOtp(employeeNumber, otp, 5);
     console.log(`[OTP for ${employeeNumber}]: ${otp}`);
-    await AuditService.createLog(
-      employeeNumber,
-      "OTP_SENT",
-      "OTP generated for identity verification",
-      ip,
-    );
+    await AuditService.createLog(employeeNumber, "OTP_SENT", "OTP generated for identity verification", ip);
     return { employee_number: employeeNumber };
   },
 
@@ -350,11 +332,7 @@ export const AuthService = {
     return valid;
   },
 
-  setupCredentials: async (
-    employeeNumber: string,
-    password: string,
-    pin?: string,
-  ): Promise<boolean> => {
+  setupCredentials: async (employeeNumber: string, password: string, pin?: string): Promise<boolean> => {
     const passwordHash = await hashPassword(password);
     const pinHash = pin ? await hashPassword(pin) : null;
 

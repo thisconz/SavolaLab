@@ -1,6 +1,6 @@
 import React, { memo } from "react";
-import { AlertCircle, Zap, Activity, LucideIcon } from "lucide-react";
-import clsx from "@/src/lib/clsx";
+import { AlertCircle, Zap, Activity, type LucideIcon } from "lucide-react";
+import clsx from "clsx";
 
 /* ============================= */
 /* Types & Config */
@@ -22,8 +22,7 @@ const PRIORITY_CONFIG: Record<PriorityLevel, BadgeStyle> = {
     label: "Status: Nominal",
     icon: Activity,
     iconColor: "text-zenthar-text-secondary",
-    container:
-      "bg-zenthar-text-secondary/5 text-zenthar-text-secondary border-zenthar-text-secondary/20",
+    container: "bg-zenthar-text-secondary/5 text-zenthar-text-secondary border-zenthar-text-secondary/20",
     glow: "group-hover:bg-zenthar-text-secondary/10",
   },
   HIGH: {
@@ -64,8 +63,8 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = memo(
     return (
       <div
         className={clsx(
-          "group relative inline-flex items-center gap-2.5 px-4 py-1.5 rounded-xl",
-          "text-[9px] font-black uppercase tracking-[0.25em] border transition-all duration-500",
+          "group relative inline-flex items-center gap-2.5 rounded-xl px-4 py-1.5",
+          "border text-[9px] font-black tracking-[0.25em] uppercase transition-all duration-500",
           "cursor-default overflow-hidden antialiased select-none",
           current.container,
           className,
@@ -74,7 +73,7 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = memo(
         {/* 1️⃣ Kinetic Glow Layer */}
         <div
           className={clsx(
-            "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none",
+            "pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-700 group-hover:opacity-100",
             current.glow,
           )}
         />
@@ -83,12 +82,12 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = memo(
         {showIcon && (
           <div
             className={clsx(
-              "relative z-10 flex items-center justify-center transition-transform duration-500 shrink-0",
+              "relative z-10 flex shrink-0 items-center justify-center transition-transform duration-500",
               priority === "HIGH" && "group-hover:rotate-12",
               isStat && "animate-[pulse_1.5s_ease-in-out_infinite]",
             )}
           >
-            <Icon className={clsx("w-4 h-4 stroke-[3px]", !isStat && current.iconColor)} />
+            <Icon className={clsx("h-4 w-4 stroke-[3px]", !isStat && current.iconColor)} />
           </div>
         )}
 
@@ -99,11 +98,11 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = memo(
         {isStat && (
           <>
             {/* Hazard Stripes */}
-            <div className="absolute inset-0 opacity-10 pointer-events-none bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,white_10px,white_20px)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,white_10px,white_20px)] opacity-10" />
 
             {/* High-Velocity Scanner */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              <div className="absolute top-0 h-full w-12 bg-linear-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-[shimmer_1.5s_infinite]" />
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="absolute top-0 h-full w-12 -skew-x-12 animate-[shimmer_1.5s_infinite] bg-linear-to-r from-transparent via-white/40 to-transparent" />
             </div>
           </>
         )}

@@ -1,9 +1,9 @@
-import { db, TransactionClient } from "./client";
+import { type TransactionClient } from "./client";
 
-export type Migration = {
+export interface Migration {
   version: number;
   up: (client: TransactionClient) => Promise<void>;
-};
+}
 
 export const migrations: Migration[] = [
   {

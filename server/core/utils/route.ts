@@ -29,7 +29,6 @@ export function extractClientIp(c: Context): string {
  */
 export function handleRouteError(err: unknown, c: Context, context: string): Response {
   if (err instanceof AppError) {
-
     const status = err.httpStatus as StatusCode;
     if (status >= 500) {
       logger.error({ err, context, ip: extractClientIp(c) }, "Application error");
@@ -37,10 +36,7 @@ export function handleRouteError(err: unknown, c: Context, context: string): Res
     return c.json(err.toResponse(), status);
   }
   logger.error({ err, context, ip: extractClientIp(c) }, "Unhandled route error");
-  return c.json(
-    { success: false, error: "Internal Server Error", code: "INTERNAL_ERROR" },
-    500,
-  ) as Response;
+  return c.json({ success: false, error: "Internal Server Error", code: "INTERNAL_ERROR" }, 500) as Response;
 }
 
 /**
@@ -54,10 +50,7 @@ export function handleRouteError(err: unknown, c: Context, context: string): Res
  *
  * This eliminates the try/catch boilerplate in every route file.
  */
-export function routeHandler(
-  context: string,
-  fn: (c: Context) => Promise<Response | void>,
-) {
+export function routeHandler(context: string, fn: (c: Context) => Promise<Response | void>) {
   return async (c: Context): Promise<Response | void> => {
     try {
       return await fn(c);

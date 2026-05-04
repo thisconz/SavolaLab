@@ -51,12 +51,7 @@ class TelemetryService {
     this.globalMetadata = { ...this.globalMetadata, ...data };
   }
 
-  public log(
-    event: string,
-    level: LogLevel = LogLevel.INFO,
-    payload?: Record<string, any>,
-    module: string = "CORE",
-  ) {
+  public log(event: string, level: LogLevel = LogLevel.INFO, payload?: Record<string, any>, module = "CORE") {
     const telemetryEvent: TelemetryEvent = {
       event,
       level,
@@ -93,8 +88,7 @@ class TelemetryService {
       [LogLevel.INFO]: "color: #b1be9b", // Brand Primary
       [LogLevel.WARN]: "color: #f97316", // Orange
       [LogLevel.ERROR]: "color: #ef4444", // Red
-      [LogLevel.CRITICAL]:
-        "background: #ef4444; color: white; padding: 2px 4px; border-radius: 2px;",
+      [LogLevel.CRITICAL]: "background: #ef4444; color: white; padding: 2px 4px; border-radius: 2px;",
     };
 
     const levelLabel = LogLevel[e.level];
@@ -108,14 +102,11 @@ class TelemetryService {
   }
 
   /* Helper Methods */
-  public debug = (msg: string, data?: any, mod?: string) =>
-    this.log(msg, LogLevel.DEBUG, data, mod);
+  public debug = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.DEBUG, data, mod);
   public info = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.INFO, data, mod);
   public warn = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.WARN, data, mod);
-  public error = (msg: string, data?: any, mod?: string) =>
-    this.log(msg, LogLevel.ERROR, data, mod);
-  public critical = (msg: string, data?: any, mod?: string) =>
-    this.log(msg, LogLevel.CRITICAL, data, mod);
+  public error = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.ERROR, data, mod);
+  public critical = (msg: string, data?: any, mod?: string) => this.log(msg, LogLevel.CRITICAL, data, mod);
 }
 
 export const Telemetry = TelemetryService.getInstance();

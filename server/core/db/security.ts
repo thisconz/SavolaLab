@@ -31,11 +31,7 @@ async function verifyOtpHash(hash: string, input: string): Promise<boolean> {
 /**
  * Store OTP (hashed), expiring in `expiresMinutes` (default: 10)
  */
-export async function storeOtp(
-  employeeNumber: string,
-  code: string,
-  expiresMinutes = 10,
-): Promise<void> {
+export async function storeOtp(employeeNumber: string, code: string, expiresMinutes = 10): Promise<void> {
   // Async, slow (by design), unique salt per OTP
   const hashed = await hashOtp(code);
 

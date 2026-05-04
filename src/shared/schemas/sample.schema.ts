@@ -39,9 +39,7 @@ export const SampleSchema = z.object({
   shift_id: nullableToOptional(z.union([z.string(), z.number()])),
   status: SampleStatusSchema,
   priority: SamplePrioritySchema,
-  created_at: z
-    .union([z.string(), z.date()])
-    .transform((d) => (typeof d === "string" ? d : d.toISOString())),
+  created_at: z.union([z.string(), z.date()]).transform((d) => (typeof d === "string" ? d : d.toISOString())),
   technician_id: nullableToOptional(z.string()),
   test_count: nullableToOptional(z.number()).default(0),
 });

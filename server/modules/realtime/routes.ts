@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { sseBus, ZentharEvent } from "../../core/sse";
+import { sseBus, type ZentharEvent } from "../../core/sse";
 import { authenticateToken } from "../../core/middleware";
 import { logger } from "../../core/logger";
 import type { Variables } from "../../core/types";

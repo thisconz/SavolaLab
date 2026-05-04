@@ -1,4 +1,4 @@
-import { db, TransactionClient } from "./client";
+import { db, type TransactionClient } from "./client";
 import { logger } from "../logger";
 import argon2 from "argon2";
 
@@ -97,9 +97,7 @@ const SAMPLE_TYPES = [
 // ─────────────────────────────────────────────
 
 async function seedPermissions(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>(
-    "SELECT COUNT(*) FROM user_permissions",
-  );
+  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM user_permissions");
   if (Number(count) > 0) return;
 
   for (const perm of ROLE_PERMISSIONS) {
@@ -185,9 +183,7 @@ async function seedAccounts(client: TransactionClient) {
 }
 
 async function seedInfrastructure(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>(
-    "SELECT COUNT(*) FROM production_lines",
-  );
+  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM production_lines");
   if (Number(count) > 0) return;
 
   for (const line of PRODUCTION_LINES) {
@@ -204,10 +200,9 @@ async function seedInfrastructure(client: TransactionClient) {
   ];
 
   for (const eq of equipmentSpecs) {
-    const line = await client.queryOne<{ id: number }>(
-      "SELECT id FROM production_lines WHERE name = $1",
-      [eq.lineName],
-    );
+    const line = await client.queryOne<{ id: number }>("SELECT id FROM production_lines WHERE name = $1", [
+      eq.lineName,
+    ]);
     if (line) {
       await client.execute("INSERT INTO equipment (name, line_id, type) VALUES ($1, $2, $3)", [
         eq.name,
@@ -241,9 +236,7 @@ async function seedShifts(client: TransactionClient) {
 }
 
 async function seedSystemPreferences(client: TransactionClient) {
-  const [{ count }] = await client.query<{ count: string }>(
-    "SELECT COUNT(*) FROM system_preferences",
-  );
+  const [{ count }] = await client.query<{ count: string }>("SELECT COUNT(*) FROM system_preferences");
   if (Number(count) > 0) return;
 
   const prefs = [
@@ -254,10 +247,7 @@ async function seedSystemPreferences(client: TransactionClient) {
   ];
 
   for (const p of prefs) {
-    await client.execute("INSERT INTO system_preferences (key, value) VALUES ($1, $2)", [
-      p.key,
-      p.value,
-    ]);
+    await client.execute("INSERT INTO system_preferences (key, value) VALUES ($1, $2)", [p.key, p.value]);
   }
   logger.info("Seeded: System Preferences");
 }
@@ -267,10 +257,7 @@ async function seedSampleTypes(client: TransactionClient) {
   if (Number(count) > 0) return;
 
   for (const st of SAMPLE_TYPES) {
-    await client.execute("INSERT INTO sample_types (name, category) VALUES ($1, $2)", [
-      st.name,
-      st.category,
-    ]);
+    await client.execute("INSERT INTO sample_types (name, category) VALUES ($1, $2)", [st.name, st.category]);
   }
   logger.info("Seeded: Sample Types");
 }

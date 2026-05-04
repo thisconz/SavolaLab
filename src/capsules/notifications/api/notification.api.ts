@@ -3,9 +3,7 @@ import { Notification } from "../../../core/types";
 
 export const NotificationApi = {
   getNotifications: async (): Promise<Notification[]> => {
-    const res = await api.get<{ success: boolean; data: Notification[] }>(
-      `/notifications?t=${Date.now()}`,
-    );
+    const res = await api.get<{ success: boolean; data: Notification[] }>(`/notifications?t=${Date.now()}`);
     return res.data ?? [];
   },
 

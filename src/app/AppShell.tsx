@@ -1,24 +1,19 @@
 import React, { memo, useState, useCallback, useEffect } from "react";
 import { Menu, X, FlaskConical, LayoutDashboard, Zap, BarChart3, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "@/src/lib/motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "./layout/Sidebar";
 import { Header } from "./layout/Header";
 import { RightRail } from "./layout/RightRail";
 import { useAppStore, AppTab, useSetActiveTab } from "../orchestrator/state/app.store";
 import { useAuthStore } from "../orchestrator/state/auth.store";
 import { LoginPage } from "../capsules/auth";
-import clsx from "@/src/lib/clsx";
+import clsx from "clsx";
 
-// ─── Mobile bottom nav — quick-access for the 4 most-used tabs ──────────────
-const MOBILE_NAV_TABS: {
-  tab: AppTab;
-  icon: React.ElementType;
-  label: string;
-}[] = [
+const MOBILE_NAV_TABS: { tab: AppTab; icon: React.ElementType; label: string }[] = [
   { tab: "dashboard", icon: LayoutDashboard, label: "Home" },
   { tab: "lab", icon: FlaskConical, label: "Lab" },
   { tab: "stat", icon: Zap, label: "STAT" },
-  { tab: "analytics", icon: BarChart3, label: "Analytics" },
+  { tab: "analytics", icon: BarChart3, label: "Charts" },
 ];
 
 const MobileBottomNav: React.FC<{ activeTab: AppTab }> = ({ activeTab }) => {
@@ -27,9 +22,23 @@ const MobileBottomNav: React.FC<{ activeTab: AppTab }> = ({ activeTab }) => {
   return (
     <nav
       aria-label="Mobile quick navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-(--color-zenthar-carbon)/95 backdrop-blur-2xl border-t border-(--color-zenthar-steel) pb-[var(--safe-area-bottom)]"
+      className="fixed right-0 bottom-0 left-0 z-50 pb-[var(--safe-area-bottom)] lg:hidden"
+      style={{
+        background: "rgba(5,5,15,0.97)",
+        borderTop: "1px solid rgba(100,120,200,0.12)",
+        backdropFilter: "blur(24px)",
+      }}
     >
-      <div className="flex items-center justify-around px-2 py-2 mb-1">
+      {/* Top accent line */}
+      <div
+        className="absolute top-0 right-0 left-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, rgba(244,63,94,0.5), rgba(139,92,246,0.5), transparent)",
+        }}
+      />
+
+      <div className="mb-1 flex items-center justify-around px-2 py-2">
         {MOBILE_NAV_TABS.map(({ tab, icon: Icon, label }) => {
           const isActive = activeTab === tab;
           return (
@@ -38,21 +47,21 @@ const MobileBottomNav: React.FC<{ activeTab: AppTab }> = ({ activeTab }) => {
               onClick={() => setActiveTab(tab)}
               aria-label={`Navigate to ${label}`}
               aria-current={isActive ? "page" : undefined}
-              className={clsx(
-                "flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all duration-300 min-w-[60px] touch-manipulation",
-                isActive
-                  ? "bg-brand-primary/10 text-brand-primary"
-                  : "text-(--color-zenthar-text-muted) hover:text-(--color-zenthar-text-primary)",
-              )}
+              className="flex min-w-[60px] touch-manipulation flex-col items-center gap-1 rounded-xl px-4 py-2 transition-all duration-300"
+              style={{
+                background: isActive ? "rgba(244,63,94,0.1)" : "transparent",
+                border: isActive ? "1px solid rgba(244,63,94,0.2)" : "1px solid transparent",
+                color: isActive ? "#f43f5e" : "rgba(136,146,176,0.6)",
+              }}
             >
               <Icon
-                size={22}
+                size={20}
                 strokeWidth={isActive ? 2.5 : 2}
                 className={clsx("transition-transform", isActive && "scale-110")}
               />
               <span
                 className={clsx(
-                  "text-[9px] font-black uppercase tracking-widest transition-all",
+                  "text-[9px] font-black tracking-widest uppercase transition-all",
                   isActive ? "opacity-100" : "opacity-60",
                 )}
               >
@@ -62,25 +71,18 @@ const MobileBottomNav: React.FC<{ activeTab: AppTab }> = ({ activeTab }) => {
           );
         })}
 
-        {/* "More" button opens the full sidebar */}
         <button
-          onClick={() => {
-            window.dispatchEvent(new CustomEvent("open-mobile-sidebar"));
-          }}
+          onClick={() => window.dispatchEvent(new CustomEvent("open-mobile-sidebar"))}
           aria-label="Open full navigation menu"
-          className="flex flex-col items-center gap-1 px-4 py-2 rounded-2xl text-(--color-zenthar-text-muted) hover:text-(--color-zenthar-text-primary) transition-all min-w-[60px] touch-manipulation"
+          className="text-zenthar-text-muted hover:text-zenthar-text-primary flex min-w-[60px] touch-manipulation flex-col items-center gap-1 rounded-xl px-4 py-2 transition-all"
         >
-          <Menu size={22} strokeWidth={2} />
-          <span className="text-[9px] font-black uppercase tracking-widest opacity-60">More</span>
+          <Menu size={20} strokeWidth={2} />
+          <span className="text-[9px] font-black tracking-widest uppercase opacity-60">More</span>
         </button>
       </div>
     </nav>
   );
 };
-
-// ─────────────────────────────────────────────
-// Main AppShell
-// ─────────────────────────────────────────────
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = memo(({ children }) => {
   const { activeTab } = useAppStore();
@@ -91,19 +93,14 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = memo(({ childre
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [rightRailOpen, setRightRailOpen] = useState(false);
 
-  // Close mobile sidebar on tab change
   useEffect(() => {
     setMobileSidebarOpen(false);
   }, [activeTab]);
-
-  // Listen for the mobile bottom nav "More" button
   useEffect(() => {
     const handler = () => setMobileSidebarOpen(true);
     window.addEventListener("open-mobile-sidebar", handler);
     return () => window.removeEventListener("open-mobile-sidebar", handler);
   }, []);
-
-  // Escape key closes all overlays
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -120,101 +117,97 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = memo(({ childre
   if (!isAuthenticated) return <LoginPage />;
 
   return (
-    <div className="flex h-[100dvh] w-screen bg-(--color-zenthar-void) relative overflow-hidden font-sans antialiased selection:bg-brand-primary/20">
-      {/* Atmospheric decorations */}
-      <div className="pointer-events-none fixed inset-0 z-50 opacity-[0.03] mix-blend-overlay bg-[url('/assets/noise.png')]" />
-      <div className="scanline pointer-events-none fixed inset-0 z-50 opacity-[0.02] mix-blend-overlay" />
-      <div className="pointer-events-none fixed -top-24 -left-24 w-96 h-96 bg-brand-primary/10 blur-[120px] rounded-full" />
-      <div className="pointer-events-none fixed -bottom-24 -right-24 w-96 h-96 bg-brand-accent/10 blur-[120px] rounded-full" />
+    <div className="zenthar-bg-mesh relative flex h-[100dvh] w-screen overflow-hidden font-sans antialiased">
+      {/* Global grid */}
+      <div className="instrument-grid pointer-events-none fixed inset-0 z-0 opacity-40" />
 
-      {/* Mobile overlay backdrop */}
+      {/* Atmospheric glows */}
+      <div
+        className="pointer-events-none fixed -top-40 -left-40 h-[500px] w-[500px] rounded-full opacity-50 blur-[120px]"
+        style={{ background: "rgba(244,63,94,0.04)" }}
+      />
+      <div
+        className="pointer-events-none fixed -right-40 -bottom-40 h-[400px] w-[400px] rounded-full opacity-40 blur-[100px]"
+        style={{ background: "rgba(139,92,246,0.04)" }}
+      />
+
+      {/* Mobile overlay */}
       <AnimatePresence>
         {mobileSidebarOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-40 lg:hidden"
+            style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
             onClick={() => setMobileSidebarOpen(false)}
             aria-hidden="true"
           />
         )}
       </AnimatePresence>
 
-      {/* ── DESKTOP SIDEBAR — always visible on lg+ ─────────────────────── */}
-      {/* FIX #05: was "hidden lg:flex lg:relative lg:z-auto lg:translate-x-0 lg:block"
-                  "lg:block" conflicted with "lg:flex". Now just "hidden lg:flex". */}
-      <div className="hidden lg:flex shrink-0">
+      {/* Desktop sidebar */}
+      <div className="hidden shrink-0 lg:flex">
         <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
-      {/* ── MOBILE SIDEBAR — slide in from left ─────────────────────────── */}
+      {/* Mobile sidebar */}
       <AnimatePresence>
         {mobileSidebarOpen && (
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="Navigation menu"
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed left-0 top-0 h-full z-50 lg:hidden shadow-2xl"
+            className="fixed top-0 left-0 z-50 h-full shadow-2xl lg:hidden"
           >
             <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-            {/* Close button at top-right of mobile sidebar */}
             <button
               onClick={() => setMobileSidebarOpen(false)}
-              aria-label="Close navigation menu"
-              className="absolute top-4 right-4 p-2 rounded-xl bg-(--color-zenthar-graphite) text-(--color-zenthar-text-muted) hover:text-(--color-zenthar-text-primary) transition-all"
+              className="text-zenthar-text-muted hover:text-zenthar-text-primary absolute top-4 right-4 rounded-xl p-2 transition-all"
+              style={{ background: "rgba(8,8,26,0.8)", border: "1px solid rgba(100,120,200,0.12)" }}
             >
-              <X size={18} />
+              <X size={16} />
             </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── MAIN WORKSPACE ─────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 relative z-10 bg-(--color-zenthar-carbon)/60 backdrop-blur-md">
+      {/* Main workspace */}
+      <div className="relative z-10 flex min-w-0 flex-1 flex-col">
         <Header onMenuToggle={toggleMobileSidebar} />
 
-        <div className="flex-1 relative overflow-hidden flex flex-col min-h-0">
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.main
               key={activeTab}
               initial={{ opacity: 0, y: 8, filter: "blur(8px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               exit={{ opacity: 0, y: -8, filter: "blur(8px)" }}
-              transition={{
-                type: "spring",
-                stiffness: 400,
-                damping: 35,
-                mass: 0.5,
-              }}
-              className={clsx(
-                "flex-1 w-full overflow-y-auto custom-scrollbar relative p-4 md:p-6 lg:p-8",
-                // Extra bottom padding on mobile for the bottom nav bar
-                "pb-24 lg:pb-8",
-              )}
+              transition={{ type: "spring", stiffness: 400, damping: 35, mass: 0.5 }}
+              className="custom-scrollbar relative w-full flex-1 overflow-y-auto p-4 pb-24 md:p-6 lg:pb-8"
             >
-              <div className="max-w-7xl mx-auto min-h-full">{children}</div>
+              <div className="mx-auto min-h-full max-w-7xl">{children}</div>
 
-              {/* Footer decoration — desktop only */}
-              <div className="hidden lg:flex sticky bottom-0 left-0 w-full pt-10 pb-4 justify-between items-end pointer-events-none select-none">
-                <div className="flex items-center gap-4 px-2">
-                  <div className="h-px w-8 bg-brand-sage/20" />
-                  <span className="text-[7px] font-black text-brand-sage uppercase tracking-[0.5em] opacity-40">
+              {/* Desktop footer decoration */}
+              <div className="pointer-events-none sticky bottom-0 left-0 hidden w-full items-end justify-between pt-8 pb-3 select-none lg:flex">
+                <div className="flex items-center gap-3 px-2">
+                  <div
+                    className="h-px w-8"
+                    style={{ background: "linear-gradient(90deg, transparent, rgba(244,63,94,0.3))" }}
+                  />
+                  <span className="text-zenthar-text-muted text-[7px] font-black tracking-[0.5em] uppercase opacity-40">
                     Node // {activeTab}
                   </span>
                 </div>
-                <div className="flex flex-col items-end gap-1 px-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[7px] font-bold text-brand-primary uppercase tracking-widest">
-                      Terminal Active
-                    </span>
-                    <div className="w-1 h-1 rounded-full bg-brand-primary animate-pulse" />
-                  </div>
-                  <span className="text-[6px] font-mono text-brand-sage/40 uppercase">
+                <div className="flex items-center gap-2 px-2">
+                  <div
+                    className="bg-brand-primary h-1 w-1 animate-pulse rounded-full"
+                    style={{ boxShadow: "0 0 6px rgba(244,63,94,0.8)" }}
+                  />
+                  <span className="text-zenthar-text-muted font-mono text-[7px] tracking-widest uppercase opacity-40">
                     UID: {currentUser?.id?.substring(0, 8) || "GUEST"}
                   </span>
                 </div>
@@ -224,31 +217,29 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = memo(({ childre
         </div>
       </div>
 
-      {/* ── MOBILE BOTTOM NAV ──────────────────────────────────────────── */}
+      {/* Mobile bottom nav */}
       <MobileBottomNav activeTab={activeTab} />
 
-      {/* ── RIGHT RAIL toggle — proper FAB, not a tiny 6px span ─────── */}
+      {/* Right rail toggle */}
       <button
         onClick={() => setRightRailOpen((v) => !v)}
         aria-label="Toggle diagnostics panel"
-        className={clsx(
-          "fixed right-0 top-1/2 -translate-y-1/2 z-40 xl:hidden",
-          "w-7 h-14 bg-(--color-zenthar-carbon) border border-(--color-zenthar-steel)",
-          "border-r-0 rounded-l-xl flex items-center justify-center",
-          "text-(--color-zenthar-text-muted) hover:text-brand-primary transition-colors",
-        )}
+        className="text-zenthar-text-muted hover:text-brand-primary fixed top-1/2 right-0 z-40 flex h-14 w-7 -translate-y-1/2 items-center justify-center rounded-l-xl transition-colors xl:hidden"
+        style={{
+          background: "rgba(8,8,26,0.9)",
+          border: "1px solid rgba(100,120,200,0.12)",
+          borderRight: "none",
+        }}
       >
-        <ChevronRight
-          size={14}
-          className={clsx("transition-transform", rightRailOpen && "rotate-180")}
-        />
+        <ChevronRight size={13} className={clsx("transition-transform", rightRailOpen && "rotate-180")} />
       </button>
 
-      {/* Right rail — always on xl, slide-over on smaller screens */}
-      <div className="hidden xl:flex shrink-0">
+      {/* Right rail desktop */}
+      <div className="hidden shrink-0 xl:flex">
         <RightRail />
       </div>
 
+      {/* Right rail mobile overlay */}
       <AnimatePresence>
         {rightRailOpen && (
           <>
@@ -256,31 +247,23 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = memo(({ childre
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-30 xl:hidden bg-black/40"
+              className="fixed inset-0 z-30 xl:hidden"
+              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
               onClick={() => setRightRailOpen(false)}
-              aria-hidden="true"
             />
             <motion.div
               role="complementary"
-              aria-label="Diagnostics panel"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed right-0 top-0 h-full z-40 xl:hidden"
+              className="fixed top-0 right-0 z-40 h-full xl:hidden"
             >
               <RightRail />
             </motion.div>
           </>
         )}
       </AnimatePresence>
-
-      {/* Architectural grid markers — desktop only */}
-      <div className="hidden lg:block fixed inset-0 pointer-events-none z-0 opacity-20">
-        <div className="absolute top-0 left-72 h-full w-px bg-brand-sage/10" />
-        <div className="absolute top-0 right-80 h-full w-px bg-brand-sage/10" />
-        <div className="absolute top-24 left-72 right-80 h-px bg-brand-sage/10" />
-      </div>
     </div>
   );
 });

@@ -1,14 +1,14 @@
 import React, { memo, useRef } from "react";
-import { LucideIcon, Loader2 } from "lucide-react";
+import { type LucideIcon, Loader2 } from "lucide-react";
 import {
   motion,
   AnimatePresence,
   useMotionTemplate,
   useMotionValue,
   useSpring,
-  HTMLMotionProps,
-} from "@/src/lib/motion";
-import clsx from "@/src/lib/clsx";
+  type HTMLMotionProps,
+} from "framer-motion";
+import clsx from "clsx";
 
 interface LabButtonProps extends HTMLMotionProps<"button"> {
   variant?: "primary" | "secondary" | "danger" | "ghost" | "laser" | "neon" | "cyber";
@@ -34,7 +34,7 @@ export const LabButton: React.FC<LabButtonProps> = memo(
     glitch = false,
     ...props
   }) => {
-    const buttonRef = useRef<HTMLButtonElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(undefined);
 
     // 1. RECTIFIED MOTION VALUES
     const mouseX = useMotionValue(0);
@@ -117,13 +117,13 @@ export const LabButton: React.FC<LabButtonProps> = memo(
         {...props}
       >
         <motion.div
-          className="absolute inset-0 z-0 pointer-events-none opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"
+          className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-300 group-hover/btn:opacity-100"
           style={{ background: glowBackground }}
         />
 
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="pointer-events-none absolute inset-0">
           {/* CANONICAL TAILWIND FIX */}
-          <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 bg-linear-to-r from-transparent via-white/10 to-transparent" />
+          <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover/btn:translate-x-full" />
         </div>
 
         <motion.div
@@ -141,36 +141,34 @@ export const LabButton: React.FC<LabButtonProps> = memo(
                 animate={{ opacity: 1, rotate: 0 }}
                 exit={{ opacity: 0 }}
               >
-                <Loader2 className="w-4 h-4 animate-spin stroke-[3px]" />
+                <Loader2 className="h-4 w-4 animate-spin stroke-[3px]" />
               </motion.div>
             ) : Icon ? (
-              <motion.div key="icon" className="group-hover/btn:scale-110 transition-transform">
+              <motion.div key="icon" className="transition-transform group-hover/btn:scale-110">
                 <Icon size={16} className={clsx(variant === "danger" && "animate-bounce")} />
               </motion.div>
-            ) : null}
+            ) : undefined}
           </AnimatePresence>
 
           <span className="relative tracking-[0.4em]">{children as React.ReactNode}</span>
         </motion.div>
 
         {/* TACTICAL HUD ACCENT - CANONICAL H-0.5 */}
-        <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-brand-primary/40 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity" />
+        <div className="via-brand-primary/40 absolute top-0 left-0 h-0.5 w-full bg-linear-to-r from-transparent to-transparent opacity-0 transition-opacity group-hover/btn:opacity-100" />
 
-        <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-white/5 group-hover/btn:border-brand-primary/60 transition-colors" />
-        <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-white/5 group-hover/btn:border-brand-primary/60 transition-colors" />
+        <div className="group-hover/btn:border-brand-primary/60 absolute top-0 left-0 h-2 w-2 border-t-2 border-l-2 border-white/5 transition-colors" />
+        <div className="group-hover/btn:border-brand-primary/60 absolute right-0 bottom-0 h-2 w-2 border-r-2 border-b-2 border-white/5 transition-colors" />
 
         {variant === "laser" && (
           <motion.div
             animate={{ x: ["-100%", "100%"] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-0 w-1/2 bg-linear-to-r from-transparent via-brand-primary/10 to-transparent skew-x-12 pointer-events-none"
+            className="via-brand-primary/10 pointer-events-none absolute inset-0 w-1/2 skew-x-12 bg-linear-to-r from-transparent to-transparent"
           />
         )}
 
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 opacity-0 group-hover/btn:opacity-100 transition-all">
-          <span className="text-[6px] text-brand-primary/40 font-mono tracking-widest">
-            BT-PRTCL-09
-          </span>
+        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 opacity-0 transition-all group-hover/btn:opacity-100">
+          <span className="text-brand-primary/40 font-mono text-[6px] tracking-widest">BT-PRTCL-09</span>
         </div>
       </motion.button>
     );

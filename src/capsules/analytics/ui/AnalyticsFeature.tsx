@@ -16,7 +16,7 @@ import {
 import { LabPanel } from "../../../shared/components/LabPanel";
 import { api } from "../../../core/http/client";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
-import clsx from "../../../lib/clsx";
+import clsx from "clsx";
 import { useSpecLimits } from "../hooks/useSpecLimits";
 import {
   LineChart,
@@ -35,7 +35,7 @@ import {
   PieChart,
   Pie,
   ReferenceLine,
-} from "../../../lib/recharts";
+} from "recharts";
 import { ChartSkeleton } from "../../../shared/components/Skeletons";
 
 // ─────────────────────────────────────────────
@@ -153,14 +153,7 @@ const SPCDot = (violations: boolean[]) => (props: any) => {
   if (violations[index]) {
     return (
       <g>
-        <circle
-          cx={cx}
-          cy={cy}
-          r={6}
-          fill="rgba(248,113,113,0.2)"
-          stroke="#f87171"
-          strokeWidth={1.5}
-        />
+        <circle cx={cx} cy={cy} r={6} fill="rgba(248,113,113,0.2)" stroke="#f87171" strokeWidth={1.5} />
         <circle cx={cx} cy={cy} r={3} fill="#f87171" />
       </g>
     );
@@ -190,16 +183,16 @@ const CpkGauge: React.FC<{
   const pct = Math.min(100, Math.max(0, (cpk / 2) * 100));
   const ok = cpk >= target;
   return (
-    <div className="flex flex-col items-center gap-2 group">
-      <div className="relative w-24 h-24">
-        <svg viewBox="0 0 40 40" className="-rotate-90 w-full h-full">
+    <div className="group flex flex-col items-center gap-2">
+      <div className="relative h-24 w-24">
+        <svg viewBox="0 0 40 40" className="h-full w-full -rotate-90">
           <circle
             cx="20"
             cy="20"
             r="16"
             fill="none"
             strokeWidth="4"
-            className="stroke-current text-brand-sage/10"
+            className="text-brand-sage/10 stroke-current"
           />
           <circle
             cx="20"
@@ -218,24 +211,22 @@ const CpkGauge: React.FC<{
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
             className={clsx(
-              "text-base font-mono font-black leading-none",
+              "font-mono text-base leading-none font-black",
               ok ? "text-emerald-400" : "text-amber-400",
             )}
           >
             {cpk.toFixed(2)}
           </span>
           {ppk != null && (
-            <span className="text-[9px] font-mono text-brand-sage/50 mt-0.5">
-              Pp {ppk.toFixed(2)}
-            </span>
+            <span className="text-brand-sage/50 mt-0.5 font-mono text-[9px]">Pp {ppk.toFixed(2)}</span>
           )}
         </div>
       </div>
       <div className="text-center">
-        <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest">{label}</p>
+        <p className="text-brand-sage text-[10px] font-black tracking-widest uppercase">{label}</p>
         <div
           className={clsx(
-            "flex items-center justify-center gap-1 mt-1 text-[9px]",
+            "mt-1 flex items-center justify-center gap-1 text-[9px]",
             ok ? "text-emerald-400" : "text-amber-400",
           )}
         >
@@ -252,12 +243,10 @@ const CpkGauge: React.FC<{
 // ─────────────────────────────────────────────
 
 const EmptyChart: React.FC<{ message: string; hint?: string }> = ({ message, hint }) => (
-  <div className="h-full flex flex-col items-center justify-center gap-3 opacity-50">
-    <Activity className="w-8 h-8 text-brand-sage/30" />
-    <p className="text-[10px] font-black text-brand-sage uppercase tracking-widest text-center">
-      {message}
-    </p>
-    {hint && <p className="text-[9px] font-mono text-brand-sage/50 text-center max-w-xs">{hint}</p>}
+  <div className="flex h-full flex-col items-center justify-center gap-3 opacity-50">
+    <Activity className="text-brand-sage/30 h-8 w-8" />
+    <p className="text-brand-sage text-center text-[10px] font-black tracking-widest uppercase">{message}</p>
+    {hint && <p className="text-brand-sage/50 max-w-xs text-center font-mono text-[9px]">{hint}</p>}
   </div>
 );
 
@@ -359,28 +348,28 @@ export const AnalyticsFeature: React.FC = memo(() => {
   );
 
   return (
-    <div className="h-full bg-(--color-zenthar-graphite)/30 p-4 rounded-[2.5rem] overflow-hidden flex flex-col gap-2">
+    <div className="flex h-full flex-col gap-2 overflow-hidden rounded-[2.5rem] bg-(--color-zenthar-graphite)/30 p-4">
       {/* Header */}
-      <div className="flex items-center justify-between px-2 shrink-0 flex-wrap gap-3">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 px-2">
         <div>
-          <h2 className="text-xl font-display font-bold text-(--color-zenthar-text-primary) flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-brand-primary" /> Analytics
+          <h2 className="font-display flex items-center gap-2 text-xl font-bold text-(--color-zenthar-text-primary)">
+            <BarChart3 className="text-brand-primary h-5 w-5" /> Analytics
           </h2>
           {lastFetch && (
-            <p className="text-[9px] font-mono text-brand-sage/50 uppercase tracking-widest mt-0.5">
+            <p className="text-brand-sage/50 mt-0.5 font-mono text-[9px] tracking-widest uppercase">
               Last synced: {lastFetch.toLocaleTimeString()}
             </p>
           )}
         </div>
         <div className="flex items-center gap-3">
           {/* Time window selector */}
-          <div className="flex gap-1 bg-(--color-zenthar-carbon) border border-brand-sage/10 p-1 rounded-xl">
+          <div className="border-brand-sage/10 flex gap-1 rounded-xl border bg-(--color-zenthar-carbon) p-1">
             {(["24h", "7d", "30d"] as TimeWindow[]).map((w) => (
               <button
                 key={w}
                 onClick={() => setTimeWindow(w)}
                 className={clsx(
-                  "px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all",
+                  "rounded-lg px-3 py-1.5 text-[9px] font-black tracking-wider uppercase transition-all",
                   timeWindow === w
                     ? "bg-brand-primary text-white shadow-sm"
                     : "text-brand-sage hover:text-(--color-zenthar-text-primary)",
@@ -394,21 +383,21 @@ export const AnalyticsFeature: React.FC = memo(() => {
           <button
             onClick={() => setShowSpec((v) => !v)}
             className={clsx(
-              "flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all",
+              "flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[9px] font-black tracking-widest uppercase transition-all",
               showSpec
                 ? "bg-brand-primary/10 border-brand-primary/30 text-brand-primary"
-                : "bg-(--color-zenthar-graphite) border-brand-sage/10 text-brand-sage",
+                : "border-brand-sage/10 text-brand-sage bg-(--color-zenthar-graphite)",
             )}
           >
             <Info size={12} /> Spec Limits
           </button>
           <button
             onClick={fetchAll}
-            className="p-2 rounded-xl border border-brand-sage/20 bg-(--color-zenthar-graphite) hover:bg-(--color-zenthar-graphite)/80 transition-all group"
+            className="border-brand-sage/20 group rounded-xl border bg-(--color-zenthar-graphite) p-2 transition-all hover:bg-(--color-zenthar-graphite)/80"
           >
             <RefreshCw
               className={clsx(
-                "w-4 h-4 text-brand-sage group-hover:text-brand-primary",
+                "text-brand-sage group-hover:text-brand-primary h-4 w-4",
                 loading && "animate-spin",
               )}
             />
@@ -416,7 +405,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-6">
+      <div className="custom-scrollbar flex-1 space-y-6 overflow-y-auto pr-1">
         {/* ── SPC Chart ── */}
         <LabPanel
           title="Statistical Process Control (SPC)"
@@ -427,7 +416,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
             quality.length > 0 && (
               <button
                 onClick={() => exportCSV("quality")}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-brand-sage/10 text-[9px] font-bold text-brand-sage hover:text-brand-primary transition-colors"
+                className="border-brand-sage/10 text-brand-sage hover:text-brand-primary flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[9px] font-bold transition-colors"
               >
                 <Download size={11} /> CSV
               </button>
@@ -542,11 +531,11 @@ export const AnalyticsFeature: React.FC = memo(() => {
           </div>
           {/* Violation legend */}
           {spcViolations.some(Boolean) && (
-            <div className="px-6 pb-4 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+            <div className="flex items-center gap-2 px-6 pb-4">
+              <div className="flex h-3 w-3 items-center justify-center rounded-full border border-red-500 bg-red-500/20">
+                <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
               </div>
-              <span className="text-[9px] font-bold text-red-400 uppercase tracking-widest">
+              <span className="text-[9px] font-bold tracking-widest text-red-400 uppercase">
                 {spcViolations.filter(Boolean).length} Western Electric Rule 1 violation
                 {spcViolations.filter(Boolean).length !== 1 ? "s" : ""} (point beyond ±3σ)
               </span>
@@ -555,7 +544,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
         </LabPanel>
 
         {/* ── Volume + Capability ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="lg:col-span-7">
             <LabPanel
               title="Daily Sample Volume vs Target"
@@ -571,24 +560,11 @@ export const AnalyticsFeature: React.FC = memo(() => {
                   />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={volume}
-                      margin={{ top: 8, right: 8, left: -16, bottom: 16 }}
-                      barSize={28}
-                    >
+                    <BarChart data={volume} margin={{ top: 8, right: 8, left: -16, bottom: 16 }} barSize={28}>
                       <CartesianGrid {...CHART.grid} vertical={false} />
-                      <XAxis
-                        dataKey="day"
-                        {...CHART.text}
-                        axisLine={false}
-                        tickLine={false}
-                        dy={12}
-                      />
+                      <XAxis dataKey="day" {...CHART.text} axisLine={false} tickLine={false} dy={12} />
                       <YAxis {...CHART.text} axisLine={false} tickLine={false} dx={-4} />
-                      <Tooltip
-                        {...CHART.tooltip}
-                        cursor={{ fill: "rgba(148,163,184,0.05)", radius: 8 }}
-                      />
+                      <Tooltip {...CHART.tooltip} cursor={{ fill: "rgba(148,163,184,0.05)", radius: 8 }} />
                       <Legend
                         verticalAlign="top"
                         align="right"
@@ -621,11 +597,11 @@ export const AnalyticsFeature: React.FC = memo(() => {
               loading={loading}
               skeleton={<ChartSkeleton height="h-64" />}
             >
-              <div className="h-64 flex items-center justify-around px-4 py-6">
+              <div className="flex h-64 items-center justify-around px-4 py-6">
                 <CpkGauge label="Brix" cpk={capability.brixCpk} ppk={capability.brixPpk} />
-                <div className="w-px h-20 bg-brand-sage/10" />
+                <div className="bg-brand-sage/10 h-20 w-px" />
                 <CpkGauge label="Purity" cpk={capability.purityCpk} ppk={capability.purityPpk} />
-                <div className="w-px h-20 bg-brand-sage/10" />
+                <div className="bg-brand-sage/10 h-20 w-px" />
                 <CpkGauge label="Colour" cpk={capability.colorCpk} ppk={capability.colorPpk} />
               </div>
             </LabPanel>
@@ -633,7 +609,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
         </div>
 
         {/* ── Status breakdown + Pass rates ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="lg:col-span-5">
             <LabPanel
               title="Sample Status (period)"
@@ -641,16 +617,16 @@ export const AnalyticsFeature: React.FC = memo(() => {
               loading={loading}
               skeleton={<ChartSkeleton height="h-64" />}
             >
-              <div className="h-64 relative">
+              <div className="relative h-64">
                 {breakdown.length === 0 ? (
                   <EmptyChart message="No sample data" />
                 ) : (
                   <>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
-                      <span className="text-2xl font-mono font-black text-(--color-zenthar-text-primary)">
+                    <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center">
+                      <span className="font-mono text-2xl font-black text-(--color-zenthar-text-primary)">
                         {breakdown.reduce((s, r) => s + r.count, 0)}
                       </span>
-                      <span className="text-[8px] font-black text-brand-sage/50 uppercase tracking-widest">
+                      <span className="text-brand-sage/50 text-[8px] font-black tracking-widest uppercase">
                         total
                       </span>
                     </div>
@@ -669,10 +645,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
                           animationDuration={1200}
                         >
                           {breakdown.map((entry) => (
-                            <Cell
-                              key={entry.status}
-                              fill={STATUS_COLORS[entry.status] ?? "#64748b"}
-                            />
+                            <Cell key={entry.status} fill={STATUS_COLORS[entry.status] ?? "#64748b"} />
                           ))}
                         </Pie>
                         <Tooltip
@@ -708,14 +681,14 @@ export const AnalyticsFeature: React.FC = memo(() => {
                 passRates.length > 0 && (
                   <button
                     onClick={() => exportCSV("passrates")}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-brand-sage/10 text-[9px] font-bold text-brand-sage hover:text-brand-primary transition-colors"
+                    className="border-brand-sage/10 text-brand-sage hover:text-brand-primary flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[9px] font-bold transition-colors"
                   >
                     <Download size={11} /> CSV
                   </button>
                 )
               }
             >
-              <div className="h-64 flex flex-col">
+              <div className="flex h-64 flex-col">
                 {passRates.length === 0 ? (
                   <EmptyChart
                     message="No reviewed tests"
@@ -724,8 +697,8 @@ export const AnalyticsFeature: React.FC = memo(() => {
                 ) : (
                   <>
                     {avgPassRate && (
-                      <div className="flex items-center justify-between px-1 mb-3 pb-3 border-b border-(--color-zenthar-steel)/40 shrink-0">
-                        <span className="text-[9px] font-black text-brand-sage uppercase tracking-widest">
+                      <div className="mb-3 flex shrink-0 items-center justify-between border-b border-(--color-zenthar-steel)/40 px-1 pb-3">
+                        <span className="text-brand-sage text-[9px] font-black tracking-widest uppercase">
                           Average pass rate
                         </span>
                         <div className="flex items-center gap-2">
@@ -738,7 +711,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
                           )}
                           <span
                             className={clsx(
-                              "text-xl font-mono font-black",
+                              "font-mono text-xl font-black",
                               Number(avgPassRate) >= 95
                                 ? "text-emerald-400"
                                 : Number(avgPassRate) >= 80
@@ -751,13 +724,13 @@ export const AnalyticsFeature: React.FC = memo(() => {
                         </div>
                       </div>
                     )}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 pr-1">
+                    <div className="custom-scrollbar flex-1 space-y-2.5 overflow-y-auto pr-1">
                       {passRates.map((r) => (
-                        <div key={r.test_type} className="flex items-center gap-3 group">
-                          <span className="text-[10px] font-black text-(--color-zenthar-text-primary) uppercase w-24 shrink-0">
+                        <div key={r.test_type} className="group flex items-center gap-3">
+                          <span className="w-24 shrink-0 text-[10px] font-black text-(--color-zenthar-text-primary) uppercase">
                             {r.test_type}
                           </span>
-                          <div className="flex-1 h-2 bg-(--color-zenthar-steel) rounded-full overflow-hidden">
+                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-(--color-zenthar-steel)">
                             <div
                               className={clsx(
                                 "h-full rounded-full transition-all duration-700",
@@ -772,7 +745,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
                           </div>
                           <span
                             className={clsx(
-                              "text-[10px] font-mono font-black w-12 text-right shrink-0",
+                              "w-12 shrink-0 text-right font-mono text-[10px] font-black",
                               r.pass_rate >= 95
                                 ? "text-emerald-400"
                                 : r.pass_rate >= 80
@@ -782,7 +755,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
                           >
                             {r.pass_rate?.toFixed(1)}%
                           </span>
-                          <span className="text-[9px] font-mono text-brand-sage/40 shrink-0 w-14 text-right">
+                          <span className="text-brand-sage/40 w-14 shrink-0 text-right font-mono text-[9px]">
                             {r.approved}/{r.total_tested}
                           </span>
                         </div>

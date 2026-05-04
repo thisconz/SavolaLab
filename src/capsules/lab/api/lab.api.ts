@@ -56,9 +56,7 @@ export const LabApi = {
   },
 
   getSampleTests: async (sampleId: number): Promise<TestResult[]> => {
-    const res = await api.get<{ success: boolean; data: TestResult[] }>(
-      `/samples/${sampleId}/tests`,
-    );
+    const res = await api.get<{ success: boolean; data: TestResult[] }>(`/samples/${sampleId}/tests`);
     return res.data ?? [];
   },
 
@@ -77,11 +75,7 @@ export const LabApi = {
     return api.put(`/tests/${testId}`, data);
   },
 
-  reviewTest: async (
-    testId: number,
-    status: "APPROVED" | "DISAPPROVED",
-    comment?: string,
-  ): Promise<void> => {
+  reviewTest: async (testId: number, status: "APPROVED" | "DISAPPROVED", comment?: string): Promise<void> => {
     return api.post(`/tests/${testId}/review`, {
       status,
       comment: comment ?? null,

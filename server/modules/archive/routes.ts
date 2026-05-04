@@ -9,13 +9,13 @@ const app = new Hono<{ Variables: Variables }>();
 /**
  * Shared query type (extend per route if needed)
  */
-type ArchiveQuery = {
+interface ArchiveQuery {
   from_date?: string;
   to_date?: string;
   limit?: string;
   offset?: string;
   [key: string]: any;
-};
+}
 
 /**
  * Route factory (removes duplication)

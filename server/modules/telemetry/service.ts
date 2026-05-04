@@ -2,7 +2,7 @@ import os from "os";
 import { dbOrm } from "../../core/db/orm";
 import { samples, tests, auditLogs } from "../../core/db/schema";
 import { telemetryCache, TTL } from "../../core/cache";
-import { TelemetryMetrics, TelemetryFilter } from "../../core/types";
+import type { TelemetryMetrics, TelemetryFilter } from "../../core/types";
 import { sql, and, gte, lte, notInArray, eq, like, or } from "drizzle-orm";
 
 export const TelemetryService = {
@@ -28,8 +28,7 @@ export const TelemetryService = {
       const days = Math.floor(sec / 86400);
       const hours = Math.floor((sec % 86400) / 3600);
       const mins = Math.floor((sec % 3600) / 60);
-      const uptime =
-        days > 0 ? `${days}d ${hours}h` : hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+      const uptime = days > 0 ? `${days}d ${hours}h` : hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 
       // ── DB metrics ─────────────────────────────────────────────────────
       const timeConstraintAudit = hasFilter

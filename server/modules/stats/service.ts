@@ -47,12 +47,7 @@ export const StatService = {
     return statId;
   },
 
-  updateStatStatus: async (
-    id: number | string,
-    status: string,
-    employeeNumber?: string,
-    ip?: string,
-  ) => {
+  updateStatStatus: async (id: number | string, status: string, employeeNumber?: string, ip?: string) => {
     const statId = Number(id);
     if (isNaN(statId)) throw new Error("Invalid stat ID");
 

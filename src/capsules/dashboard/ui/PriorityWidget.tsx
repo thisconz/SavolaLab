@@ -1,15 +1,6 @@
 import React, { useMemo, memo } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "@/src/lib/recharts";
-import { motion } from "@/src/lib/motion";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { motion } from "framer-motion";
 import { Sample } from "../../../core/types";
 
 interface Props {
@@ -67,11 +58,11 @@ export const PriorityWidget: React.FC<Props> = memo(({ samples, loading = false 
   if (loading) return <PriorityLoading />;
 
   return (
-    <div className="h-60 w-full relative">
+    <div className="relative h-60 w-full">
       {/* Decorative corner dots */}
       <div className="absolute top-2 right-2 flex gap-1 opacity-20">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="w-1 h-1 bg-brand-primary rounded-[1px]" />
+          <div key={i} className="bg-brand-primary h-1 w-1 rounded-[1px]" />
         ))}
       </div>
 
@@ -101,13 +92,9 @@ export const PriorityWidget: React.FC<Props> = memo(({ samples, loading = false 
             {data.map((entry) => (
               <Cell
                 key={entry.name}
-                fill={
-                  PRIORITY_CONFIG[entry.name as keyof typeof PRIORITY_CONFIG]?.color ?? "#64748b"
-                }
+                fill={PRIORITY_CONFIG[entry.name as keyof typeof PRIORITY_CONFIG]?.color ?? "#64748b"}
                 style={
-                  entry.name === "STAT"
-                    ? { filter: "drop-shadow(0 0 8px rgba(239,68,68,0.4))" }
-                    : undefined
+                  entry.name === "STAT" ? { filter: "drop-shadow(0 0 8px rgba(239,68,68,0.4))" } : undefined
                 }
               />
             ))}
@@ -119,11 +106,11 @@ export const PriorityWidget: React.FC<Props> = memo(({ samples, loading = false 
 });
 
 const PriorityLoading = () => (
-  <div className="h-60 w-full flex items-end justify-center gap-8 pb-10">
+  <div className="flex h-60 w-full items-end justify-center gap-8 pb-10">
     {[30, 60, 45].map((h, i) => (
       <div
         key={i}
-        className="w-12 bg-(--color-zenthar-graphite) rounded-t animate-pulse"
+        className="w-12 animate-pulse rounded-t bg-(--color-zenthar-graphite)"
         style={{ height: `${h}%`, opacity: 0.3 + i * 0.2 }}
       />
     ))}

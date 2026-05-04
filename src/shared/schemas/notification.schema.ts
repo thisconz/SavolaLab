@@ -5,11 +5,7 @@ import { z } from "zod";
  * handles notification types that haven't been hard-coded here yet
  * (e.g. custom rules created via the notification_rules table).
  */
-export const NotificationTypeSchema = z.enum([
-  "OVERDUE_TEST",
-  "WORKFLOW_FAILURE",
-  "SAMPLE_COMPLETED",
-]);
+export const NotificationTypeSchema = z.enum(["OVERDUE_TEST", "WORKFLOW_FAILURE", "SAMPLE_COMPLETED"]);
 
 // Lenient schema for API responses — accepts any string type from the DB
 export const NotificationSchema = z.object({

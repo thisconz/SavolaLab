@@ -1,26 +1,26 @@
 import { db } from "../../core/database";
 import { logger } from "../../core/logger";
 
-type BaseFilters = {
+interface BaseFilters {
   start_date?: string;
   end_date?: string;
   limit?: number | string;
   offset?: number | string;
-};
+}
 
-type FilterResult = {
+interface FilterResult {
   clause: string;
   params: any[];
-};
+}
 
 type FilterCallback = (value: any) => FilterResult;
 
-type QueryConfig = {
+interface QueryConfig {
   baseSql: string;
   filters: Record<string, FilterCallback>;
   defaultOrder?: string;
   maxLimit?: number;
-};
+}
 
 function normalizePagination(filters: BaseFilters, maxLimit = 100) {
   const rawLimit = Number(filters.limit);
@@ -48,7 +48,7 @@ export function buildQuery(config: QueryConfig, filters: Record<string, any>) {
 
   for (const [key, filterFn] of Object.entries(config.filters)) {
     const value = filters[key];
-    if (value === undefined || value === null || value === "") continue;
+    if (value === undefined || value === undefined|| value === "") continue;
 
     let result: FilterResult;
 
