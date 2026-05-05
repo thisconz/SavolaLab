@@ -1,7 +1,7 @@
 import React, { useMemo, memo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { motion } from "framer-motion";
-import { TestResult } from "../../../core/types";
+import { type TestResult } from "../../../core/types";
 
 interface Props {
   tests: TestResult[];

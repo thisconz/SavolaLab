@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect, useRef } from "react";
+import React, { memo, useState, useEffect, useRef, useMemo } from "react";
 import {
   Zap,
   Plus,
@@ -131,8 +131,31 @@ export const StatFeature: React.FC = memo(() => {
       IN_PROGRESS: <Clock className="h-5 w-5 text-amber-500" />,
     })[s] ?? <AlertCircle className="text-brand-primary h-5 w-5" />;
 
+  // Metric Calculations
   const active = stats.filter((s) => s.status !== "CLOSED").length;
   const critical = stats.filter((s) => s.urgency === "CRITICAL" && s.status !== "CLOSED").length;
+  
+  // avg response for stats time in min/hour
+  const avg = useMemo(() => {
+    const inProgress = stats.filter((s) => s.status === "IN_PROGRESS" && s.created_at);
+    if (inProgress.length === 0) return "0m";
+
+    const now = Date.now();
+    const totalMs = inProgress.reduce((sum, s) => {
+      const duration = now - new Date(s.created_at).getTime();
+      return sum + Math.max(0, duration); // Protects against minor machine clock drift
+    }, 0);
+
+    const avgMs = totalMs / inProgress.length;
+    const avgMinutes = Math.round(avgMs / 60000);
+
+    if (avgMinutes >= 60) {
+      const hours = (avgMinutes / 60).toFixed(1);
+      return `${hours}h`;
+    }
+
+    return `${avgMinutes}m`;
+  }, [stats]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-3xl bg-(--color-zenthar-graphite)/30 p-2">
@@ -186,7 +209,7 @@ export const StatFeature: React.FC = memo(() => {
 
         <MetricCard
           label="Avg Response"
-          value={"12 min"}
+          value={avg}
           trend="Awaiting QC"
           icon={Clock}
           variant="success"

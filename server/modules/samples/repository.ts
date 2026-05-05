@@ -74,10 +74,10 @@ export const SampleRepository = {
     }
   },
 
-  async findById(id: number): Promise<any | null> {
+  async findById(id: number): Promise<any | undefined> {
     try {
       const result = await dbOrm.select().from(samples).where(eq(samples.id, id)).limit(1);
-      return result[0] || null;
+      return result[0] || undefined;
     } catch (error: any) {
       if (error.message === "Database not connected") {
         return {
@@ -100,14 +100,14 @@ export const SampleRepository = {
       const result = await dbOrm
         .insert(samples)
         .values({
-          batch_id: data.batch_id ?? null,
-          sample_type: data.sample_type ?? null,
-          source_stage: data.source_stage ?? null,
+          batch_id: data.batch_id ?? undefined,
+          sample_type: data.sample_type ?? undefined,
+          source_stage: data.source_stage ?? undefined,
           priority: data.priority ?? "NORMAL",
           technician_id: data.technician_id,
-          line_id: data.line_id ?? null,
-          equipment_id: data.equipment_id ?? null,
-          shift_id: data.shift_id ?? null,
+          line_id: data.line_id ?? undefined,
+          equipment_id: data.equipment_id ?? undefined,
+          shift_id: data.shift_id ?? undefined,
         } as any)
         .returning({ id: samples.id });
       return result[0].id;

@@ -1,5 +1,5 @@
 import type { Context, Next, MiddlewareHandler } from "hono";
-import { type ZodSchema, ZodError } from "zod";
+import { type ZodSchema, type ZodError } from "zod";
 
 type Target = "json" | "query" | "param";
 

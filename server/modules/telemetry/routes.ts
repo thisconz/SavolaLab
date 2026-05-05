@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type { Variables, TelemetryFilter } from "../../core/types";
+import type { Variables } from "../../core/types";
 import { TelemetryService } from "./service";
 import { authenticateToken } from "../../core/middleware";
 import { TelemetryFilterSchema } from "../../../src/shared/schemas/telemetry.schema";

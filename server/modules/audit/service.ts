@@ -1,4 +1,3 @@
-import { db } from "../../core/db/client";
 import { dbOrm } from "../../core/db/orm";
 import { auditLogs } from "../../core/db/schema";
 import { logger } from "../../core/logger";

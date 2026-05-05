@@ -153,33 +153,33 @@ function verifySignature(header: string, body: string, sig: string): boolean {
   return timingSafeEqual(sigBuf, expBuf);
 }
 
-export function verifyToken(token: string): Record<string, any> | null {
+export function verifyToken(token: string): Record<string, any> | undefined {
   try {
     const parts = token.split(".");
-    if (parts.length !== 3) return null;
+    if (parts.length !== 3) return undefined;
     const [header, body, sig] = parts;
-    if (!verifySignature(header, body, sig)) return null;
+    if (!verifySignature(header, body, sig)) return undefined;
     const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as JWTPayload;
-    if (payload.exp < Math.floor(Date.now() / 1000)) return null;
-    if (payload.type !== "access") return null;
+    if (payload.exp < Math.floor(Date.now() / 1000)) return undefined;
+    if (payload.type !== "access") return undefined;
     return payload;
   } catch {
-    return null;
+    return undefined;
   }
 }
 
-export function verifyRefreshToken(token: string): JWTPayload | null {
+export function verifyRefreshToken(token: string): JWTPayload | undefined {
   try {
     const parts = token.split(".");
-    if (parts.length !== 3) return null;
+    if (parts.length !== 3) return undefined;
     const [header, body, sig] = parts;
-    if (!verifySignature(header, body, sig)) return null;
+    if (!verifySignature(header, body, sig)) return undefined;
     const payload = JSON.parse(Buffer.from(body, "base64url").toString()) as JWTPayload;
-    if (payload.exp < Math.floor(Date.now() / 1000)) return null;
-    if (payload.type !== "refresh") return null;
+    if (payload.exp < Math.floor(Date.now() / 1000)) return undefined;
+    if (payload.type !== "refresh") return undefined;
     return payload;
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -243,10 +243,10 @@ export const AuthService = {
     await dbOrm
       .update(users)
       .set({
-        password_hash: null as any,
+        password_hash: undefined as any,
         pin_hash: tempPinHash,
         failed_attempts: 0,
-        locked_until: null as any,
+        locked_until: undefined as any,
       })
       .where(eq(users.employee_number, employeeNumber));
 
@@ -307,7 +307,7 @@ export const AuthService = {
 
     if (!employee) {
       await AuditService.createLog(employeeNumber, "VERIFICATION_FAILED", "Invalid identity credentials", ip);
-      return null;
+      return undefined;
     }
     const usrRecords = await dbOrm.select().from(users).where(eq(users.employee_number, employeeNumber));
     const existingUser = usrRecords[0];
@@ -334,7 +334,7 @@ export const AuthService = {
 
   setupCredentials: async (employeeNumber: string, password: string, pin?: string): Promise<boolean> => {
     const passwordHash = await hashPassword(password);
-    const pinHash = pin ? await hashPassword(pin) : null;
+    const pinHash = pin ? await hashPassword(pin) : undefined;
 
     // UPSERT polyfill using Drizzle depending on postgres dialect
     await dbOrm
@@ -393,7 +393,7 @@ export const AuthService = {
 
       const row = rows[0];
 
-      if (!row || row.status !== "ACTIVE") return null;
+      if (!row || row.status !== "ACTIVE") return undefined;
 
       const now = new Date();
       if (row.locked_until && new Date(row.locked_until) > now) {
@@ -428,12 +428,12 @@ export const AuthService = {
           .where(eq(users.employee_number, employeeNumber));
 
         await AuditService.createLog(employeeNumber, "LOGIN_FAILED", "Incorrect credentials", ip);
-        return null;
+        return undefined;
       }
 
       await dbOrm
         .update(users)
-        .set({ failed_attempts: 0, locked_until: null, last_login: new Date() })
+        .set({ failed_attempts: 0, locked_until: undefined, last_login: new Date() })
         .where(eq(users.employee_number, employeeNumber));
 
       const payload = mapToPayload(row);
@@ -449,7 +449,7 @@ export const AuthService = {
           throw new Error("Database unavailable - cannot authenticate");
         }
         const mockUser = mockUsers().find((u) => u.employee_number === employeeNumber);
-        if (!mockUser) return null;
+        if (!mockUser) return undefined;
 
         const devPassword = process.env.DEV_DEFAULT_PASSWORD;
         const devPin = process.env.DEV_DEFAULT_PIN;
@@ -462,7 +462,7 @@ export const AuthService = {
         }
 
         const credentialValid = password === devPassword || pin === devPin;
-        if (!credentialValid) return null;
+        if (!credentialValid) return undefined;
 
         const token = signToken(mockUser as any);
         const refresh = signRefreshToken({
@@ -487,9 +487,9 @@ export const AuthService = {
     refreshToken: string,
     userAgent?: string,
     ip?: string,
-  ): Promise<{ token: string; newRefreshToken: string } | null> => {
+  ): Promise<{ token: string; newRefreshToken: string } | undefined> => {
     const payload = verifyRefreshToken(refreshToken);
-    if (!payload) return null;
+    if (!payload) return undefined;
 
     const tokenHash = hashRefreshToken(refreshToken);
 
@@ -507,7 +507,7 @@ export const AuthService = {
         )
         .limit(1);
 
-      if (!stored.length) return null;
+      if (!stored.length) return undefined;
 
       const rows = await dbOrm
         .select({
@@ -526,7 +526,7 @@ export const AuthService = {
         .where(and(eq(users.employee_number, payload.employee_number), eq(users.status, "ACTIVE")));
 
       const row = rows[0];
-      if (!row) return null;
+      if (!row) return undefined;
 
       await dbOrm
         .update(refreshTokens)
@@ -544,7 +544,7 @@ export const AuthService = {
 
       return { token: newAccessToken, newRefreshToken: newRawRefreshToken };
     } catch (err: any) {
-      if (err.message === "Database not connected") return null;
+      if (err.message === "Database not connected") return undefined;
       throw err;
     }
   },
@@ -562,8 +562,8 @@ export const AuthService = {
       employee_number: employeeNumber,
       token_hash: tokenHash,
       expires_at: expiresAt,
-      user_agent: userAgent ?? null,
-      ip_address: ip ?? null,
+      user_agent: userAgent ?? undefined,
+      ip_address: ip ?? undefined,
     });
   },
 

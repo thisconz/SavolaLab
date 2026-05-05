@@ -370,7 +370,7 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
         key: "quantity",
         label: "Qty / Unit",
         render: (v, r) => {
-          const low = v != undefined && r.min_stock != undefined && v <= r.min_stock;
+          const low = v !== undefined && r.min_stock !== undefined && v <= r.min_stock;
           return (
             <span
               className={clsx(

@@ -1,4 +1,4 @@
-import { Role } from "./types/role";
+import { type Role } from "./types/role";
 import type { AppTab } from "./types/app.types";
 
 /**

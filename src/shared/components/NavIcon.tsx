@@ -66,7 +66,7 @@ export const NavIcon: React.FC<NavIconProps> = memo(({ icon: Icon, active, onCli
       {/* 4️⃣ Badge (dynamic) */}
       {badge && (
         <span className="absolute top-3 right-3 flex items-center justify-center">
-          <span className="bg-brand-primary absolute inline-flex h-3 w-3 animate-ping rounded-full opacity-50"></span>
+          <span className="bg-brand-primary absolute inline-flex h-3 w-3 animate-ping rounded-full opacity-50" />
           <span className="bg-brand-primary relative inline-flex h-3 min-w-3 items-center justify-center rounded-full px-0.5 text-[6px] font-bold text-black">
             {badge}
           </span>

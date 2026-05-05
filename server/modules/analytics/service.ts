@@ -62,7 +62,9 @@ async function getSpecLimits(): Promise<Record<string, { usl: number; lsl: numbe
            WHERE is_active = 1`,
         );
 
-        return Object.fromEntries(rows.map((r) => [r.test_type, { usl: Number(r.usl), lsl: Number(r.lsl) }]));
+        return Object.fromEntries(
+          rows.map((r) => [r.test_type, { usl: Number(r.usl), lsl: Number(r.lsl) }]),
+        );
       } catch (err) {
         logger.error({ err }, "Failed to fetch dynamic spec limits");
         return {};
@@ -76,7 +78,7 @@ function calcCpk(mean: number, stddev: number, usl: number, lsl: number): number
   if (stddev <= 0) return 0;
   const cpu = (usl - mean) / (3 * stddev);
   const cpl = (mean - lsl) / (3 * stddev);
-  return Math.max(0, Math.min(cpu, cpl)); // Cpk is the minimum of the two, floored at 0
+  return Math.max(0, Math.min(cpu, cpl));
 }
 
 // ─────────────────────────────────────────────
@@ -86,7 +88,6 @@ function calcCpk(mean: number, stddev: number, usl: number, lsl: number): number
 export const AnalyticsService = {
   /**
    * SPC trend — hourly averages of Brix, Purity, Color for the last 24 h.
-   * Cached 15 min because this drives the real-time chart.
    */
   getQualityData: async (): Promise<HourlyQualityPoint[]> => {
     return analyticsCache.getOrSet(
@@ -98,7 +99,6 @@ export const AnalyticsService = {
             brix: number | undefined;
             purity: number | undefined;
             color: number | undefined;
-            avg_value: number;
           }>(`
             SELECT
               date_trunc('hour', performed_at) AS hour,
@@ -114,12 +114,15 @@ export const AnalyticsService = {
           `);
 
           return rows.map((row) => ({
-            time: new Date(row.hour).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            time: new Date(row.hour).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
             brix: row.brix !== undefined ? Number(row.brix) : undefined,
             purity: row.purity !== undefined ? Number(row.purity) : undefined,
             color: row.color !== undefined ? Number(row.color) : undefined,
           }));
-        } catch (err: any) {
+        } catch (err) {
           logger.error({ err }, "AnalyticsService.getQualityData failed");
           return [];
         }
@@ -130,7 +133,6 @@ export const AnalyticsService = {
 
   /**
    * Daily sample volume vs. target for the last 7 days.
-   * Cached 30 min — doesn't change intraday for most installs.
    */
   getVolumeData: async (): Promise<DailyVolumePoint[]> => {
     return analyticsCache.getOrSet(
@@ -142,8 +144,8 @@ export const AnalyticsService = {
             volume: string;
           }>(`
             SELECT
-              DATE(created_at)            AS date,
-              COUNT(*)::text              AS volume
+              DATE(created_at)  AS date,
+              COUNT(*)::text    AS volume
             FROM samples
             WHERE created_at >= NOW() - INTERVAL '7 days'
             GROUP BY DATE(created_at)
@@ -153,11 +155,11 @@ export const AnalyticsService = {
           const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
           return rows.map((r) => ({
-            day: days[new Date(r.date).getDay()],
+            day: days[new Date(r.date).getDay()] ?? "—",
             volume: Number(r.volume),
-            target: 100, // configurable in system_preferences
+            target: 100,
           }));
-        } catch (err: any) {
+        } catch (err) {
           logger.error({ err }, "AnalyticsService.getVolumeData failed");
           return [];
         }
@@ -168,15 +170,12 @@ export const AnalyticsService = {
 
   /**
    * Process Capability (Cpk) per test type — last 30 days.
-   * Falls back to hardcoded targets when insufficient data.
-   * Cached 1 hour.
    */
   getProcessCapability: async (): Promise<CpkResult> => {
     return analyticsCache.getOrSet(
       "analytics:capability:30d",
       async () => {
         try {
-          // Fetch dynamic limits (cached for 15m internally)
           const specs = await getSpecLimits();
 
           const rows = await db.query<{
@@ -197,11 +196,7 @@ export const AnalyticsService = {
             GROUP BY test_type
           `);
 
-          const cpk: CpkResult = {
-            brixCpk: 0,
-            purityCpk: 0,
-            colorCpk: 0,
-          };
+          const cpk: CpkResult = { brixCpk: 0, purityCpk: 0, colorCpk: 0 };
 
           for (const row of rows) {
             const mean = Number(row.mean);
@@ -210,7 +205,6 @@ export const AnalyticsService = {
 
             if (stddev <= 0 || n < 10) continue;
 
-            // Match spec by test type; fallback logic if missing
             const spec = specs[row.test_type];
             if (!spec) {
               logger.warn({ test_type: row.test_type }, "No active spec limit found for test type");
@@ -225,18 +219,17 @@ export const AnalyticsService = {
           }
 
           return cpk;
-        } catch (err: any) {
+        } catch (err) {
           logger.error({ err }, "AnalyticsService.getProcessCapability failed");
           return { brixCpk: 0, purityCpk: 0, colorCpk: 0 };
         }
       },
-      TTL.HOURS_1, // The calculation result remains cached for 1 hour
+      TTL.HOURS_1,
     );
   },
 
   /**
    * Sample status breakdown (donut chart data).
-   * Cached 5 min.
    */
   getSampleStatusBreakdown: async (): Promise<SampleStatusBreakdown[]> => {
     return analyticsCache.getOrSet(
@@ -262,7 +255,7 @@ export const AnalyticsService = {
 
   /**
    * Test pass/fail rates per test type.
-   * Cached 15 min.
+   * FIX: replaced `undefinedIF` (typo) with `NULLIF` — prevents runtime SQL error.
    */
   getTestPassRates: async (): Promise<TestPassRate[]> => {
     return analyticsCache.getOrSet(
@@ -276,7 +269,7 @@ export const AnalyticsService = {
               COUNT(*) FILTER (WHERE status != 'PENDING')::int   AS total_tested,
               ROUND(
                 100.0 * COUNT(*) FILTER (WHERE status = 'APPROVED') /
-                undefinedIF(COUNT(*) FILTER (WHERE status != 'PENDING'), 0),
+                NULLIF(COUNT(*) FILTER (WHERE status != 'PENDING'), 0),
                 1
               )::float                                           AS pass_rate
             FROM tests
@@ -296,7 +289,6 @@ export const AnalyticsService = {
 
   /**
    * Stage-level throughput efficiency.
-   * Cached 30 min.
    */
   getStageEfficiency: async (): Promise<StageEfficiency[]> => {
     return analyticsCache.getOrSet(

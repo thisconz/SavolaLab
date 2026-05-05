@@ -164,7 +164,7 @@ export class ZentharKernelBoundary extends Component<Props, State> {
     this.reportTelemetry(error, errorInfo);
   }
 
-  private reportTelemetry = async (error: Error, info: ErrorInfo) => {
+  private reportTelemetry = async (_error: Error, _info: ErrorInfo) => {
     try {
       // Functional Mock Call
       console.log(`[ZENTHAR_KERNEL] Reporting Fault ${this.state.faultId}`);

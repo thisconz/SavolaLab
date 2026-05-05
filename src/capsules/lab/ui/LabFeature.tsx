@@ -16,10 +16,10 @@ import { SampleDetails } from "./SampleDetails";
 import { LabBench } from "./LabBench";
 import { RegisterSampleModal } from "./RegisterSampleModal";
 import { useLabSamples } from "../hooks/useLabSamples"; // ← live hook
-import { type Sample, SampleStatus } from "../../../core/types";
+import { type Sample, type SampleStatus } from "../../../core/types";
 import { ZentharKernelBoundary as ErrorBoundary } from "../../../shared/components/ErrorBoundary";
-import { QCStatsWidget } from "../../dashboard/ui/QCStatsWidget";
-import { PriorityWidget } from "../../dashboard/ui/PriorityWidget";
+import { QCStatsWidget } from "../../dashboard/widget/QCStatsWidget";
+import { PriorityWidget } from "../../dashboard/widget/PriorityWidget";
 
 export const LabFeature: React.FC = memo(() => {
   const { samples, loading, error, refresh, lastUpdated, isRefreshing } = useLabSamples();

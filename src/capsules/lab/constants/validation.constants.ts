@@ -1,4 +1,4 @@
-import { TestType } from "../../../core/types";
+import { type TestType } from "../../../core/types";
 
 export interface ValidationRule {
   min: number;

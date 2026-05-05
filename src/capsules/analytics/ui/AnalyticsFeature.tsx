@@ -215,7 +215,7 @@ const CpkGauge: React.FC<{
           >
             {cpk.toFixed(2)}
           </span>
-          {ppk != undefined && (
+          {ppk !== undefined && (
             <span className="text-brand-sage/50 mt-0.5 font-mono text-[9px]">Pp {ppk.toFixed(2)}</span>
           )}
         </div>

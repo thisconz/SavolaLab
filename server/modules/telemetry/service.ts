@@ -54,7 +54,7 @@ export const TelemetryService = {
       let dbSync: "ACTIVE" | "INACTIVE" = "INACTIVE";
       let sampleCount = 0;
       let pendingTests = 0;
-      let lastAudit: string | null = null;
+      let lastAudit: string | undefined;
       let activeUsers = 0;
       let totalLogs = 0;
       let errorLogs = 0;

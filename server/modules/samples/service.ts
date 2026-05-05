@@ -27,9 +27,9 @@ export const SampleService = {
       type: "SAMPLE_CREATED",
       payload: {
         id,
-        batch_id: data.batch_id ?? null,
+        batch_id: data.batch_id ?? undefined,
         priority: data.priority ?? "NORMAL",
-        source_stage: data.source_stage ?? null,
+        source_stage: data.source_stage ?? undefined,
         technician_id: technicianId,
       },
     });

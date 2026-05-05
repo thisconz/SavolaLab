@@ -27,11 +27,11 @@ import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import { useSetActiveTab } from "../../../orchestrator/state/app.store";
 import clsx from "clsx";
 
-import { QCStatsWidget } from "./QCStatsWidget";
-import { QCTrendsWidget } from "./QCTrendsWidget";
-import { PriorityWidget } from "./PriorityWidget";
-import { EfficiencyWidget } from "./EfficiencyWidget";
-import { PlantOverviewWidget } from "./PlantOverviewWidget";
+import { QCStatsWidget } from "../widget/QCStatsWidget";
+import { QCTrendsWidget } from "../widget/QCTrendsWidget";
+import { PriorityWidget } from "../widget/PriorityWidget";
+import { EfficiencyWidget } from "../widget/EfficiencyWidget";
+import { PlantOverviewWidget } from "../widget/PlantOverviewWidget";
 import { MetricCard, MetricCardSkeleton } from "../../../shared/components/MetricCard";
 import { ChartSkeleton, SampleQueueSkeleton } from "../../../shared/components/Skeletons";
 
@@ -115,6 +115,8 @@ export const DashboardFeature: React.FC = memo(() => {
   const [alertsLoading, setAlertsLoading] = useState(true);
   const [samplesLoading, setSamplesLoading] = useState(true);
   const [testsLoading, setTestsLoading] = useState(true);
+
+  const [systemHealth, setSystemHealth] = useState<string | undefined>("100%");
 
   const { on, isConnected } = useRealtime();
 
@@ -298,7 +300,7 @@ export const DashboardFeature: React.FC = memo(() => {
               />
               <MetricCard
                 label="System Health"
-                value="99.8%"
+                value={systemHealth ?? "N/A"}
                 trend="STABLE"
                 icon={Activity}
                 variant="success"

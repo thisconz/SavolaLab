@@ -208,7 +208,7 @@ export async function buildExcelExport(opts: ExportOptions): Promise<Buffer> {
       const raw = row[field];
 
       // Coerce value
-      if (raw === null || raw === undefined) {
+      if (raw === undefined || raw === undefined) {
         cell.value = "";
       } else if (raw instanceof Date) {
         cell.value = raw;

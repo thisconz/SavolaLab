@@ -1,5 +1,5 @@
 import { api } from "../../../core/http/client";
-import { StatRequest } from "../../../core/types";
+import { type StatRequest } from "../../../core/types";
 export const StatApi = {
   getStats: async (): Promise<StatRequest[]> => {
     const res = await api.get<{ success: boolean; data: StatRequest[] }>("/stats");

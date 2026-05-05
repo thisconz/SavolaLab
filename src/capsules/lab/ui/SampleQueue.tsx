@@ -87,7 +87,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
 
     // ── Scroll selected item into view ────────────────────────────────────
     useEffect(() => {
-      if (selectedSampleId == undefined || !containerRef.current) return;
+      if (selectedSampleId === undefined || !containerRef.current) return;
       const idx = filtered.findIndex((s) => s.id === selectedSampleId);
       if (idx === -1) return;
       const itemTop = idx * cardHeight;

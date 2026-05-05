@@ -24,9 +24,9 @@ export const NotificationService = {
       const overdueTests = await client.query<{
         id: number;
         test_type: string;
-        batch_id: string | null;
-        performer_id: string | null;
-        technician_id: string | null;
+        batch_id: string | undefined;
+        performer_id: string | undefined;
+        technician_id: string | undefined;
       }>(
         `SELECT t.id, t.test_type, s.batch_id, t.performer_id, s.technician_id
          FROM tests t

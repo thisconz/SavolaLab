@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { Variables } from "../../core/types";
 import { setCookie, deleteCookie, getCookie } from "hono/cookie";
-import { AuthService, verifyRefreshToken } from "./service";
+import { AuthService } from "./service";
 import { extractClientIp, toMsg } from "../../core/utils/route";
 import { authenticateToken, requireRoles } from "../../core/middleware";
 import { authRateLimit } from "../../core/rateLimit";

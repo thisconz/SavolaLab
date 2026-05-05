@@ -76,7 +76,7 @@ class MockPool {
     };
   }
 
-  on(_event: string, _cb: any) {}
+  on(_event: string, _cb: any) { /* empty */ }
 }
 
 // ─── Pool (deterministic, no runtime switching) ───────────────────
