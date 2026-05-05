@@ -14,12 +14,11 @@ import {
   LogOut,
   RefreshCw,
   Fingerprint,
-  ChevronRight,
   Activity,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LogoRoot, LogoIcon } from "../../shared/components/Logo";
-import { useAppStore, AppTab } from "../../orchestrator/state/app.store";
+import type { AppTab } from "../../orchestrator/state/app.store";
 import { useAuthStore } from "../../orchestrator/state/auth.store";
 import { QuickSwitch } from "../../capsules/auth";
 import { isTabAllowed } from "../../core/rbac";

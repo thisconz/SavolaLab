@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "../../../orchestrator/state/auth.store";
 import { AuthApi } from "../api/auth.api";
-import { User } from "../../../core/types";
+import type { User } from "../../../core/types";
 
 interface UseAuthFlowOptions {
   onSuccess?: () => void;
@@ -18,13 +18,13 @@ const getInitials = (name: string) => {
 export const useAuthFlow = ({ onSuccess, isOpen = true }: UseAuthFlowOptions = {}) => {
   const { login, currentUser } = useAuthStore();
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
   const [authMode, setAuthMode] = useState<"pin" | "password">("pin");
   const [inputValue, setInputValue] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
-  const fetchController = useRef<AbortController | null>(null);
+  const fetchController = useRef<AbortController | undefined>(undefined);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -53,7 +53,7 @@ export const useAuthFlow = ({ onSuccess, isOpen = true }: UseAuthFlowOptions = {
       fetchUsers();
     } else {
       fetchController.current?.abort();
-      setSelectedUser(null);
+      setSelectedUser(undefined);
       setInputValue("");
       setError("");
       setIsRegistering(false);
@@ -110,7 +110,7 @@ export const useAuthFlow = ({ onSuccess, isOpen = true }: UseAuthFlowOptions = {
           );
 
           toast.success(`Welcome back, ${response.user.name}`);
-          setSelectedUser(null);
+          setSelectedUser(undefined);
           setInputValue("");
           onSuccess?.();
         }
@@ -127,7 +127,7 @@ export const useAuthFlow = ({ onSuccess, isOpen = true }: UseAuthFlowOptions = {
   );
 
   const resetState = useCallback(() => {
-    setSelectedUser(null);
+    setSelectedUser(undefined);
     setInputValue("");
     setError("");
     setIsRegistering(false);

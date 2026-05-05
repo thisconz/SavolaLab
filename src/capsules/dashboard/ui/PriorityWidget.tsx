@@ -1,7 +1,6 @@
 import React, { useMemo, memo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { motion } from "framer-motion";
-import { Sample } from "../../../core/types";
+import { type Sample } from "../../../core/types";
 
 interface Props {
   samples: Sample[];

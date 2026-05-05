@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { memo, useState, useEffect, useMemo, useCallback } from "react";
 import {
   LayoutDashboard,
   Bell,
@@ -22,7 +22,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LabPanel } from "../../../shared/components/LabPanel";
 import { NotificationApi } from "../../notifications";
 import { LabApi } from "../../lab";
-import { Notification, Sample, TestResult } from "../../../core/types";
+import type { Notification, Sample, TestResult } from "../../../core/types";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import { useSetActiveTab } from "../../../orchestrator/state/app.store";
 import clsx from "clsx";
@@ -108,7 +108,7 @@ export const DashboardFeature: React.FC = memo(() => {
   });
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
   const [dateRange, setDateRange] = useState<DateRange>("24h");
 
   // Per-widget loading states for skeleton granularity
@@ -127,8 +127,7 @@ export const DashboardFeature: React.FC = memo(() => {
         ...p,
         alerts: (n as Notification[]).filter((x) => !x.is_read).slice(0, 5),
       }));
-    } catch {
-    } finally {
+    } catch { /* empty */ } finally {
       setAlertsLoading(false);
     }
   }, []);
@@ -138,8 +137,7 @@ export const DashboardFeature: React.FC = memo(() => {
     try {
       const s = await LabApi.getSamples();
       setData((p) => ({ ...p, samples: s }));
-    } catch {
-    } finally {
+    } catch { /* empty */ } finally {
       setSamplesLoading(false);
     }
   }, []);
@@ -149,8 +147,7 @@ export const DashboardFeature: React.FC = memo(() => {
     try {
       const t = await LabApi.getTests();
       setData((p) => ({ ...p, tests: t }));
-    } catch {
-    } finally {
+    } catch { /* empty */ } finally {
       setTestsLoading(false);
     }
   }, []);

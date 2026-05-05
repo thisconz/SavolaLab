@@ -1,5 +1,5 @@
-import React, { memo, useMemo, type FC } from "react";
-import { Activity, ChevronRight, Zap, ShieldCheck, type LucideIcon, Home, Cpu } from "lucide-react";
+import { memo, useMemo, type FC } from "react";
+import { Activity, ChevronRight, Zap, ShieldCheck, type LucideIcon, Home } from "lucide-react";
 import { useAppStore } from "../../orchestrator/state/app.store";
 import { NotificationCenter } from "../../capsules/notifications";
 import { LogoRoot, LogoText } from "../../shared/components/Logo";

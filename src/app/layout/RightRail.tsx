@@ -1,11 +1,11 @@
-import React, { memo, useState, useEffect, useCallback, type FC } from "react";
+import { memo, useState, useEffect, useCallback, type FC } from "react";
 import {
   ShieldCheck,
   Radio,
   Zap,
   Activity,
   Lock,
-  LucideIcon,
+  type LucideIcon,
   Fingerprint,
   RefreshCw,
   Cpu,
@@ -34,7 +34,7 @@ interface TelemetryData {
 export const RightRail: FC = memo(() => {
   const { notifications, unreadCount } = useNotifications();
   const { status: sseStatus, isConnected } = useRealtime();
-  const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
+  const [telemetry, setTelemetry] = useState<TelemetryData | undefined>(undefined);
   const [isSyncing, setIsSyncing] = useState(false);
 
   const fetchTelemetry = useCallback(async (signal?: AbortSignal) => {

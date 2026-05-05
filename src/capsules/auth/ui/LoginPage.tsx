@@ -322,7 +322,7 @@ export const LoginPage: React.FC = () => {
                       </div>
                       <button
                         onClick={() => {
-                          setSelectedUser(null);
+                          setSelectedUser(undefined);
                           setError("");
                         }}
                         className="text-zenthar-text-muted hover:text-zenthar-text-primary rounded-lg p-2 transition-colors"

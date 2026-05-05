@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -40,7 +40,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
     isOpen,
   });
 
-  const isBrowser = typeof window !== "undefined";
+  // const isBrowser = typeof window !== "undefined";
 
   // Filter out current user from the list if you want a "Switch To" focus,
   // or keep them to show status. Here we keep them but highlight differently.
@@ -54,7 +54,7 @@ export const QuickSwitch: React.FC<QuickSwitchProps> = ({ isOpen, onClose }) => 
     }
   }, [isOpen, resetState]);
 
-  if (!isOpen || typeof document === "undefined") return null;
+  if (!isOpen || typeof document === "undefined") return undefined;
 
   return createPortal(
     <AnimatePresence>

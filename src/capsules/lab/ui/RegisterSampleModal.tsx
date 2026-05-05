@@ -57,7 +57,7 @@ const SOURCE_STAGE_OPTIONS = [
 
 export const RegisterSampleModal: React.FC<Props> = memo(({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
   const [form, setForm] = useState<FormState>(INITIAL);
 
   const set = (key: keyof FormState, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
@@ -74,7 +74,7 @@ export const RegisterSampleModal: React.FC<Props> = memo(({ isOpen, onClose, onS
     }
 
     setLoading(true);
-    setError(null);
+    setError(undefined);
 
     try {
       await LabApi.registerSample({
@@ -99,7 +99,7 @@ export const RegisterSampleModal: React.FC<Props> = memo(({ isOpen, onClose, onS
 
   const handleClose = () => {
     setForm(INITIAL);
-    setError(null);
+    setError(undefined);
     onClose();
   };
 

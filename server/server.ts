@@ -18,7 +18,6 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { initSseSubscriber } from "./core/events/sse-subscriber";
 import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
-import { rateLimiter } from "hono-rate-limiter";
 import path from "path";
 import { fileURLToPath } from "url";
 import { readFile } from "fs/promises";
@@ -46,8 +45,8 @@ import realtimeRoutes from "./modules/realtime/routes";
 import exportRoutes from "./modules/export/routes";
 import certificateRoutes from "./modules/certificates/routes";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
 
 const PORT = Number(process.env.APP_PORT ?? process.env.PORT ?? 3000);
 const NODE_ENV = process.env.NODE_ENV ?? "development";
@@ -183,7 +182,7 @@ async function startServer(): Promise<void> {
 
   // ── SPA — production ──────────────────────────────────────────────────────
   if (IS_PROD) {
-    const distPath = path.join(__dirname, "..", "dist");
+    const distPath = path.join(_dirname, "..", "dist");
     app.use("/*", serveStatic({ root: "dist" }));
     app.get("*", async (c) => {
       try {

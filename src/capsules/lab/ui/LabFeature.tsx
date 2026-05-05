@@ -6,8 +6,7 @@ import {
   Plus,
   Activity,
   LayoutDashboard,
-  RefreshCw,
-  Wifi,
+  RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LabPanel } from "../../../shared/components/LabPanel";
@@ -17,21 +16,20 @@ import { SampleDetails } from "./SampleDetails";
 import { LabBench } from "./LabBench";
 import { RegisterSampleModal } from "./RegisterSampleModal";
 import { useLabSamples } from "../hooks/useLabSamples"; // ← live hook
-import { Sample, SampleStatus } from "../../../core/types";
-import { ErrorBoundary } from "../../../shared/components/ErrorBoundary";
+import { type Sample, SampleStatus } from "../../../core/types";
+import { ZentharKernelBoundary as ErrorBoundary } from "../../../shared/components/ErrorBoundary";
 import { QCStatsWidget } from "../../dashboard/ui/QCStatsWidget";
 import { PriorityWidget } from "../../dashboard/ui/PriorityWidget";
-import clsx from "clsx";
 
 export const LabFeature: React.FC = memo(() => {
   const { samples, loading, error, refresh, lastUpdated, isRefreshing } = useLabSamples();
 
-  const [selectedSampleId, setSelectedSampleId] = useState<number | null>(null);
+  const [selectedSampleId, setSelectedSampleId] = useState<number | undefined>(undefined);
   const [viewMode, setViewMode] = useState<"queue" | "details" | "bench">("queue");
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
   const selectedSample = useMemo(
-    () => samples?.find((s) => s.id === selectedSampleId) || null,
+    () => samples?.find((s) => s.id === selectedSampleId) || undefined,
     [samples, selectedSampleId],
   );
 
@@ -46,7 +44,7 @@ export const LabFeature: React.FC = memo(() => {
   }, []);
 
   const handleBackToQueue = useCallback(() => {
-    setSelectedSampleId(null);
+    setSelectedSampleId(undefined);
     setViewMode("queue");
   }, []);
 

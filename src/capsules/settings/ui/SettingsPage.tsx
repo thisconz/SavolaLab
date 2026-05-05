@@ -10,7 +10,6 @@ import {
   Plus,
   Edit2,
   ChevronRight,
-  Database,
   ShieldCheck,
   Search,
   X,
@@ -20,9 +19,7 @@ import {
   AlertCircle,
   Package,
   Trash2,
-  Check,
   RefreshCw,
-  ChevronLeft,
   Lock,
   RotateCcw,
 } from "lucide-react";
@@ -373,7 +370,7 @@ const TABLE_CONFIG: Record<string, TableConfig> = {
         key: "quantity",
         label: "Qty / Unit",
         render: (v, r) => {
-          const low = v != null && r.min_stock != null && v <= r.min_stock;
+          const low = v != undefined && r.min_stock != undefined && v <= r.min_stock;
           return (
             <span
               className={clsx(
@@ -629,14 +626,14 @@ export const SettingsPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<any>(undefined);
   const [formData, setFormData] = useState<Record<string, any>>({});
-  const [deleteItem, setDeleteItem] = useState<any>(null);
+  const [deleteItem, setDeleteItem] = useState<any>(undefined);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar
 
   const config = TABLE_CONFIG[activeModule];
   const moduleInfo = MODULES.find((m) => m.id === activeModule)!;
-  const isEditing = editingItem !== null;
+  const isEditing = editingItem !== undefined;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -672,7 +669,7 @@ export const SettingsPage: React.FC = () => {
     config.fields.forEach((f) => {
       defaults[f.key] = f.type === "toggle" ? 1 : f.type === "number" ? "" : "";
     });
-    setEditingItem(null);
+    setEditingItem(undefined);
     setFormData(defaults);
     setIsFormOpen(true);
   };
@@ -689,7 +686,7 @@ export const SettingsPage: React.FC = () => {
 
   const closeForm = () => {
     setIsFormOpen(false);
-    setEditingItem(null);
+    setEditingItem(undefined);
     setFormData({});
   };
 
@@ -717,7 +714,7 @@ export const SettingsPage: React.FC = () => {
     try {
       await SettingsApi.deleteSetting(activeModule as any, item[config.pk]);
       toast.success("Entry deleted");
-      setDeleteItem(null);
+      setDeleteItem(undefined);
       await fetchData();
     } catch (err: any) {
       toast.error(err?.message || "Delete failed");
@@ -1043,7 +1040,7 @@ export const SettingsPage: React.FC = () => {
             >
               {saving ? (
                 <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              ) : null}
+              ) : undefined}
               {saving ? "Saving..." : isEditing ? "Save Changes" : "Create Entry"}
             </LabButton>
           </div>
@@ -1053,7 +1050,7 @@ export const SettingsPage: React.FC = () => {
       {/* ── Delete confirm ── */}
       <Modal
         isOpen={!!deleteItem}
-        onClose={() => setDeleteItem(null)}
+        onClose={() => setDeleteItem(undefined)}
         title="Confirm Action"
         maxWidth="max-w-sm"
       >
@@ -1070,7 +1067,7 @@ export const SettingsPage: React.FC = () => {
           <div className="flex gap-4">
             <LabButton
               variant="ghost"
-              onClick={() => setDeleteItem(null)}
+              onClick={() => setDeleteItem(undefined)}
               className="flex-1 py-3 text-[11px]"
             >
               Cancel

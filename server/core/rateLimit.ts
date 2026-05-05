@@ -34,8 +34,7 @@ export function rateLimit(opts: RateLimitOptions): MiddlewareHandler {
   if (sweep.unref) sweep.unref();
 
   return async (c: Context, next: Next) => {
-    const ip =
-      opts.keyFn?.(c) ??
+    const ip = opts.keyFn?.(c) ??
       c.req.header("x-forwarded-for")?.split(",")[0].trim() ??
       c.req.header("x-real-ip") ??
       "unknown";
@@ -64,7 +63,7 @@ export function rateLimit(opts: RateLimitOptions): MiddlewareHandler {
           error: opts.message ?? "Too many requests. Please slow down.",
           code: "RATE_LIMIT_EXCEEDED",
         },
-        429,
+        429
       );
     }
 

@@ -10,8 +10,7 @@ import {
   Download,
   Eye,
   Clock,
-  User,
-  Tag,
+  User
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { ArchiveApi } from "../api/archive.api";
@@ -44,7 +43,7 @@ export const ArchivePage: React.FC = () => {
     technician: "",
     stage: "",
   });
-  const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<any | undefined>(undefined);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -104,7 +103,7 @@ export const ArchivePage: React.FC = () => {
   };
 
   const handleDownloadRecord = (item: any) => {
-    const blob = new Blob([JSON.stringify(item, null, 2)], {
+    const blob = new Blob([JSON.stringify(item, undefined, 2)], {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob);
@@ -338,19 +337,19 @@ export const ArchivePage: React.FC = () => {
       {/* Detail modal */}
       <Modal
         isOpen={!!selectedRecord}
-        onClose={() => setSelectedRecord(null)}
+        onClose={() => setSelectedRecord(undefined)}
         title={`Record #${selectedRecord?.id ?? "—"}`}
         maxWidth="max-w-2xl"
       >
         <div className="space-y-5">
           <div className="border-brand-sage/20 custom-scrollbar max-h-96 overflow-x-auto rounded-xl border bg-(--color-zenthar-void) p-4">
             <pre className="text-brand-sage font-mono text-[10px] whitespace-pre-wrap">
-              {JSON.stringify(selectedRecord, null, 2)}
+              {JSON.stringify(selectedRecord, undefined, 2)}
             </pre>
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => setSelectedRecord(null)}
+              onClick={() => setSelectedRecord(undefined)}
               className="text-brand-sage border-brand-sage/10 flex-1 rounded-2xl border px-5 py-3.5 text-[10px] font-black tracking-widest uppercase transition-all hover:bg-(--color-zenthar-graphite)"
             >
               Close

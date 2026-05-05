@@ -1,5 +1,5 @@
 import { Role } from "./types/role";
-import { AppTab } from "./types/app.types";
+import type { AppTab } from "./types/app.types";
 
 /**
  * 1. Define Resource Scopes
@@ -18,12 +18,13 @@ interface TabPermission {
  * Higher roles inherit permissions from lower ones to keep the code DRY.
  */
 const BASE_TABS: AppTab[] = ["dashboard", "archive"];
+const MANAGE_TAPS : AppTab[] = ["analytics", "workflows", "assets", "audit", "settings"];
 
 const ROLE_GROUPS: Record<string, AppTab[]> = {
   STAFF: [...BASE_TABS],
   FIELD: ["dispatch"],
   LAB_CORE: ["lab", "stat"],
-  MANAGEMENT: ["analytics", "workflows", "assets", "audit", "settings"],
+  MANAGEMENT: [...MANAGE_TAPS],
   INTELLIGENCE: ["intelligence"],
 };
 
@@ -59,7 +60,7 @@ const ROLE_PERMISSIONS: Record<Role, AppTab[]> = {
  * Checks if a specific tab is allowed for a given role.
  * Includes a fallback to ensure the app doesn't crash on undefined roles.
  */
-export const isTabAllowed = (role: Role | undefined | null, tab: AppTab): boolean => {
+export const isTabAllowed = (role: Role | undefined | undefined, tab: AppTab): boolean => {
   if (!role) return false;
   const allowedTabs = ROLE_PERMISSIONS[role] || BASE_TABS;
   return allowedTabs.includes(tab);
@@ -69,7 +70,7 @@ export const isTabAllowed = (role: Role | undefined | null, tab: AppTab): boolea
  * Returns the list of allowed tabs for a given role.
  * Useful for rendering the sidebar dynamically.
  */
-export const getAllowedTabs = (role: Role | undefined | null): AppTab[] => {
+export const getAllowedTabs = (role: Role | undefined | undefined): AppTab[] => {
   if (!role) return BASE_TABS;
   return ROLE_PERMISSIONS[role] || BASE_TABS;
 };
@@ -78,7 +79,7 @@ export const getAllowedTabs = (role: Role | undefined | null): AppTab[] => {
  * Upgrade: Validates if a user can perform a specific action within a tab.
  * Example: isAuthorized(userRole, 'lab', 'WRITE')
  */
-export const isAuthorized = (role: Role, tab: AppTab, requiredLevel: AccessLevel = "READ"): boolean => {
+export const isAuthorized = (role: Role, tab: AppTab, _requiredLevel: AccessLevel = "READ"): boolean => {
   const allowed = isTabAllowed(role, tab);
   if (!allowed) return false;
 

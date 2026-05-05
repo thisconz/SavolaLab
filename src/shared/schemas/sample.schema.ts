@@ -31,7 +31,7 @@ export const SampleSchema = z.object({
   id: z.number(),
   batch_id: nullableToOptional(z.string()),
   /** Type/classification of the sample (e.g. "Raw sugar") */
-  sample_type: nullableToOptional(z.string()),
+  sample_type: SugarTypesSchema,
   /** Stage within the production process (e.g. "Evaporation") */
   source_stage: nullableToOptional(z.string()),
   line_id: nullableToOptional(z.union([z.string(), z.number()])),

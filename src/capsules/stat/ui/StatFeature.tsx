@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LabPanel } from "../../../shared/components/LabPanel";
 import { MetricCard } from "../../../shared/components/MetricCard";
 import { StatApi } from "../api/stat.api";
-import { StatRequest } from "../../../core/types";
+import { type StatRequest } from "../../../core/types";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import clsx from "clsx";
 import { toast } from "sonner";
@@ -31,7 +31,7 @@ export const StatFeature: React.FC = memo(() => {
     urgency: "NORMAL",
   });
   const [submitting, setSubmitting] = useState(false);
-  const [selectedStat, setSelectedStat] = useState<StatRequest | null>(null);
+  const [selectedStat, setSelectedStat] = useState<StatRequest | undefined>(undefined);
   const [newStatIds, setNewStatIds] = useState<Set<number>>(new Set()); // highlight newly arrived
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -206,7 +206,7 @@ export const StatFeature: React.FC = memo(() => {
                 <button
                   onClick={() => {
                     setShowNewForm(true);
-                    setSelectedStat(null);
+                    setSelectedStat(undefined);
                   }}
                   className="bg-brand-primary hover:bg-brand-primary/90 flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-(--color-zenthar-void) shadow-md transition-all"
                 >

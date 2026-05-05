@@ -10,7 +10,7 @@ import {
 import { WorkflowSchema, WorkflowStepSchema } from "../../shared/schemas/workflow.schema";
 import { NotificationSchema, NotificationTypeSchema } from "../../shared/schemas/notification.schema";
 import { AuditLogSchema } from "../../shared/schemas/audit.schema";
-import { type TestType } from "./lab.types";
+import type { TestType } from "./lab.types";
 
 /** --- Enums from Schemas --- */
 export type SampleStatus = z.infer<typeof SampleStatusSchema>;

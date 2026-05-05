@@ -1,11 +1,11 @@
 import React, { memo, useEffect, useState, useCallback, useRef } from "react";
-import { Truck, Package, Clock, AlertCircle, CheckCircle2, RefreshCw, MapPin, Wifi } from "lucide-react";
+import { Truck, Package, Clock, AlertCircle, CheckCircle2, RefreshCw, MapPin } from "lucide-react";
 import { LabPanel } from "../../../shared/components/LabPanel";
 import { MetricCard } from "../../../shared/components/MetricCard";
 import { DataListRow } from "../../../shared/components/DataListRow";
 import { api } from "../../../core/http/client";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import clsx from "clsx";
 
 interface DispatchData {
@@ -33,7 +33,7 @@ interface DispatchData {
 }
 
 export const DispatchFeature: React.FC = memo(() => {
-  const [data, setData] = useState<DispatchData | null>(null);
+  const [data, setData] = useState<DispatchData | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 

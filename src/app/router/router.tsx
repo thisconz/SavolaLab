@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useMemo, useEffect } from "react";
 import { ShieldAlert, Loader2, Lock, Fingerprint } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAppStore, AppTab } from "../../orchestrator/state/app.store";
+import { useAppStore, type AppTab } from "../../orchestrator/state/app.store";
 import { useAuthStore } from "../../orchestrator/state/auth.store";
 import { isTabAllowed } from "../../core/rbac";
 import { ZentharKernelBoundary as GlobalErrorBoundary } from "../../shared/components/ErrorBoundary";

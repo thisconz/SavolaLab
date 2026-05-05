@@ -25,7 +25,7 @@ if (DB_MODE === "pglite") {
 }
 
 // ─── PGlite singleton ─────────────────────────────────────────────
-let _pgliteInstance: PGlite | undefined = undefined;
+let _pgliteInstance: PGlite | undefined;
 let _pgliteTxLock: Promise<void> = Promise.resolve();
 
 function getPGLiteInstance(): PGlite {

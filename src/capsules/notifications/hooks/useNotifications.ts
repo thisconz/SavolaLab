@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { useEffect, useCallback } from "react";
 import { NotificationApi } from "../api/notification.api";
-import { Notification } from "../../../core/types";
+import { type Notification } from "../../../core/types";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import { useAuthStore } from "../../../orchestrator/state/auth.store";
 
@@ -12,7 +12,7 @@ import { useAuthStore } from "../../../orchestrator/state/auth.store";
 interface NotificationStore {
   notifications: Notification[];
   isFetching: boolean;
-  lastFetchedAt: number | null;
+  lastFetchedAt: number | undefined;
 
   setNotifications: (n: Notification[]) => void;
   setFetching: (v: boolean) => void;
@@ -23,7 +23,7 @@ interface NotificationStore {
 const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: [],
   isFetching: false,
-  lastFetchedAt: null,
+  lastFetchedAt: undefined,
 
   setNotifications: (notifications) => set({ notifications, lastFetchedAt: Date.now() }),
 
@@ -45,7 +45,7 @@ const useNotificationStore = create<NotificationStore>((set) => ({
 // Shared fetch function (deduplicates concurrent calls)
 // ─────────────────────────────────────────────
 
-let _fetchInFlight: Promise<void> | null = null;
+let _fetchInFlight: Promise<void> | undefined;
 
 async function fetchNotifications(): Promise<void> {
   if (_fetchInFlight) return _fetchInFlight;
@@ -55,7 +55,7 @@ async function fetchNotifications(): Promise<void> {
     setFetching(true);
     try {
       // Trigger overdue check (fire-and-forget)
-      NotificationApi.checkOverdue().catch(() => {});
+      NotificationApi.checkOverdue().catch(() => { /* empty */ });
       const data = await NotificationApi.getNotifications();
       setNotifications(data as Notification[]);
     } catch (err: any) {
@@ -64,7 +64,7 @@ async function fetchNotifications(): Promise<void> {
       }
     } finally {
       setFetching(false);
-      _fetchInFlight = null;
+      _fetchInFlight = undefined;
     }
   })();
 

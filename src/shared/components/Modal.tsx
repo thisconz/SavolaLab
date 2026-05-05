@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Hexagon, Activity, ShieldCheck, Zap, Radar, Fingerprint } from "lucide-react";
+import { X, Hexagon, ShieldCheck, Zap } from "lucide-react";
 import clsx from "clsx";
 
 interface ModalProps {
@@ -14,193 +14,213 @@ interface ModalProps {
   sidePanel?: React.ReactNode;
   maxWidth?: string;
   showShield?: boolean;
+  accentColor?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
-  isOpen,
-  onClose,
-  title,
-  subtitle,
-  children,
-  footer,
-  sidePanel,
-  maxWidth = "max-w-5xl",
-  showShield = true,
+  isOpen, onClose, title, subtitle, children, footer,
+  sidePanel, maxWidth = "max-w-2xl", showShield = true,
+  accentColor = "#f43f5e",
 }) => {
-  const modalRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(undefined);
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    },
-    [onClose],
-  );
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
-
-    const originalStyle = window.getComputedStyle(document.body).overflow;
+    const original = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
-
     return () => {
-      document.body.style.overflow = originalStyle;
+      document.body.style.overflow = original;
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, handleKeyDown]);
 
-  const modalContent = (
+  if (typeof document === "undefined") return undefined;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden p-4 perspective-[2000px] md:p-8 lg:p-16">
-          {/* 1. ATMOSPHERIC BACKDROP */}
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-8">
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 cursor-zoom-out bg-black/80 backdrop-blur-2xl"
-          >
-            {/* Vignette Overlay */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]" />
-            {/* Grainy Texture */}
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
-          </motion.div>
+            className="absolute inset-0 cursor-zoom-out"
+            style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(16px)" }}
+          />
 
-          {/* 2. TACTICAL MODAL FRAME */}
+          {/* Modal frame */}
           <motion.div
             ref={modalRef}
             role="dialog"
             aria-modal="true"
-            initial={{ opacity: 0, scale: 0.95, y: 40, rotateX: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 40, rotateX: -5 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className={clsx(
-              "relative flex w-full flex-col rounded-[3rem] bg-[#080809] shadow-[0_0_80px_-20px_rgba(0,0,0,1)] md:flex-row",
-              "overflow-hidden border border-white/6 backdrop-blur-3xl",
-              maxWidth,
-            )}
+            initial={{ opacity: 0, scale: 0.94, y: 30 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 20 }}
+            transition={{ type: "spring", damping: 28, stiffness: 220 }}
+            className={clsx("relative w-full flex flex-col md:flex-row overflow-hidden rounded-2xl", maxWidth)}
+            style={{
+              background: "linear-gradient(135deg, rgba(8,8,26,0.99) 0%, rgba(5,5,15,1) 100%)",
+              border: `1px solid ${accentColor}33`,
+              boxShadow: `0 0 60px ${accentColor}15, 0 24px 80px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.04)`,
+            }}
           >
-            {/* HUD Scanline Effect */}
-            <motion.div
-              initial={{ top: "-10%" }}
-              animate={{ top: "110%" }}
-              transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-              className="via-brand-primary/5 border-brand-primary/10 pointer-events-none absolute right-0 left-0 z-40 h-[10%] border-t bg-linear-to-b from-transparent to-transparent"
+            {/* Grid */}
+            <div className="absolute inset-0 instrument-grid opacity-40 pointer-events-none" />
+
+            {/* Top border glow */}
+            <div
+              className="absolute top-0 left-0 right-0 h-px pointer-events-none z-10"
+              style={{ background: `linear-gradient(90deg, transparent, ${accentColor}80, rgba(139,92,246,0.6), transparent)` }}
             />
 
-            {/* MAIN INTERFACE */}
-            <div className="relative flex min-w-0 flex-1 flex-col">
-              {/* Biometric Brackets */}
-              <div className="pointer-events-none absolute top-6 left-6 h-3 w-3 rounded-tl-xs border-t border-l border-white/10" />
-              <div className="pointer-events-none absolute top-6 right-6 h-3 w-3 rounded-tr-xs border-t border-r border-white/10" />
+            {/* Scan line */}
+            <motion.div
+              animate={{ top: ["-5%", "110%"] }}
+              transition={{ repeat: Infinity, duration: 5, ease: "linear" }}
+              className="absolute left-0 right-0 h-[8%] pointer-events-none z-20"
+              style={{
+                background: `linear-gradient(180deg, transparent, ${accentColor}06, transparent)`,
+                borderTop: `1px solid ${accentColor}15`,
+              }}
+            />
 
-              {/* HEADER: COMMAND MODULE */}
-              <header className="relative z-10 flex items-center justify-between border-b border-white/3 bg-white/1 px-10 py-8">
-                <div className="flex items-center gap-6">
-                  <div className="group relative">
-                    <div className="bg-brand-primary/20 absolute inset-0 animate-pulse rounded-full blur-xl" />
-                    <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/60 transition-transform group-hover:scale-105">
-                      <Hexagon className="text-brand-primary relative z-10 h-6 w-6" />
-                      <motion.div
-                        animate={{ opacity: [0.1, 0.4, 0.1] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                        className="from-brand-primary/40 absolute inset-0 bg-linear-to-tr to-transparent"
-                      />
-                    </div>
+            {/* Main panel */}
+            <div className="flex-1 flex flex-col min-w-0 relative z-30">
+
+              {/* Header */}
+              <header
+                className="flex items-center justify-between px-7 py-5 border-b"
+                style={{
+                  background: "rgba(8,8,26,0.6)",
+                  borderColor: "rgba(100,120,200,0.1)",
+                }}
+              >
+                <div className="flex items-center gap-4">
+                  <div
+                    className="relative w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
+                    style={{
+                      background: `${accentColor}12`,
+                      border: `1px solid ${accentColor}30`,
+                      boxShadow: `0 0 20px ${accentColor}15`,
+                    }}
+                  >
+                    <Hexagon className="w-5 h-5" style={{ color: accentColor }} />
+                    <motion.div
+                      animate={{ opacity: [0.1, 0.3, 0.1] }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                      className="absolute inset-0"
+                      style={{ background: `linear-gradient(135deg, ${accentColor}20, transparent)` }}
+                    />
                   </div>
 
-                  <div className="flex flex-col">
-                    <h3 className="mb-2 text-[12px] leading-none font-black tracking-[0.6em] text-white uppercase">
+                  <div>
+                    <h3 className="text-[11px] font-black text-zenthar-text-primary uppercase tracking-[0.4em] leading-none mb-1.5">
                       {title}
                     </h3>
-                    <div className="flex items-center gap-3">
-                      <Radar className="text-brand-primary/50 h-3.5 w-3.5 animate-pulse" />
-                      <span className="font-mono text-[10px] leading-none font-bold tracking-widest text-zinc-500 uppercase">
-                        {subtitle || "Protocol_Initialized"}
+                    <div className="flex items-center gap-2">
+                      <Zap size={9} style={{ color: `${accentColor}60` }} />
+                      <span className="text-[9px] font-mono font-bold text-zenthar-text-muted uppercase tracking-widest">
+                        {subtitle || "Protocol_Active"}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   {showShield && (
-                    <div className="border-brand-primary/10 hidden items-center gap-2.5 rounded-full border bg-black/40 px-4 py-2 shadow-inner sm:flex">
-                      <ShieldCheck size={12} className="text-brand-primary" />
-                      <span className="text-[9px] font-black tracking-widest text-zinc-400 uppercase">
-                        Verified_Link
-                      </span>
+                    <div
+                      className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest"
+                      style={{
+                        background: "rgba(16,185,129,0.08)",
+                        border: "1px solid rgba(16,185,129,0.2)",
+                        color: "#10b981",
+                      }}
+                    >
+                      <ShieldCheck size={11} />
+                      Verified
                     </div>
                   )}
+
                   <button
                     onClick={onClose}
-                    className="group relative rounded-2xl bg-white/3 p-3 text-zinc-500 transition-all hover:text-red-500 active:scale-90"
-                    title="Close Interface"
+                    className="p-2.5 rounded-xl transition-all text-zenthar-text-muted hover:text-red-400"
+                    style={{
+                      background: "rgba(8,8,26,0.8)",
+                      border: "1px solid rgba(100,120,200,0.1)",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.1)";
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,0.2)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background = "rgba(8,8,26,0.8)";
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(100,120,200,0.1)";
+                    }}
                   >
-                    <div className="absolute inset-0 rounded-full bg-red-500/0 blur-md transition-all group-hover:bg-red-500/10" />
-                    <X size={20} className="relative z-10" />
+                    <X size={16} />
                   </button>
                 </div>
               </header>
 
-              {/* VIEWPORT ENGINE */}
-              <main className="custom-scrollbar relative flex-1 overflow-y-auto bg-linear-to-b from-transparent to-black/20 p-10 lg:p-14">
-                <div className="relative z-10">{children}</div>
-                {/* Decorative Grid Shard */}
-                <div className="bg-brand-primary/1 pointer-events-none absolute right-0 bottom-0 h-64 w-64 rounded-full blur-3xl" />
+              {/* Body */}
+              <main className="flex-1 overflow-y-auto p-7 custom-scrollbar">
+                {children}
               </main>
 
-              {/* FOOTER: TELEMETRY BAR */}
-              <footer className="relative z-10 flex items-center justify-between border-t border-white/3 bg-black/40 px-10 py-5">
-                <div className="flex items-center gap-8">
-                  <div className="flex items-center gap-3 opacity-40 transition-opacity hover:opacity-100">
-                    <Activity size={14} className="text-brand-primary animate-pulse" />
-                    <div className="flex flex-col">
-                      <span className="text-[7px] font-black text-zinc-600 uppercase">Stream</span>
-                      <span className="text-[9px] font-bold text-zinc-300">ACTIVE_TX</span>
-                    </div>
-                  </div>
-                  <div className="h-6 w-px bg-white/5" />
-                  <div className="flex items-center gap-3 opacity-40 transition-opacity hover:opacity-100">
-                    <Zap size={12} className="text-orange-400" />
-                    <div className="flex flex-col">
-                      <span className="text-[7px] font-black text-zinc-600 uppercase">Latency</span>
-                      <span className="text-[9px] font-bold text-zinc-300">0.02ms</span>
-                    </div>
-                  </div>
+              {/* Footer */}
+              <footer
+                className="px-7 py-4 flex items-center justify-between"
+                style={{
+                  background: "rgba(5,5,15,0.8)",
+                  borderTop: "1px solid rgba(100,120,200,0.08)",
+                }}
+              >
+                <div className="flex items-center gap-2 opacity-40">
+                  <div
+                    className="w-1.5 h-1.5 rounded-full animate-pulse"
+                    style={{ background: accentColor }}
+                  />
+                  <span className="text-[7px] font-mono text-zenthar-text-muted uppercase tracking-widest">
+                    Active_TX
+                  </span>
                 </div>
-
-                <div className="flex items-center gap-4">{footer}</div>
+                <div className="flex items-center gap-3">{footer}</div>
               </footer>
             </div>
 
-            {/* OPTIONAL: SIDE UTILITY PANEL */}
+            {/* Side panel */}
             {sidePanel && (
-              <aside className="relative flex w-full flex-col border-l border-white/4 bg-black/30 md:w-80">
-                {/* Side Panel Header */}
-                <div className="flex items-center gap-3 border-b border-white/3 px-8 py-6">
-                  <Fingerprint size={14} className="text-brand-primary/40" />
-                  <span className="text-[9px] font-black tracking-widest text-zinc-500 uppercase">
+              <aside
+                className="w-full md:w-72 flex flex-col"
+                style={{
+                  background: "rgba(5,5,15,0.5)",
+                  borderLeft: "1px solid rgba(100,120,200,0.08)",
+                }}
+              >
+                <div
+                  className="px-6 py-5 border-b"
+                  style={{ borderColor: "rgba(100,120,200,0.08)" }}
+                >
+                  <span className="text-[8px] font-black text-zenthar-text-muted uppercase tracking-widest">
                     Metadata_Buffer
                   </span>
                 </div>
-                {/* Side Panel Content */}
-                <div className="custom-scrollbar flex-1 overflow-y-auto p-8">{sidePanel}</div>
-                {/* Side Panel Decorative Vents */}
-                <div className="flex justify-center gap-1 p-4 opacity-20">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-3 w-1 rounded-full bg-white/20" />
-                  ))}
+                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                  {sidePanel}
                 </div>
               </aside>
             )}
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
-
-  if (typeof document === "undefined") return undefined;
-  return createPortal(modalContent, document.body);
 };

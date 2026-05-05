@@ -17,13 +17,13 @@ export const SampleRules = {
 
   isHighPriority: (sample: Sample): boolean => sample.priority === "HIGH",
 
-  validateBatchId: (batchId: string): string | null => {
+  validateBatchId: (batchId: string): string | undefined => {
     const trimmed = batchId.trim();
     if (!trimmed) return "Batch ID is required";
     if (trimmed.length < 5) return "Batch ID must be at least 5 characters";
     // Regex check for alphanumeric batch IDs if required by your lab standard
     if (!/^[a-z0-9-]+$/i.test(trimmed)) return "Invalid characters in Batch ID";
-    return null;
+    return undefined;
   },
 
   getPriorityOrder: (priority: string): number => {

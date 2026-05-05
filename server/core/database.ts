@@ -5,7 +5,7 @@ import { initSecurityTriggers } from "./db/security";
 import { logger } from "./logger";
 
 let initialized = false;
-let initPromise: Promise<void> | undefined = undefined;
+let initPromise: Promise<void> | undefined;
 
 type InitStage = "instrumentation" | "migrations" | "security" | "seeding";
 

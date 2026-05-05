@@ -1,178 +1,164 @@
-import React, { memo, useRef } from "react";
+import React, { memo } from "react";
 import { type LucideIcon, Loader2 } from "lucide-react";
-import {
-  motion,
-  AnimatePresence,
-  useMotionTemplate,
-  useMotionValue,
-  useSpring,
-  type HTMLMotionProps,
-} from "framer-motion";
+import { motion, type HTMLMotionProps } from "framer-motion";
 import clsx from "clsx";
 
 interface LabButtonProps extends HTMLMotionProps<"button"> {
-  variant?: "primary" | "secondary" | "danger" | "ghost" | "laser" | "neon" | "cyber";
+  variant?: "primary" | "secondary" | "danger" | "ghost";
   fullWidth?: boolean;
   loading?: boolean;
   icon?: LucideIcon;
   iconPosition?: "left" | "right";
-  pulse?: boolean;
-  glitch?: boolean;
 }
 
-export const LabButton: React.FC<LabButtonProps> = memo(
-  ({
-    children,
-    variant = "primary",
-    fullWidth = false,
-    loading = false,
-    icon: Icon,
-    iconPosition = "left",
-    className = "",
-    disabled,
-    pulse = false,
-    glitch = false,
-    ...props
-  }) => {
-    const buttonRef = useRef<HTMLButtonElement>(undefined);
-
-    // 1. RECTIFIED MOTION VALUES
-    const mouseX = useMotionValue(0);
-    const mouseY = useMotionValue(0);
-
-    const springConfig = { damping: 20, stiffness: 150 };
-
-    const tx = useSpring(mouseX, springConfig);
-    const ty = useSpring(mouseY, springConfig);
-
-    function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
-      const { left, top, width, height } = currentTarget.getBoundingClientRect();
-      const x = clientX - left;
-      const y = clientY - top;
-
-      mouseX.set(x);
-      mouseY.set(y);
-
-      const centerX = width / 2;
-      const centerY = height / 2;
-      mouseX.set((x - centerX) / 8);
-      mouseY.set((y - centerY) / 8);
-    }
-
-    function handleMouseLeave(e: React.MouseEvent) {
-      const rect = e.currentTarget.getBoundingClientRect();
-
-      const x = e.clientX - rect.left - rect.width / 2;
-      const y = e.clientY - rect.top - rect.height / 2;
-
-      mouseX.set(x / 8);
-      mouseY.set(y / 8);
-    }
-
-    const baseStyles = clsx(
-      "relative inline-flex items-center justify-center gap-3 px-10 py-4",
-      "text-[11px] font-display font-bold uppercase tracking-[0.4em] rounded-xl",
-      "transition-all duration-300 outline-none select-none overflow-hidden group/btn",
-      "disabled:opacity-30 disabled:cursor-not-allowed disabled:grayscale",
-      fullWidth ? "w-full" : "w-fit",
-    );
-
-    const variants = {
-      primary:
-        "bg-brand-primary text-white shadow-[0_0_20px_rgba(var(--brand-primary-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--brand-primary-rgb),0.5)]",
-      secondary:
-        "bg-white/[0.03] text-zinc-400 border border-white/10 hover:border-white/30 hover:text-white backdrop-blur-md",
-      danger:
-        "bg-red-950/20 text-red-500 border border-red-500/30 hover:bg-red-600 hover:text-white shadow-[inset_0_0_15px_rgba(239,68,68,0.1)]",
-      ghost: "bg-transparent text-zinc-500 hover:text-brand-primary hover:bg-brand-primary/5",
-      laser:
-        "bg-black text-brand-primary border border-brand-primary/50 shadow-[0_0_15px_rgba(var(--brand-primary-rgb),0.2)]",
-      neon: "bg-transparent text-white border-2 border-white/10 hover:border-brand-primary hover:shadow-[0_0_25px_rgba(var(--brand-primary-rgb),0.6)]",
-      cyber: "bg-black text-brand-sage border-r-4 border-b-4 border-brand-primary shadow-xl",
-    };
-
-    const glowBackground = useMotionTemplate`
-    radial-gradient(
-      120px circle at ${mouseX}px ${mouseY}px,
-      rgba(var(--brand-primary-rgb), 0.25),
-      transparent 80%
-    )
-  `;
-
-    return (
-      <motion.button
-        ref={buttonRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.96 }}
-        className={clsx(
-          baseStyles,
-          variants[variant],
-          pulse && "animate-pulse",
-          glitch && "hover:animate-[skew_0.2s_infinite]",
-          className,
-        )}
-        disabled={disabled || loading}
-        {...props}
-      >
-        <motion.div
-          className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-300 group-hover/btn:opacity-100"
-          style={{ background: glowBackground }}
-        />
-
-        <div className="pointer-events-none absolute inset-0">
-          {/* CANONICAL TAILWIND FIX */}
-          <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover/btn:translate-x-full" />
-        </div>
-
-        <motion.div
-          style={{ x: tx, y: ty }}
-          className={clsx(
-            "relative z-10 flex items-center justify-center gap-3 transition-colors",
-            iconPosition === "right" && "flex-row-reverse",
-          )}
-        >
-          <AnimatePresence mode="wait">
-            {loading ? (
-              <motion.div
-                key="loader"
-                initial={{ opacity: 0, rotate: -180 }}
-                animate={{ opacity: 1, rotate: 0 }}
-                exit={{ opacity: 0 }}
-              >
-                <Loader2 className="h-4 w-4 animate-spin stroke-[3px]" />
-              </motion.div>
-            ) : Icon ? (
-              <motion.div key="icon" className="transition-transform group-hover/btn:scale-110">
-                <Icon size={16} className={clsx(variant === "danger" && "animate-bounce")} />
-              </motion.div>
-            ) : undefined}
-          </AnimatePresence>
-
-          <span className="relative tracking-[0.4em]">{children as React.ReactNode}</span>
-        </motion.div>
-
-        {/* TACTICAL HUD ACCENT - CANONICAL H-0.5 */}
-        <div className="via-brand-primary/40 absolute top-0 left-0 h-0.5 w-full bg-linear-to-r from-transparent to-transparent opacity-0 transition-opacity group-hover/btn:opacity-100" />
-
-        <div className="group-hover/btn:border-brand-primary/60 absolute top-0 left-0 h-2 w-2 border-t-2 border-l-2 border-white/5 transition-colors" />
-        <div className="group-hover/btn:border-brand-primary/60 absolute right-0 bottom-0 h-2 w-2 border-r-2 border-b-2 border-white/5 transition-colors" />
-
-        {variant === "laser" && (
-          <motion.div
-            animate={{ x: ["-100%", "100%"] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="via-brand-primary/10 pointer-events-none absolute inset-0 w-1/2 skew-x-12 bg-linear-to-r from-transparent to-transparent"
-          />
-        )}
-
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 opacity-0 transition-all group-hover/btn:opacity-100">
-          <span className="text-brand-primary/40 font-mono text-[6px] tracking-widest">BT-PRTCL-09</span>
-        </div>
-      </motion.button>
-    );
+const VARIANT_STYLES = {
+  primary: {
+    base: {
+      background: "linear-gradient(135deg, #f43f5e, #fb7185)",
+      border: "1px solid rgba(244,63,94,0.3)",
+      color: "#fff",
+      boxShadow: "0 0 24px rgba(244,63,94,0.3), 0 4px 16px rgba(0,0,0,0.4)",
+    },
+    hover: {
+      background: "linear-gradient(135deg, #fb7185, #f43f5e)",
+      boxShadow: "0 0 36px rgba(244,63,94,0.5), 0 4px 20px rgba(0,0,0,0.5)",
+    },
+    disabled: {
+      background: "rgba(8,8,26,0.8)",
+      border: "1px solid rgba(100,120,200,0.1)",
+      color: "rgba(136,146,176,0.4)",
+      boxShadow: "none",
+    },
   },
-);
+  secondary: {
+    base: {
+      background: "rgba(8,8,26,0.8)",
+      border: "1px solid rgba(100,120,200,0.15)",
+      color: "#8892b0",
+      boxShadow: "none",
+    },
+    hover: {
+      background: "rgba(244,63,94,0.06)",
+      border: "1px solid rgba(244,63,94,0.25)",
+      color: "#f43f5e",
+    },
+    disabled: {
+      background: "rgba(8,8,26,0.6)",
+      border: "1px solid rgba(100,120,200,0.08)",
+      color: "rgba(136,146,176,0.3)",
+      boxShadow: "none",
+    },
+  },
+  danger: {
+    base: {
+      background: "rgba(239,68,68,0.08)",
+      border: "1px solid rgba(239,68,68,0.25)",
+      color: "#ef4444",
+      boxShadow: "none",
+    },
+    hover: {
+      background: "#ef4444",
+      border: "1px solid rgba(239,68,68,0.5)",
+      color: "#fff",
+      boxShadow: "0 0 20px rgba(239,68,68,0.3)",
+    },
+    disabled: {
+      background: "rgba(239,68,68,0.04)",
+      border: "1px solid rgba(239,68,68,0.1)",
+      color: "rgba(239,68,68,0.3)",
+      boxShadow: "none",
+    },
+  },
+  ghost: {
+    base: {
+      background: "transparent",
+      border: "1px solid transparent",
+      color: "rgba(136,146,176,0.6)",
+      boxShadow: "none",
+    },
+    hover: {
+      background: "rgba(244,63,94,0.05)",
+      color: "#f43f5e",
+    },
+    disabled: {
+      background: "transparent",
+      border: "1px solid transparent",
+      color: "rgba(136,146,176,0.2)",
+      boxShadow: "none",
+    },
+  },
+};
+
+export const LabButton: React.FC<LabButtonProps> = memo(({
+  children, variant = "primary", fullWidth = false, loading = false,
+  icon: Icon, iconPosition = "left", className = "", disabled, ...props
+}) => {
+  const s = VARIANT_STYLES[variant];
+  const isDisabled = disabled || loading;
+
+  return (
+    <motion.button
+      whileHover={!isDisabled ? { scale: 1.02, y: -1 } : undefined}
+      whileTap={!isDisabled ? { scale: 0.98 } : undefined}
+      disabled={isDisabled}
+      className={clsx(
+        "relative inline-flex items-center justify-center gap-2.5 px-6 py-3",
+        "text-[10px] font-black uppercase tracking-[0.3em] rounded-xl",
+        "transition-all duration-300 outline-none select-none overflow-hidden group",
+        "disabled:cursor-not-allowed",
+        fullWidth && "w-full",
+        className,
+      )}
+      style={isDisabled ? s.disabled : s.base}
+      onMouseEnter={(e) => {
+        if (!isDisabled && s.hover) {
+          const el = e.currentTarget as HTMLButtonElement;
+          Object.entries(s.hover).forEach(([key, val]) => {
+            (el.style as any)[key] = val;
+          });
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isDisabled) {
+          const el = e.currentTarget as HTMLButtonElement;
+          Object.entries(s.base).forEach(([key, val]) => {
+            (el.style as any)[key] = val;
+          });
+        }
+      }}
+      {...(props as any)}
+    >
+      {/* Shimmer effect for primary */}
+      {variant === "primary" && !isDisabled && (
+        <motion.div
+          animate={{ x: ["-120%", "220%"] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-y-0 w-1/4 -skew-x-12 pointer-events-none"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)" }}
+        />
+      )}
+
+      {/* Content */}
+      <div className={clsx("relative z-10 flex items-center gap-2.5", iconPosition === "right" && "flex-row-reverse")}>
+        {loading ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : Icon ? (
+          <Icon size={14} className="transition-transform group-hover:scale-110" />
+        ) : undefined}
+        <span>{children as React.ReactNode}</span>
+      </div>
+
+      {/* Corner accents */}
+      <div
+        className="absolute top-0 left-0 w-2 h-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{ borderTop: "1px solid rgba(244,63,94,0.5)", borderLeft: "1px solid rgba(244,63,94,0.5)" }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-2 h-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{ borderBottom: "1px solid rgba(244,63,94,0.5)", borderRight: "1px solid rgba(244,63,94,0.5)" }}
+      />
+    </motion.button>
+  );
+});
 
 LabButton.displayName = "LabButton";

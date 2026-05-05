@@ -9,7 +9,6 @@ import {
   ChevronUp,
   ChevronDown,
   Download,
-  Calendar,
   AlertTriangle,
   Info,
 } from "lucide-react";
@@ -19,7 +18,6 @@ import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import clsx from "clsx";
 import { useSpecLimits } from "../hooks/useSpecLimits";
 import {
-  LineChart,
   Line,
   BarChart,
   Bar,
@@ -44,9 +42,9 @@ import { ChartSkeleton } from "../../../shared/components/Skeletons";
 
 interface QualityPoint {
   time: string;
-  brix: number | null;
-  purity: number | null;
-  color: number | null;
+  brix: number | undefined;
+  purity: number | undefined;
+  color: number | undefined;
 }
 interface VolumePoint {
   day: string;
@@ -136,8 +134,8 @@ function detectViolations(data: number[], mean: number, stddev: number): boolean
   return data.map((v) => v > ucl || v < lcl);
 }
 
-function statsOf(values: (number | null)[]): { mean: number; stddev: number } {
-  const valid = values.filter((v): v is number => v != null);
+function statsOf(values: (number | undefined)[]): { mean: number; stddev: number } {
+  const valid = values.filter((v): v is number => v !== undefined);
   if (!valid.length) return { mean: 0, stddev: 0 };
   const mean = valid.reduce((s, v) => s + v, 0) / valid.length;
   const variance = valid.reduce((s, v) => s + (v - mean) ** 2, 0) / valid.length;
@@ -217,7 +215,7 @@ const CpkGauge: React.FC<{
           >
             {cpk.toFixed(2)}
           </span>
-          {ppk != null && (
+          {ppk != undefined && (
             <span className="text-brand-sage/50 mt-0.5 font-mono text-[9px]">Pp {ppk.toFixed(2)}</span>
           )}
         </div>
@@ -266,10 +264,10 @@ export const AnalyticsFeature: React.FC = memo(() => {
   const [breakdown, setBreakdown] = useState<StatusBreakdown[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeWindow, setTimeWindow] = useState<TimeWindow>("24h");
-  const [lastFetch, setLastFetch] = useState<Date | null>(null);
+  const [lastFetch, setLastFetch] = useState<Date | undefined>(undefined);
   const [showSpec, setShowSpec] = useState(true);
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const { on } = useRealtime();
 
   const { limits: SPEC_LIMITS } = useSpecLimits();
@@ -320,7 +318,7 @@ export const AnalyticsFeature: React.FC = memo(() => {
   }, [quality]);
 
   const avgPassRate = useMemo(() => {
-    if (!passRates.length) return null;
+    if (!passRates.length) return undefined;
     return (passRates.reduce((s, r) => s + (r.pass_rate ?? 0), 0) / passRates.length).toFixed(1);
   }, [passRates]);
 

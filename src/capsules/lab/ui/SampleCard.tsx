@@ -11,7 +11,7 @@ import {
   Tag,
   Zap,
 } from "lucide-react";
-import { Sample, SampleStatus } from "../../../core/types";
+import { type Sample, SampleStatus } from "../../../core/types";
 import { PriorityBadge } from "../../../shared/components/PriorityBadge";
 
 interface SampleCardProps {

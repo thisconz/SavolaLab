@@ -1,9 +1,7 @@
 import { api } from "../../../core/http/client";
 import {
-  Sample,
-  GetSamplesResponseSchema,
-  CreateSampleRequest,
-  UpdateSampleRequest,
+  type Sample,
+  GetSamplesResponseSchema
 } from "../../../shared/schemas/sample.schema";
 import type { TestResult } from "../../../core/types";
 
@@ -78,7 +76,7 @@ export const LabApi = {
   reviewTest: async (testId: number, status: "APPROVED" | "DISAPPROVED", comment?: string): Promise<void> => {
     return api.post(`/tests/${testId}/review`, {
       status,
-      comment: comment ?? null,
+      comment: comment ?? undefined,
     });
   },
 };

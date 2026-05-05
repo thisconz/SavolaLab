@@ -4,10 +4,10 @@ import { api } from "../../../core/http/client";
 export interface SpecLimit {
   id: number;
   test_type: string;
-  sample_stage: string | null;
+  sample_stage: string | undefined;
   usl: number;
   lsl: number;
-  unit: string | null;
+  unit: string | undefined;
 }
 
 type SpecLimitsMap = Record<string, { usl: number; lsl: number; label: string }>;
@@ -44,7 +44,7 @@ export function useSpecLimits(): {
         for (const row of rows) {
           // Only use global limits (sample_stage = null) for SPC reference lines.
           // Stage-specific limits are used server-side for Cpk calculation.
-          if (row.sample_stage !== null) continue;
+          if (row.sample_stage !== undefined) continue;
           mapped[row.test_type] = {
             usl: row.usl,
             lsl: row.lsl,

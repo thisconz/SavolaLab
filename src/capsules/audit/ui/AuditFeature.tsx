@@ -9,12 +9,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
-  LogIn,
-  LogOut,
-  FileEdit,
-  Trash2,
-  Database,
-  Zap,
   Activity,
   User,
   Clock,
@@ -22,15 +16,13 @@ import {
   Eye,
   Info,
   Wifi,
-  Filter,
-  MoreHorizontal,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MetricCard } from "../../../shared/components/MetricCard";
 import { TableSkeleton } from "../../../shared/components/Skeletons";
 import { api } from "../../../core/http/client";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
-import { AuditLog } from "../model/audit.model";
+import type { AuditLog } from "../model/audit.model";
 import clsx from "clsx";
 import { toast } from "sonner";
 
@@ -127,7 +119,7 @@ export const AuditFeature: React.FC = memo(() => {
     start_date: "",
     end_date: "",
   });
-  const [selected, setSelected] = useState<AuditLog | null>(null);
+  const [selected, setSelected] = useState<AuditLog | undefined>(undefined);
   const [stats, setStats] = useState({ total: 0, today: 0, uniqueUsers: 0, anomalies: 0 });
 
   const { on } = useRealtime();
@@ -513,7 +505,7 @@ export const AuditFeature: React.FC = memo(() => {
             </button>
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               const num = Math.max(0, Math.min(page - 2, totalPages - 5)) + i;
-              if (num >= totalPages) return null;
+              if (num >= totalPages) return undefined;
               return (
                 <button
                   key={num}
@@ -548,7 +540,7 @@ export const AuditFeature: React.FC = memo(() => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-end bg-black/20 backdrop-blur-sm"
-            onClick={() => setSelected(null)}
+            onClick={() => setSelected(undefined)}
           >
             <motion.div
               initial={{ x: "100%", opacity: 0 }}
@@ -565,7 +557,7 @@ export const AuditFeature: React.FC = memo(() => {
                   </div>
                 </div>
                 <button
-                  onClick={() => setSelected(null)}
+                  onClick={() => setSelected(undefined)}
                   className="hover:bg-zenthar-graphite/30 text-brand-sage rounded-xl p-2 transition-all"
                 >
                   <X className="h-4 w-4" />

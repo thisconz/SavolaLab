@@ -3,7 +3,6 @@ import {
   Factory,
   Activity,
   AlertTriangle,
-  CheckCircle2,
   Zap,
   Clock,
   RefreshCw,
@@ -23,11 +22,11 @@ interface PlantData {
 }
 
 export const IntelligenceFeature: React.FC = memo(() => {
-  const [data, setData] = useState<PlantData | null>(null);
+  const [data, setData] = useState<PlantData | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const { on } = useRealtime();
 
   const fetchIntel = useCallback(async (silent = false) => {

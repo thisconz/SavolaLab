@@ -24,7 +24,7 @@ export const ArchiveApi = {
   search: async <T = any>(section: ArchiveSection, filters: Record<string, any>): Promise<T[]> => {
     // Clean up empty filters to keep the URL concise
     const cleanFilters = Object.fromEntries(
-      Object.entries(filters).filter(([_, v]) => v != null && v !== ""),
+      Object.entries(filters).filter(([_, v]) => v !== undefined && v !== ""),
     );
 
     const queryParams = new URLSearchParams(cleanFilters as any);
@@ -38,9 +38,9 @@ export const ArchiveApi = {
    * Retrieves a single historical record by its archive ID.
    * Useful for "View Details" modals in the Archive UI.
    */
-  getRecordById: async <T = any>(section: ArchiveSection, id: string | number): Promise<T | null> => {
+  getRecordById: async <T = any>(section: ArchiveSection, id: string | number): Promise<T | undefined> => {
     const res = await api.get<ArchiveResponse<T>>(`/archive/${section}/${id}`);
-    return res.data || null;
+    return res.data || undefined;
   },
 
   /**

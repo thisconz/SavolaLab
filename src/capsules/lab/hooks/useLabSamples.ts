@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { LabApi } from "../api/lab.api";
-import { Sample } from "../../../core/types";
+import { type Sample } from "../../../core/types";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import { toast } from "sonner";
 
 interface UseLiveSamplesReturn {
   samples: Sample[];
   loading: boolean;
-  error: string | null;
+  error: string | undefined;
   refresh: () => Promise<void>;
-  lastUpdated: Date | null;
+  lastUpdated: Date | undefined;
   /** True when a background SSE refresh is in-flight */
   isRefreshing: boolean;
 }
@@ -25,8 +25,8 @@ export function useLabSamples(): UseLiveSamplesReturn {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined);
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const mountedRef = useRef(true);
@@ -42,7 +42,7 @@ export function useLabSamples(): UseLiveSamplesReturn {
       const data = await LabApi.getSamples();
       if (!mountedRef.current) return;
       setSamples(data);
-      setError(null);
+      setError(undefined);
       setLastUpdated(new Date());
     } catch (err: any) {
       if (!mountedRef.current) return;

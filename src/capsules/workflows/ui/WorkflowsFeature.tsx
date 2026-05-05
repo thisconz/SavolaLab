@@ -7,15 +7,12 @@ import {
   XCircle,
   Play,
   History,
-  AlertCircle,
-  Plus,
-  RefreshCw,
   Zap,
 } from "lucide-react";
 import { LabPanel } from "../../../shared/components/LabPanel";
 import { LabApi } from "../../lab/api/lab.api";
 import { WorkflowApi } from "../api/workflow.api";
-import { WorkflowExecution, Sample } from "../../../core/types";
+import { type WorkflowExecution, type Sample } from "../../../core/types";
 import { useRealtime } from "../../../core/providers/RealtimeProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
@@ -61,7 +58,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 
 export const WorkflowsFeature: React.FC = memo(() => {
   const [samples, setSamples] = useState<Sample[]>([]);
-  const [selectedSample, setSelectedSample] = useState<Sample | null>(null);
+  const [selectedSample, setSelectedSample] = useState<Sample | undefined>(undefined);
   const [executions, setExecutions] = useState<ExecutionWithWorkflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [exLoading, setExLoading] = useState(false);
@@ -343,7 +340,7 @@ export const WorkflowsFeature: React.FC = memo(() => {
                                 </span>
                               </div>
                               <div className="flex items-center gap-4 font-mono text-[10px]">
-                                {step.result_value != null && (
+                                {step.result_value !== undefined && (
                                   <span className="text-brand-primary font-bold">{step.result_value}</span>
                                 )}
                                 <span className="text-brand-sage/50">

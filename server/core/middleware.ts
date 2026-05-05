@@ -2,8 +2,6 @@ import type { Context, Next } from "hono";
 import { getCookie } from "hono/cookie";
 import type { Variables, User, UserRole, PermissionFlags } from "./types";
 import { verifyToken } from "../modules/auth/service";
-import { AppError } from "./errors";
-import { logger } from "./logger";
 
 function extractToken(c: Context): string | undefined {
   const auth = c.req.header("authorization");

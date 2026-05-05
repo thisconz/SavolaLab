@@ -1,5 +1,5 @@
 import { api } from "../../../core/http/client";
-import { User } from "../../../core/types";
+import type { User } from "../../../core/types";
 
 export const AuthApi = {
   /**

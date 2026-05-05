@@ -19,11 +19,11 @@ export const TableRecordSchema = z
     created_at: z
       .union([z.string(), z.date()])
       .nullish()
-      .transform((d) => (d ? (typeof d === "string" ? d : d.toISOString()) : null)),
+      .transform((d) => (d ? (typeof d === "string" ? d : d.toISOString()) : undefined)),
     updated_at: z
       .union([z.string(), z.date()])
       .nullish()
-      .transform((d) => (d ? (typeof d === "string" ? d : d.toISOString()) : null)),
+      .transform((d) => (d ? (typeof d === "string" ? d : d.toISOString()) : undefined)),
   })
   .catchall(z.any());
 

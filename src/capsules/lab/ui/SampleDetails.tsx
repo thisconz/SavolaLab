@@ -189,7 +189,9 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                         icon={TestTube2}
                         label="Sample_Type"
                         value={editedSample.sample_type}
-                        onChange={(v: string) => setEditedSample((p) => ({ ...p, sample_type: v }))}
+                        onChange={(v: string) => setEditedSample((p) => {
+                          return ({ ...p, sample_type: v });
+                        })}
                       />
                       <EditField
                         icon={Layers}
@@ -241,13 +243,13 @@ export const SampleDetails: React.FC<SampleDetailsProps> = memo(
                         className="col-span-2"
                         icon={Factory}
                         label="Line"
-                        value={sample.line_id ? `Line ${sample.line_id}` : null}
+                        value={sample.line_id ? `Line ${sample.line_id}` : undefined}
                       />
                       <DetailTile
                         className="col-span-2"
                         icon={Cpu}
                         label="Equipment"
-                        value={sample.equipment_id ? `Eq. ${sample.equipment_id}` : null}
+                        value={sample.equipment_id ? `Eq. ${sample.equipment_id}` : undefined}
                       />
                       <DetailTile
                         className="col-span-2"

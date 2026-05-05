@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { LabApi } from "../api/lab.api";
 import { WorkflowApi } from "../../workflows/api/workflow.api";
-import { Sample } from "../../../shared/schemas/sample.schema";
+import type { Sample } from "../../../shared/schemas/sample.schema";
 import type { TestResult, TestType } from "../../../core/types";
 import { calculateICUMSA } from "../../../core/utils/calculations.util";
 import { TEST_VALIDATION_RULES } from "../constants/validation.constants";

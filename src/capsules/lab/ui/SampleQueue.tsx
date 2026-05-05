@@ -1,11 +1,11 @@
 import React, { memo, useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { Search, RotateCcw, SlidersHorizontal, Beaker, ChevronUp, ChevronDown } from "lucide-react";
 import { SampleCard } from "./SampleCard";
-import { Sample, SampleStatus } from "../../../core/types";
+import { type Sample, SampleStatus } from "../../../core/types";
 
 interface SampleQueueProps {
   samples: Sample[];
-  selectedSampleId?: number | null;
+  selectedSampleId?: number | undefined;
   onSampleSelect: (sample: Sample) => void;
 }
 
@@ -19,12 +19,12 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
     const [statusFilter, setStatusFilter] = useState("ALL");
     const [scrollTop, setScrollTop] = useState(0);
 
-    const sentinelRef = useRef<HTMLDivElement>(null);
+    const sentinelRef = useRef<HTMLDivElement>(undefined);
     const [cardHeight, setCardHeight] = useState(DEFAULT_CARD_HEIGHT);
 
-    const containerRef = useRef<HTMLDivElement>(null);
-    const firstCardRef = useRef<HTMLDivElement>(null);
-    const resizeObserver = useRef<ResizeObserver | null>(null);
+    const containerRef = useRef<HTMLDivElement>(undefined);
+    const firstCardRef = useRef<HTMLDivElement>(undefined);
+    const resizeObserver = useRef<ResizeObserver | undefined>(undefined);
 
     // ── Measure container height with ResizeObserver ──────────────────────
     useLayoutEffect(() => {
@@ -87,7 +87,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
 
     // ── Scroll selected item into view ────────────────────────────────────
     useEffect(() => {
-      if (selectedSampleId == null || !containerRef.current) return;
+      if (selectedSampleId == undefined || !containerRef.current) return;
       const idx = filtered.findIndex((s) => s.id === selectedSampleId);
       if (idx === -1) return;
       const itemTop = idx * cardHeight;
@@ -148,7 +148,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
               zIndex: -1,
             }}
           >
-            <SampleCard sample={filtered[0]} active={false} onClick={() => {}} />
+            <SampleCard sample={filtered[0]} active={false} onClick={() => { /* empty */ }} />
           </div>
         )}
         {/* Header */}
@@ -221,7 +221,7 @@ export const SampleQueue: React.FC<SampleQueueProps> = memo(
           </div>
 
           {/* Keyboard hint */}
-          {selectedSampleId != null && (
+          {selectedSampleId !== undefined && (
             <div className="text-brand-sage/40 flex items-center gap-2 font-mono text-[8px]">
               <ChevronUp size={10} />
               <ChevronDown size={10} />

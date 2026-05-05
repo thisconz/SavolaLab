@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "./layout/Sidebar";
 import { Header } from "./layout/Header";
 import { RightRail } from "./layout/RightRail";
-import { useAppStore, AppTab, useSetActiveTab } from "../orchestrator/state/app.store";
+import { useAppStore, type AppTab, useSetActiveTab } from "../orchestrator/state/app.store";
 import { useAuthStore } from "../orchestrator/state/auth.store";
 import { LoginPage } from "../capsules/auth";
 import clsx from "clsx";

@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Bell, Check, Trash2, AlertCircle, CheckCircle2, XCircle, Clock } from "lucide-react";
-import { NotificationApi } from "../api/notification.api";
-import { Notification } from "../../../core/types";
+import React, { useState } from "react";
+import { Bell, AlertCircle, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { useNotifications } from "../hooks/useNotifications";
 import { motion, AnimatePresence } from "framer-motion";
 

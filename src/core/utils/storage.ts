@@ -7,19 +7,19 @@ export const createSafeStorage = (): Storage => {
 
   const getLS = () => {
     try {
-      return typeof window !== "undefined" ? window.localStorage : null;
+      return typeof window !== "undefined" ? window.localStorage : undefined;
     } catch {
-      return null;
+      return undefined;
     }
   };
 
   return {
-    getItem: (name: string): string | null => {
+    getItem: (name: string): string | undefined => {
       try {
         const ls = getLS();
-        return (ls ? ls.getItem(name) : null) || inMemoryStorage.get(name) || null;
+        return (ls ? ls.getItem(name) : undefined) || inMemoryStorage.get(name) || undefined;
       } catch (e) {
-        return inMemoryStorage.get(name) || null;
+        return inMemoryStorage.get(name) || undefined;
       }
     },
     setItem: (name: string, value: string): void => {
@@ -58,15 +58,15 @@ export const createSafeStorage = (): Storage => {
         inMemoryStorage.clear();
       }
     },
-    key: (index: number): string | null => {
+    key: (index: number): string | undefined => {
       try {
         const ls = getLS();
         if (ls) {
           return ls.key(index);
         }
-        return Array.from(inMemoryStorage.keys())[index] || null;
+        return Array.from(inMemoryStorage.keys())[index] || undefined;
       } catch (e) {
-        return Array.from(inMemoryStorage.keys())[index] || null;
+        return Array.from(inMemoryStorage.keys())[index] || undefined;
       }
     },
     get length(): number {

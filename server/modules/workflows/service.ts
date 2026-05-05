@@ -4,8 +4,8 @@ import { sseBus } from "../../core/sse";
 
 export interface WorkflowStepInput {
   test_type: string;
-  min_value?: number | null;
-  max_value?: number | null;
+  min_value?: number | undefined;
+  max_value?: number | undefined;
 }
 
 export const WorkflowService = {
@@ -60,7 +60,7 @@ export const WorkflowService = {
         `INSERT INTO workflows (name, description, target_stage)
          VALUES ($1, $2, $3)
          RETURNING id`,
-        [name.trim(), description ?? null, target_stage ?? null],
+        [name.trim(), description ?? undefined, target_stage ?? undefined],
       )) as { id: number }[];
 
       const workflowId = wfRows[0].id;
@@ -72,7 +72,7 @@ export const WorkflowService = {
           `INSERT INTO workflow_steps
            (workflow_id, test_type, sequence_order, min_value, max_value)
            VALUES ($1, $2, $3, $4, $5)`,
-          [workflowId, step.test_type, i + 1, step.min_value ?? null, step.max_value ?? null],
+          [workflowId, step.test_type, i + 1, step.min_value ?? undefined, step.max_value ?? undefined],
         );
       }
 
@@ -174,7 +174,7 @@ export const WorkflowService = {
              test_id = $2,
              result_value = $3
          WHERE execution_id = $4 AND step_id = $5`,
-        [status, testId ?? null, resultValue ?? null, executionId, stepId],
+        [status, testId ?? undefined, resultValue ?? undefined, executionId, stepId],
       );
 
       const pendingRows = (await client.query(

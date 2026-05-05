@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, useRef, useEffect } from "react";
+import React, { memo, useState, useRef, useEffect } from "react";
 import {
   FlaskConical,
   CheckCircle2,
@@ -11,11 +11,8 @@ import {
   ChevronDown,
   ChevronUp,
   Keyboard,
-  RotateCcw,
-  Eye,
-  EyeOff,
 } from "lucide-react";
-import { Sample, TestResult, TestType } from "../../../core/types";
+import type { Sample, TestResult, TestType } from "../../../core/types";
 import { LabPanel } from "../../../shared/components/LabPanel";
 import { useLabBench } from "../hooks/useLabBench";
 import { TEST_VALIDATION_RULES } from "../constants/validation.constants";
@@ -49,7 +46,7 @@ interface TestCardProps {
   onReviewComment: (val: string) => void;
   onApprove: () => void;
   onDisapprove: () => void;
-  inputRef?: React.RefObject<HTMLInputElement | null>;
+  inputRef?: React.RefObject<HTMLInputElement | undefined>;
 }
 
 const TestCard: React.FC<TestCardProps> = ({
@@ -80,7 +77,7 @@ const TestCard: React.FC<TestCardProps> = ({
   const numVal = parseFloat(value);
   const hasValue = !isNaN(numVal) && value !== "";
   const rangePercent =
-    rule && hasValue ? Math.min(100, Math.max(0, ((numVal - rule.min) / (rule.max - rule.min)) * 100)) : null;
+    rule && hasValue ? Math.min(100, Math.max(0, ((numVal - rule.min) / (rule.max - rule.min)) * 100)) : undefined;
   const isOutOfRange = rule && hasValue && (numVal < rule.min || numVal > rule.max);
 
   const statusConfig = {
@@ -268,7 +265,7 @@ const TestCard: React.FC<TestCardProps> = ({
                 </div>
                 <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-(--color-zenthar-steel)">
                   <div className="absolute inset-x-[25%] inset-y-0 rounded-full bg-emerald-500/20" />
-                  {rangePercent !== null && (
+                  {rangePercent !== undefined && (
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${rangePercent}%` }}
@@ -362,12 +359,12 @@ export const LabBench: React.FC<LabBenchProps> = memo(({ sample, onComplete }) =
   } = useLabBench(sample, onComplete);
 
   const [reviewState, setReviewState] = useState<{
-    id: number | null;
+    id: number | undefined;
     comment: string;
-  }>({ id: null, comment: "" });
+  }>({ id: undefined, comment: "" });
   const [showShortcuts, setShowShortcuts] = useState(false);
 
-  const firstInputRef = useRef<HTMLInputElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(undefined);
   useEffect(() => {
     if (!loading && tests.length > 0) {
       setTimeout(() => firstInputRef.current?.focus(), 150);
@@ -485,15 +482,15 @@ export const LabBench: React.FC<LabBenchProps> = memo(({ sample, onComplete }) =
               onNoteChange={(v) => handleNoteChange(test.id, v)}
               onColourParam={(p, v) => handleColourParamChange(test.id, p, v)}
               onReviewStart={() => setReviewState({ id: test.id, comment: "" })}
-              onReviewCancel={() => setReviewState({ id: null, comment: "" })}
+              onReviewCancel={() => setReviewState({ id: undefined, comment: "" })}
               onReviewComment={(v) => setReviewState((s) => ({ ...s, comment: v }))}
               onApprove={() => {
                 handleReview(test.id, "APPROVED", reviewState.comment || undefined);
-                setReviewState({ id: null, comment: "" });
+                setReviewState({ id: undefined, comment: "" });
               }}
               onDisapprove={() => {
                 handleReview(test.id, "DISAPPROVED", reviewState.comment || undefined);
-                setReviewState({ id: null, comment: "" });
+                setReviewState({ id: undefined, comment: "" });
               }}
               inputRef={idx === 0 ? firstInputRef : undefined}
             />

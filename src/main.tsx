@@ -25,7 +25,7 @@ const validateEnvironment = () => {
  */
 const initializeAssets = () => {
   const faviconUrl = "/favicon.ico"; // Prefer public folder for static assets
-  let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+  let link: HTMLLinkElement | undefined = document.querySelector("link[rel~='icon']");
 
   if (!link) {
     link = document.createElement("link");

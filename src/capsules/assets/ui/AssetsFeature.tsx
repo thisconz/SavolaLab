@@ -53,14 +53,14 @@ type AssetTab = "instruments" | "equipment" | "inventory";
 // Helpers
 // ─────────────────────────────────────────────
 
-const daysUntil = (d?: string) => (d ? Math.ceil((new Date(d).getTime() - Date.now()) / 86_400_000) : null);
+const daysUntil = (d?: string) => (d ? Math.ceil((new Date(d).getTime() - Date.now()) / 86_400_000) : undefined);
 
 const fmtDate = (d?: string) =>
   d ? new Date(d).toLocaleDateString([], { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
 const CalBadge: React.FC<{ nextCal?: string }> = ({ nextCal }) => {
   const d = daysUntil(nextCal);
-  if (d === null) return <span className="text-xs text-(--color-zenthar-text-muted)">Not set</span>;
+  if (d === undefined) return <span className="text-xs text-(--color-zenthar-text-muted)">Not set</span>;
   if (d < 0)
     return (
       <span className="inline-flex items-center gap-1 rounded-md border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[9px] font-black text-red-400 uppercase">
@@ -190,11 +190,11 @@ const InstrumentsTab: React.FC<{ instruments: Instrument[]; loading: boolean }> 
 
   const overdue = instruments.filter((i) => {
     const d = daysUntil(i.next_calibration);
-    return d !== null && d < 0;
+    return d !== undefined && d < 0;
   }).length;
   const dueSoon = instruments.filter((i) => {
     const d = daysUntil(i.next_calibration);
-    return d !== null && d >= 0 && d <= 14;
+    return d !== undefined && d >= 0 && d <= 14;
   }).length;
   const active = instruments.filter((i) => i.status === "ACTIVE").length;
 

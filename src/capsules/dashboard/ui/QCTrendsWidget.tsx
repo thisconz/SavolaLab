@@ -37,7 +37,7 @@ export const QCTrendsWidget: React.FC<Props> = memo(({ tests, loading = false })
     if (!tests?.length) return [];
     const daily: Record<string, { sum: number; count: number }> = {};
     tests.forEach((t) => {
-      if (!t.performed_at || t.calculated_value == null) return;
+      if (!t.performed_at || t.calculated_value === undefined) return;
       const date = new Date(t.performed_at).toLocaleDateString(undefined, {
         month: "numeric",
         day: "numeric",
